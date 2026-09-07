@@ -1,3 +1,5 @@
+import { archivePlan as storeArchivePlan, restoreArchivedPlan as storeRestoreArchivedPlan, loadPlanHistory as storeLoadPlanHistory } from './planStore';
+
 export const CATEGORIES = ['Accommodation','Food','Transport','Shopping','Tickets','Activities','Communication','Other'] as const;
 export type Category = typeof CATEGORIES[number];
 export type PlanStatus = 'Planning' | 'Traveling' | 'Settling' | 'Completed';
@@ -202,6 +204,19 @@ export function validatePlan(input: unknown): Plan {
     }
   }
   return p as Plan;
+}
+
+export function archivePlan(plan: Plan): Plan {
+  storeArchivePlan(plan);
+  return defaultPlan();
+}
+
+export function restoreArchivedPlan(id: string): Plan | undefined {
+  return storeRestoreArchivedPlan(id);
+}
+
+export function getPlanHistory() {
+  return storeLoadPlanHistory().map(h => ({ timestamp: h.savedAt, action: h.reason, planName: h.planId }));
 }
 
 export { KEY as PLAN_STORAGE_KEY };
