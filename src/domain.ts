@@ -33,6 +33,12 @@ export function loadPlan(): Plan {
 }
 export function savePlan(plan: Plan) { localStorage.setItem(KEY, JSON.stringify(plan)); }
 
+/** Plan dates are inclusive calendar days in the trip's local date context. */
+export function isWithinPlanDates(date: string, plan: Pick<Plan, 'startDate' | 'endDate'>) {
+  if (!date || !plan.startDate || !plan.endDate) return false;
+  return date >= plan.startDate && date <= plan.endDate;
+}
+
 export function normalizeRatios(members: Member[]) {
   const total = members.reduce((s, m) => s + m.ratio, 0);
   if (!members.length || total <= 0) return members.map(m => ({ ...m, ratio: 0 }));
@@ -84,6 +90,7 @@ export function validatePlan(input: unknown): Plan {
   const p = input as Partial<Plan>;
   if (typeof p.id !== 'string' || typeof p.name !== 'string' || !Array.isArray(p.members) || !Array.isArray(p.ledger) || !Array.isArray(p.accounts) || !Array.isArray(p.events)) throw new Error('Invalid backup: missing Plan structure.');
   if (!Array.isArray(p.destinations) || typeof p.settlementCurrency !== 'string' || !['Planning','Traveling','Settling','Completed'].includes(p.status as string)) throw new Error('Invalid backup: invalid Plan metadata.');
+  if (p.startDate && p.endDate && (typeof p.startDate !== 'string' || typeof p.endDate !== 'string' || p.startDate > p.endDate)) throw new Error('Invalid backup: Plan start date must be on or before end date.');
   const memberIds = new Set<string>();
   for (const m of p.members) {
     if (!m || typeof m.id !== 'string' || typeof m.name !== 'string' || !Number.isFinite(m.ratio) || m.ratio < 0) throw new Error('Invalid backup: invalid member.');
