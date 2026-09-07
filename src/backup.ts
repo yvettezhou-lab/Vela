@@ -71,20 +71,26 @@ export function downloadBackup(plan: Plan) {
   a.href = url; a.download = `${safeName(plan.name)} - Vela Backup.json`; a.click(); URL.revokeObjectURL(url);
 }
 
-export function parseBackup(text: string): Plan {
-  const raw = JSON.parse(text) as Partial<VelaBackup> & { version?: number; plan?: Plan };
+type RawBackup = Omit<Partial<VelaBackup>, 'version'> & { version?: number; plan?: Plan };
+
+function readBackup(text: string): RawBackup {
+  return JSON.parse(text) as RawBackup;
+}
+
+function validateBackup(raw: RawBackup): Plan {
   if (raw.schema !== 'vela.backup' || !raw.plan || (raw.version !== 1 && raw.version !== 2)) {
     throw new Error('This file is not a supported Vela backup.');
   }
   return validatePlan(raw.plan);
 }
 
+export function parseBackup(text: string): Plan {
+  return validateBackup(readBackup(text));
+}
+
 export function restorePlan(text: string): Plan {
-  const raw = JSON.parse(text) as Partial<VelaBackup> & { version?: number; plan?: Plan };
-  if (raw.schema !== 'vela.backup' || !raw.plan || (raw.version !== 1 && raw.version !== 2)) {
-    throw new Error('This file is not a supported Vela backup.');
-  }
-  const plan = validatePlan(raw.plan);
+  const raw = readBackup(text);
+  const plan = validateBackup(raw);
   if (raw.version === 2) {
     const archived = safeArchivedPlans(raw.archivedPlans);
     const history = safeHistory(raw.history);
