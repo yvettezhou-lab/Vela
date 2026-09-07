@@ -1,4 +1,5 @@
 import React, { useMemo, useRef, useState } from 'react';
+import { createRoot } from 'react-dom/client';
 import { Home, BookOpen, Scale, Compass, Settings, Plus, ChevronRight, ArrowUpRight, Trash2, Download, Upload, FileSpreadsheet } from 'lucide-react';
 import './styles.css';
 import { CATEGORIES, type AllocationMode, type Category, type LedgerEntry, type Plan, loadPlan, makeAllocations, savePlan, isPending, allocationFinal } from './domain';
