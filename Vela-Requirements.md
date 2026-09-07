@@ -1,594 +1,457 @@
-# Vela 产品需求文档
+# Vela — Product Requirements
 
-**版本：V1.0**  
-**状态：开发基准文档**  
-**项目：Vela**
+**Version:** V1.0  
+**Status:** Product baseline  
+**Project:** Vela
 
-> 本文档定义 Vela V1.0 应该“是什么”。实现技术、组件拆分和代码组织必须服务于本文档，而不是反过来让代码结构决定产品逻辑。
+> This is the authoritative product baseline for Vela. Vela is an independent travel expense management and multi-person settlement product. Carina requirements must not be imported into Vela.
 
----
+## 1. Product Positioning
 
-## 1. 产品定位
+Vela is a travel expense management and multi-person settlement tool.
 
-Vela 是一个面向个人/家庭使用的轻量级财务记录与回顾工具。
+Core chain:
 
-核心目标不是做复杂的财务管理软件，而是让用户能够：
+**Plan → Ledger → Allocation → Balance → Reflection / Export**
 
-1. 快速记录一笔真实发生的资金活动。
-2. 清楚知道钱花在哪里、从哪里来、目前在哪里。
-3. 正确处理转账、信用卡、副卡、代收代付等现实场景。
-4. 在月度/周期结束后回顾消费结构和趋势。
-5. 在不依赖云端的情况下可靠保存自己的数据。
+- **Plan:** complete container for one trip.
+- **Ledger:** real payments; source of truth.
+- **Allocation:** who ultimately bears each expense.
+- **Balance:** calculates who paid more/less and settlement suggestions.
+- **Reflection:** post-trip review and statistics.
+- **Atelier:** settings, data management and backup.
 
-### 产品原则
+Vela is not a generic personal-finance bookkeeping app.
 
-- **快速**：记一笔账应当是低摩擦操作。
-- **准确**：财务逻辑优先于视觉效果。
-- **克制**：不堆叠用户不需要的财务功能。
-- **本地优先**：核心数据首先属于用户本人。
-- **可回溯**：任何统计都应能够追溯到原始交易。
-- **可维护**：产品结构清楚，后续增加功能不破坏既有财务逻辑。
+## 2. UI / Design
 
----
+### UI language
 
-## 2. 一级信息架构
+All visible UI is English.
 
-底部导航固定为以下 5 项，顺序不可改变：
+Fixed bottom navigation, with fixed names and order:
 
-1. **主页**
-2. **账本**
-3. **代收代付**
-4. **回顾**
-5. **设置**
+**Home / Ledger / Balance / Reflection / Atelier**
 
-底部导航是全局主导航，在移动端优先设计，并兼容 iOS 安全区域。
+### Visual language
 
-### 页面职责
+Inspired by the restraint of Carina, but Vela remains a separate product:
 
-| 页面 | 核心职责 |
-|---|---|
-| 主页 | 今日/当前周期财务概览 + 快速进入记账 |
-| 账本 | 查看、筛选、编辑全部交易 |
-| 代收代付 | 管理别人替用户支付、用户替别人支付等往来款 |
-| 回顾 | 对已经发生的交易进行周期性统计与复盘 |
-| 设置 | 管理账户、分类、人员、数据及应用设置 |
+- parchment / warm paper background
+- ink / dark typography
+- muted gold
+- quiet, restrained, refined
+- mobile-first
+- no colorful dashboard
+- no card overload
+- text is the main character
+- thin Lucide icons
+- icons use muted gold / ink and remain secondary
 
----
+The product should feel like a refined travel ledger, not financial SaaS.
 
-## 3. 主页
+## 3. Plan
 
-主页是 Vela 的默认入口。
+Plan is the first-class object. One Plan represents one complete trip.
 
-### 3.1 核心内容
+Lifecycle:
 
-主页应优先展示：
+**Planning → Traveling → Settling → Completed**
 
-- 当前周期的核心财务概览。
-- 支出/收入等关键数字。
-- 当前净财富相关信息。
-- 最近交易。
-- 快速记账入口。
+Plan supports:
 
-### 3.2 快速记账
+- create
+- edit
+- archive
+- restore
+- history
+- export
 
-快速记账是 Vela 的核心操作之一。
+A Plan can contain multiple cities, countries/regions, currencies, Events, Ledger entries and members.
 
-要求：
+Country / Region is a destination dimension.
 
-- 从主页可以直接进入。
-- 支持深链/直接进入快速记账页面。
-- 尽量减少输入步骤。
-- 可以根据历史记录提供建议，但建议不能强制覆盖用户输入。
-- 用户手动修改后，以用户的选择为最终结果。
+## 4. Members
 
-### 3.3 最近交易
+Each Plan has its own members.
 
-- 展示近期真实交易。
-- 点击可进入交易详情/编辑。
-- 数据必须来自统一交易数据源，不允许主页维护一套独立数据。
+Example: Me, Dad, Mom, Child 1, Child 2.
 
----
+Each member has a Plan-level default allocation ratio. The total must equal **100%** and can be edited.
 
-## 4. 账本
+Example:
 
-账本是 Vela 的完整交易记录中心。
+| Member | Default |
+|---|---:|
+| Adult A | 30% |
+| Adult B | 30% |
+| Child A | 20% |
+| Child B | 20% |
 
-### 4.1 交易类型
+**Trip participation ≠ expense participation.** Being on the trip does not mean participating in every expense.
 
-至少支持：
+## 5. Ledger
 
-- 支出
-- 收入
-- 转账
-- 与代收代付相关的往来记录
+### Core principle
 
-### 4.2 交易信息
+**One Ledger = One real payment.**
 
-一笔交易至少需要能够表达：
+Ledger is the source of truth. A real payment is one Ledger entry, e.g. `Hotel — MYR 600 — paid by Me — Maybank`.
 
-- 金额
-- 日期/时间
-- 交易类型
-- 分类
-- 账户
-- 备注
-- 相关人员（适用时）
-- 是否影响净财富
+Never split one real payment into multiple virtual payments merely to solve allocation.
 
-### 4.3 交易操作
+### Required fields
 
-必须支持：
+At minimum:
 
-- 查看
-- 新增
-- 编辑
-- 删除
+- Date
+- Usage Date (when different from payment date)
+- Description
+- Category
+- Amount
+- Currency
+- Payer
+- Account
+- Event
+- Allocation
+- Final Settlement
 
-编辑和删除后，所有相关页面统计必须同步更新。
+## 6. Payment Date ≠ Usage Date
 
-### 4.4 筛选与查看
+Payment Date and Usage Date are independent.
 
-账本需要支持按照实际使用场景进行筛选/浏览，例如：
+Example: pay ¥1000 on Mar 1 for a stay on Mar 10.
 
-- 时间/月份
-- 交易类型
-- 分类
-- 账户
-- 人员
+Bookings / prebooked payments remain ordinary Ledger entries with an additional Usage Date. There is no separate booking ledger.
 
-具体 UI 可以简化，但不能牺牲数据可追溯性。
+## 7. Event / Item
 
----
+**Event** groups related payments, e.g. `Kuala Lumpur Hotel` with Deposit, Balance and Refund.
 
-## 5. 代收代付
+**Item** may provide a finer level of organization when needed.
 
-代收代付是 Vela 的独立一级功能，不与普通支出简单混为一谈。
+Event / Item are organizational structures and never change the fact that Ledger records real payments.
 
-用于处理现实中的：
+## 8. Category
 
-- 用户替别人先支付。
-- 别人替用户先支付。
-- 后续需要追回或补回的金额。
-- 已结清/未结清的往来款。
+Category is a first-class data field, not a decorative UI tag.
 
-### 5.1 核心概念
+Default categories:
 
-代收代付需要能够明确：
-
-- 谁支付/收取。
-- 为谁支付/收取。
-- 金额。
-- 发生日期。
-- 对应的原始交易。
-- 当前是否结清。
-
-### 5.2 与普通账务的关系
-
-代收代付不能简单作为一个普通消费分类处理。
-
-必须保留其“往来款”的性质，同时允许关联原始交易，从而避免重复计算。
-
-### 5.3 状态
-
-至少需要区分：
-
-- 未结清
-- 部分结清（如果 V1.0 实现需要）
-- 已结清
-
-如果 V1.0 暂不实现部分结清，数据模型必须为未来扩展保留空间。
-
----
-
-## 6. 回顾
-
-回顾页面的核心概念为：
-
-# A Month in Review
-
-它不是单纯的“报表”，而是帮助用户理解一个周期的钱花在哪里。
-
-### 6.1 月份选择
-
-- 支持月份筛选。
-- 默认展示当前月份。
-- 切换月份后，所有统计和明细同步切换。
-
-### 6.2 Category 视图
-
-核心展示为分类饼图。
-
-默认分类结构：
-
+- Accommodation
 - Food
-- Travel
-- Family
+- Transport
 - Shopping
-- Others
+- Tickets
+- Activities
+- Communication
+- Other
 
-饼图中心显示该周期的**总支出**。
+Category participates in Ledger, statistics, Excel export and personal bill.
 
-### 6.3 三种分析视图
+## 9. Allocation
 
-回顾支持：
+Allocation answers **who ultimately bears the expense**.
 
-- **Category**：按分类分析
-- **Account**：按账户分析
-- **Trend**：按时间/趋势分析
+- **Payer:** who actually paid.
+- **Allocation:** who ultimately bears the expense.
 
-三种视图使用同一套原始交易数据，不允许分别维护统计数据。
+Do not create a complex “A paid for B” relationship model. Actual payer + allocation is sufficient.
 
-### 6.4 分类明细
+## 10. Allocation Modes
 
-点击某一分类后，可以继续查看该分类下的具体交易。
+Each expense selects participating members and one mode.
 
-统计结果必须能够回溯到原始交易。
+### Default
 
-### 6.5 财务口径
+Use the Plan default ratios, re-normalized only among selected participants.
 
-回顾中的支出统计遵循统一财务逻辑：
+Example: Plan default A 50% / B 30% / C 20%; if only A+B participate, A 62.5% / B 37.5%.
 
-- 普通消费计入支出。
-- 转账不计入支出。
-- 收入不计入支出。
-- 副卡消费计入账本和回顾，但不增加净财富。
+### Split
 
----
+Equal split among selected participants. Example: ¥300 / A+B+C → ¥100 each.
 
-## 7. 核心财务逻辑
+### Custom
 
-这是 Vela 最重要的业务规则，优先级高于 UI。
+Manually specify amount or percentage.
 
-### 7.1 普通消费
+Custom allocation must equal the Ledger amount exactly. No residual such as ¥100 allocated as ¥99.99.
 
-普通消费：
+## 11. Allocation History Must Freeze
 
-- 计入 Ledger。
-- 计入 Reflection。
-- 根据账户的财富口径影响 Net Worth。
+Once Allocation exists, later changes to Plan default ratios must not affect historical transactions.
 
-### 7.2 收入
+Every Allocation stores the historical:
 
-收入：
+- mode
+- participants
+- percentages
+- amounts
 
-- 计入 Ledger。
-- 增加 Net Worth（前提是对应账户计入财富）。
-- 不计入支出统计。
+## 12. Multi-Currency
 
-### 7.3 转账
+Vela does **not** provide an FX engine.
 
-转账：
+Trips may contain MYR / USD / SGD / THB / CNY and other currencies.
 
-- 计入 Ledger。
-- 不计入支出。
-- 不改变 Net Worth。
+Ledger always preserves the original amount and original currency, e.g. `MYR 150.00`.
 
-本质上是资产在账户之间移动，而不是财富增加或减少。
+## 13. Final Settlement
 
-### 7.4 副卡消费
+Each Plan has a **Settlement Currency**, commonly CNY.
 
-副卡消费：
+Final settlement values come from actual settlement, not guessed exchange rates.
 
-- 计入 Ledger。
-- 计入 Reflection。
-- **不影响 Net Worth**。
+Example: original MYR 150; actual final settlement ¥240 → Final Amount ¥240, Final Currency CNY.
 
-### 7.5 账户财富口径
+## 14. Pending Settlement
 
-账户只需要有一个核心财富属性：
+A transaction is Pending when:
 
-`countAsWealth`
+- Final Amount is missing, or
+- Final Currency is missing, or
+- Final Currency ≠ Plan Settlement Currency.
 
-默认规则：
+Pending transactions do not enter final Balance calculations.
 
-- Cash：计入财富。
-- Bank：计入财富。
-- Credit Card：默认不计入财富。
+Never guess an FX rate or automatically estimate RMB.
 
-所有净财富计算必须统一依据该属性，而不是在不同页面写死账户类型。
+## 15. Multi-Currency Allocation Display
 
----
+Original amount/currency is always the primary information.
 
-## 8. 数据模型原则
+Example:
 
-Vela 必须建立统一、明确的数据层。
+`Me 40.00 MYR → ¥64.00`
 
-建议核心实体：
+MYR 40.00 is the original allocation; ¥64.00 is the known final settlement allocation.
 
-- Account
+If final settlement is unknown, show the original amount/currency only.
+
+Do not put oversized Pending labels on every card. Prefer a **Show Pending** filter entry.
+
+## 16. Final Allocation Calculation
+
+When final settlement is known:
+
+`allocationFinal = allocation.amount / ledger.amount × ledger.finalAmount`
+
+Example:
+
+Ledger = MYR 150; Allocation = A 40 / B 40 / C 70; Final Settlement = ¥240.
+
+Therefore:
+
+- A → ¥64
+- B → ¥64
+- C → ¥112
+
+Original MYR allocation is never overwritten.
+
+## 17. Balance
+
+Balance has two distinct concepts.
+
+### Allocation Result
+
+Calculate what each person ultimately bore versus what each person actually paid. This yields each person's net position: who should receive and who should pay.
+
+### Transfer Suggestions
+
+Minimize settlement transfer count. Equivalent balances should be compressed into the smallest practical set of transfers rather than producing unnecessary chains.
+
+## 18. Pending Filter
+
+Balance provides:
+
+- **Show Pending · N**
+- **Show All**
+
+Pending means:
+
+- finalAmount missing
+- finalCurrency missing
+- finalCurrency ≠ Plan settlementCurrency
+
+Pending transactions do not participate in final settleable Balance.
+
+## 19. Refund
+
+A refund is always a **new negative Ledger entry**. Never edit the original expense.
+
+Example:
+
+- Hotel +¥1000
+- Hotel Refund -¥200
+
+Both entries remain in history.
+
+## 20. Account
+
+Account represents where money comes from / goes out.
+
+Examples:
+
+- Cash
+- Alipay
+- WeChat Pay
+- Bank Card
+- Credit Card
+
+Account and Payer are independent concepts.
+
+## 21. Reflection
+
+Reflection is the post-trip review.
+
+Core dimensions:
+
+- Total
+- Category breakdown
+- Destination
+- Event
+- Member
+- Currency
+- Pending settlement
+- Personal spending / allocation
+
+Different currencies must remain separate. Never combine MYR 10,000 + CNY 5,000 into one meaningless number.
+
+Only transactions with explicit Final Settlement may contribute to settled totals in the Plan Settlement Currency.
+
+## 22. Export
+
+Vela must support **Excel export**.
+
+### Overview
+
+- Plan
+- Dates
+- Destinations
+- Members
+- Settlement currency
+- Total
+
+### Full Ledger
+
+- Date
+- Usage Date
+- Description
 - Category
-- Person
-- Transaction
-- Transfer
-- Receivable/Payable（代收代付）
-- Item/Profile（如后续需要用于快速记账建议）
-
-### 数据原则
-
-1. UI 不直接承担持久化逻辑。
-2. 所有页面从统一数据服务读取数据。
-3. 统计由原始交易计算产生。
-4. 不保存容易与原始交易产生不一致的冗余统计结果。
-5. 删除/编辑原始交易后，所有统计自动重新计算。
-
----
-
-## 9. 数据安全与本地优先
-
-V1.0 采用 Local-first 思路。
-
-核心数据保存在本地。
-
-必须考虑：
-
-- 页面刷新后数据仍然存在。
-- 浏览器离线情况下核心功能仍可使用。
-- 数据可以导出。
-- 数据可以导入恢复。
-- 导入数据必须经过结构校验，不能直接破坏现有数据库。
-
-V1.0 不要求云同步。
-
----
-
-## 10. PWA / iOS 使用要求
-
-Vela 面向移动端实际使用。
-
-要求：
-
-- PWA 可安装。
-- 支持离线核心使用。
-- iOS 安全区域正确处理。
-- 底部导航不能被 Home Indicator 遮挡。
-- 输入框、数字键盘等移动端交互优先。
-- 页面不得出现横向溢出。
-- 长数字金额不得导致布局异常。
-
----
-
-## 11. Shortcut / Action Button 预留
-
-V1.0 需要为后续 iOS Shortcut / Action Button 快速记账预留清晰入口。
-
-目标方向：
-
-**Action Button / Shortcut → Vela Quick Entry → 完成交易写入**
-
-具体系统级集成可以后置，但应用内部 Quick Entry 的数据接口必须足够稳定，不能为了 UI 快速实现而把核心逻辑写死在页面组件中。
-
----
-
-## 12. 视觉与交互原则
-
-Vela 的视觉目标：
-
-- 简洁
-- 克制
-- 高信息密度但不拥挤
-- 财务工具感，而不是传统“表格软件”感
-- 移动端优先
-
-### 交互原则
-
-- 高频操作优先。
-- 重要数字一眼可见。
-- 删除等破坏性操作需要明确反馈。
-- 空状态需要友好且有行动入口。
-- 不为了视觉效果增加无意义动画。
-- 页面之间保持统一的组件语言。
-
----
-
-## 13. 设置
-
-设置负责管理 Vela 的基础数据和应用行为。
-
-至少包括：
-
-### 账户
-
-- 查看账户
-- 新增账户
-- 编辑账户
-- 删除/停用账户
-- 设置 `countAsWealth`
-
-### 分类
-
-- 查看
-- 新增
-- 编辑
-- 删除/停用
-
-### 人员
-
-- 查看
-- 新增
-- 编辑
-- 删除/停用
-
-### 数据
-
-- 导出备份
-- 导入恢复
-- 数据校验
-
-### 应用设置
-
-保留后续扩展空间，但 V1.0 不为了“设置完整”而堆叠低频功能。
-
----
-
-## 14. 路由与页面结构
-
-建议至少具备以下概念路由：
-
-- `/` → 主页
-- `/ledger` → 账本
-- `/settlements` → 代收代付
-- `/reflection` → 回顾
-- `/settings` → 设置
-- `/quick-entry` → 快速记账
-- `/transaction/:id` → 交易详情/编辑
-
-其中 `/quick-entry` 必须是一等公民，而不是主页上的临时弹窗实现。
-
----
-
-## 15. V1.0 验收标准
-
-### 导航
-
-- [ ] 底部导航存在。
-- [ ] 顺序严格为：主页 / 账本 / 代收代付 / 回顾 / 设置。
-- [ ] 五个页面均可正常进入。
-- [ ] 移动端安全区正常。
-
-### 记账
-
-- [ ] 可以新增支出。
-- [ ] 可以新增收入。
-- [ ] 可以新增转账。
-- [ ] 可以编辑交易。
-- [ ] 可以删除交易。
-- [ ] 快速记账可独立访问。
-- [ ] 手动修改可以覆盖自动建议。
-
-### 财务逻辑
-
-- [ ] 消费正确计入 Ledger。
-- [ ] 消费正确计入 Reflection。
-- [ ] 收入正确计入 Ledger。
-- [ ] 转账计入 Ledger 但不计入支出。
-- [ ] 转账不改变 Net Worth。
-- [ ] 副卡消费计入 Ledger/Reflection。
-- [ ] 副卡消费不影响 Net Worth。
-- [ ] Cash/Bank 默认计入财富。
-- [ ] Credit Card 默认不计入财富。
-- [ ] Net Worth 统一依据 `countAsWealth` 计算。
-
-### 回顾
-
-- [ ] 支持月份选择。
-- [ ] 有 Category / Account / Trend 三种视图。
-- [ ] Category 默认展示 Food / Travel / Family / Shopping / Others。
-- [ ] 饼图中心展示总支出。
-- [ ] 点击分类可以查看明细。
-- [ ] 所有统计来自原始交易。
-
-### 代收代付
-
-- [ ] 可以记录代收/代付事项。
-- [ ] 可以看到相关人员。
-- [ ] 可以看到金额。
-- [ ] 可以看到结清状态。
-- [ ] 不与普通消费重复计算。
-
-### 数据
-
-- [ ] 刷新后数据不丢失。
-- [ ] 核心功能可离线使用。
-- [ ] 可以导出数据。
-- [ ] 可以导入数据。
-- [ ] 导入不会直接破坏数据库。
-
-### 移动端
-
-- [ ] 无横向溢出。
-- [ ] 长金额显示正常。
-- [ ] iOS 底部安全区域正常。
-- [ ] 输入体验适合手机使用。
-
----
-
-## 16. 开发纪律
-
-这次 Vela 采用“先需求、后架构、再实现”的顺序。
-
-### 必须遵守
-
-1. 不直接复制 Carina 旧项目作为 Vela 主体。
-2. 不因为旧代码存在就迁就旧架构。
-3. 财务逻辑必须集中定义。
-4. 页面只是业务逻辑的展示与交互层。
-5. 任何统计必须能解释其数据来源。
-6. 修改一笔交易后，所有相关页面必须得到一致结果。
-7. 不做与 V1.0 无关的大规模重构。
-8. 新功能必须先更新需求/数据模型，再写 UI。
-
-### 本次重写目标
-
-不是把旧项目“搬过去”，而是以本文件为唯一产品基准，从空仓库重新建立一个结构清晰、逻辑可靠、移动端体验良好的 Vela。
-
----
-
-## 17. 后续开发顺序
-
-推荐按以下顺序实施：
-
-**Phase 1 — 基础骨架**
-
-- Vite/React/TypeScript
-- 路由
-- 全局布局
-- 五项底部导航
-- 移动端基础样式
-
-**Phase 2 — 数据层**
-
-- 数据库
+- Event
+- Amount
+- Currency
+- Payer
 - Account
+- Final Amount
+- Final Currency
+
+### Allocation Detail
+
+For every expense:
+
+- participant
+- original allocation
+- final allocation
+- allocation mode
+
+### Settlement
+
+- paid
+- borne
+- balance
+- suggested transfers
+
+## 23. Personal Bill
+
+A personal bill may be generated for one person.
+
+It must not expose other people's personal Allocation details.
+
+It should contain:
+
+- Event
+- Description
 - Category
-- Person
-- Transaction
-- Transfer
-- 代收代付
-- 统一财务计算逻辑
+- Trip total
+- This person's allocation
 
-**Phase 3 — 核心操作**
+It must not expose a full person-by-person allocation breakdown to someone who should not see it.
 
-- Quick Entry
-- Transaction Edit
-- Delete
-- Transfer
-- 代收代付
+## 24. Backup
 
-**Phase 4 — 五大页面**
+Vela is **Local-first**. Core data is stored locally.
 
-- 主页
-- 账本
-- 代收代付
-- 回顾
-- 设置
+Must support:
 
-**Phase 5 — 数据能力**
+- Export backup
+- Import backup
+- Restore data
 
-- Backup Export
-- Import/Restore
-- 数据校验
+Imported data must be structurally validated and must not blindly corrupt the existing database.
 
-**Phase 6 — 移动端与 PWA**
+## 25. Data Architecture
 
-- iOS 安全区
-- PWA
-- 离线
-- Shortcut / Action Button 接口预留
+Core relationship:
 
-**Phase 7 — 验收**
+```text
+PLAN
+ │
+ ├── Members
+ ├── Events
+ │    └── Items
+ ├── Ledger
+ │    └── Allocation
+ ├── Balance
+ └── Reflection / Export
+```
 
-- Build
-- 核心流程测试
-- 财务逻辑测试
-- 移动端视觉检查
-- Vercel 部署验证
+Core data flow:
 
----
+```text
+Real Payment
+      ↓
+    Ledger
+      ↓
+  Allocation
+      ↓
+Final Settlement
+      ↓
+    Balance
+      ↓
+Transfer Suggestions
+```
 
-## 18. 当前状态
+Core entities center on Plan, Member, Account, Category, Event, Item, Ledger and Allocation. Balance, Reflection and Export are derived from authoritative data and must not maintain contradictory copies.
 
-Vela 仓库当前作为**全新项目起点**。
+## 26. Product Principles — Conflict Resolution Order
 
-旧 Carina 项目仅作为历史参考，不作为 Vela 的代码基础。
+When requirements conflict, use this priority order:
 
-本文件建立后，后续开发以本文件为准；如果产品需求发生变化，应先修改本文件，再修改代码。
+1. **Ledger is fact.** One real payment = one Ledger entry.
+2. **Allocation is the bearing relationship.** Payer ≠ bearer.
+3. **Plan is the trip container.** Trip data is organized around Plan.
+4. **Original amounts are immutable history.** Never rewrite original currency amounts.
+5. **Never guess FX.** Unknown final settlement remains Pending.
+6. **Historical allocations are frozen.** Changing defaults cannot change historical Allocation.
+7. **Participation is expense-specific.** Trip participation ≠ expense participation.
+8. **Refunds preserve history.** Refund = negative Ledger entry.
+9. **Category is formal data.** It is not decorative metadata.
+10. **Vela is independent from Carina.** No Carina product logic is to be imported into Vela.
+
+## Final Project Boundary
+
+```text
+yvettezhou-lab/Vela
+        ↓
+      Vela
+
+        ≠
+
+yvettezhou-lab/sb1-ujdefmx6
+        ↓
+      Carina
+```
+
+Vela and Carina are completely separate projects. Vela must remain in `yvettezhou-lab/Vela`; Carina remains in `yvettezhou-lab/sb1-ujdefmx6`.
