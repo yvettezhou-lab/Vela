@@ -10,6 +10,7 @@ export type Allocation = { memberId: string; amount: number; percentage: number 
 export type LedgerEntry = {
   id: string; date: string; usageDate: string; description: string; category: Category;
   amount: number; currency: string; payerId: string; accountId: string; eventId?: string; item?: string;
+  planned?: boolean;
   allocationMode: AllocationMode; allocations: Allocation[];
   finalAmount?: number; finalCurrency?: string;
 };
@@ -33,7 +34,11 @@ export function loadPlan(): Plan {
 }
 export function savePlan(plan: Plan) { localStorage.setItem(KEY, JSON.stringify(plan)); }
 
-/** Plan dates are inclusive calendar days in the trip's local date context. */
+/**
+ * Plan dates are inclusive calendar days.
+ * Example: departure flight on the 20th and return-home landing flight on the 30th => trip dates are 20–30, inclusive.
+ * Times of the flights do not change the Plan date range; Ledger keeps exact payment/usage dates separately.
+ */
 export function isWithinPlanDates(date: string, plan: Pick<Plan, 'startDate' | 'endDate'>) {
   if (!date || !plan.startDate || !plan.endDate) return false;
   return date >= plan.startDate && date <= plan.endDate;
