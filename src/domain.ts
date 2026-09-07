@@ -51,7 +51,7 @@ export function makeAllocations(amount: number, memberIds: string[], members: Me
     return selected.map((m, i) => {
       const allocation = i === selected.length - 1 ? +(amount - used).toFixed(2) : +(amount * percentages[i] / 100).toFixed(2);
       used += allocation;
-      return { memberId: m.id, amount: allocation, percentage: +(allocation / amount * 100).toFixed(6) };
+      return { memberId: m.id, amount: allocation, percentage: +percentages[i].toFixed(6) };
     });
   }
   if (mode === 'Split') {
