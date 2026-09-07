@@ -1,6 +1,6 @@
 # Vela — Product Requirements
 
-**Version:** V1.1  
+**Version:** V1.2  
 **Status:** Product baseline  
 **Project:** Vela
 
@@ -29,26 +29,13 @@ Vela is not a generic personal-finance bookkeeping app.
 
 All visible UI is English.
 
-Fixed bottom navigation, with fixed names and order:
+### Fixed navigation
 
 **Home / Ledger / Balance / Reflection / Atelier**
 
 ### Visual language
 
-Inspired by the restraint of Carina, but Vela remains a separate product:
-
-- parchment / warm paper background
-- ink / dark typography
-- muted gold
-- quiet, restrained, refined
-- mobile-first
-- no colorful dashboard
-- no card overload
-- text is the main character
-- thin Lucide icons
-- icons use muted gold / ink and remain secondary
-
-The product should feel like a refined travel ledger, not financial SaaS.
+Parchment / warm paper, ink / dark typography, muted gold, quiet and restrained, mobile-first, text-first, thin Lucide icons, no colorful financial SaaS dashboard.
 
 ## 3. Plan
 
@@ -60,19 +47,15 @@ Lifecycle:
 
 Plan supports create, edit, archive, restore, history and export.
 
-A Plan can contain multiple cities, countries/regions, currencies, Events, Ledger entries and members.
-
-Country / Region is a destination dimension.
+A Plan can contain multiple destinations, currencies, Events, Ledger entries and members.
 
 Plan travel dates are **inclusive natural calendar days**. If the departure flight is on the 20th and the return-home landing flight is on the 30th, the Plan travel dates are **20–30 inclusive**. Flight times do not change this date range.
 
 ## 4. Members
 
-Each Plan has its own members.
+Each Plan has its own members. Each member has a Plan-level default allocation ratio. The total must equal **100%**.
 
-Each member has a Plan-level default allocation ratio. The total must equal **100%** and can be edited.
-
-**Trip participation ≠ expense participation.** Being on the trip does not mean participating in every expense.
+**Trip participation ≠ expense participation.**
 
 ## 5. Ledger
 
@@ -80,13 +63,9 @@ Each member has a Plan-level default allocation ratio. The total must equal **10
 
 **One Ledger = One real payment.**
 
-Ledger is the source of truth. A real payment is one Ledger entry.
-
 Never split one real payment into multiple virtual payments merely to solve allocation or daily display.
 
 ### Required fields
-
-At minimum:
 
 - Payment Date
 - Usage Start
@@ -105,15 +84,23 @@ At minimum:
 
 Payment Date and usage period are independent.
 
-A Ledger entry may represent a service used on one day or across several days.
+A Ledger entry may represent a service used on one day, continuously across several days, or on several discrete dates.
 
 Examples:
 
 - Coffee paid and consumed on Jul 20 → Usage Start = Jul 20, Usage End = Jul 20.
 - Hotel paid on Jul 10 for Jul 20–23 → Payment Date = Jul 10, Usage Start = Jul 20, Usage End = Jul 23.
-- A prepaid round-trip flight can have a usage period spanning the outbound and return travel dates.
+- A prepaid round-trip flight paid on Jul 10 for outbound Jul 20 and return Jul 30 → Usage Start = Jul 20, Usage End = Jul 30, with **Discrete Usage Dates = Jul 20 and Jul 30**.
 
-Bookings / prebooked payments remain ordinary Ledger entries. There is no separate booking ledger.
+### Discrete usage dates
+
+Some services occur on multiple separated dates rather than continuously.
+
+For discrete services, Vela stores explicit `usageDates`. Daily consumption, Prepaid remaining amounts, Reflection, Balance and Personal Bill use those explicit dates instead of averaging the payment across every calendar day between Usage Start and Usage End.
+
+The default Quick Entry behavior for **Transport** with different Usage Start / End dates is discrete usage: the amount is represented on the departure and return dates only. This prevents a round-trip flight from being incorrectly spread across the entire trip.
+
+Continuous services such as Accommodation remain continuous across their Usage Start / End range.
 
 ## 7. Prepaid vs Actual Consumption
 
@@ -123,62 +110,29 @@ This is a core Vela rule.
 
 A payment may be made before the service occurs. Such an entry is marked **Prepaid**.
 
-While the service has not occurred, the entry remains in the **PRE-TRIP / Prepaid** area and does **not** enter actual daily consumption totals.
-
-This preserves the distinction between:
-
-- money already paid, and
-- travel consumption that has actually occurred.
+While service dates have not occurred, the entry remains in **PRE-TRIP / Prepaid** and does not enter actual daily consumption totals.
 
 ### Actual consumption
 
-When a usage day has actually occurred, that day's share is moved into the corresponding daily Ledger view.
+When a usage date actually occurs, that date's share moves into the corresponding daily Ledger view while the original Ledger payment remains one record.
 
-For a multi-day prepaid service, Vela may display one daily share per actual usage day while retaining **one original Ledger entry** underneath.
-
-Example: prepaid hotel ¥1,500 for three nights:
-
-```text
-PREPAID before the trip
-Hotel — ¥1,500 — Jul 20–23
-
-After actual use begins
-Jul 20   Hotel   ¥500
-Jul 21   Hotel   ¥500
-Jul 22   Hotel   ¥500
-```
-
-The three daily rows are **views of one Ledger payment**, not three payments.
-
-### Unused future days remain Prepaid
-
-If only part of a multi-day service has occurred, only the occurred days enter daily actual consumption. The remaining days stay Prepaid.
-
-This is important because a future hotel stay, ticket or transport booking may still change, be cancelled, be refunded or have its price changed.
+For a discrete round-trip flight, only the two flight dates become usage views. The days between the outbound and return flights are never treated as flight consumption days.
 
 ### Daily distribution
 
-For a multi-day prepaid amount without a more specific actual daily price, the default display distribution is an equal daily split with cent-level rounding. This is a **daily consumption display**, not a creation of additional payments.
+For a continuous multi-day service without explicit daily prices, the amount is distributed equally across its usage dates with cent-level rounding.
 
-A future enhancement may allow explicit daily amounts when the real service has non-uniform daily prices.
+For a discrete service, the amount is distributed across its explicit usage dates.
 
-### Discrete services
+### Unused future dates remain Prepaid
 
-Do not force discrete multi-date services such as round-trip flights to be averaged across every calendar day merely for visual symmetry.
-
-A round-trip flight should be represented according to its actual travel dates / legs where appropriate.
+If only part of a service's usage dates has occurred, only occurred dates enter actual consumption. Remaining dates stay Prepaid.
 
 ## 8. Event / Item
 
-**Event** groups related payments, e.g. `Kuala Lumpur Hotel` with Deposit, Balance and Refund.
-
-**Item** may provide a finer level of organization when needed.
-
-Event / Item are organizational structures and never change the fact that Ledger records real payments.
+Event groups related payments. Item provides finer organization. They never change the fact that Ledger records real payments.
 
 ## 9. Category
-
-Category is a first-class data field, not a decorative UI tag.
 
 Default categories:
 
@@ -191,7 +145,7 @@ Default categories:
 - Communication
 - Other
 
-Category participates in Ledger, statistics, Excel export and personal bill.
+Category participates in Ledger, statistics, Excel export and Personal Bill.
 
 ## 10. Allocation
 
@@ -200,101 +154,66 @@ Allocation answers **who ultimately bears the expense**.
 - **Payer:** who actually paid.
 - **Allocation:** who ultimately bears the expense.
 
-Do not create a complex “A paid for B” relationship model.
-
-For daily actual views, the original allocation is proportionally represented in each actual day. The underlying historical allocation remains attached to the single original Ledger entry.
+Historical allocation is frozen on the Ledger entry.
 
 ## 11. Allocation Modes
 
-Each expense selects participating members and one mode.
+- **Default:** Plan default ratios, re-normalized among selected participants.
+- **Split:** equal split.
+- **Custom:** manually specified percentages/amounts totaling exactly 100% / the Ledger amount.
 
-### Default
+## 12. Multi-Currency
 
-Use the Plan default ratios, re-normalized only among selected participants.
+Vela does not provide an FX engine. Original amount and currency are preserved.
 
-### Split
+## 13. Final Settlement / Pending
 
-Equal split among selected participants.
-
-### Custom
-
-Manually specify amount or percentage. Custom allocation must equal the Ledger amount exactly.
-
-## 12. Allocation History Must Freeze
-
-Once Allocation exists, later changes to Plan default ratios must not affect historical transactions.
-
-Every Allocation stores the historical mode, participants, percentages and amounts.
-
-## 13. Multi-Currency
-
-Vela does **not** provide an FX engine.
-
-Ledger always preserves the original amount and original currency.
-
-## 14. Final Settlement
-
-Each Plan has a Settlement Currency, commonly CNY.
-
-Final settlement values come from actual settlement, not guessed exchange rates.
-
-## 15. Pending Settlement
-
-A transaction is Pending when Final Amount is missing, Final Currency is missing, or Final Currency ≠ Plan Settlement Currency.
+A transaction is Pending when Final Amount is missing, Final Currency is missing, or Final Currency differs from Plan Settlement Currency.
 
 Pending transactions do not enter final Balance calculations.
 
-Never guess an FX rate.
+Never guess FX.
 
-## 16. Multi-Currency Allocation Display
-
-Original amount/currency is always primary.
-
-Example: `Me 40.00 MYR → ¥64.00`.
-
-If final settlement is unknown, show the original amount/currency only.
-
-Prefer a **Show Pending** filter over oversized warnings on every card.
-
-## 17. Final Allocation Calculation
-
-When final settlement is known:
-
-`allocationFinal = allocation.amount / ledger.amount × ledger.finalAmount`
-
-Original currency allocation is never overwritten.
-
-## 18. Balance
-
-Balance has two distinct concepts.
+## 14. Balance
 
 ### Allocation Result
 
 Calculate what each person ultimately bore versus what each person actually paid.
 
-For partially actualized prepaid multi-day entries, only the actualized portion participates in settlement calculations. Future prepaid usage remains outside final settlement until it actually occurs.
+Only actualized usage participates in settlement. Future prepaid usage remains outside final settlement.
 
 ### Transfer Suggestions
 
 Minimize practical settlement transfer count.
 
-## 19. Pending Filter
-
-Balance provides **Show Pending · N** / **Show All**.
-
-Pending transactions do not participate in final settleable Balance.
-
-## 20. Refund
+## 15. Refund
 
 A refund is always a **new negative Ledger entry**. Never edit the original expense.
 
-## 21. Account
+## 16. Account
 
-Account represents where money comes from / goes out.
+Account represents the money source / destination and is independent from Payer.
 
-Account and Payer are independent concepts.
+## 17. Trip Readiness
 
-## 22. Reflection
+During the **Planning** stage, Home provides a Trip Readiness check.
+
+The check has three pre-departure checkpoints:
+
+- **T−15 days**
+- **T−7 days**
+- **T−3 days**
+
+At each checkpoint, Vela checks the current Plan data for:
+
+1. **Accommodation coverage:** every Plan travel date has at least one Accommodation Ledger entry covering that date.
+2. **Major transport closure:** a major Transport entry exists on the first travel date and another on the final travel date, forming an outbound / return transport closure.
+
+Transport entries explicitly recorded as discrete usage dates are preferred for this closure check. Flight / train / rail / bus / ferry / coach / airline descriptions are also recognized as major transport indicators.
+
+The check is advisory: it does not create fake Ledger entries or infer bookings that are not recorded.
+
+## 18. Reflection
 
 Reflection is the post-trip review.
 
@@ -311,43 +230,21 @@ Core dimensions:
 - Daily actual consumption
 - Prepaid / not-yet-actual amounts
 
-Daily statistics should use actualized usage days rather than counting future prepaid amounts as already consumed.
+Different currencies remain separate. Only explicit Final Settlement contributes to settled totals in Plan Settlement Currency.
 
-Different currencies remain separate. Only explicit Final Settlement contributes to settled totals in the Plan Settlement Currency.
+## 19. Export
 
-## 23. Export
+Excel export preserves Payment Date, Usage Start / End, Prepaid status, actualized dates, original amount / currency, Payer, Account, Allocation and Final Settlement.
 
-Vela supports Excel export.
+## 20. Personal Bill
 
-The export must preserve:
+A Personal Bill is a private view of one person's own allocation. Actual usage and future prepaid usage remain visually separated. It must not expose other people's personal allocation details.
 
-- Payment Date
-- Usage Start / End
-- Prepaid status
-- Actualized dates
-- Original Amount / Currency
-- Payer
-- Account
-- Allocation
-- Final Settlement
+## 21. Backup
 
-## 24. Personal Bill
+Vela is Local-first. Support Export Backup, Import Backup and Restore with structural validation.
 
-A personal bill is a private view of one person's own allocation.
-
-It should show actual daily consumption clearly and keep future, not-yet-used prepaid amounts in a separate Prepaid area.
-
-It must not expose other people's personal allocation details.
-
-## 25. Backup
-
-Vela is **Local-first**.
-
-Must support Export Backup, Import Backup and Restore data.
-
-Imported data must be structurally validated.
-
-## 26. Data Architecture
+## 22. Data Architecture
 
 ```text
 PLAN
@@ -358,48 +255,51 @@ PLAN
  ├── Ledger
  │    └── Allocation
  │
+ ├── Continuous Usage / Discrete Usage Dates
  ├── Prepaid / Actual Usage View
- │
+ ├── Trip Readiness
  ├── Balance
  └── Reflection / Export
 ```
 
-The critical rule is:
+Critical rule:
 
 ```text
 One real payment
       ↓
 One Ledger entry
       ↓
+Continuous usage range OR explicit discrete usage dates
+      ↓
 Historical Allocation
       ↓
 Prepaid until actually used
       ↓
-Actual daily consumption view
+Actual usage view
       ↓
 Final Settlement
       ↓
 Balance
 ```
 
-Derived daily views must never create contradictory duplicate payments.
+Derived daily views never create duplicate payments.
 
-## 27. Product Principles — Conflict Resolution Order
-
-When requirements conflict, use this priority order:
+## 23. Product Principles — Conflict Resolution Order
 
 1. **Ledger is fact.** One real payment = one Ledger entry.
 2. **Allocation is the bearing relationship.** Payer ≠ bearer.
-3. **Prepaid is not actual consumption.** Future usage remains Prepaid until it occurs.
-4. **Actual daily views are derived from the original Ledger.** They never create duplicate payments.
-5. **Plan is the trip container.**
-6. **Original amounts are immutable history.**
-7. **Never guess FX.**
-8. **Historical allocations are frozen.**
-9. **Participation is expense-specific.**
-10. **Refunds preserve history.**
-11. **Category is formal data.**
-12. **Vela is independent from Carina.**
+3. **Prepaid is not actual consumption.**
+4. **Actual daily views are derived from the original Ledger.**
+5. **Discrete services use explicit usage dates rather than artificial continuous averaging.**
+6. **Plan is the trip container.**
+7. **Original amounts are immutable history.**
+8. **Never guess FX.**
+9. **Historical allocations are frozen.**
+10. **Participation is expense-specific.**
+11. **Refunds preserve history.**
+12. **Category is formal data.**
+13. **Trip readiness is advisory and never invents missing bookings.**
+14. **Vela is independent from Carina.**
 
 ## Final Project Boundary
 
