@@ -27,7 +27,10 @@ export function defaultPlan(): Plan {
     members: [me], accounts: [{ id: uid(), name: 'Cash' }, { id: uid(), name: 'Bank Card' }, { id: uid(), name: 'Alipay' }, { id: uid(), name: 'WeChat Pay' }], events: [], ledger: [] };
 }
 
-export function loadPlan(): Plan { try { const raw = localStorage.getItem(KEY); return raw ? JSON.parse(raw) : defaultPlan(); } catch { return defaultPlan(); } }
+export function loadPlan(): Plan {
+  try { const raw = localStorage.getItem(KEY); return raw ? validatePlan(JSON.parse(raw)) : defaultPlan(); }
+  catch { return defaultPlan(); }
+}
 export function savePlan(plan: Plan) { localStorage.setItem(KEY, JSON.stringify(plan)); }
 
 export function normalizeRatios(members: Member[]) {
@@ -36,9 +39,21 @@ export function normalizeRatios(members: Member[]) {
   return members.map(m => ({ ...m, ratio: (m.ratio / total) * 100 }));
 }
 
-export function makeAllocations(amount: number, memberIds: string[], members: Member[], mode: AllocationMode): Allocation[] {
-  if (!memberIds.length) return [];
+export function makeAllocations(amount: number, memberIds: string[], members: Member[], mode: AllocationMode, customPercentages?: Record<string, number>): Allocation[] {
+  if (!memberIds.length || !Number.isFinite(amount) || amount <= 0) return [];
   const selected = members.filter(m => memberIds.includes(m.id));
+  if (!selected.length) return [];
+  if (mode === 'Custom') {
+    const percentages = selected.map(m => Number(customPercentages?.[m.id] ?? 0));
+    const total = percentages.reduce((s, p) => s + p, 0);
+    if (percentages.some(p => !Number.isFinite(p) || p < 0) || Math.abs(total - 100) > 0.0001) throw new Error('Custom allocation must total 100%.');
+    let used = 0;
+    return selected.map((m, i) => {
+      const allocation = i === selected.length - 1 ? +(amount - used).toFixed(2) : +(amount * percentages[i] / 100).toFixed(2);
+      used += allocation;
+      return { memberId: m.id, amount: allocation, percentage: +(allocation / amount * 100).toFixed(6) };
+    });
+  }
   if (mode === 'Split') {
     const base = Math.floor((amount / selected.length) * 100) / 100;
     return selected.map((m, i) => ({ memberId: m.id, amount: i === selected.length - 1 ? +(amount - base * (selected.length - 1)).toFixed(2) : base, percentage: i === selected.length - 1 ? +(100 - (100 / selected.length) * (selected.length - 1)).toFixed(6) : +(100 / selected.length).toFixed(6) }));
@@ -58,10 +73,35 @@ export function isPending(entry: LedgerEntry, settlementCurrency: string) {
 }
 
 export function allocationFinal(entry: LedgerEntry, allocation: Allocation) {
-  if (entry.finalAmount == null) return undefined;
+  if (entry.finalAmount == null || entry.amount === 0) return undefined;
   return +(allocation.amount / entry.amount * entry.finalAmount).toFixed(2);
 }
 
-export function isSettled(entry: LedgerEntry, settlementCurrency: string) {
-  return !isPending(entry, settlementCurrency);
+export function isSettled(entry: LedgerEntry, settlementCurrency: string) { return !isPending(entry, settlementCurrency); }
+
+export function validatePlan(input: unknown): Plan {
+  if (!input || typeof input !== 'object') throw new Error('Invalid backup: expected an object.');
+  const p = input as Partial<Plan>;
+  if (typeof p.id !== 'string' || typeof p.name !== 'string' || !Array.isArray(p.members) || !Array.isArray(p.ledger) || !Array.isArray(p.accounts) || !Array.isArray(p.events)) throw new Error('Invalid backup: missing Plan structure.');
+  if (!Array.isArray(p.destinations) || typeof p.settlementCurrency !== 'string' || !['Planning','Traveling','Settling','Completed'].includes(p.status as string)) throw new Error('Invalid backup: invalid Plan metadata.');
+  const memberIds = new Set<string>();
+  for (const m of p.members) {
+    if (!m || typeof m.id !== 'string' || typeof m.name !== 'string' || !Number.isFinite(m.ratio) || m.ratio < 0) throw new Error('Invalid backup: invalid member.');
+    if (memberIds.has(m.id)) throw new Error('Invalid backup: duplicate member id.');
+    memberIds.add(m.id);
+  }
+  if (!p.members.length || Math.abs(p.members.reduce((s, m) => s + m.ratio, 0) - 100) > 0.01) throw new Error('Invalid backup: member ratios must total 100%.');
+  const accountIds = new Set(p.accounts.map(a => a.id));
+  if (accountIds.size !== p.accounts.length || p.accounts.some(a => !a || typeof a.id !== 'string' || typeof a.name !== 'string')) throw new Error('Invalid backup: invalid accounts.');
+  for (const e of p.ledger) {
+    if (!e || typeof e.id !== 'string' || typeof e.description !== 'string' || !CATEGORIES.includes(e.category as Category) || !Number.isFinite(e.amount) || e.amount === 0 || typeof e.currency !== 'string' || !memberIds.has(e.payerId) || !accountIds.has(e.accountId) || !['Default','Split','Custom'].includes(e.allocationMode)) throw new Error('Invalid backup: invalid ledger entry.');
+    if (!Array.isArray(e.allocations) || !e.allocations.length || e.allocations.some(a => !memberIds.has(a.memberId) || !Number.isFinite(a.amount) || !Number.isFinite(a.percentage))) throw new Error('Invalid backup: invalid allocation.');
+    const allocationTotal = e.allocations.reduce((s, a) => s + a.amount, 0);
+    if (Math.abs(allocationTotal - e.amount) > 0.01) throw new Error('Invalid backup: allocation total does not match payment.');
+    if (e.finalAmount != null && !Number.isFinite(e.finalAmount)) throw new Error('Invalid backup: invalid final amount.');
+    if (e.finalAmount != null && (!e.finalCurrency || typeof e.finalCurrency !== 'string')) throw new Error('Invalid backup: final currency is required with final amount.');
+  }
+  return p as Plan;
 }
+
+export { KEY as PLAN_STORAGE_KEY };
