@@ -7,12 +7,27 @@ export type Member = { id: string; name: string; ratio: number };
 export type Account = { id: string; name: string };
 export type Event = { id: string; name: string; city?: string; itemNames: string[] };
 export type Allocation = { memberId: string; amount: number; percentage: number };
+export type DailyActual = { date: string; amount: number; allocations: Allocation[] };
 export type LedgerEntry = {
-  id: string; date: string; usageDate: string; description: string; category: Category;
-  amount: number; currency: string; payerId: string; accountId: string; eventId?: string; item?: string;
+  id: string;
+  date: string;
+  usageStartDate: string;
+  usageEndDate: string;
+  description: string;
+  category: Category;
+  amount: number;
+  currency: string;
+  payerId: string;
+  accountId: string;
+  eventId?: string;
+  item?: string;
   planned?: boolean;
-  allocationMode: AllocationMode; allocations: Allocation[];
-  finalAmount?: number; finalCurrency?: string;
+  actualDates?: string[];
+  dailyActuals?: DailyActual[];
+  allocationMode: AllocationMode;
+  allocations: Allocation[];
+  finalAmount?: number;
+  finalCurrency?: string;
 };
 export type Plan = {
   id: string; name: string; startDate: string; endDate: string; destinations: string[];
@@ -28,20 +43,50 @@ export function defaultPlan(): Plan {
     members: [me], accounts: [{ id: uid(), name: 'Cash' }, { id: uid(), name: 'Bank Card' }, { id: uid(), name: 'Alipay' }, { id: uid(), name: 'WeChat Pay' }], events: [], ledger: [] };
 }
 
+function migratePlan(input: unknown): Plan {
+  const p = input as Partial<Plan> & { ledger?: Array<LedgerEntry & { usageDate?: string }> };
+  if (!p.ledger) return p as Plan;
+  return {
+    ...(p as Plan),
+    ledger: p.ledger.map(e => {
+      const legacyUsage = e.usageStartDate || e.usageEndDate ? undefined : e.usageDate || e.date || '';
+      const usageStartDate = e.usageStartDate || legacyUsage || '';
+      const usageEndDate = e.usageEndDate || legacyUsage || usageStartDate;
+      return { ...e, usageStartDate, usageEndDate } as LedgerEntry;
+    }),
+  };
+}
+
 export function loadPlan(): Plan {
-  try { const raw = localStorage.getItem(KEY); return raw ? validatePlan(JSON.parse(raw)) : defaultPlan(); }
+  try { const raw = localStorage.getItem(KEY); return raw ? validatePlan(migratePlan(JSON.parse(raw))) : defaultPlan(); }
   catch { return defaultPlan(); }
 }
 export function savePlan(plan: Plan) { localStorage.setItem(KEY, JSON.stringify(plan)); }
 
-/**
- * Plan dates are inclusive calendar days.
- * Example: departure flight on the 20th and return-home landing flight on the 30th => trip dates are 20–30, inclusive.
- * Times of the flights do not change the Plan date range; Ledger keeps exact payment/usage dates separately.
- */
+/** Plan dates are inclusive calendar days. */
 export function isWithinPlanDates(date: string, plan: Pick<Plan, 'startDate' | 'endDate'>) {
   if (!date || !plan.startDate || !plan.endDate) return false;
   return date >= plan.startDate && date <= plan.endDate;
+}
+
+export function dateRange(start: string, end: string): string[] {
+  if (!start || !end || start > end) return [];
+  const out: string[] = [];
+  const cursor = new Date(`${start}T00:00:00`);
+  const last = new Date(`${end}T00:00:00`);
+  while (cursor <= last) {
+    out.push(cursor.toISOString().slice(0, 10));
+    cursor.setDate(cursor.getDate() + 1);
+  }
+  return out;
+}
+
+export function distributeAmount(amount: number, dates: string[]): Record<string, number> {
+  if (!dates.length || !Number.isFinite(amount)) return {};
+  const cents = Math.round(amount * 100);
+  const base = Math.floor(cents / dates.length);
+  const remainder = cents - base * dates.length;
+  return Object.fromEntries(dates.map((d, i) => [d, (base + (i < remainder ? 1 : 0)) / 100]));
 }
 
 export function normalizeRatios(members: Member[]) {
@@ -92,7 +137,8 @@ export function isSettled(entry: LedgerEntry, settlementCurrency: string) { retu
 
 export function validatePlan(input: unknown): Plan {
   if (!input || typeof input !== 'object') throw new Error('Invalid backup: expected an object.');
-  const p = input as Partial<Plan>;
+  const migrated = migratePlan(input);
+  const p = migrated as Partial<Plan>;
   if (typeof p.id !== 'string' || typeof p.name !== 'string' || !Array.isArray(p.members) || !Array.isArray(p.ledger) || !Array.isArray(p.accounts) || !Array.isArray(p.events)) throw new Error('Invalid backup: missing Plan structure.');
   if (!Array.isArray(p.destinations) || typeof p.settlementCurrency !== 'string' || !['Planning','Traveling','Settling','Completed'].includes(p.status as string)) throw new Error('Invalid backup: invalid Plan metadata.');
   if (p.startDate && p.endDate && (typeof p.startDate !== 'string' || typeof p.endDate !== 'string' || p.startDate > p.endDate)) throw new Error('Invalid backup: Plan start date must be on or before end date.');
@@ -107,11 +153,17 @@ export function validatePlan(input: unknown): Plan {
   if (accountIds.size !== p.accounts.length || p.accounts.some(a => !a || typeof a.id !== 'string' || typeof a.name !== 'string')) throw new Error('Invalid backup: invalid accounts.');
   for (const e of p.ledger) {
     if (!e || typeof e.id !== 'string' || typeof e.description !== 'string' || !CATEGORIES.includes(e.category as Category) || !Number.isFinite(e.amount) || e.amount === 0 || typeof e.currency !== 'string' || !memberIds.has(e.payerId) || !accountIds.has(e.accountId) || !['Default','Split','Custom'].includes(e.allocationMode)) throw new Error('Invalid backup: invalid ledger entry.');
+    if (typeof e.date !== 'string' || typeof e.usageStartDate !== 'string' || typeof e.usageEndDate !== 'string' || (e.usageStartDate && e.usageEndDate && e.usageStartDate > e.usageEndDate)) throw new Error('Invalid backup: invalid payment or usage dates.');
     if (!Array.isArray(e.allocations) || !e.allocations.length || e.allocations.some(a => !memberIds.has(a.memberId) || !Number.isFinite(a.amount) || !Number.isFinite(a.percentage))) throw new Error('Invalid backup: invalid allocation.');
     const allocationTotal = e.allocations.reduce((s, a) => s + a.amount, 0);
     if (Math.abs(allocationTotal - e.amount) > 0.01) throw new Error('Invalid backup: allocation total does not match payment.');
     if (e.finalAmount != null && !Number.isFinite(e.finalAmount)) throw new Error('Invalid backup: invalid final amount.');
     if (e.finalAmount != null && (!e.finalCurrency || typeof e.finalCurrency !== 'string')) throw new Error('Invalid backup: final currency is required with final amount.');
+    if (e.dailyActuals) {
+      if (!Array.isArray(e.dailyActuals) || e.dailyActuals.some(d => !d || typeof d.date !== 'string' || !Number.isFinite(d.amount) || !Array.isArray(d.allocations))) throw new Error('Invalid backup: invalid daily actual.');
+      const actualTotal = e.dailyActuals.reduce((s, d) => s + d.amount, 0);
+      if (Math.abs(actualTotal - e.amount) > 0.01) throw new Error('Invalid backup: daily actual total does not match payment.');
+    }
   }
   return p as Plan;
 }
