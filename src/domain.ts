@@ -13,7 +13,6 @@ export type LedgerEntry = {
   date: string;
   usageStartDate: string;
   usageEndDate: string;
-  /** Explicit usage dates for discrete services such as round-trip flights. */
   usageDates?: string[];
   description: string;
   category: Category;
@@ -84,7 +83,6 @@ export function dateRange(start: string, end: string): string[] {
   return out;
 }
 
-/** Usage dates used for daily consumption. Continuous services use the inclusive range; discrete services may override it. */
 export function entryUsageDates(entry: Pick<LedgerEntry, 'usageStartDate' | 'usageEndDate' | 'usageDates'>): string[] {
   if (entry.usageDates?.length) return [...new Set(entry.usageDates)].sort();
   return dateRange(entry.usageStartDate, entry.usageEndDate);
@@ -175,9 +173,10 @@ export function validatePlan(input: unknown): Plan {
     if (typeof e.date !== 'string' || typeof e.usageStartDate !== 'string' || typeof e.usageEndDate !== 'string' || (e.usageStartDate && e.usageEndDate && e.usageStartDate > e.usageEndDate)) throw new Error('Invalid backup: invalid payment or usage dates.');
     if (e.usageDates != null) {
       if (!Array.isArray(e.usageDates) || !e.usageDates.length || e.usageDates.some(d => typeof d !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(d))) throw new Error('Invalid backup: invalid discrete usage dates.');
+      const allowed = new Set(dateRange(e.usageStartDate, e.usageEndDate));
       const seen = new Set<string>();
       for (const d of e.usageDates) {
-        if (seen.has(d) || !isWithinPlanDates(d, p as Plan)) throw new Error('Invalid backup: usage date must be unique and within Plan dates.');
+        if (seen.has(d) || !allowed.has(d)) throw new Error('Invalid backup: discrete usage date must be unique and within the Usage Start / End range.');
         seen.add(d);
       }
     }
