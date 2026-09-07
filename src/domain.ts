@@ -13,6 +13,8 @@ export type LedgerEntry = {
   date: string;
   usageStartDate: string;
   usageEndDate: string;
+  /** Explicit usage dates for discrete services such as round-trip flights. */
+  usageDates?: string[];
   description: string;
   category: Category;
   amount: number;
@@ -63,17 +65,11 @@ export function loadPlan(): Plan {
 }
 export function savePlan(plan: Plan) { localStorage.setItem(KEY, JSON.stringify(plan)); }
 
-/** Plan dates are inclusive calendar days. */
 export function isWithinPlanDates(date: string, plan: Pick<Plan, 'startDate' | 'endDate'>) {
   if (!date || !plan.startDate || !plan.endDate) return false;
   return date >= plan.startDate && date <= plan.endDate;
 }
 
-/**
- * Return inclusive YYYY-MM-DD calendar dates without local-timezone conversion.
- * Using UTC components here prevents dates from shifting across midnight in
- * positive or negative local timezones.
- */
 export function dateRange(start: string, end: string): string[] {
   if (!/^\d{4}-\d{2}-\d{2}$/.test(start) || !/^\d{4}-\d{2}-\d{2}$/.test(end) || start > end) return [];
   const [sy, sm, sd] = start.split('-').map(Number);
@@ -86,6 +82,12 @@ export function dateRange(start: string, end: string): string[] {
     cursor.setUTCDate(cursor.getUTCDate() + 1);
   }
   return out;
+}
+
+/** Usage dates used for daily consumption. Continuous services use the inclusive range; discrete services may override it. */
+export function entryUsageDates(entry: Pick<LedgerEntry, 'usageStartDate' | 'usageEndDate' | 'usageDates'>): string[] {
+  if (entry.usageDates?.length) return [...new Set(entry.usageDates)].sort();
+  return dateRange(entry.usageStartDate, entry.usageEndDate);
 }
 
 export function distributeAmount(amount: number, dates: string[]): Record<string, number> {
@@ -171,13 +173,21 @@ export function validatePlan(input: unknown): Plan {
   for (const e of p.ledger) {
     if (!e || typeof e.id !== 'string' || typeof e.description !== 'string' || !CATEGORIES.includes(e.category as Category) || !Number.isFinite(e.amount) || e.amount === 0 || typeof e.currency !== 'string' || !memberIds.has(e.payerId) || !accountIds.has(e.accountId) || !['Default','Split','Custom'].includes(e.allocationMode)) throw new Error('Invalid backup: invalid ledger entry.');
     if (typeof e.date !== 'string' || typeof e.usageStartDate !== 'string' || typeof e.usageEndDate !== 'string' || (e.usageStartDate && e.usageEndDate && e.usageStartDate > e.usageEndDate)) throw new Error('Invalid backup: invalid payment or usage dates.');
+    if (e.usageDates != null) {
+      if (!Array.isArray(e.usageDates) || !e.usageDates.length || e.usageDates.some(d => typeof d !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(d))) throw new Error('Invalid backup: invalid discrete usage dates.');
+      const seen = new Set<string>();
+      for (const d of e.usageDates) {
+        if (seen.has(d) || !isWithinPlanDates(d, p as Plan)) throw new Error('Invalid backup: usage date must be unique and within Plan dates.');
+        seen.add(d);
+      }
+    }
     if (e.eventId != null && !eventIds.has(e.eventId)) throw new Error('Invalid backup: invalid event reference.');
     if (!Array.isArray(e.allocations) || !e.allocations.length || e.allocations.some(a => !memberIds.has(a.memberId) || !Number.isFinite(a.amount) || !Number.isFinite(a.percentage))) throw new Error('Invalid backup: invalid allocation.');
     const allocationTotal = e.allocations.reduce((s, a) => s + a.amount, 0);
     if (Math.abs(allocationTotal - e.amount) > 0.01) throw new Error('Invalid backup: allocation total does not match payment.');
     if (e.actualDates != null) {
       if (!Array.isArray(e.actualDates) || e.actualDates.some(d => typeof d !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(d))) throw new Error('Invalid backup: invalid actual date.');
-      const usageDays = new Set(dateRange(e.usageStartDate, e.usageEndDate));
+      const usageDays = new Set(entryUsageDates(e));
       const seen = new Set<string>();
       for (const d of e.actualDates) {
         if (seen.has(d) || !usageDays.has(d)) throw new Error('Invalid backup: actual date must be unique and within usage period.');
