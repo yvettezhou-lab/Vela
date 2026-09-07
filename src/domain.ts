@@ -69,14 +69,21 @@ export function isWithinPlanDates(date: string, plan: Pick<Plan, 'startDate' | '
   return date >= plan.startDate && date <= plan.endDate;
 }
 
+/**
+ * Return inclusive YYYY-MM-DD calendar dates without local-timezone conversion.
+ * Using UTC components here prevents dates from shifting across midnight in
+ * positive or negative local timezones.
+ */
 export function dateRange(start: string, end: string): string[] {
-  if (!start || !end || start > end) return [];
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(start) || !/^\d{4}-\d{2}-\d{2}$/.test(end) || start > end) return [];
+  const [sy, sm, sd] = start.split('-').map(Number);
+  const [ey, em, ed] = end.split('-').map(Number);
+  const cursor = new Date(Date.UTC(sy, sm - 1, sd));
+  const last = new Date(Date.UTC(ey, em - 1, ed));
   const out: string[] = [];
-  const cursor = new Date(`${start}T00:00:00`);
-  const last = new Date(`${end}T00:00:00`);
   while (cursor <= last) {
-    out.push(cursor.toISOString().slice(0, 10));
-    cursor.setDate(cursor.getDate() + 1);
+    out.push(`${cursor.getUTCFullYear()}-${String(cursor.getUTCMonth() + 1).padStart(2, '0')}-${String(cursor.getUTCDate()).padStart(2, '0')}`);
+    cursor.setUTCDate(cursor.getUTCDate() + 1);
   }
   return out;
 }
@@ -149,14 +156,34 @@ export function validatePlan(input: unknown): Plan {
     memberIds.add(m.id);
   }
   if (!p.members.length || Math.abs(p.members.reduce((s, m) => s + m.ratio, 0) - 100) > 0.01) throw new Error('Invalid backup: member ratios must total 100%.');
-  const accountIds = new Set(p.accounts.map(a => a.id));
-  if (accountIds.size !== p.accounts.length || p.accounts.some(a => !a || typeof a.id !== 'string' || typeof a.name !== 'string')) throw new Error('Invalid backup: invalid accounts.');
+  const accountIds = new Set<string>();
+  for (const a of p.accounts) {
+    if (!a || typeof a.id !== 'string' || typeof a.name !== 'string' || !a.name.trim()) throw new Error('Invalid backup: invalid account.');
+    if (accountIds.has(a.id)) throw new Error('Invalid backup: duplicate account id.');
+    accountIds.add(a.id);
+  }
+  const eventIds = new Set<string>();
+  for (const event of p.events) {
+    if (!event || typeof event.id !== 'string' || typeof event.name !== 'string' || !Array.isArray(event.itemNames)) throw new Error('Invalid backup: invalid event.');
+    if (eventIds.has(event.id)) throw new Error('Invalid backup: duplicate event id.');
+    eventIds.add(event.id);
+  }
   for (const e of p.ledger) {
     if (!e || typeof e.id !== 'string' || typeof e.description !== 'string' || !CATEGORIES.includes(e.category as Category) || !Number.isFinite(e.amount) || e.amount === 0 || typeof e.currency !== 'string' || !memberIds.has(e.payerId) || !accountIds.has(e.accountId) || !['Default','Split','Custom'].includes(e.allocationMode)) throw new Error('Invalid backup: invalid ledger entry.');
     if (typeof e.date !== 'string' || typeof e.usageStartDate !== 'string' || typeof e.usageEndDate !== 'string' || (e.usageStartDate && e.usageEndDate && e.usageStartDate > e.usageEndDate)) throw new Error('Invalid backup: invalid payment or usage dates.');
+    if (e.eventId != null && !eventIds.has(e.eventId)) throw new Error('Invalid backup: invalid event reference.');
     if (!Array.isArray(e.allocations) || !e.allocations.length || e.allocations.some(a => !memberIds.has(a.memberId) || !Number.isFinite(a.amount) || !Number.isFinite(a.percentage))) throw new Error('Invalid backup: invalid allocation.');
     const allocationTotal = e.allocations.reduce((s, a) => s + a.amount, 0);
     if (Math.abs(allocationTotal - e.amount) > 0.01) throw new Error('Invalid backup: allocation total does not match payment.');
+    if (e.actualDates != null) {
+      if (!Array.isArray(e.actualDates) || e.actualDates.some(d => typeof d !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(d))) throw new Error('Invalid backup: invalid actual date.');
+      const usageDays = new Set(dateRange(e.usageStartDate, e.usageEndDate));
+      const seen = new Set<string>();
+      for (const d of e.actualDates) {
+        if (seen.has(d) || !usageDays.has(d)) throw new Error('Invalid backup: actual date must be unique and within usage period.');
+        seen.add(d);
+      }
+    }
     if (e.finalAmount != null && !Number.isFinite(e.finalAmount)) throw new Error('Invalid backup: invalid final amount.');
     if (e.finalAmount != null && (!e.finalCurrency || typeof e.finalCurrency !== 'string')) throw new Error('Invalid backup: final currency is required with final amount.');
     if (e.dailyActuals) {
