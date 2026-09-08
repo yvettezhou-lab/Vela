@@ -52,7 +52,6 @@
         });
         button.addEventListener('pointermove', e => {
           if (!dragging || dragging.button !== button) return;
-          const dx = e.clientX - dragging.x;
           if (Math.abs(e.clientX - dragging.startX) > 7) moved = true;
           if (!moved) return;
           const siblings = [...tabs.querySelectorAll('.category-tab')].filter(x => x !== button);
@@ -60,8 +59,7 @@
             const r = s.getBoundingClientRect();
             return e.clientX < r.left + r.width / 2;
           });
-          if (target) tabs.insertBefore(button, target);
-          else tabs.appendChild(button);
+          if (target) tabs.insertBefore(button, target); else tabs.appendChild(button);
           dragging.x = e.clientX;
         });
         button.addEventListener('pointerup', e => {
@@ -82,10 +80,20 @@
     });
   }
 
+  function simplifyHomeHeader() {
+    document.querySelectorAll('.topbar').forEach(header => {
+      const eyebrow = header.querySelector('.eyebrow');
+      if (eyebrow?.textContent?.trim() === 'CURRENT PLAN') {
+        const button = header.querySelector('.quiet');
+        if (button) button.style.display = 'none';
+      }
+    });
+  }
+
   function render() {
     sync();
     document.querySelector('.vela-trip-index')?.remove();
-    const s = state(), archived = read(ARCHIVE_KEY, []), rail = document.createElement('aside');
+    const s = state(), rail = document.createElement('aside');
     rail.className='vela-trip-index'; rail.setAttribute('aria-label','Trip index');
     const title=document.createElement('div'); title.className='vela-trip-index-title'; title.textContent='TRIPS'; rail.append(title);
     s.trips.slice(0,12).forEach((trip,i)=>{
@@ -94,7 +102,7 @@
     });
     const add=document.createElement('button'); add.className='vela-trip-add'; add.title='New trip'; add.textContent='+'; add.onclick=make; rail.append(add);
     const ab=document.createElement('button'); ab.className='vela-trip-archived'; ab.textContent='Archived'; ab.onclick=()=>showArchived(read(ARCHIVE_KEY,[])); rail.append(ab);
-    document.body.append(rail);
+    document.body.append(rail); simplifyHomeHeader();
   }
 
   function enhanceHome() {
@@ -138,6 +146,6 @@
     sheet.append(list); back.append(sheet); back.onclick=e=>{if(e.target===back)back.remove()}; close.onclick=()=>back.remove(); document.body.append(back);
   }
 
-  const start=()=>{ let last=''; const tick=()=>{ const s=signature(); if(s!==last){last=s;render();} enhanceHome(); enhanceQuick(); enableCategoryReorder(); }; tick(); setInterval(tick,1200); };
+  const start=()=>{ let last=''; const tick=()=>{ const s=signature(); if(s!==last){last=s;render();} enhanceHome(); enhanceQuick(); enableCategoryReorder(); simplifyHomeHeader(); }; tick(); setInterval(tick,1200); };
   if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',start); else start();
 })();
