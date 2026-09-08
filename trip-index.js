@@ -44,35 +44,20 @@
       let dragging = null, moved = false;
       buttons.forEach(button => {
         button.style.touchAction = 'pan-y';
-        button.addEventListener('pointerdown', e => {
-          dragging = { button, x:e.clientX, startX:e.clientX };
-          moved = false;
-          button.setPointerCapture?.(e.pointerId);
-          button.style.transition = 'none';
-        });
+        button.addEventListener('pointerdown', e => { dragging = { button, x:e.clientX, startX:e.clientX }; moved = false; button.setPointerCapture?.(e.pointerId); button.style.transition = 'none'; });
         button.addEventListener('pointermove', e => {
           if (!dragging || dragging.button !== button) return;
           if (Math.abs(e.clientX - dragging.startX) > 7) moved = true;
           if (!moved) return;
           const siblings = [...tabs.querySelectorAll('.category-tab')].filter(x => x !== button);
-          const target = siblings.find(s => {
-            const r = s.getBoundingClientRect();
-            return e.clientX < r.left + r.width / 2;
-          });
+          const target = siblings.find(s => { const r = s.getBoundingClientRect(); return e.clientX < r.left + r.width / 2; });
           if (target) tabs.insertBefore(button, target); else tabs.appendChild(button);
           dragging.x = e.clientX;
         });
         button.addEventListener('pointerup', e => {
           if (!dragging || dragging.button !== button) return;
-          button.releasePointerCapture?.(e.pointerId);
-          button.style.transition = '';
-          if (moved) {
-            e.preventDefault();
-            e.stopPropagation();
-            write(CATEGORY_KEY, [...tabs.querySelectorAll('.category-tab')].map(x => x.title));
-            button.dataset.velaSuppressClick = '1';
-            setTimeout(() => delete button.dataset.velaSuppressClick, 120);
-          }
+          button.releasePointerCapture?.(e.pointerId); button.style.transition = '';
+          if (moved) { e.preventDefault(); e.stopPropagation(); write(CATEGORY_KEY, [...tabs.querySelectorAll('.category-tab')].map(x => x.title)); button.dataset.velaSuppressClick = '1'; setTimeout(() => delete button.dataset.velaSuppressClick, 120); }
           dragging = null;
         });
         button.addEventListener('click', e => { if (button.dataset.velaSuppressClick === '1') { e.preventDefault(); e.stopPropagation(); } });
@@ -107,28 +92,21 @@
 
   function enhanceHome() {
     const hero = document.querySelector('.hero');
-    if (!hero || document.querySelector('.vela-new-trip')) return;
-    const newTrip = document.createElement('button'); newTrip.className='vela-new-trip';
-    const copy = document.createElement('span'); copy.innerHTML='Start a New Trip<small>A NEW JOURNEY AWAITS</small>';
-    newTrip.append(copy); newTrip.onclick=make;
-
+    if (!hero || hero.dataset.velaHomeEnhanced === '1') return;
+    hero.dataset.velaHomeEnhanced = '1';
     const oldSection = [...document.querySelectorAll('.section')].find(x => x.querySelector('h3')?.textContent?.trim() === 'Recent Ledger');
-    if (oldSection) {
-      const section = document.createElement('section'); section.className='section vela-recent-trips';
-      const head=document.createElement('div'); head.className='section-head'; const h=document.createElement('h3'); h.textContent='Recent Trips'; const view=document.createElement('span'); view.textContent='View All →'; head.append(h,view); section.append(head);
-      const s=state(), current=s.activeId, trips=s.trips.filter(t=>t.id!==current).slice(0,4);
-      if (!trips.length) { const empty=document.createElement('div'); empty.className='vela-recent-empty'; empty.textContent='No other trips yet.'; section.append(empty); }
-      trips.forEach(t=>{
-        const row=document.createElement('div'); row.className='vela-recent-trip'; row.title='Open '+(t.name||'trip');
-        const mark=document.createElement('div'); mark.className='vela-trip-mark'; mark.textContent='✦';
-        const info=document.createElement('div'); const name=document.createElement('strong'); name.textContent=t.name||'Untitled'; const dates=document.createElement('small'); dates.textContent=`${t.startDate||'—'} → ${t.endDate||'—'}`; info.append(name,dates); row.append(mark,info); row.onclick=()=>switchTo(t.id); section.append(row);
-      });
-      oldSection.replaceWith(section);
-      hero.before(section);
-    } else {
-      hero.before(newTrip);
-    }
-    hero.after(newTrip);
+    if (!oldSection) return;
+    const s=state(), current=s.activeId, trips=s.trips.filter(t=>t.id!==current).slice(0,4);
+    if (!trips.length) { oldSection.remove(); return; }
+    const section = document.createElement('section'); section.className='section vela-recent-trips';
+    const head=document.createElement('div'); head.className='section-head'; const h=document.createElement('h3'); h.textContent='Recent Trips'; const view=document.createElement('span'); view.textContent='View All →'; head.append(h,view); section.append(head);
+    trips.forEach(t=>{
+      const row=document.createElement('div'); row.className='vela-recent-trip'; row.title='Open '+(t.name||'trip');
+      const mark=document.createElement('div'); mark.className='vela-trip-mark'; mark.textContent='✦';
+      const info=document.createElement('div'); const name=document.createElement('strong'); name.textContent=t.name||'Untitled'; const dates=document.createElement('small'); dates.textContent=`${t.startDate||'—'} → ${t.endDate||'—'}`; info.append(name,dates); row.append(mark,info); row.onclick=()=>switchTo(t.id); section.append(row);
+    });
+    oldSection.replaceWith(section);
+    hero.before(section);
   }
 
   function enhanceQuick() {
