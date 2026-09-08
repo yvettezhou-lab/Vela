@@ -1,0 +1,5 @@
+/* Vela Home — generated nautical map artwork */
+.home-page:before{background-image:url('/vela-map-home.jpg')!important;background-size:cover!important;background-position:center center!important;background-repeat:no-repeat!important;filter:none!important;}
+.home-page:after{background:linear-gradient(180deg,rgba(255,245,216,.02),rgba(55,39,23,.06))!important;}
+.home-topbar>div{display:none!important;}
+.home-topbar .quiet{display:none!important;}
