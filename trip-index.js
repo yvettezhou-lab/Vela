@@ -111,7 +111,6 @@
     const newTrip = document.createElement('button'); newTrip.className='vela-new-trip';
     const copy = document.createElement('span'); copy.innerHTML='Start a New Trip<small>A NEW JOURNEY AWAITS</small>';
     newTrip.append(copy); newTrip.onclick=make;
-    hero.after(newTrip);
 
     const oldSection = [...document.querySelectorAll('.section')].find(x => x.querySelector('h3')?.textContent?.trim() === 'Recent Ledger');
     if (oldSection) {
@@ -125,7 +124,11 @@
         const info=document.createElement('div'); const name=document.createElement('strong'); name.textContent=t.name||'Untitled'; const dates=document.createElement('small'); dates.textContent=`${t.startDate||'—'} → ${t.endDate||'—'}`; info.append(name,dates); row.append(mark,info); row.onclick=()=>switchTo(t.id); section.append(row);
       });
       oldSection.replaceWith(section);
+      hero.before(section);
+    } else {
+      hero.before(newTrip);
     }
+    hero.after(newTrip);
   }
 
   function enhanceQuick() {
