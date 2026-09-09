@@ -1,4 +1,4 @@
-/* Home background artwork: generated artwork is the visual surface; HTML supplies live text and hit areas. */
+/* Vela home: artwork is the visual surface; HTML supplies live text and hit areas. */
 .home-page{background:#ead9b5!important;padding:0!important;max-width:none!important;overflow-x:hidden!important}
 .home-page:before,.home-page:after{display:none!important}
 .home-page>.topbar,.home-page>.home-map,.home-page>.category-tabs,.home-page>.home-recent,.home-page>.home-note,.home-page>.home-quick{display:none!important}
@@ -8,9 +8,9 @@
 .vela-clean-tabs{display:none!important}
 .vela-clean-recent{order:2!important;position:relative!important;margin:0 5% 0!important;min-height:250px!important;padding:44px 28px 18px!important;background:transparent!important;border:0!important;box-shadow:none!important;border-radius:0!important;color:#4a3022!important}
 .vela-clean-recent-head{display:flex!important;justify-content:space-between!important;align-items:flex-start!important;margin:0!important}
-.vela-clean-recent-head span{display:block!important;font:600 10px/1.2 Georgia,serif!important;letter-spacing:.22em!important;color:#7a6048!important}
+.vela-clean-recent-head span{display:none!important}
 .vela-clean-recent-head h3{margin:8px 0 0!important;font:400 28px/1 Georgia,serif!important;color:#39251c!important}
-.vela-clean-recent-head i{font-style:normal!important;font-size:24px!important;color:#86603a!important}
+.vela-clean-recent-head i{display:none!important}
 .vela-clean-recent>p{margin:30px 0 0!important;font:15px/1.4 Georgia,serif!important;color:#806a54!important}
 .vela-clean-row{width:100%!important;display:flex!important;align-items:center!important;gap:14px!important;padding:14px 0!important;background:transparent!important;border:0!important;border-top:1px solid rgba(83,57,34,.14)!important;text-align:left!important;color:#422b20!important}
 .vela-clean-row-mark{flex:0 0 62px!important;height:45px!important;display:grid!important;place-items:center!important;font-size:24px!important;color:#8b633b!important}
@@ -18,11 +18,11 @@
 .vela-clean-row b{font:400 19px/1.1 Georgia,serif!important}
 .vela-clean-row small{font:13px/1.2 Georgia,serif!important;color:#806a54!important}
 .vela-clean-row>strong{margin-left:auto!important;font:28px/1 Georgia,serif!important;font-weight:400!important}
-.vela-clean-new{order:3!important;position:relative!important;width:90%!important;height:132px!important;margin:0 auto!important;padding:0 28px!important;display:flex!important;align-items:center!important;gap:16px!important;background:transparent!important;border:0!important;box-shadow:none!important;border-radius:0!important;color:#38251b!important;text-align:left!important;z-index:3!important}
+.vela-clean-new{order:3!important;position:relative!important;top:-58px!important;width:90%!important;height:132px!important;margin:0 auto -58px!important;padding:0 28px!important;display:flex!important;align-items:center!important;gap:16px!important;background:transparent!important;border:0!important;box-shadow:none!important;border-radius:0!important;color:#38251b!important;text-align:left!important;z-index:3!important}
 .vela-clean-new .vela-clean-quill{display:none!important}
-.vela-clean-new span:nth-child(2){display:grid!important;gap:8px!important}
+.vela-clean-new span:nth-child(2){display:block!important}
 .vela-clean-new b{font:400 27px/1.05 Georgia,serif!important}
-.vela-clean-new small{font:10px/1.2 Georgia,serif!important;letter-spacing:.2em!important;color:#795d44!important;white-space:nowrap!important}
+.vela-clean-new small{display:none!important}
 .vela-clean-new>strong{margin-left:auto!important;font:35px/1 Georgia,serif!important;font-weight:400!important}
 .vela-clean-current{order:4!important;position:relative!important;margin:0 3.5% 20px!important;min-height:250px!important;padding:34px 30px 30px!important;background:transparent!important;border:0!important;border-radius:0!important;box-shadow:none!important;color:#3c281f!important;z-index:3!important}
 .vela-clean-label{font:600 12px/1 Georgia,serif!important;letter-spacing:.18em!important;color:#7a5b42!important}
@@ -31,10 +31,9 @@
 .vela-clean-plan{display:none!important}
 .vela-clean-destination{margin-top:12px!important;font:18px/1.3 Georgia,serif!important;color:#624b39!important}
 .vela-clean-date{margin-top:5px!important;font:15px/1.3 Georgia,serif!important;color:#806a54!important}
-.vela-clean-rule{width:76px!important;margin:20px 0 12px!important;border-top:1px solid #78583b!important}
-.vela-clean-status{font:11px/1.3 Georgia,serif!important;letter-spacing:.16em!important;color:#7a624d!important}
-.vela-clean-status span{padding:0 7px!important}
+.vela-clean-rule{display:none!important}
+.vela-clean-status{display:none!important}
 .vela-clean-quick{position:fixed!important;right:16px!important;bottom:92px!important;z-index:40!important;width:70px!important;height:70px!important;border-radius:50%!important;border:2px solid #9b7a52!important;background:#31534d!important;color:#f1dfba!important;box-shadow:0 6px 14px rgba(53,35,20,.28)!important}
 .vela-clean-quick span{font-size:29px!important}.vela-clean-quick small{display:none!important}
 .app>.bottom-nav{position:fixed!important;left:0!important;right:0!important;bottom:0!important;z-index:50!important}
-@media(max-width:600px){.vela-clean-home{min-height:calc(100vh - 78px)!important;padding-bottom:94px!important;background-size:100% auto!important}.vela-clean-map{height:34vh!important;min-height:330px!important}.vela-clean-recent{min-height:250px!important;padding:38px 24px 12px!important}.vela-clean-recent-head h3{font-size:25px!important}.vela-clean-new{height:132px!important;padding:0 24px!important}.vela-clean-new b{font-size:23px!important}.vela-clean-new small{font-size:10px!important;letter-spacing:.16em!important}.vela-clean-current{min-height:250px!important;padding:30px 25px 24px!important}.vela-clean-tripline h2{font-size:42px!important}.vela-clean-destination{font-size:17px!important}.vela-clean-quick{right:14px!important;bottom:86px!important;width:66px!important;height:66px!important}}
+@media(max-width:600px){.vela-clean-home{min-height:calc(100vh - 78px)!important;padding-bottom:94px!important;background-size:100% auto!important}.vela-clean-map{height:34vh!important;min-height:330px!important}.vela-clean-recent{min-height:250px!important;padding:38px 24px 12px!important}.vela-clean-recent-head h3{font-size:25px!important}.vela-clean-new{height:132px!important;padding:0 24px!important;top:-58px!important;margin-bottom:-58px!important}.vela-clean-new b{font-size:23px!important}.vela-clean-current{min-height:250px!important;padding:30px 25px 24px!important}.vela-clean-tripline h2{font-size:42px!important}.vela-clean-destination{font-size:17px!important}.vela-clean-quick{right:14px!important;bottom:86px!important;width:66px!important;height:66px!important}}
