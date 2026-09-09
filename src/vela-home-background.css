@@ -3,38 +3,42 @@
 .home-page:before,.home-page:after{display:none!important}
 .home-page>.topbar,.home-page>.home-map,.home-page>.category-tabs,.home-page>.home-recent,.home-page>.home-note,.home-page>.home-quick{display:none!important}
 .vela-clean-home{position:relative!important;z-index:1!important;width:100%!important;max-width:720px!important;margin:0 auto!important;min-height:calc(100vh - 84px)!important;padding:0 0 110px!important;display:flex!important;flex-direction:column!important;overflow:hidden!important;background-color:#ead9b5!important;background-image:url('/F96DAE61-749C-4BB2-AE3B-F150584E5D1F.png')!important;background-repeat:no-repeat!important;background-position:top center!important;background-size:100% auto!important}
-.vela-clean-map{order:1!important;position:relative!important;height:34vh!important;min-height:330px!important;margin:0!important;padding:0!important;background:none!important;border:0!important;box-shadow:none!important;transform:none!important;overflow:visible!important}
+/* A very light, full-surface parchment wash: brightens the artwork without creating a visible panel. */
+.vela-clean-home:before{content:""!important;position:absolute!important;inset:0!important;z-index:0!important;pointer-events:none!important;background:rgba(248,229,190,.105)!important;mix-blend-mode:screen!important}
+.vela-clean-map{order:1!important;position:relative!important;height:34vh!important;min-height:330px!important;margin:0!important;padding:0!important;background:none!important;border:0!important;box-shadow:none!important;transform:none!important;overflow:visible!important;z-index:1!important}
 .vela-clean-map>*{display:none!important}
 .vela-clean-tabs{display:none!important}
-.vela-clean-recent{order:2!important;position:relative!important;margin:0 5% 0!important;min-height:250px!important;padding:44px 28px 18px!important;background:transparent!important;border:0!important;box-shadow:none!important;border-radius:0!important;color:#4a3022!important}
+.vela-clean-recent{order:2!important;position:relative!important;margin:0 5% 0!important;min-height:250px!important;padding:44px 28px 18px!important;background:transparent!important;border:0!important;box-shadow:none!important;border-radius:0!important;color:#4a3022!important;z-index:2!important}
+/* Feathered parchment light, not a card: it dissolves into the original paper texture. */
+.vela-clean-recent:before,.vela-clean-current:before{content:""!important;position:absolute!important;inset:4% -1% 3%!important;z-index:-1!important;pointer-events:none!important;background:radial-gradient(ellipse at 42% 38%,rgba(249,231,194,.38) 0%,rgba(249,231,194,.20) 42%,rgba(249,231,194,0) 76%)!important}
 .vela-clean-recent-head{display:flex!important;justify-content:space-between!important;align-items:flex-start!important;margin:0!important}
 .vela-clean-recent-head span{display:none!important}
-.vela-clean-recent-head h3{margin:8px 0 0!important;font:400 28px/1 Georgia,serif!important;color:#39251c!important}
+.vela-clean-recent-head h3{margin:8px 0 0!important;font:400 28px/1 Georgia,serif!important;color:#39251c!important;text-shadow:0 1px 2px rgba(246,224,182,.48)!important}
 .vela-clean-recent-head i{display:none!important}
-.vela-clean-recent>p{margin:30px 0 0!important;font:15px/1.4 Georgia,serif!important;color:#806a54!important}
+.vela-clean-recent>p{margin:30px 0 0!important;font:15px/1.4 Georgia,serif!important;color:#806a54!important;text-shadow:0 1px 2px rgba(246,224,182,.55)!important}
 .vela-clean-row{width:100%!important;display:flex!important;align-items:center!important;gap:14px!important;padding:14px 0!important;background:transparent!important;border:0!important;border-top:1px solid rgba(83,57,34,.14)!important;text-align:left!important;color:#422b20!important}
 .vela-clean-row-mark{flex:0 0 62px!important;height:45px!important;display:grid!important;place-items:center!important;font-size:24px!important;color:#8b633b!important}
 .vela-clean-row span:nth-child(2){min-width:0!important;display:grid!important;gap:4px!important}
-.vela-clean-row b{font:400 19px/1.1 Georgia,serif!important}
-.vela-clean-row small{font:13px/1.2 Georgia,serif!important;color:#806a54!important}
+.vela-clean-row b{font:400 19px/1.1 Georgia,serif!important;text-shadow:0 1px 2px rgba(246,224,182,.48)!important}
+.vela-clean-row small{font:13px/1.2 Georgia,serif!important;color:#806a54!important;text-shadow:0 1px 2px rgba(246,224,182,.48)!important}
 .vela-clean-row>strong{margin-left:auto!important;font:28px/1 Georgia,serif!important;font-weight:400!important}
 
 /* The wax-sealed scroll itself is the Start action. */
 .vela-clean-new{order:3!important;position:relative!important;top:-18px!important;width:90%!important;height:132px!important;margin:0 auto -18px!important;padding:0 28px!important;display:flex!important;align-items:center!important;gap:16px!important;background:transparent!important;border:0!important;box-shadow:none!important;border-radius:0!important;color:#38251b!important;text-align:left!important;z-index:5!important}
 .vela-clean-new .vela-clean-quill{display:none!important}
 .vela-clean-new span:nth-child(2){display:block!important;position:relative!important;top:0!important}
-.vela-clean-new b{font:400 27px/1.05 Georgia,serif!important}
+.vela-clean-new b{font:400 27px/1.05 Georgia,serif!important;text-shadow:0 1px 2px rgba(246,224,182,.58)!important}
 .vela-clean-new small{display:none!important}
 .vela-clean-new>strong{margin-left:auto!important;font:35px/1 Georgia,serif!important;font-weight:400!important}
 
 /* Keep Current Trip entirely below the scroll; never overlap its lower edge. */
 .vela-clean-current{order:4!important;position:relative!important;margin:0 3.5% 20px!important;min-height:250px!important;padding:50px 30px 30px!important;background:transparent!important;border:0!important;border-radius:0!important;box-shadow:none!important;color:#3c281f!important;z-index:3!important}
-.vela-clean-label{font:600 12px/1 Georgia,serif!important;letter-spacing:.18em!important;color:#7a5b42!important}
+.vela-clean-label{font:600 12px/1 Georgia,serif!important;letter-spacing:.18em!important;color:#7a5b42!important;text-shadow:0 1px 2px rgba(246,224,182,.5)!important}
 .vela-clean-tripline{display:flex!important;align-items:center!important;gap:12px!important;margin-top:12px!important}
-.vela-clean-tripline h2{margin:0!important;font:400 clamp(38px,8vw,56px)/.95 Georgia,'Times New Roman',serif!important;letter-spacing:-.03em!important;color:#302018!important}
+.vela-clean-tripline h2{margin:0!important;font:400 clamp(38px,8vw,56px)/.95 Georgia,'Times New Roman',serif!important;letter-spacing:-.03em!important;color:#302018!important;text-shadow:0 1px 2px rgba(246,224,182,.52)!important}
 .vela-clean-plan{display:none!important}
-.vela-clean-destination{margin-top:12px!important;font:18px/1.3 Georgia,serif!important;color:#624b39!important}
-.vela-clean-date{margin-top:5px!important;font:15px/1.3 Georgia,serif!important;color:#806a54!important}
+.vela-clean-destination{margin-top:12px!important;font:18px/1.3 Georgia,serif!important;color:#624b39!important;text-shadow:0 1px 2px rgba(246,224,182,.52)!important}
+.vela-clean-date{margin-top:5px!important;font:15px/1.3 Georgia,serif!important;color:#806a54!important;text-shadow:0 1px 2px rgba(246,224,182,.52)!important}
 .vela-clean-rule{display:none!important}
 .vela-clean-status{display:none!important}
 .vela-clean-quick{position:fixed!important;right:16px!important;bottom:92px!important;z-index:40!important;width:70px!important;height:70px!important;border-radius:50%!important;border:2px solid #9b7a52!important;background:#31534d!important;color:#f1dfba!important;box-shadow:0 6px 14px rgba(53,35,20,.28)!important}
