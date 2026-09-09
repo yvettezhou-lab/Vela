@@ -1,0 +1,8 @@
+/* Correct the homepage composition without changing the data layer. */
+.vela-clean-home{display:flex!important;flex-direction:column!important}
+.vela-clean-map{flex:0 0 350px!important;height:350px!important}
+.vela-clean-tabs{position:absolute!important;left:10px!important;right:10px!important;bottom:-29px!important;width:auto!important;margin:0!important;z-index:12!important}
+.vela-clean-current{order:2!important;margin:47px 18px 0!important}
+.vela-clean-new{order:3!important}
+.vela-clean-recent{order:4!important}
+@media(max-width:600px){.vela-clean-map{flex-basis:350px!important;height:350px!important}.vela-clean-current{margin:47px 18px 0!important}}
