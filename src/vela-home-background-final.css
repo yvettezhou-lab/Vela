@@ -1,0 +1,6 @@
+/* Final artwork swap only: use the user's newly uploaded mother image. */
+.vela-clean-home{background-image:url('/77A13952-48ED-4C9F-8DA4-BB916D02481E.png')!important}
+/* The uploaded artwork already contains the desired parchment tone; remove the earlier artificial wash. */
+.vela-clean-home:before{display:none!important}
+/* Remove the previous label-like contrast treatment. */
+.vela-clean-recent-head h3,.vela-clean-row,.vela-clean-recent>p,.vela-clean-label,.vela-clean-tripline h2,.vela-clean-destination,.vela-clean-date,.vela-clean-new span:nth-child(2){background:transparent!important;border-radius:0!important}
