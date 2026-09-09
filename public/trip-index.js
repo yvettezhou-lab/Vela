@@ -12,59 +12,14 @@
   function switchTo(id){const s=sync(),target=s.trips.find(t=>t.id===id);if(!target||id===s.activeId)return;write(KEY,{...s,activeId:id});write(PLAN_KEY,clone(target));location.reload()}
   function categoryOrder(){const saved=read(CATEGORY_KEY,DEFAULT_CATEGORIES);return[...saved.filter(x=>DEFAULT_CATEGORIES.includes(x)),...DEFAULT_CATEGORIES.filter(x=>!saved.includes(x))]}
   function enableCategoryReorder(){document.querySelectorAll('.category-tabs').forEach(tabs=>{if(tabs.dataset.velaReorder==='1')return;tabs.dataset.velaReorder='1';const buttons=[...tabs.querySelectorAll('.category-tab')],order=categoryOrder();buttons.sort((a,b)=>order.indexOf(a.title)-order.indexOf(b.title)).forEach(b=>tabs.appendChild(b));let dragging=null,moved=false;buttons.forEach(button=>{button.style.touchAction='pan-y';button.addEventListener('pointerdown',e=>{dragging={button,x:e.clientX};moved=false;button.setPointerCapture?.(e.pointerId)});button.addEventListener('pointermove',e=>{if(!dragging||dragging.button!==button)return;if(Math.abs(e.clientX-dragging.x)>7)moved=true;if(!moved)return;const siblings=[...tabs.querySelectorAll('.category-tab')].filter(x=>x!==button),target=siblings.find(s=>{const r=s.getBoundingClientRect();return e.clientX<r.left+r.width/2});if(target)tabs.insertBefore(button,target);else tabs.appendChild(button);dragging.x=e.clientX});button.addEventListener('pointerup',e=>{if(!dragging||dragging.button!==button)return;button.releasePointerCapture?.(e.pointerId);if(moved){e.preventDefault();e.stopPropagation();write(CATEGORY_KEY,[...tabs.querySelectorAll('.category-tab')].map(x=>x.title));button.dataset.velaSuppressClick='1';setTimeout(()=>delete button.dataset.velaSuppressClick,120)}dragging=null});button.addEventListener('click',e=>{if(button.dataset.velaSuppressClick==='1'){e.preventDefault();e.stopPropagation()}})})})}
-  const trigger=selector=>document.querySelector(selector)?.click();
+  const trigger=selector=>{const el=document.querySelector(selector);el?.click()};
   const dateLabel=t=>{if(!t.startDate&&!t.endDate)return 'Dates not set';if(t.startDate&&t.endDate){const a=new Date(`${t.startDate}T00:00:00`),b=new Date(`${t.endDate}T00:00:00`),days=Math.round((b-a)/86400000)+1;return `${a.toLocaleDateString(undefined,{day:'numeric',month:'short'})} — ${b.toLocaleDateString(undefined,{day:'numeric',month:'short'})} · ${days} days`}return t.startDate||t.endDate};
-  function buildHome(){
-    const page=document.querySelector('.home-page');
-    if(!page||page.dataset.velaHomeBuilt==='1')return;
-    const top=page.querySelector('.home-topbar');
-    if(!top)return;
-    page.dataset.velaHomeBuilt='1';
-    const s=sync();
-    const current=s.trips.find(t=>t.id===s.activeId)||read(PLAN_KEY,null)||{id:'',name:'New Journey',destinations:[],startDate:'',endDate:'',status:'Planning',ledger:[]};
-    [...page.children].forEach(el=>el.style.display='none');
-
-    const shell=document.createElement('div');
-    shell.className='vela-clean-home';
-    shell.setAttribute('aria-label','Vela home');
-
-    const recent=document.createElement('section');
-    recent.className='vela-clean-recent';
-    recent.innerHTML='<button class="vela-clean-recent-link" type="button"><span>Recent Trips</span></button><div class="vela-clean-recent-list"></div>';
-    recent.querySelector('.vela-clean-recent-link').onclick=()=>trigger('.bottom-nav button:nth-child(4)');
-    const list=recent.querySelector('.vela-clean-recent-list');
-    const others=s.trips.filter(t=>t.id!==current.id).slice(0,2);
-    if(!others.length){
-      const empty=document.createElement('div');
-      empty.className='vela-clean-empty';
-      empty.textContent='Your next journey will appear here.';
-      list.append(empty);
-    }else others.forEach(t=>{
-      const row=document.createElement('button');
-      row.className='vela-clean-row';
-      row.type='button';
-      row.innerHTML=`<span class="vela-clean-row-copy"><b>${t.name||'Untitled trip'}</b><small>${dateLabel(t)}</small></span><strong aria-hidden="true">›</strong>`;
-      row.onclick=()=>switchTo(t.id);
-      list.append(row);
-    });
-    shell.append(recent);
-
-    const newTrip=document.createElement('button');
-    newTrip.className='vela-clean-new';
-    newTrip.type='button';
-    newTrip.setAttribute('aria-label','Start a New Trip');
-    newTrip.innerHTML='<span class="vela-clean-new-title">Start a New Trip</span><img class="vela-clean-quill" src="/vela-quill.svg" alt="">';
-    newTrip.onclick=make;
-    shell.append(newTrip);
-
-    const currentCard=document.createElement('button');
-    currentCard.className='vela-clean-current';
-    currentCard.type='button';
-    currentCard.setAttribute('aria-label','Open current trip plan');
-    currentCard.innerHTML=`<span class="vela-clean-label">CURRENT TRIP</span><span class="vela-clean-tripline"><b>${current.name||'New Journey'}</b></span><span class="vela-clean-destination">${current.destinations?.length?current.destinations.join(' · '):'Choose a destination'}</span><span class="vela-clean-date">${dateLabel(current)}</span>`;
-    currentCard.onclick=()=>trigger('.home-topbar .quiet');
-    shell.append(currentCard);
-
+  function buildHome(){const page=document.querySelector('.home-page');if(!page||page.dataset.referenceHome==='1')return;const top=page.querySelector('.home-topbar');if(!top)return;page.dataset.referenceHome='1';const s=sync(),current=s.trips.find(t=>t.id===s.activeId)||read(PLAN_KEY,null)||{name:'New Journey',destinations:[],startDate:'',endDate:'',status:'Planning',ledger:[]};[...page.children].forEach(el=>el.style.display='none');
+    const shell=document.createElement('div');shell.className='vela-clean-home';
+    shell.append(Object.assign(document.createElement('section'),{className:'vela-clean-map'}));
+    const recent=document.createElement('section');recent.className='vela-clean-recent';recent.innerHTML='<div class="vela-clean-recent-head"><button class="vela-clean-recent-link" type="button"><span>Recent Trips</span></button></div><div class="vela-clean-recent-list"></div>';recent.querySelector('.vela-clean-recent-link').onclick=()=>trigger('.bottom-nav button:nth-child(4)');const list=recent.querySelector('.vela-clean-recent-list');const others=s.trips.filter(t=>t.id!==current.id).slice(0,3);if(!others.length){const empty=document.createElement('p');empty.className='vela-clean-empty';empty.textContent='Your next journey will appear here.';list.append(empty)}else others.forEach(t=>{const row=document.createElement('button');row.className='vela-clean-row';row.innerHTML=`<span class="vela-clean-row-copy"><b>${t.name||'Untitled trip'}</b><small>${dateLabel(t)}</small></span><strong>›</strong>`;row.onclick=()=>switchTo(t.id);list.append(row)});shell.append(recent);
+    const newTrip=document.createElement('button');newTrip.className='vela-clean-new';newTrip.innerHTML='<span class="vela-clean-new-title">Start a New Trip</span><img class="vela-clean-quill" src="/vela-quill.svg" alt="">';newTrip.onclick=make;shell.append(newTrip);
+    const currentCard=document.createElement('section');currentCard.className='vela-clean-current';currentCard.setAttribute('role','button');currentCard.setAttribute('tabindex','0');currentCard.setAttribute('aria-label','Open current trip plan');currentCard.innerHTML=`<div class="vela-clean-label">CURRENT TRIP</div><div class="vela-clean-tripline"><b>${current.name||'New Journey'}</b></div><div class="vela-clean-destination">${current.destinations?.length?current.destinations.join(' · '):'Choose a destination'}</div><div class="vela-clean-date">${dateLabel(current)}</div>`;currentCard.onclick=()=>trigger('.home-topbar .quiet');currentCard.onkeydown=e=>{if(e.key==='Enter'||e.key===' ')currentCard.click()};shell.append(currentCard);
     page.append(shell);
   }
   function start(){const tick=()=>{buildHome();enableCategoryReorder()};tick();setInterval(tick,1000)}
