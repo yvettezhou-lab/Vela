@@ -1,0 +1,14 @@
+/* STEP 2 — restore the intended travel-journal hierarchy. */
+.vela-clean-home{display:flex!important;flex-direction:column!important;position:relative!important;}
+.vela-clean-map{position:relative!important;flex:0 0 350px!important;height:350px!important;}
+.vela-clean-tabs{position:absolute!important;left:12px!important;right:12px!important;bottom:-30px!important;width:auto!important;height:64px!important;margin:0!important;z-index:12!important;display:flex!important;}
+.vela-clean-current{order:2!important;margin:48px 20px 0!important;}
+.vela-clean-new{order:3!important;}
+.vela-clean-recent{order:4!important;}
+@media(max-width:600px){
+  .vela-clean-map{flex-basis:350px!important;height:350px!important;}
+  .vela-clean-tabs{left:10px!important;right:10px!important;bottom:-29px!important;height:62px!important;}
+  .vela-clean-current{margin:47px 18px 0!important;}
+  .vela-clean-new{width:calc(100% - 36px)!important;margin-left:18px!important;margin-right:18px!important;}
+  .vela-clean-recent{margin-left:18px!important;margin-right:18px!important;}
+}
