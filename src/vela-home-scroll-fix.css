@@ -1,0 +1,27 @@
+/* Align the live Start-a-Trip hit area with the parchment scroll artwork. */
+.vela-clean-home{position:relative!important}
+.vela-clean-new{
+  position:absolute!important;
+  top:115vw!important;
+  left:5%!important;
+  width:90%!important;
+  height:132px!important;
+  margin:0!important;
+  padding:0 150px 0 34px!important;
+  justify-content:center!important;
+  align-items:center!important;
+  text-align:center!important;
+  z-index:8!important;
+  background:transparent!important;
+  border:0!important;
+  box-shadow:none!important;
+}
+.vela-clean-new .vela-clean-quill{display:none!important}
+.vela-clean-new span:nth-child(2){display:block!important}
+.vela-clean-new b{display:block!important;margin:0!important;font:400 25px/1.05 Georgia,'Times New Roman',serif!important;color:#39251c!important}
+.vela-clean-new small{display:none!important}
+.vela-clean-new>strong{display:none!important}
+@media(max-width:600px){
+  .vela-clean-new{top:115vw!important;height:128px!important;padding-right:145px!important}
+  .vela-clean-new b{font-size:23px!important}
+}
