@@ -9,9 +9,9 @@
     const current = shell.querySelector('.vela-clean-current');
     if (!hero || !recent || !start || !tabs || !current) return;
 
-    // Keep the map purely as the visual opening. The index tabs belong below Start.
+    // Map first; category index overlaps its lower edge; content follows in journal order.
     hero.appendChild(tabs);
-    shell.append(recent, start, tabs, current);
+    shell.append(current, start, recent);
     shell.dataset.velaOrderFixed = '1';
   }
   const tick = () => arrange();
