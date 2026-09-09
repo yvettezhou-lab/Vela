@@ -2,7 +2,7 @@
 .home-page{background:#ead9b5!important;padding:0!important;max-width:none!important;overflow-x:hidden!important}
 .home-page:before,.home-page:after{display:none!important}
 .home-page>.topbar,.home-page>.home-map,.home-page>.category-tabs,.home-page>.home-recent,.home-page>.home-note,.home-page>.home-quick{display:none!important}
-.vela-clean-home{position:relative!important;z-index:1!important;width:100%!important;max-width:720px!important;margin:0 auto!important;min-height:calc(100vh - 84px)!important;padding:0 0 110px!important;display:flex!important;flex-direction:column!important;overflow:hidden!important;background-color:#ead9b5!important;background-image:url('/E93E3F53-7A2F-44B8-8B5B-1D725A1AF1BF.png')!important;background-repeat:no-repeat!important;background-position:top center!important;background-size:100% auto!important}
+.vela-clean-home{position:relative!important;z-index:1!important;width:100%!important;max-width:720px!important;margin:0 auto!important;min-height:calc(100vh - 84px)!important;padding:0 0 110px!important;display:flex!important;flex-direction:column!important;overflow:hidden!important;background-color:#ead9b5!important;background-image:url('/F96DAE61-749C-4BB2-AE3B-F150584E5D1F.png')!important;background-repeat:no-repeat!important;background-position:top center!important;background-size:100% auto!important}
 .vela-clean-map{order:1!important;position:relative!important;height:34vh!important;min-height:330px!important;margin:0!important;padding:0!important;background:none!important;border:0!important;box-shadow:none!important;transform:none!important;overflow:visible!important}
 .vela-clean-map>*{display:none!important}
 .vela-clean-tabs{display:none!important}
