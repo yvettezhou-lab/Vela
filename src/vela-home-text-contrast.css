@@ -1,0 +1,17 @@
+/* Subtle parchment wash behind live text only: preserve the map and scroll artwork, improve legibility. */
+.vela-clean-recent-head h3,
+.vela-clean-row,
+.vela-clean-recent>p,
+.vela-clean-label,
+.vela-clean-tripline h2,
+.vela-clean-destination,
+.vela-clean-date{position:relative;text-shadow:0 1px 0 rgba(255,244,214,.82),0 1px 3px rgba(65,38,20,.18)}
+.vela-clean-recent-head h3{display:inline-block;padding:5px 10px 6px;margin-left:-10px!important;border-radius:7px;background:rgba(245,224,184,.24)}
+.vela-clean-recent>p{display:inline-block;padding:4px 8px;border-radius:6px;background:rgba(245,224,184,.20)}
+.vela-clean-row{border-radius:8px;background:linear-gradient(90deg,rgba(247,229,193,.18),rgba(247,229,193,.04),transparent)}
+.vela-clean-new span:nth-child(2){padding:7px 12px 8px;border-radius:8px;background:rgba(244,222,181,.28);text-shadow:0 1px 0 rgba(255,244,214,.9),0 1px 3px rgba(65,38,20,.2)}
+.vela-clean-current .vela-clean-label{display:inline-block;padding:3px 7px;border-radius:5px;background:rgba(245,224,184,.20)}
+.vela-clean-current .vela-clean-tripline h2{display:inline-block;padding:3px 9px 5px;margin-left:-9px!important;border-radius:8px;background:rgba(245,224,184,.20)}
+.vela-clean-destination,.vela-clean-date{display:inline-block;padding:2px 6px;border-radius:5px;background:rgba(245,224,184,.16)}
+/* Slightly lift the page's overall parchment tone without washing out the artwork. */
+.vela-clean-home{background-color:#f0dfbd!important}
