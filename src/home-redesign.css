@@ -50,3 +50,11 @@
  .home-page .home-recent{padding:19px 16px 4px!important;border-radius:18px!important}
  .home-page .home-quick{right:18px!important}
 }
+
+/* Final typography polish: make the map copy feel printed into the chart, not stacked on it. */
+.home-page .map-script{font-weight:600!important;opacity:.92!important}
+.home-page .map-label-a{font-size:8px!important;letter-spacing:.18em!important;color:rgba(82,96,90,.78)!important}
+@media(max-width:600px){
+ .home-page .map-script{font-weight:600!important;opacity:.92!important}
+ .home-page .map-label-a{font-size:8px!important;letter-spacing:.18em!important}
+}
