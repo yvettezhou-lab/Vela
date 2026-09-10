@@ -1,0 +1,29 @@
+/* Vela Quick Entry — final mark: a quiet journal pen, not a generic app plus. */
+.home-page .home-quick{
+  width:58px!important;
+  height:58px!important;
+  padding:0!important;
+  border:1px solid rgba(213,190,145,.72)!important;
+  border-radius:50%!important;
+  background:#294b4a!important;
+  color:#f5ead3!important;
+  box-shadow:0 8px 22px rgba(41,75,74,.20),0 2px 0 rgba(57,42,24,.10)!important;
+  display:grid!important;
+  place-items:center!important;
+  overflow:hidden!important;
+}
+.home-page .home-quick span{
+  width:30px!important;
+  height:30px!important;
+  margin:0!important;
+  font-size:0!important;
+  background-repeat:no-repeat!important;
+  background-position:center!important;
+  background-size:27px 27px!important;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cpath d='M7 25.5c5.2-1.1 9.5-3.4 13-6.9L25.5 6l-12.6 5.5c-3.5 3.5-5.8 7.8-6.9 13Z' fill='none' stroke='%23ead8b4' stroke-width='1.55' stroke-linejoin='round'/%3E%3Cpath d='M12 20l13.5-14M10 22l-3 3M12.8 18.2l-5.1-.5M14.5 16.5l.6 5.1' fill='none' stroke='%23ead8b4' stroke-width='1.35' stroke-linecap='round'/%3E%3Cpath d='M23.8 6.8l2.1-.9-.9 2.1' fill='none' stroke='%23b38b55' stroke-width='1.2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E")!important;
+  position:relative!important;
+}
+.home-page .home-quick span:before,.home-page .home-quick span:after{display:none!important;content:none!important}
+.home-page .home-quick small{display:none!important}
+.home-page .home-quick:active{transform:translateY(1px)!important}
+@media(max-width:600px){.home-page .home-quick{right:18px!important;bottom:74px!important;width:58px!important;height:58px!important}.home-page .home-quick span{background-size:27px 27px!important}}
