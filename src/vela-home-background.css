@@ -1,44 +1,46 @@
-/* Vela Home — 896D is a 707×1536 artwork. The page uses it as one fixed coordinate canvas. */
+/* Vela Home — 896D is rendered as an exact-aspect image. All live UI is positioned on that canvas. */
 .home-page{position:relative!important;background:transparent!important;padding:0!important;max-width:none!important;min-height:0!important;overflow:visible!important}
 .home-page:before,.home-page:after{display:none!important;content:none!important}
 
-.vela-clean-home{position:relative!important;display:block!important;width:100%!important;height:217.26vw!important;min-height:0!important;margin:0!important;padding:0!important;overflow:hidden!important;background:#896d url('/896DCF5B-31E2-44AA-ADEB-1A9E019FC6FC.png') center top/100% auto no-repeat!important;color:#302218!important}
+.vela-clean-home{position:relative!important;display:block!important;width:100%!important;height:217.26vw!important;min-height:0!important;margin:0!important;padding:0!important;overflow:hidden!important;background:transparent!important;color:#302218!important}
+.vela-clean-bg{position:absolute!important;left:0!important;top:0!important;display:block!important;width:100%!important;height:auto!important;max-width:none!important;margin:0!important;padding:0!important;border:0!important;object-fit:contain!important;pointer-events:none!important;user-select:none!important;z-index:0!important}
 
-/* Current Trip — coordinates follow the 707×1536 artwork. */
-.vela-clean-current{position:absolute!important;left:0!important;top:62.8vw!important;width:100%!important;height:54vw!important;margin:0!important;padding:0!important;background:transparent!important;border:0!important;border-radius:0!important;box-shadow:none!important;color:#38261b!important;text-align:left!important;cursor:pointer!important;z-index:5!important;box-sizing:border-box!important}
-.vela-clean-label{position:absolute!important;left:7.8vw!important;top:0!important;margin:0!important;font:700 2vw/1 Georgia,serif!important;letter-spacing:.22em!important;color:#765a3d!important}
-.vela-clean-tripline{position:absolute!important;left:7.8vw!important;top:6.1vw!important;margin:0!important;padding:0!important}
-.vela-clean-tripline b{display:block!important;font:400 6.1vw/.95 Georgia,'Times New Roman',serif!important;letter-spacing:-.035em!important;white-space:nowrap!important;text-shadow:0 1px 0 rgba(255,247,225,.55)!important}
-.vela-clean-destination{position:absolute!important;left:7.8vw!important;top:17.1vw!important;margin:0!important;font:500 2.8vw/1.2 Georgia,serif!important;color:#55402f!important}
-.vela-clean-date{position:absolute!important;left:7.8vw!important;top:23.5vw!important;margin:0!important;font:500 2.05vw/1.2 Georgia,serif!important;color:#796550!important}
+/* Current Trip — coordinates measured from the 707×1536 artwork. */
+.vela-clean-current{position:absolute!important;left:0!important;top:28.97%!important;width:100%!important;height:24%!important;margin:0!important;padding:0!important;background:transparent!important;border:0!important;border-radius:0!important;box-shadow:none!important;color:#38261b!important;text-align:left!important;cursor:pointer!important;z-index:5!important;box-sizing:border-box!important}
+.vela-clean-label{position:absolute!important;left:7.92%!important;top:0!important;margin:0!important;padding:0!important;font:700 2vw/1 Georgia,serif!important;letter-spacing:.22em!important;color:#765a3d!important}
+.vela-clean-tripline{position:absolute!important;left:7.92%!important;top:2.93%!important;margin:0!important;padding:0!important}
+.vela-clean-tripline b{display:block!important;margin:0!important;padding:0!important;font:400 6.1vw/.95 Georgia,'Times New Roman',serif!important;letter-spacing:-.035em!important;white-space:nowrap!important;text-shadow:0 1px 0 rgba(255,247,225,.55)!important}
+.vela-clean-destination{position:absolute!important;left:7.92%!important;top:8.02%!important;margin:0!important;padding:0!important;font:500 2.8vw/1.2 Georgia,serif!important;color:#55402f!important}
+.vela-clean-date{position:absolute!important;left:7.92%!important;top:10.73%!important;margin:0!important;padding:0!important;font:500 2.05vw/1.2 Georgia,serif!important;color:#796550!important}
 
-/* Start a New Trip — only text/interaction; the compass and parchment are artwork. */
-.vela-clean-new{position:absolute!important;left:5.7vw!important;top:118.3vw!important;width:88.7vw!important;height:16vw!important;min-height:0!important;margin:0!important;padding:0!important;display:block!important;border:0!important;border-radius:0!important;background:transparent!important;color:#3f2c20!important;box-shadow:none!important;text-align:left!important;cursor:pointer!important;z-index:6!important;box-sizing:border-box!important}
+/* Start a New Trip — artwork supplies the parchment and compass; text is the only overlay. */
+.vela-clean-new{position:absolute!important;left:5.8%!important;top:55.53%!important;width:88.4%!important;height:8.3%!important;min-height:0!important;margin:0!important;padding:0!important;display:block!important;border:0!important;border-radius:0!important;background:transparent!important;color:#3f2c20!important;box-shadow:none!important;text-align:left!important;cursor:pointer!important;z-index:6!important;box-sizing:border-box!important}
 .vela-clean-new:before,.vela-clean-new:after{display:none!important}
-.vela-clean-new-copy{position:absolute!important;left:24.7vw!important;top:6.7vw!important;width:55vw!important;margin:0!important;padding:0!important;text-align:left!important;pointer-events:none!important}
-.vela-clean-new-copy b{display:block!important;margin:0!important;padding:0!important;font:400 4.3vw/1.05 Georgia,'Times New Roman',serif!important;white-space:nowrap!important}
-.vela-clean-new>strong{position:absolute!important;right:6vw!important;top:6.2vw!important;margin:0!important;padding:0!important;font:400 5.2vw/1 Georgia,serif!important;color:#6f5230!important;pointer-events:none!important}
+.vela-clean-new-copy{position:absolute!important;left:27.8%!important;top:38.5%!important;width:62%!important;margin:0!important;padding:0!important;text-align:left!important;pointer-events:none!important;transform:none!important}
+.vela-clean-new-copy b{display:block!important;margin:0!important;padding:0!important;font:400 4.3vw/1.05 Georgia,'Times New Roman',serif!important;white-space:nowrap!important;color:#3f2c20!important}
+.vela-clean-new>strong{position:absolute!important;right:6.2%!important;top:34%!important;margin:0!important;padding:0!important;font:400 5.2vw/1 Georgia,serif!important;color:#6f5230!important;pointer-events:none!important}
 
-/* Recent Trips — coordinates follow the lower parchment in 896D. */
-.vela-clean-recent{position:absolute!important;left:4.2vw!important;top:139.8vw!important;width:89.6vw!important;height:51vw!important;margin:0!important;padding:0!important;border:0!important;border-radius:0!important;background:transparent!important;box-shadow:none!important;z-index:5!important;box-sizing:border-box!important}
+/* Recent Trips — transparent content directly on the lower parchment. */
+.vela-clean-recent{position:absolute!important;left:4.25%!important;top:65.36%!important;width:89.6%!important;height:28%!important;margin:0!important;padding:0!important;border:0!important;border-radius:0!important;background:transparent!important;box-shadow:none!important;z-index:5!important;box-sizing:border-box!important}
 .vela-clean-recent:before,.vela-clean-recent:after{display:none!important}
-.vela-clean-recent-head{position:absolute!important;left:3.8vw!important;right:3.8vw!important;top:8.8vw!important;height:7vw!important;display:flex!important;align-items:center!important;justify-content:space-between!important;padding:0!important}
+.vela-clean-recent-head{position:absolute!important;left:4.25%!important;right:4.25%!important;top:19.4%!important;height:6%!important;display:flex!important;align-items:center!important;justify-content:space-between!important;padding:0!important;margin:0!important}
 .vela-clean-recent-link,.vela-clean-viewall{border:0!important;background:none!important;color:#382a20!important;cursor:pointer!important;padding:0!important;margin:0!important}
-.vela-clean-recent-link span{font:400 4.2vw/1 Georgia,serif!important}
-.vela-clean-viewall{font:400 2.8vw/1 Georgia,serif!important;color:#765a3d!important}
-.vela-clean-recent-list{position:absolute!important;left:3.8vw!important;right:3.8vw!important;top:19vw!important;display:grid!important;padding:0!important}
-.vela-clean-row{width:100%!important;min-height:11vw!important;display:flex!important;align-items:center!important;gap:2vw!important;padding:1vw 1%!important;margin:0!important;background:transparent!important;border:0!important;border-top:1px solid rgba(91,71,49,.16)!important;text-align:left!important;color:#34251b!important;cursor:pointer!important}
-.vela-clean-row-mark{width:10vw!important;height:10vw!important;display:grid!important;place-items:center!important;flex:none!important;border:0!important;background:transparent!important;font:4vw Georgia,serif!important;color:#80603d!important}
+.vela-clean-recent-link span{font:400 4.2vw/1 Georgia,serif!important;white-space:nowrap!important}
+.vela-clean-viewall{font:400 2.8vw/1 Georgia,serif!important;color:#765a3d!important;white-space:nowrap!important}
+.vela-clean-recent-list{position:absolute!important;left:4.25%!important;right:4.25%!important;top:48%!important;display:grid!important;padding:0!important;margin:0!important}
+.vela-clean-row{width:100%!important;min-height:7.2vw!important;display:flex!important;align-items:center!important;gap:2vw!important;padding:1vw 0!important;margin:0!important;background:transparent!important;border:0!important;border-top:1px solid rgba(91,71,49,.16)!important;text-align:left!important;color:#34251b!important;cursor:pointer!important}
+.vela-clean-row-mark{width:10vw!important;height:7vw!important;display:grid!important;place-items:center!important;flex:none!important;border:0!important;background:transparent!important;font:4vw Georgia,serif!important;color:#80603d!important}
 .vela-clean-row-copy{display:grid!important;gap:1vw!important;min-width:0!important;flex:1!important}
 .vela-clean-row b{font:400 3.3vw/1.05 Georgia,'Times New Roman',serif!important;white-space:nowrap!important;overflow:hidden!important;text-overflow:ellipsis!important}
 .vela-clean-row small{font:500 2vw/1.2 Georgia,serif!important;color:#76614c!important}
 .vela-clean-row>strong{font:400 4.5vw/1 Georgia,serif!important;color:#806246!important}
 .vela-clean-empty{padding:0!important;margin:0!important;font:2.45vw/1.4 Georgia,serif!important;color:#655343!important}
 
-/* Real Quick Entry control, repositioned onto the artwork. */
-.vela-clean-quick{position:absolute!important;right:5.8vw!important;top:181.2vw!important;bottom:auto!important;width:15.5vw!important;height:15.5vw!important;padding:0!important;margin:0!important;border:1px solid rgba(72,54,32,.45)!important;border-radius:50%!important;background:linear-gradient(145deg,#4c6b68,#263d3a)!important;cursor:pointer!important;z-index:20!important;display:flex!important;align-items:center!important;justify-content:center!important;box-shadow:0 4px 9px rgba(67,45,26,.28)!important}.vela-clean-quick img{display:block!important;width:11vw!important;height:13vw!important;object-fit:contain!important;pointer-events:none!important;filter:drop-shadow(1px 2px 1px rgba(20,20,20,.25))!important}
+/* Real Quick Entry control. */
+.vela-clean-quick{position:absolute!important;right:5.8%!important;top:83.66%!important;bottom:auto!important;width:15.5vw!important;height:15.5vw!important;padding:0!important;margin:0!important;border:1px solid rgba(72,54,32,.45)!important;border-radius:50%!important;background:linear-gradient(145deg,#4c6b68,#263d3a)!important;cursor:pointer!important;z-index:20!important;display:flex!important;align-items:center!important;justify-content:center!important;box-shadow:0 4px 9px rgba(67,45,26,.28)!important}
+.vela-clean-quick img{display:block!important;width:11vw!important;height:13vw!important;object-fit:contain!important;pointer-events:none!important;filter:drop-shadow(1px 2px 1px rgba(20,20,20,.25))!important}
 
-/* Keep the actual React navigation; Atelier is the fifth tab. */
+/* Keep the real React navigation. */
 .app>.bottom-nav{position:fixed!important;left:0!important;right:0!important;bottom:0!important;z-index:50!important;background:rgba(239,225,197,.97)!important;border-top:1px solid rgba(71,53,31,.2)!important;box-shadow:0 -4px 18px rgba(71,53,31,.08)!important;backdrop-filter:blur(10px)!important}
 
-@media(max-width:600px){.vela-clean-home{width:100%!important;height:217.26vw!important;background-size:100% auto!important}.vela-clean-current{top:62.8vw!important}.vela-clean-new{top:118.3vw!important}.vela-clean-recent{top:139.8vw!important}.vela-clean-quick{top:181.2vw!important}}
+@media(max-width:600px){.vela-clean-home{width:100%!important;height:217.26vw!important}.vela-clean-bg{width:100%!important;height:auto!important}.vela-clean-current{top:28.97%!important}.vela-clean-new{top:55.53%!important}.vela-clean-recent{top:65.36%!important}.vela-clean-quick{top:83.66%!important}}
