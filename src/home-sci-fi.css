@@ -1,0 +1,267 @@
+/* Vela Home — celestial / future-travel direction. Visual layer only; existing React/data/actions remain untouched. */
+.home-page{
+  --vela-ink:#17263d!important;
+  --vela-navy:#172942!important;
+  --vela-navy-2:#213958!important;
+  --vela-gold:#c7a66a!important;
+  --vela-paper:#f5f1e7!important;
+  --vela-muted:#8c918f!important;
+  max-width:760px!important;
+  min-height:100vh!important;
+  padding:0 20px 126px!important;
+  margin:0 auto!important;
+  background:var(--vela-paper)!important;
+  color:var(--vela-ink)!important;
+}
+.home-page .home-topbar{
+  padding:34px 2px 24px!important;
+  align-items:center!important;
+}
+.home-page .home-topbar .eyebrow{
+  margin-bottom:10px!important;
+  color:#96764b!important;
+  font:700 10px/1 ui-sans-serif,system-ui,sans-serif!important;
+  letter-spacing:.28em!important;
+}
+.home-page .home-topbar h1{
+  color:#17263d!important;
+  font:400 42px/.98 Georgia,'Times New Roman',serif!important;
+  letter-spacing:-.045em!important;
+}
+.home-page .home-topbar .quiet{
+  padding:11px 19px!important;
+  border:1px solid rgba(23,38,61,.22)!important;
+  border-radius:999px!important;
+  background:rgba(255,255,255,.18)!important;
+  color:#53606c!important;
+  font:600 12px/1 ui-sans-serif,system-ui,sans-serif!important;
+  letter-spacing:.05em!important;
+}
+
+/* Main journey object: deep-space chart rather than parchment map. */
+.home-page .home-map{
+  position:relative!important;
+  min-height:315px!important;
+  margin:0!important;
+  padding:0!important;
+  overflow:hidden!important;
+  border:1px solid rgba(199,166,106,.38)!important;
+  border-radius:30px!important;
+  background:
+    radial-gradient(circle at 78% 20%,rgba(114,151,190,.18),transparent 18%),
+    radial-gradient(circle at 25% 72%,rgba(93,123,157,.13),transparent 27%),
+    radial-gradient(circle at 52% 48%,rgba(255,255,255,.025) 0 1px,transparent 1.5px) 0 0/22px 22px,
+    linear-gradient(145deg,#14243a 0%,#1b2e48 55%,#101e31 100%)!important;
+  box-shadow:0 22px 48px rgba(18,32,51,.20)!important;
+}
+.home-page .home-map:before{
+  content:""!important;
+  position:absolute!important;
+  inset:18px!important;
+  border:1px solid rgba(218,200,162,.24)!important;
+  border-radius:23px!important;
+  background:
+    linear-gradient(rgba(203,187,150,.07) 1px,transparent 1px) 0 0/100% 52px,
+    linear-gradient(90deg,rgba(203,187,150,.05) 1px,transparent 1px) 0 0/52px 100%!important;
+  pointer-events:none!important;
+}
+.home-page .home-map:after{
+  content:""!important;
+  position:absolute!important;
+  width:470px!important;
+  height:300px!important;
+  left:10px!important;
+  top:35px!important;
+  border:1px solid rgba(194,177,140,.19)!important;
+  border-radius:50%!important;
+  transform:rotate(-16deg)!important;
+  box-shadow:0 0 0 34px rgba(194,177,140,.035),0 0 0 70px rgba(194,177,140,.025)!important;
+  pointer-events:none!important;
+}
+/* Sparse star points, intentionally understated. */
+.home-page .home-map .map-route:after{
+  content:""!important;
+  position:absolute!important;
+  width:3px!important;
+  height:3px!important;
+  border-radius:50%!important;
+  background:#eee4cd!important;
+  left:17%!important;
+  top:18px!important;
+  box-shadow:72px -32px 0 0 rgba(238,228,205,.72),143px 48px 0 0 rgba(199,166,106,.85),238px -24px 0 0 rgba(238,228,205,.65),304px 20px 0 0 rgba(238,228,205,.48),360px -43px 0 0 rgba(199,166,106,.72)!important;
+}
+.home-page .map-route{
+  left:13%!important;
+  top:57%!important;
+  width:60%!important;
+  height:75px!important;
+  border-top:1px dashed rgba(220,207,179,.52)!important;
+  transform:rotate(-9deg)!important;
+  z-index:2!important;
+}
+.home-page .map-route:before{
+  width:8px!important;
+  height:8px!important;
+  left:8%!important;
+  top:-5px!important;
+  background:#c7a66a!important;
+  box-shadow:118px 39px 0 #c7a66a,246px 1px 0 rgba(220,207,179,.82)!important;
+}
+.home-page .map-route span{
+  left:32%!important;
+  top:-12px!important;
+  border-left-width:8px!important;
+  border-right-width:8px!important;
+  border-bottom:13px solid #e8dfcb!important;
+  filter:drop-shadow(0 0 5px rgba(231,219,190,.18))!important;
+}
+.home-page .map-compass{
+  right:25px!important;
+  top:25px!important;
+  width:72px!important;
+  height:72px!important;
+  border:1px solid rgba(225,211,180,.36)!important;
+  background:rgba(11,25,42,.18)!important;
+  color:#aeb5b8!important;
+  z-index:4!important;
+}
+.home-page .map-compass:before{
+  content:"✦"!important;
+  font:25px/1 Georgia,serif!important;
+  color:#c7a66a!important;
+  text-shadow:0 0 12px rgba(199,166,106,.25)!important;
+}
+.home-page .map-label{
+  z-index:5!important;
+  color:rgba(221,216,204,.62)!important;
+  font:600 9px/1 ui-sans-serif,system-ui,sans-serif!important;
+  letter-spacing:.19em!important;
+}
+.home-page .map-label-a{
+  left:26px!important;
+  top:168px!important;
+  bottom:auto!important;
+  max-width:58%!important;
+}
+.home-page .map-label-b{
+  left:26px!important;
+  right:auto!important;
+  bottom:28px!important;
+}
+.home-page .map-script{
+  left:26px!important;
+  top:68px!important;
+  z-index:6!important;
+  color:#f2ead9!important;
+  font:italic 600 54px/.9 Georgia,'Times New Roman',serif!important;
+  letter-spacing:-.085em!important;
+  text-shadow:0 2px 18px rgba(0,0,0,.18)!important;
+}
+.home-page .home-map p{
+  left:27px!important;
+  top:124px!important;
+  z-index:6!important;
+  max-width:58%!important;
+  margin:0!important;
+  color:rgba(231,225,213,.78)!important;
+  font:15px/1.35 Georgia,serif!important;
+}
+
+/* Empty-state card: spacecraft console rather than generic notification. */
+.home-page .home-note{
+  position:relative!important;
+  min-height:104px!important;
+  margin:22px 0!important;
+  padding:22px 24px!important;
+  gap:17px!important;
+  border:1px solid rgba(23,38,61,.13)!important;
+  border-radius:23px!important;
+  background:rgba(255,255,255,.72)!important;
+  box-shadow:0 12px 30px rgba(35,43,50,.055)!important;
+}
+.home-page .home-note:after{
+  content:"01"!important;
+  position:absolute!important;
+  right:20px!important;
+  top:16px!important;
+  color:rgba(23,38,61,.20)!important;
+  font:700 8px/1 ui-sans-serif,system-ui,sans-serif!important;
+  letter-spacing:.2em!important;
+}
+.home-page .home-note-mark{
+  width:46px!important;
+  height:46px!important;
+  flex:0 0 46px!important;
+  border:1px solid rgba(199,166,106,.30)!important;
+  background:#e9e1d2!important;
+  color:#ad8750!important;
+  font-size:18px!important;
+}
+.home-page .home-note strong{
+  color:#22344d!important;
+  font:400 24px/1.1 Georgia,serif!important;
+}
+.home-page .home-note small{
+  margin-top:6px!important;
+  color:#8c8a83!important;
+  font:12px/1.35 ui-sans-serif,system-ui,sans-serif!important;
+}
+
+/* Quick entry becomes a compact mission-control capsule. */
+.home-page .home-quick{
+  right:max(20px,calc((100vw - 760px)/2 + 8px))!important;
+  bottom:92px!important;
+  width:auto!important;
+  min-width:154px!important;
+  height:58px!important;
+  padding:0 22px!important;
+  border:1px solid rgba(199,166,106,.75)!important;
+  border-radius:30px!important;
+  background:#101a29!important;
+  color:#f4ead8!important;
+  box-shadow:0 14px 30px rgba(18,29,44,.23)!important;
+  display:flex!important;
+  align-items:center!important;
+  justify-content:center!important;
+  gap:11px!important;
+}
+.home-page .home-quick span{
+  width:20px!important;
+  height:20px!important;
+  display:block!important;
+  background:none!important;
+  position:relative!important;
+  font-size:0!important;
+}
+.home-page .home-quick span:before{
+  content:"✦"!important;
+  position:absolute!important;
+  inset:0!important;
+  color:#d9c28f!important;
+  font:20px/20px Georgia,serif!important;
+  text-align:center!important;
+}
+.home-page .home-quick span:after{display:none!important}
+.home-page .home-quick small{
+  display:block!important;
+  color:#f5ead7!important;
+  font:700 10px/1 ui-sans-serif,system-ui,sans-serif!important;
+  letter-spacing:.16em!important;
+}
+
+@media(max-width:600px){
+  .home-page{padding:0 15px 126px!important}
+  .home-page .home-topbar{padding:27px 2px 22px!important}
+  .home-page .home-topbar h1{font-size:38px!important}
+  .home-page .home-map{min-height:310px!important;border-radius:27px!important}
+  .home-page .home-map:before{inset:16px!important;border-radius:20px!important}
+  .home-page .home-map:after{width:430px!important;height:275px!important;left:-5px!important;top:46px!important}
+  .home-page .map-script{left:25px!important;top:68px!important;font-size:50px!important}
+  .home-page .home-map p{left:26px!important;top:127px!important;max-width:76%!important;font-size:14px!important;line-height:1.35!important}
+  .home-page .map-label-a{left:26px!important;top:170px!important;max-width:74%!important}
+  .home-page .map-label-b{left:26px!important;bottom:27px!important}
+  .home-page .map-compass{right:22px!important;top:23px!important;width:66px!important;height:66px!important}
+  .home-page .home-note{padding:21px 18px!important;border-radius:21px!important}
+  .home-page .home-note strong{font-size:22px!important}
+  .home-page .home-quick{right:18px!important;bottom:74px!important;min-width:150px!important;height:56px!important}
+}
