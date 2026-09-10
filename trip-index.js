@@ -17,11 +17,11 @@
   const isEmptyDraft=t=>(t.name||'New Journey')==='New Journey'&&!t.startDate&&!t.endDate&&!t.destinations?.length&&!t.ledger?.length;
   function buildHome(){const page=document.querySelector('.home-page');if(!page||page.dataset.referenceHome==='1')return;const top=page.querySelector('.home-topbar');if(!top)return;page.dataset.referenceHome='1';const s=sync(),current=s.trips.find(t=>t.id===s.activeId)||read(PLAN_KEY,null)||{name:'New Journey',destinations:[],startDate:'',endDate:'',status:'Planning',ledger:[]};
     const tabs=page.querySelector('.category-tabs');
-    [...page.children].forEach(el=>el.style.display='none');
-    const shell=document.createElement('div');shell.className='vela-clean-home';
+    [...page.children].forEach(el=>el.style.display='none';
+    const shell=document.createElement('div');shell.className='vela-clean-home';shell.style.setProperty('display','block','important');
     const map=document.createElement('section');map.className='vela-clean-map';shell.append(map);
-    const brand=document.createElement('div');brand.className='vela-clean-brand';brand.innerHTML='<span>Vela</span><small>JOURNEYS<br>EXPENSES<br>TOGETHER</small>';shell.append(brand);
-    const motto=document.createElement('div');motto.className='vela-clean-motto';motto.textContent='Good\nCompany\nFurther';shell.append(motto);
+    const brand=document.createElement('div');brand.className='vela-clean-brand';brand.innerHTML='<span>Vela</span><small>JOURNEYS<br>EXPENSES<br>TOGETHER</small>';map.append(brand);
+    const motto=document.createElement('div');motto.className='vela-clean-motto';motto.textContent='Good\nCompany\nFurther';map.append(motto);
     if(tabs){tabs.classList.add('vela-clean-tabs');tabs.style.display='flex';shell.append(tabs)}
     const currentCard=document.createElement('section');currentCard.className='vela-clean-current';currentCard.setAttribute('role','button');currentCard.setAttribute('tabindex','0');currentCard.setAttribute('aria-label','Open current trip plan');currentCard.innerHTML=`<div class="vela-clean-label">CURRENT TRIP</div><div class="vela-clean-tripline"><b>${current.name||'New Journey'}</b></div><button class="vela-clean-plan" type="button">Plan <span>→</span></button><div class="vela-clean-destination">${current.destinations?.length?current.destinations.join(' · '):'Choose a destination'}</div><div class="vela-clean-date">${dateLabel(current)}</div>`;currentCard.onclick=()=>trigger('.home-topbar .quiet');currentCard.querySelector('.vela-clean-plan').onclick=e=>{e.stopPropagation();trigger('.home-topbar .quiet')};currentCard.onkeydown=e=>{if(e.key==='Enter'||e.key===' ')currentCard.click()};shell.append(currentCard);
     const newTrip=document.createElement('button');newTrip.className='vela-clean-new';newTrip.innerHTML='<span class="vela-clean-new-compass">✥</span><span class="vela-clean-new-copy"><b>Start a New Trip</b><small>A NEW JOURNEY AWAITS</small></span><strong>→</strong>';newTrip.onclick=make;shell.append(newTrip);
