@@ -17,7 +17,7 @@
   const isEmptyDraft=t=>(t.name||'New Journey')==='New Journey'&&!t.startDate&&!t.endDate&&!t.destinations?.length&&!t.ledger?.length;
   function buildHome(){const page=document.querySelector('.home-page');if(!page||page.dataset.referenceHome==='1')return;const top=page.querySelector('.home-topbar');if(!top)return;page.dataset.referenceHome='1';const s=sync(),current=s.trips.find(t=>t.id===s.activeId)||read(PLAN_KEY,null)||{name:'New Journey',destinations:[],startDate:'',endDate:'',status:'Planning',ledger:[]};
     const tabs=page.querySelector('.category-tabs');
-    [...page.children].forEach(el=>el.style.display='none';
+    [...page.children].forEach(el=>el.style.display='none');
     const shell=document.createElement('div');shell.className='vela-clean-home';shell.style.setProperty('display','block','important');
     const map=document.createElement('section');map.className='vela-clean-map';shell.append(map);
     const brand=document.createElement('div');brand.className='vela-clean-brand';brand.innerHTML='<span>Vela</span><small>JOURNEYS<br>EXPENSES<br>TOGETHER</small>';map.append(brand);
