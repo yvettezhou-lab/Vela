@@ -1,0 +1,43 @@
+/* Vela Home — Carina-inspired editorial layout. Structure stays Vela; visual rhythm borrows the reference: quiet cream canvas, strong navy journey card, restrained ledger card, generous whitespace. */
+.home-page{background:#f5f1e7!important;color:#202a36!important;max-width:820px!important;padding:0 34px 118px!important;box-shadow:none!important}
+.home-page .home-topbar{padding:30px 0 28px!important;display:flex!important;align-items:flex-end!important}
+.home-page .home-topbar .eyebrow{font-size:10px!important;letter-spacing:.24em!important;color:#9b7650!important;margin-bottom:10px!important}
+.home-page .home-topbar h1{font:400 42px/.98 Georgia,'Times New Roman',serif!important;letter-spacing:-.04em!important;color:#172333!important}
+.home-page .home-topbar .quiet{padding:10px 18px!important;border:1px solid #d2c9b9!important;border-radius:999px!important;background:#f3eee4!important;color:#4d5860!important;font:600 12px/1 ui-sans-serif,system-ui,sans-serif!important}
+/* The journey card: no faux map clutter; one confident object, like the navy statement card in Carina. */
+.home-page .home-map{min-height:255px!important;margin:0!important;padding:30px!important;border:0!important;border-radius:28px!important;background:#1d3046!important;box-shadow:0 14px 32px rgba(32,42,54,.14)!important;overflow:hidden!important}
+.home-page .home-map:before{inset:18px!important;border:1px solid rgba(238,229,207,.24)!important;border-radius:20px!important;background:none!important}
+.home-page .home-map:after{width:290px!important;height:290px!important;right:-100px!important;bottom:-135px!important;border:1px solid rgba(238,229,207,.14)!important;box-shadow:0 0 0 22px rgba(238,229,207,.025),0 0 0 46px rgba(238,229,207,.02)!important}
+.home-page .map-route{left:12%!important;top:58%!important;width:56%!important;border-top-color:rgba(238,229,207,.42)!important}
+.home-page .map-route:before{background:#c4a46e!important;box-shadow:105px 36px 0 #c4a46e,190px 5px 0 #c4a46e!important}
+.home-page .map-route span{border-bottom-color:#e9dfca!important}
+.home-page .map-compass{right:28px!important;top:27px!important;border-color:rgba(238,229,207,.3)!important;color:rgba(238,229,207,.7)!important}
+.home-page .map-compass:before{color:#c5a36a!important}
+.home-page .map-label-a{left:30px!important;top:83px!important;color:#f1eadc!important;font-size:10px!important;letter-spacing:.19em!important}
+.home-page .map-script{left:30px!important;top:45px!important;color:#f7f0e3!important;font-size:42px!important;opacity:1!important}
+.home-page .home-map p{left:30px!important;top:128px!important;color:rgba(239,233,220,.72)!important;font-size:14px!important}
+.home-page .map-label-b{left:30px!important;right:auto!important;bottom:27px!important;color:rgba(239,233,220,.65)!important;font-size:9px!important;letter-spacing:.18em!important}
+/* Empty-state ledger card, echoing the reference's white action card. */
+.home-page .home-note{margin:16px 0 0!important;padding:22px 24px!important;min-height:78px!important;border:1px solid #e0d9cd!important;border-radius:22px!important;background:#fffdfa!important;box-shadow:0 6px 18px rgba(50,47,40,.055)!important;gap:16px!important}
+.home-page .home-note-mark{width:44px!important;height:44px!important;background:#f0e8dc!important;color:#a9824f!important;font-size:20px!important}
+.home-page .home-note strong{font:500 20px/1.2 Georgia,serif!important;color:#273747!important}
+.home-page .home-note small{font:11px/1.35 ui-sans-serif,system-ui,sans-serif!important;color:#8b857c!important;margin-top:5px!important}
+.home-page .home-recent{margin-top:18px!important;border-radius:22px!important;background:#fffdfa!important;border-color:#e0d9cd!important}
+/* Quick action becomes a quiet editorial control, not a decorative floating toy. */
+.home-page .home-quick{right:max(24px,calc((100vw - 820px)/2 + 24px))!important;bottom:88px!important;width:auto!important;height:54px!important;padding:0 22px!important;border-radius:28px!important;background:#151515!important;color:#fffaf1!important;box-shadow:0 12px 28px rgba(20,20,20,.16)!important;display:flex!important;gap:12px!important}
+.home-page .home-quick span{width:18px!important;height:18px!important}
+.home-page .home-quick span:before{content:"+"!important;width:18px!important;height:18px!important;font:300 25px/17px ui-sans-serif,system-ui,sans-serif!important;color:#fffaf1!important}
+.home-page .home-quick small{display:block!important;font:600 11px/1 ui-sans-serif,system-ui,sans-serif!important;letter-spacing:.06em!important}
+@media(max-width:600px){
+ .home-page{padding:0 24px 118px!important}
+ .home-page .home-topbar{padding:25px 0 24px!important}
+ .home-page .home-topbar h1{font-size:36px!important}
+ .home-page .home-map{min-height:270px!important;padding:25px!important;border-radius:25px!important}
+ .home-page .map-script{left:25px!important;top:49px!important;font-size:39px!important}
+ .home-page .map-label-a{left:25px!important;top:89px!important;font-size:9px!important}
+ .home-page .home-map p{left:25px!important;top:134px!important;font-size:12px!important;max-width:66%!important}
+ .home-page .map-label-b{left:25px!important;bottom:24px!important}
+ .home-page .map-compass{right:23px!important;top:23px!important;width:62px!important;height:62px!important}
+ .home-page .home-note{padding:20px!important;border-radius:20px!important}
+ .home-page .home-quick{right:18px!important;bottom:74px!important;height:52px!important;padding:0 19px!important}
+}
