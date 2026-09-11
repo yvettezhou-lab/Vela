@@ -1,0 +1,94 @@
+import { CATEGORIES, entryUsageDates, loadPlan, makeAllocations, savePlan, type AllocationMode, type Category, type EntryTemplate, type FlightType, type LedgerEntry, type Plan } from './domain';
+
+const esc = (s: string) => s.replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c] || c));
+const dateText = (d?: string) => d || '';
+const styles = `
+#vela-edit-backdrop{position:fixed;inset:0;background:rgba(5,15,24,.48);backdrop-filter:blur(8px);z-index:1000;display:flex;align-items:flex-end;justify-content:center;padding:18px}
+#vela-edit-modal{width:min(620px,100%);max-height:min(88vh,760px);overflow:auto;background:#f6eddd;color:#30271e;border:1px solid rgba(118,91,52,.32);box-shadow:0 24px 70px rgba(4,12,18,.35);padding:22px}
+#vela-edit-modal h2{font:400 25px Georgia,serif;margin:0 0 4px}#vela-edit-modal .kicker{font:9px ui-monospace,monospace;letter-spacing:.18em;color:#8a6d43}
+#vela-edit-modal .grid{display:grid;gap:12px;margin-top:18px}#vela-edit-modal .two{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+#vela-edit-modal label{display:grid;gap:6px;font:10px ui-sans-serif,system-ui,sans-serif;letter-spacing:.05em;color:#756957}
+#vela-edit-modal input,#vela-edit-modal select{box-sizing:border-box;width:100%;min-height:42px;border:1px solid rgba(93,78,53,.25);background:#fffaf1;color:#30271e;padding:9px 10px;font:14px ui-sans-serif,system-ui,sans-serif}
+#vela-edit-modal .template{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:rgba(93,78,53,.22);border:1px solid rgba(93,78,53,.22)}
+#vela-edit-modal .template button{border:0;background:#f7efde;padding:11px 7px;text-align:left;color:#6d6252;cursor:pointer}#vela-edit-modal .template button b{display:block;font:14px Georgia,serif;font-weight:400;color:#30271e;margin-bottom:3px}#vela-edit-modal .template button.active{background:#0b2234;color:#d9c18d}#vela-edit-modal .template button.active b{color:#f1dfb5}
+#vela-edit-modal .panel{border:1px solid rgba(93,78,53,.2);background:rgba(245,232,205,.56);padding:14px;display:grid;gap:12px}
+#vela-edit-modal .actions{display:flex;gap:9px;margin-top:18px}#vela-edit-modal .actions button{flex:1;min-height:44px;border:1px solid rgba(93,78,53,.25);background:#eee1c9;color:#514638;cursor:pointer}#vela-edit-modal .actions .save{background:#0b2234;color:#f1dfb5;border-color:#0b2234}
+#vela-edit-modal .hint{font:10px ui-sans-serif,system-ui,sans-serif;line-height:1.45;color:#7b6d5a;margin:0}
+@media(max-width:600px){#vela-edit-backdrop{padding:10px}#vela-edit-modal{padding:17px}.two{grid-template-columns:1fr!important}.template button b{font-size:12px}}
+`;
+
+let styleAdded = false;
+const addStyle = () => { if(styleAdded)return; const s=document.createElement('style'); s.textContent=styles; document.head.appendChild(s); styleAdded=true; };
+
+function openEditor(id:string){
+  const plan=loadPlan(); const entry=plan.ledger.find(e=>e.id===id); if(!entry)return;
+  addStyle();
+  const template:EntryTemplate=entry.template||'Standard';
+  const flightType:FlightType=entry.flightType||'OneWay';
+  const backdrop=document.createElement('div'); backdrop.id='vela-edit-backdrop';
+  backdrop.innerHTML=`<div id="vela-edit-modal" role="dialog" aria-modal="true"><span class="kicker">LEDGER · EDIT ENTRY</span><h2>Edit Payment</h2><div class="grid">
+  <label>Description<input id="ve-desc" value="${esc(entry.description)}"></label>
+  <div class="two"><label>Amount<input id="ve-amount" inputmode="decimal" value="${entry.amount}"></label><label>Currency<select id="ve-currency">${['MYR','CNY','USD','SGD'].map(c=>`<option ${c===entry.currency?'selected':''}>${c}</option>`).join('')}</select></label></div>
+  <div class="two"><label>Payment Date<input id="ve-date" type="date" value="${dateText(entry.date)}"></label><label>Category<select id="ve-category">${CATEGORIES.map(c=>`<option ${c===entry.category?'selected':''}>${c}</option>`).join('')}</select></label></div>
+  <div class="two"><label>Payer<select id="ve-payer">${plan.members.map(m=>`<option value="${esc(m.id)}" ${m.id===entry.payerId?'selected':''}>${esc(m.name)}</option>`).join('')}</select></label><label>Account<select id="ve-account">${plan.accounts.map(a=>`<option value="${esc(a.id)}" ${a.id===entry.accountId?'selected':''}>${esc(a.name)}</option>`).join('')}</select></label></div>
+  <div class="kicker">ENTRY TEMPLATE</div><div class="template"><button type="button" data-t="Standard"><b>Standard</b>Single payment</button><button type="button" data-t="Flight"><b>Flight</b>Ticket itinerary</button><button type="button" data-t="PrepaidMultiDay"><b>Prepaid</b>Multi-day use</button></div>
+  <div id="ve-specific"></div>
+  <label>Allocation Mode<select id="ve-mode"><option>Default</option><option>Split</option><option>Custom</option></select></label>
+  <p class="hint">Standard and Flight stay as one payment. Only Prepaid allocates a payment across a continuous usage range.</p></div>
+  <div class="actions"><button type="button" id="ve-cancel">Cancel</button><button type="button" class="save" id="ve-save">Save Changes</button></div></div>`;
+  document.body.appendChild(backdrop);
+  const $=<T extends HTMLElement>(id:string)=>backdrop.querySelector<T>(id)!;
+  ($('ve-mode') as HTMLSelectElement).value=entry.allocationMode;
+  let current=template;
+  const renderSpecific=()=>{
+    const box=$('ve-specific');
+    if(current==='Flight') box.innerHTML=`<div class="panel"><div class="two"><label>Flight Type<select id="ve-flight-type"><option value="OneWay">One way</option><option value="RoundTrip">Round trip</option></select></label><label>Outbound Date<input id="ve-outbound" type="date" value="${dateText(entry.flightOutboundDate)}"></label></div><div id="ve-return-wrap"></div><p class="hint">Connections remain part of the itinerary; they are never treated as extra usage dates.</p></div>`;
+    else if(current==='PrepaidMultiDay') box.innerHTML=`<div class="panel"><div class="two"><label>Usage Start<input id="ve-start" type="date" value="${dateText(entry.usageStartDate)}"></label><label>Usage End<input id="ve-end" type="date" value="${dateText(entry.usageEndDate)}"></label></div><p class="hint">The payment is evenly allocated across the inclusive usage period.</p></div>`;
+    else box.innerHTML='';
+    backdrop.querySelectorAll<HTMLButtonElement>('.template button').forEach(b=>b.classList.toggle('active',b.dataset.t===current));
+    if(current==='Flight'){
+      const ft=$('ve-flight-type') as HTMLSelectElement; ft.value=flightType;
+      const drawReturn=()=>{ $('ve-return-wrap').innerHTML=ft.value==='RoundTrip'?`<label>Return Date<input id="ve-return" type="date" value="${dateText(entry.flightReturnDate)}"></label>`:''; };
+      ft.addEventListener('change',drawReturn); drawReturn();
+    }
+  };
+  backdrop.querySelectorAll<HTMLButtonElement>('.template button').forEach(b=>b.addEventListener('click',()=>{current=b.dataset.t as EntryTemplate;renderSpecific();}));
+  renderSpecific();
+  $('ve-cancel').addEventListener('click',()=>backdrop.remove());
+  backdrop.addEventListener('click',e=>{if(e.target===backdrop)backdrop.remove();});
+  $('ve-save').addEventListener('click',()=>{
+    const nextPlan=loadPlan(); const old=nextPlan.ledger.find(e=>e.id===id); if(!old)return;
+    const amount=Number(($('ve-amount') as HTMLInputElement).value); const desc=($('ve-desc') as HTMLInputElement).value.trim(); const date=($('ve-date') as HTMLInputElement).value;
+    if(!desc||!Number.isFinite(amount)||amount<=0||!date){alert('Description, amount and payment date are required.');return;}
+    const category=($('ve-category') as HTMLSelectElement).value as Category;
+    const updated:LedgerEntry={...old,description:desc,amount,currency:($('ve-currency') as HTMLSelectElement).value,date,category,payerId:($('ve-payer') as HTMLSelectElement).value,accountId:($('ve-account') as HTMLSelectElement).value,template:current};
+    delete updated.usageStartDate; delete updated.usageEndDate; delete updated.usageDates; delete updated.planned; delete updated.actualDates; delete updated.dailyActuals; delete updated.flightType; delete updated.flightOutboundDate; delete updated.flightReturnDate;
+    if(current==='Flight'){
+      if(category!=='Transport'){alert('Flight entries must use Transport.');return;}
+      const outbound=($('ve-outbound') as HTMLInputElement).value; const ft=($('ve-flight-type') as HTMLSelectElement).value as FlightType;
+      if(!outbound){alert('Outbound date is required.');return;}
+      updated.flightType=ft; updated.flightOutboundDate=outbound;
+      if(ft==='RoundTrip'){const ret=($('ve-return') as HTMLInputElement)?.value||'';if(!ret||ret<outbound){alert('Return date must be on or after outbound date.');return;}updated.flightReturnDate=ret;}
+    } else if(current==='PrepaidMultiDay'){
+      const start=($('ve-start') as HTMLInputElement).value; const end=($('ve-end') as HTMLInputElement).value;
+      if(!start||!end||start>end){alert('Usage start/end dates are invalid.');return;}
+      updated.usageStartDate=start;updated.usageEndDate=end;updated.usageDates=entryUsageDates(updated);updated.planned=old.planned??false;
+    }
+    const mode=($('ve-mode') as HTMLSelectElement).value as AllocationMode;
+    updated.allocationMode=mode;
+    const selected=old.allocations.map(a=>a.memberId).filter(memberId=>nextPlan.members.some(m=>m.id===memberId));
+    try{updated.allocations=makeAllocations(amount,selected.length?selected:nextPlan.members.map(m=>m.id),nextPlan.members,mode);}catch(err){alert(err instanceof Error?err.message:'Unable to allocate.');return;}
+    const idx=nextPlan.ledger.findIndex(e=>e.id===id); nextPlan.ledger[idx]=updated; savePlan(nextPlan); location.reload();
+  });
+}
+
+function bind(){
+  document.querySelectorAll<HTMLElement>('[data-vela-entry-id]').forEach(card=>{
+    if(card.dataset.velaEditBound)return; card.dataset.velaEditBound='1';
+    card.style.cursor='pointer';
+    card.addEventListener('click',()=>openEditor(card.dataset.velaEntryId!));
+    card.title='Edit entry';
+  });
+}
+const observer=new MutationObserver(bind); observer.observe(document.getElementById('root')||document.body,{childList:true,subtree:true});
+bind();
