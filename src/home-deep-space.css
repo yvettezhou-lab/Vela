@@ -1,0 +1,123 @@
+/* Vela — deep-space scene: make the celestial language unmistakable without replacing the existing core layout. */
+.home-page .home-map{
+  background:
+    radial-gradient(ellipse 170px 92px at 20% 74%,rgba(90,148,187,.18),transparent 68%),
+    radial-gradient(ellipse 230px 120px at 61% 24%,rgba(87,139,179,.15),transparent 70%),
+    radial-gradient(ellipse 190px 86px at 78% 76%,rgba(177,137,78,.08),transparent 72%),
+    radial-gradient(circle at 8% 18%,rgba(240,245,244,.92) 0 1px,transparent 2px),
+    radial-gradient(circle at 17% 42%,rgba(186,222,235,.82) 0 1px,transparent 2px),
+    radial-gradient(circle at 36% 12%,rgba(229,238,235,.82) 0 1px,transparent 2px),
+    radial-gradient(circle at 47% 78%,rgba(219,190,122,.82) 0 1px,transparent 2px),
+    radial-gradient(circle at 68% 13%,rgba(224,237,239,.78) 0 1px,transparent 2px),
+    radial-gradient(circle at 88% 48%,rgba(179,216,230,.86) 0 1px,transparent 2px),
+    radial-gradient(circle at 94% 84%,rgba(229,238,235,.72) 0 1px,transparent 2px),
+    radial-gradient(ellipse at 52% 42%,rgba(36,93,126,.16),transparent 48%),
+    linear-gradient(145deg,#030a13 0%,#071522 42%,#0a1c2b 67%,#040b13 100%)!important;
+}
+/* Nebula veil — broad, soft and intentionally restrained. */
+.home-page .home-map:before{
+  background:
+    radial-gradient(ellipse 180px 54px at 26% 67%,rgba(93,166,203,.14),transparent 70%),
+    radial-gradient(ellipse 210px 72px at 59% 35%,rgba(48,111,151,.13),transparent 72%),
+    linear-gradient(90deg,transparent 49.85%,rgba(185,214,226,.045) 50%,transparent 50.15%),
+    linear-gradient(0deg,transparent 49.85%,rgba(185,214,226,.045) 50%,transparent 50.15%),
+    linear-gradient(135deg,rgba(255,255,255,.028),transparent 30%)!important;
+}
+/* A faint Milky-Way-like dust lane. */
+.home-page .home-map p:before{
+  content:''!important;
+  position:absolute!important;
+  left:-8px!important;
+  top:48px!important;
+  width:330px!important;
+  height:34px!important;
+  border-radius:50%!important;
+  background:linear-gradient(90deg,transparent,rgba(102,164,193,.13),rgba(202,220,224,.07),transparent)!important;
+  filter:blur(9px)!important;
+  transform:rotate(-16deg)!important;
+  pointer-events:none!important;
+  z-index:-1!important;
+}
+/* UFO / flying saucer: small, unmistakably artificial silhouette. */
+.home-page .home-map p:after{
+  content:''!important;
+  position:absolute!important;
+  left:184px!important;
+  top:58px!important;
+  width:32px!important;
+  height:9px!important;
+  border:1px solid rgba(213,228,231,.78)!important;
+  border-radius:50%!important;
+  background:radial-gradient(ellipse at 50% 35%,rgba(224,238,235,.88) 0 12%,rgba(95,150,177,.42) 28%,transparent 55%)!important;
+  box-shadow:0 0 9px rgba(153,210,231,.42),0 6px 0 -2px rgba(217,190,122,.42)!important;
+  transform:rotate(-9deg)!important;
+  animation:vela-ufo-drift 8s ease-in-out infinite!important;
+  z-index:9!important;
+}
+/* Tiny exploration craft, built from lines rather than a random blob. */
+.home-page .map-label-a{position:absolute!important}
+.home-page .map-label-a:after{
+  content:''!important;
+  position:absolute!important;
+  left:235px!important;
+  top:-57px!important;
+  width:22px!important;
+  height:7px!important;
+  border:1px solid rgba(225,235,233,.78)!important;
+  border-radius:50% 50% 42% 42%!important;
+  transform:rotate(-22deg)!important;
+  box-shadow:
+    5px -4px 0 -2px rgba(219,190,122,.92),
+    -5px 4px 0 -3px rgba(118,190,218,.70),
+    0 0 10px rgba(164,218,235,.36)!important;
+  opacity:.9!important;
+  animation:vela-craft-drift 10s ease-in-out infinite!important;
+}
+/* Comet crossing the outer orbit: bright head + long tapered tail. */
+.home-page .map-label-b{position:absolute!important}
+.home-page .map-label-b:after{
+  content:''!important;
+  position:absolute!important;
+  right:178px!important;
+  top:-74px!important;
+  width:7px!important;
+  height:7px!important;
+  border-radius:50%!important;
+  background:#eaf1ee!important;
+  box-shadow:0 0 8px rgba(224,240,242,.95),0 0 18px rgba(132,202,226,.48)!important;
+  filter:drop-shadow(0 0 3px rgba(219,190,122,.55))!important;
+  animation:vela-comet 7s linear infinite!important;
+}
+.home-page .map-label-b:before{
+  text-shadow:0 0 8px rgba(219,190,122,.22)!important;
+}
+/* The existing orbital line becomes a real trajectory with a luminous comet trail. */
+.home-page .home-map .map-route:after{
+  width:58px!important;
+  height:1px!important;
+  left:6px!important;
+  top:-2px!important;
+  background:linear-gradient(90deg,transparent,rgba(185,226,241,.42),#eef4f1)!important;
+  box-shadow:0 0 8px rgba(169,221,239,.55)!important;
+  transform-origin:right center!important;
+  animation:vela-comet-trail 5.5s linear infinite!important;
+}
+/* Give the ringed planet a slow, legible orbital drift. */
+.home-page .map-route span{
+  animation:vela-saturn-orbit 9s ease-in-out infinite!important;
+}
+@keyframes vela-ufo-drift{0%,100%{transform:translate(0,0) rotate(-9deg);opacity:.52}50%{transform:translate(18px,-7px) rotate(-5deg);opacity:.95}}
+@keyframes vela-craft-drift{0%,100%{transform:translate(0,0) rotate(-22deg)}50%{transform:translate(-20px,12px) rotate(-16deg)}}
+@keyframes vela-comet{0%{transform:translate(120px,54px);opacity:0}12%{opacity:1}82%{opacity:.95}100%{transform:translate(-190px,-10px);opacity:0}}
+@keyframes vela-comet-trail{0%{transform:translateX(0) rotate(0deg);opacity:0}8%{opacity:1}92%{opacity:1}100%{transform:translateX(350px) rotate(-2deg);opacity:0}}
+@keyframes vela-saturn-orbit{0%,100%{transform:translate(0,0) rotate(-16deg)}50%{transform:translate(12px,8px) rotate(-8deg)}}
+@media(max-width:600px){
+  .home-page .home-map p:before{width:240px!important;top:46px!important}
+  .home-page .home-map p:after{left:144px!important;top:58px!important;width:27px!important;height:8px!important}
+  .home-page .map-label-a:after{left:168px!important;top:-50px!important;width:19px!important;height:6px!important}
+  .home-page .map-label-b:after{right:128px!important;top:-61px!important;width:6px!important;height:6px!important}
+  .home-page .home-map .map-route:after{width:42px!important}
+}
+@media(prefers-reduced-motion:reduce){
+  .home-page .home-map p:after,.home-page .map-label-a:after,.home-page .map-label-b:after,.home-page .home-map .map-route:after,.home-page .map-route span{animation:none!important}
+}
