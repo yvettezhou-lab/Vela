@@ -1,21 +1,22 @@
-/* Vela — final UFO control. A quiet, line-art flying saucer instead of a generic action button. */
+/* Vela — refined UFO artwork */
 .home-page .home-quick,
 .home-page .quick-entry,
 .home-page .quick-entry-button{
   position:fixed!important;
   right:28px!important;
-  bottom:84px!important;
+  bottom:82px!important;
   width:124px!important;
-  height:72px!important;
+  height:78px!important;
   min-width:124px!important;
+  min-height:78px!important;
   padding:0!important;
-  border:1px solid rgba(224,207,168,.30)!important;
+  border:0!important;
   border-radius:22px!important;
-  background:linear-gradient(145deg,#102b3f 0%,#071a2a 100%)!important;
-  box-shadow:0 12px 28px rgba(20,28,34,.18),inset 0 1px 0 rgba(255,255,255,.08)!important;
+  background:#071a2a url('/src/vela-ufo-card.svg?v=vela-ufo-art-v1') center/100% 100% no-repeat!important;
+  box-shadow:0 12px 28px rgba(20,28,34,.18)!important;
   display:block!important;
   overflow:hidden!important;
-  color:#e1c68e!important;
+  color:transparent!important;
   z-index:30!important;
 }
 .home-page .home-quick>span,
@@ -24,41 +25,25 @@
 .home-page .quick-entry>small,
 .home-page .quick-entry-button>span,
 .home-page .quick-entry-button>small{display:none!important}
-/* saucer */
 .home-page .home-quick:before,
-.home-page .quick-entry:before,
-.home-page .quick-entry-button:before{
-  content:''!important;
-  position:absolute!important;
-  left:50%!important;
-  top:42px!important;
-  width:66px!important;
-  height:24px!important;
-  transform:translateX(-50%)!important;
-  border:1.7px solid #e1c68e!important;
-  border-radius:50%!important;
-  background:radial-gradient(circle at 50% 44%,#f2d99d 0 2.2px,transparent 2.8px)!important;
-  box-shadow:0 0 9px rgba(225,198,142,.16)!important;
-}
-/* dome + subtle lift beam */
 .home-page .home-quick:after,
+.home-page .quick-entry:before,
 .home-page .quick-entry:after,
-.home-page .quick-entry-button:after{
-  content:''!important;
-  position:absolute!important;
-  left:50%!important;
-  top:18px!important;
-  width:25px!important;
-  height:13px!important;
-  transform:translateX(-50%)!important;
-  border:1.6px solid #e1c68e!important;
-  border-bottom:0!important;
-  border-radius:18px 18px 0 0!important;
-  box-shadow:0 19px 0 -8px rgba(225,198,142,.55),-13px 25px 0 -11px rgba(225,198,142,.38),13px 25px 0 -11px rgba(225,198,142,.38)!important;
-}
+.home-page .quick-entry-button:before,
+.home-page .quick-entry-button:after{content:none!important;display:none!important}
 @media(max-width:600px){
   .home-page .home-quick,
   .home-page .quick-entry,
-  .home-page .quick-entry-button{right:28px!important;bottom:82px!important;width:124px!important;height:72px!important;min-width:124px!important;border-radius:22px!important}
+  .home-page .quick-entry-button{
+    right:28px!important;
+    bottom:82px!important;
+    width:124px!important;
+    height:78px!important;
+    min-width:124px!important;
+    min-height:78px!important;
+    border-radius:22px!important;
+  }
 }
-@media(prefers-reduced-motion:reduce){.home-page .home-quick,.home-page .quick-entry,.home-page .quick-entry-button{transition:none!important}}
+@media(prefers-reduced-motion:reduce){
+  .home-page .home-quick,.home-page .quick-entry,.home-page .quick-entry-button{transition:none!important}
+}
