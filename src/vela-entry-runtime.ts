@@ -5,7 +5,7 @@ const esc = (value: string) => value.replace(/[&<>\"']/g, c => ({ '&':'&amp;', '
 function field(label: string, control: string, cls = '') { return `<label class="vela-field ${cls}"><span>${label}</span>${control}</label>`; }
 function input(type: string, name: string, value: string, placeholder = '') { return `<input type="${type}" name="${name}" value="${esc(value)}" ${placeholder ? `placeholder="${esc(placeholder)}"` : ''} />`; }
 function options(items: Array<{ id: string; name: string }>, selected: string) { return items.map(x => `<option value="${esc(x.id)}" ${x.id === selected ? 'selected' : ''}>${esc(x.name)}</option>`).join(''); }
-function select(name: string, htmlOptions: string, selected: string) { return `<select name="${name}">${htmlOptions}</select>`; }
+function select(name: string, htmlOptions: string) { return `<select name="${name}">${htmlOptions}</select>`; }
 
 function openEntry() {
   if (document.querySelector('.vela-entry-modal')) return;
@@ -26,7 +26,7 @@ function openEntry() {
       <div class="vela-common-fields">
         <div class="vela-two">${field('Description', input('text', 'description', '', 'Hotel, dinner, taxi…'))}${field('Amount', input('number', 'amount', '', '0.00'))}</div>
         <div class="vela-two">${field('Category', `<select name="category">${CATEGORIES.map(c => `<option value="${esc(c)}">${esc(c)}</option>`).join('')}</select>`)}${field('Currency', input('text', 'currency', 'CNY'))}</div>
-        <div class="vela-two">${field('Payer', select('payerId', options(plan.members, firstMember), firstMember))}${field('Account', select('accountId', options(plan.accounts, firstAccount), firstAccount))}</div>
+        <div class="vela-two">${field('Payer', select('payerId', options(plan.members, firstMember)))}${field('Account', select('accountId', options(plan.accounts, firstAccount)))}</div>
         <div class="vela-two">${field('Event', `<select name="eventId"><option value="">— None —</option>${plan.events.map(e => `<option value="${esc(e.id)}">${esc(e.name)}</option>`).join('')}</select>`)}<div class="vela-event-item" hidden>${field('Item', '<select name="item"><option value="">— None —</option></select>')}</div></div>
         <div class="vela-allocation-block"><span class="template-kicker">ALLOCATION</span><div class="vela-member-list">${plan.members.map(m => `<label class="vela-member"><input type="checkbox" name="memberId" value="${esc(m.id)}" checked /><span>${esc(m.name)}</span><em>${m.ratio.toFixed(0)}%</em></label>`).join('')}</div><div class="vela-two"><select name="allocationMode"><option value="Default">Default</option><option value="Split">Split equally</option><option value="Custom">Custom %</option></select><div class="vela-custom-pcts" hidden>${plan.members.map(m => `<label>${esc(m.name)}<input type="number" min="0" max="100" step="0.01" name="pct_${esc(m.id)}" value="${m.ratio.toFixed(2)}" /></label>`).join('')}</div></div></div>
       </div>
@@ -50,12 +50,15 @@ function openEntry() {
   const renderTemplate = () => {
     templateButtons.forEach(b => b.classList.toggle('active', b.dataset.template === template));
     if (template === 'Standard') {
-      body.innerHTML = `<div class="vela-template-panel"><div class="template-kicker">STANDARD PAYMENT</div><p class="template-note">One payment, one accounting date. No usage dates and no daily allocation.</p>${field('Payment Date', input('date', 'date', today()))}</div>`;
       category.disabled = false;
+      body.innerHTML = `<div class="vela-template-panel"><div class="template-kicker">STANDARD PAYMENT</div><p class="template-note">One payment, one accounting date. No usage dates and no daily allocation.</p>${field('Payment Date', input('date', 'date', today()))}</div>`;
     } else if (template === 'Flight') {
       category.value = 'Transport'; category.disabled = true;
-      body.innerHTML = `<div class="flight-panel"><div class="template-kicker">FLIGHT / ITINERARY</div><div class="flight-kind"><span>Trip type</span><div class="vela-segment"><button type="button" data-flight="OneWay" class="active">One way</button><button type="button" data-flight="RoundTrip">Round trip</button></div></div><div class="vela-two">${field('Payment Date', input('date','date',today()))}${field('Outbound Date',input('date','flightOutboundDate',today()))}</div><div class="vela-return-date" hidden>${field('Return Date',input('date','flightReturnDate',today()))}</div><p class="template-note">Connections stay inside the itinerary. The amount is recorded once; it is never averaged across calendar days.</p></div>`;
-      body.querySelectorAll<HTMLButtonElement>('[data-flight]').forEach(b => b.onclick = () => { flightType = b.dataset.flight as FlightType; body.querySelectorAll<HTMLButtonElement>('[data-flight]').forEach(x => x.classList.toggle('active', x === b)); const r = body.querySelector('.vela-return-date') as HTMLElement; r.hidden = flightType !== 'RoundTrip'; });
+      body.innerHTML = `<div class="flight-panel"><div class="template-kicker">FLIGHT / ITINERARY</div><div class="flight-kind"><span>Trip type</span><div class="vela-segment"><button type="button" data-flight="OneWay" class="active">One way</button><button type="button" data-flight="RoundTrip">Round trip</button></div></div><div class="vela-two">${field('Payment Date', input('date','date',today()))}${field('Departure Date',input('date','flightOutboundDate',today()))}</div><div class="vela-two">${field('Arrival Date',input('date','flightArrivalDate',today()))}${field('Return Departure',input('date','flightReturnDate',today()))}</div><div class="vela-return-arrival" hidden>${field('Return Arrival',input('date','flightReturnArrivalDate',today()))}</div><p class="template-note">Connections stay inside the itinerary. The amount is recorded once; it is never averaged across calendar days.</p></div>`;
+      const returnDeparture = body.querySelector('[name="flightReturnDate"]') as HTMLInputElement;
+      const toggleRoundTrip = (round: boolean) => { (returnDeparture.closest('.vela-two') as HTMLElement).style.display = round ? '' : 'none'; const ra = body.querySelector('.vela-return-arrival') as HTMLElement; ra.hidden = !round; };
+      toggleRoundTrip(flightType === 'RoundTrip');
+      body.querySelectorAll<HTMLButtonElement>('[data-flight]').forEach(b => b.onclick = () => { flightType = b.dataset.flight as FlightType; body.querySelectorAll<HTMLButtonElement>('[data-flight]').forEach(x => x.classList.toggle('active', x === b)); toggleRoundTrip(flightType === 'RoundTrip'); });
     } else {
       category.disabled = false;
       body.innerHTML = `<div class="prepaid-panel"><div class="template-kicker">PREPAID MULTI-DAY</div><div class="vela-two">${field('Payment Date',input('date','date',today()))}${field('Usage Start',input('date','usageStartDate',today()))}</div>${field('Usage End',input('date','usageEndDate',today()))}<label class="check vela-pretrip"><input type="checkbox" name="planned" /> Pre-trip / not used yet</label><p class="template-note">The payment is evenly allocated across the continuous usage period. This is the only template that creates daily amounts.</p></div>`;
@@ -77,7 +80,8 @@ function openEntry() {
   const close = () => modal.remove();
   modal.querySelector('[data-close]')?.addEventListener('click', close);
   modal.addEventListener('click', e => { if (e.target === modal) close(); });
-  document.addEventListener('keydown', function onKey(e) { if (e.key === 'Escape') { close(); document.removeEventListener('keydown', onKey); } }, { once: true });
+  const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') { close(); document.removeEventListener('keydown', onKey); } };
+  document.addEventListener('keydown', onKey);
 
   form.onsubmit = e => {
     e.preventDefault(); error.hidden = true;
@@ -95,9 +99,11 @@ function openEntry() {
       if (template === 'Flight') {
         entry.flightType = flightType;
         entry.flightOutboundDate = String(fd.get('flightOutboundDate') || '');
+        entry.flightArrivalDate = String(fd.get('flightArrivalDate') || '');
         entry.flightReturnDate = flightType === 'RoundTrip' ? String(fd.get('flightReturnDate') || '') : undefined;
-        if (!/^\d{4}-\d{2}-\d{2}$/.test(entry.flightOutboundDate)) throw new Error('Please enter the outbound date.');
-        if (flightType === 'RoundTrip' && (!/^\d{4}-\d{2}-\d{2}$/.test(entry.flightReturnDate) || entry.flightReturnDate < entry.flightOutboundDate)) throw new Error('Return date must be on or after outbound date.');
+        entry.flightReturnArrivalDate = flightType === 'RoundTrip' ? String(fd.get('flightReturnArrivalDate') || '') : undefined;
+        if (!/^\d{4}-\d{2}-\d{2}$/.test(entry.flightOutboundDate) || !/^\d{4}-\d{2}-\d{2}$/.test(entry.flightArrivalDate) || entry.flightArrivalDate < entry.flightOutboundDate) throw new Error('Please enter valid departure and arrival dates.');
+        if (flightType === 'RoundTrip' && (!/^\d{4}-\d{2}-\d{2}$/.test(entry.flightReturnDate) || !/^\d{4}-\d{2}-\d{2}$/.test(entry.flightReturnArrivalDate) || entry.flightReturnDate < entry.flightArrivalDate || entry.flightReturnArrivalDate < entry.flightReturnDate)) throw new Error('Please enter valid return departure and arrival dates.');
       }
       if (template === 'PrepaidMultiDay') {
         entry.usageStartDate = String(fd.get('usageStartDate') || '');
