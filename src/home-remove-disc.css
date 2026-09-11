@@ -1,0 +1,9 @@
+/* Vela — remove the oversized background disc. The scene works better with orbital bodies as the visual language. */
+.home-page .home-map .map-script:after{
+  content:none!important;
+  display:none!important;
+}
+/* Also neutralize any legacy large circular pseudo-element attached to the map script. */
+.home-page .home-map .map-script:before{
+  box-shadow:none!important;
+}
