@@ -1,0 +1,65 @@
+/* Vela — celestial navigation layer. Function labels stay unchanged; only the pictograms become constellations. */
+
+.home-page .home-quick{
+  width:72px!important;
+  height:72px!important;
+  min-width:72px!important;
+  padding:0!important;
+  border-radius:22px!important;
+  display:grid!important;
+  place-items:center!important;
+  overflow:hidden!important;
+}
+.home-page .home-quick>span,
+.home-page .home-quick>small{display:none!important}
+.home-page .home-quick:before{
+  content:'';
+  width:34px;
+  height:15px;
+  border:1.6px solid rgba(241,220,171,.95);
+  border-radius:50% 50% 48% 48% / 62% 62% 42% 42%;
+  background:radial-gradient(ellipse at 50% 20%,rgba(244,228,190,.95) 0 2px,transparent 2.5px),linear-gradient(180deg,rgba(255,239,198,.12),rgba(255,239,198,.03));
+  box-shadow:0 0 10px rgba(222,194,123,.18);
+  transform:translateY(3px);
+}
+.home-page .home-quick:after{
+  content:'';
+  position:absolute;
+  width:14px;
+  height:7px;
+  margin-top:-15px;
+  border:1.4px solid rgba(241,220,171,.9);
+  border-bottom:0;
+  border-radius:12px 12px 0 0;
+  box-shadow:0 22px 0 -5px rgba(221,190,112,.28),0 26px 0 -6px rgba(221,190,112,.12);
+}
+
+.bottom-nav button{position:relative!important}
+.bottom-nav button>svg{display:none!important}
+.bottom-nav button:before{
+  content:'';
+  display:block;
+  width:27px;
+  height:25px;
+  margin:0 auto 6px;
+  background-repeat:no-repeat;
+  background-position:center;
+  background-size:27px 25px;
+  opacity:.82;
+}
+/* Home — Big Dipper / 北斗 */
+.bottom-nav button:nth-child(1):before{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 36' fill='none'%3E%3Cg stroke='%23a28f72' stroke-width='1.35' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M4 7L13 13L22 9L30 17L36 13'/%3E%3Cpath d='M13 13L13 29M22 9L24 27M30 17L30 29'/%3E%3C/g%3E%3Cg fill='%23b79a68'%3E%3Ccircle cx='4' cy='7' r='1.9'/%3E%3Ccircle cx='13' cy='13' r='1.9'/%3E%3Ccircle cx='22' cy='9' r='1.9'/%3E%3Ccircle cx='30' cy='17' r='1.9'/%3E%3Ccircle cx='36' cy='13' r='1.9'/%3E%3C/g%3E%3C/svg%3E")}
+/* Ledger — Orion / 猎户 */
+.bottom-nav button:nth-child(2):before{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 36' fill='none'%3E%3Cg stroke='%23a28f72' stroke-width='1.35' stroke-linecap='round'%3E%3Cpath d='M8 5L17 11L20 19L23 11L32 5M17 11L10 29M23 11L30 29M14 18L26 18'/%3E%3C/g%3E%3Cg fill='%23b79a68'%3E%3Ccircle cx='8' cy='5' r='1.9'/%3E%3Ccircle cx='17' cy='11' r='1.9'/%3E%3Ccircle cx='20' cy='19' r='1.9'/%3E%3Ccircle cx='23' cy='11' r='1.9'/%3E%3Ccircle cx='32' cy='5' r='1.9'/%3E%3Ccircle cx='10' cy='29' r='1.9'/%3E%3Ccircle cx='30' cy='29' r='1.9'/%3E%3C/g%3E%3C/svg%3E")}
+/* Balance — Gemini / 双子 */
+.bottom-nav button:nth-child(3):before{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 36' fill='none'%3E%3Cg stroke='%23a28f72' stroke-width='1.35' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M8 7L15 11L12 27L8 30M32 7L25 11L28 27L32 30M15 11L25 11M12 27L28 27'/%3E%3C/g%3E%3Cg fill='%23b79a68'%3E%3Ccircle cx='8' cy='7' r='1.9'/%3E%3Ccircle cx='15' cy='11' r='1.9'/%3E%3Ccircle cx='12' cy='27' r='1.9'/%3E%3Ccircle cx='8' cy='30' r='1.9'/%3E%3Ccircle cx='25' cy='11' r='1.9'/%3E%3Ccircle cx='28' cy='27' r='1.9'/%3E%3Ccircle cx='32' cy='30' r='1.9'/%3E%3C/g%3E%3C/svg%3E")}
+/* Logbook — Taurus / 金牛 */
+.bottom-nav button:nth-child(4):before{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 36' fill='none'%3E%3Cg stroke='%23a28f72' stroke-width='1.35' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M20 18L11 9L5 5M20 18L29 9L35 5M20 18L20 30'/%3E%3C/g%3E%3Cg fill='%23b79a68'%3E%3Ccircle cx='20' cy='18' r='2'/%3E%3Ccircle cx='11' cy='9' r='1.9'/%3E%3Ccircle cx='5' cy='5' r='1.9'/%3E%3Ccircle cx='29' cy='9' r='1.9'/%3E%3Ccircle cx='35' cy='5' r='1.9'/%3E%3Ccircle cx='20' cy='30' r='1.9'/%3E%3C/g%3E%3C/svg%3E")}
+/* Atelier — Vela / 船帆座, the app's namesake constellation */
+.bottom-nav button:nth-child(5):before{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 36' fill='none'%3E%3Cg stroke='%23a28f72' stroke-width='1.35' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M7 27L15 10L22 20L30 7L34 29L22 20L7 27'/%3E%3C/g%3E%3Cg fill='%23b79a68'%3E%3Ccircle cx='7' cy='27' r='1.9'/%3E%3Ccircle cx='15' cy='10' r='1.9'/%3E%3Ccircle cx='22' cy='20' r='1.9'/%3E%3Ccircle cx='30' cy='7' r='1.9'/%3E%3Ccircle cx='34' cy='29' r='1.9'/%3E%3C/g%3E%3C/svg%3E")}
+.bottom-nav button.active:before{opacity:1;filter:brightness(1.08)}
+
+@media(max-width:600px){
+  .home-page .home-quick{width:66px!important;height:66px!important;min-width:66px!important;border-radius:20px!important}
+  .bottom-nav button:before{width:25px;height:23px;background-size:25px 23px;margin-bottom:5px}
+}
