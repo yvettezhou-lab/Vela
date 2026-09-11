@@ -2,10 +2,10 @@ import { CATEGORIES, entryUsageDates, loadPlan, makeAllocations, savePlan, type 
 
 const today = () => new Date().toISOString().slice(0, 10);
 const esc = (value: string) => value.replace(/[&<>\"']/g, c => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '\"':'&quot;', "'":'&#39;' }[c] || c));
-
 function field(label: string, control: string, cls = '') { return `<label class="vela-field ${cls}"><span>${label}</span>${control}</label>`; }
 function input(type: string, name: string, value: string, placeholder = '') { return `<input type="${type}" name="${name}" value="${esc(value)}" ${placeholder ? `placeholder="${esc(placeholder)}"` : ''} />`; }
-function select(name: string, options: string[], selected: string) { return `<select name="${name}">${options.map(x => `<option value="${esc(x)}" ${x === selected ? 'selected' : ''}>${esc(x)}</option>`).join('')}</select>`; }
+function options(items: Array<{ id: string; name: string }>, selected: string) { return items.map(x => `<option value="${esc(x.id)}" ${x.id === selected ? 'selected' : ''}>${esc(x.name)}</option>`).join(''); }
+function select(name: string, htmlOptions: string, selected: string) { return `<select name="${name}">${htmlOptions}</select>`; }
 
 function openEntry() {
   if (document.querySelector('.vela-entry-modal')) return;
@@ -25,8 +25,8 @@ function openEntry() {
       <div class="vela-template-body"></div>
       <div class="vela-common-fields">
         <div class="vela-two">${field('Description', input('text', 'description', '', 'Hotel, dinner, taxi…'))}${field('Amount', input('number', 'amount', '', '0.00'))}</div>
-        <div class="vela-two">${field('Category', select('category', [...CATEGORIES], 'Other'))}${field('Currency', input('text', 'currency', 'CNY'))}</div>
-        <div class="vela-two">${field('Payer', select('payerId', plan.members.map(m => m.id), firstMember).replace(/<option value="([^"]+)">([^<]*)<\\/option>/g, (_m, id, _name) => `<option value="${esc(id)}">${esc(plan.members.find(m=>m.id===id)?.name||id)}</option>`))}${field('Account', select('accountId', plan.accounts.map(a => a.id), firstAccount).replace(/<option value="([^"]+)">([^<]*)<\\/option>/g, (_m, id, _name) => `<option value="${esc(id)}">${esc(plan.accounts.find(a=>a.id===id)?.name||id)}</option>`))}</div>
+        <div class="vela-two">${field('Category', `<select name="category">${CATEGORIES.map(c => `<option value="${esc(c)}">${esc(c)}</option>`).join('')}</select>`)}${field('Currency', input('text', 'currency', 'CNY'))}</div>
+        <div class="vela-two">${field('Payer', select('payerId', options(plan.members, firstMember), firstMember))}${field('Account', select('accountId', options(plan.accounts, firstAccount), firstAccount))}</div>
         <div class="vela-two">${field('Event', `<select name="eventId"><option value="">— None —</option>${plan.events.map(e => `<option value="${esc(e.id)}">${esc(e.name)}</option>`).join('')}</select>`)}<div class="vela-event-item" hidden>${field('Item', '<select name="item"><option value="">— None —</option></select>')}</div></div>
         <div class="vela-allocation-block"><span class="template-kicker">ALLOCATION</span><div class="vela-member-list">${plan.members.map(m => `<label class="vela-member"><input type="checkbox" name="memberId" value="${esc(m.id)}" checked /><span>${esc(m.name)}</span><em>${m.ratio.toFixed(0)}%</em></label>`).join('')}</div><div class="vela-two"><select name="allocationMode"><option value="Default">Default</option><option value="Split">Split equally</option><option value="Custom">Custom %</option></select><div class="vela-custom-pcts" hidden>${plan.members.map(m => `<label>${esc(m.name)}<input type="number" min="0" max="100" step="0.01" name="pct_${esc(m.id)}" value="${m.ratio.toFixed(2)}" /></label>`).join('')}</div></div></div>
       </div>
@@ -55,7 +55,7 @@ function openEntry() {
     } else if (template === 'Flight') {
       category.value = 'Transport'; category.disabled = true;
       body.innerHTML = `<div class="flight-panel"><div class="template-kicker">FLIGHT / ITINERARY</div><div class="flight-kind"><span>Trip type</span><div class="vela-segment"><button type="button" data-flight="OneWay" class="active">One way</button><button type="button" data-flight="RoundTrip">Round trip</button></div></div><div class="vela-two">${field('Payment Date', input('date','date',today()))}${field('Outbound Date',input('date','flightOutboundDate',today()))}</div><div class="vela-return-date" hidden>${field('Return Date',input('date','flightReturnDate',today()))}</div><p class="template-note">Connections stay inside the itinerary. The amount is recorded once; it is never averaged across calendar days.</p></div>`;
-      body.querySelectorAll<HTMLButtonElement>('[data-flight]').forEach(b => b.onclick = () => { flightType = b.dataset.flight as FlightType; body.querySelectorAll('[data-flight]').forEach(x => x.classList.toggle('active', x === b)); const r = body.querySelector('.vela-return-date') as HTMLElement; r.hidden = flightType !== 'RoundTrip'; });
+      body.querySelectorAll<HTMLButtonElement>('[data-flight]').forEach(b => b.onclick = () => { flightType = b.dataset.flight as FlightType; body.querySelectorAll<HTMLButtonElement>('[data-flight]').forEach(x => x.classList.toggle('active', x === b)); const r = body.querySelector('.vela-return-date') as HTMLElement; r.hidden = flightType !== 'RoundTrip'; });
     } else {
       category.disabled = false;
       body.innerHTML = `<div class="prepaid-panel"><div class="template-kicker">PREPAID MULTI-DAY</div><div class="vela-two">${field('Payment Date',input('date','date',today()))}${field('Usage Start',input('date','usageStartDate',today()))}</div>${field('Usage End',input('date','usageEndDate',today()))}<label class="check vela-pretrip"><input type="checkbox" name="planned" /> Pre-trip / not used yet</label><p class="template-note">The payment is evenly allocated across the continuous usage period. This is the only template that creates daily amounts.</p></div>`;
@@ -91,12 +91,10 @@ function openEntry() {
     if (!description || !Number.isFinite(amount) || amount <= 0 || !date || !currency || !memberIds.length) { error.textContent = 'Please complete the payment, amount, date, and at least one participant.'; error.hidden = false; return; }
     try {
       const entry: any = { id: crypto.randomUUID(), date, description, category: category.value as Category, amount, currency, payerId: String(fd.get('payerId') || firstMember), accountId: String(fd.get('accountId') || firstAccount), eventId: String(fd.get('eventId') || '') || undefined, item: String(fd.get('item') || '') || undefined, allocationMode, template, planned: false };
-      if (allocationMode === 'Custom') { const customPct: Record<string, number> = {}; memberIds.forEach(id => { customPct[id] = Number(fd.get(`pct_${id}`) || 0); }); entry.allocations = makeAllocations(amount, memberIds, plan.members, allocationMode, customPct); }
-      else entry.allocations = makeAllocations(amount, memberIds, plan.members, allocationMode);
+      entry.allocations = allocationMode === 'Custom' ? makeAllocations(amount, memberIds, plan.members, allocationMode, Object.fromEntries(memberIds.map(id => [id, Number(fd.get(`pct_${id}`) || 0)]))) : makeAllocations(amount, memberIds, plan.members, allocationMode);
       if (template === 'Flight') { entry.flightType = flightType; entry.flightOutboundDate = String(fd.get('flightOutboundDate') || ''); entry.flightReturnDate = flightType === 'RoundTrip' ? String(fd.get('flightReturnDate') || '') : undefined; if (!entry.flightOutboundDate || (flightType === 'RoundTrip' && !entry.flightReturnDate)) throw new Error('Please enter the complete flight itinerary.'); }
       if (template === 'PrepaidMultiDay') { entry.usageStartDate = String(fd.get('usageStartDate') || ''); entry.usageEndDate = String(fd.get('usageEndDate') || ''); entry.planned = fd.get('planned') === 'on'; if (!entry.usageStartDate || !entry.usageEndDate || entry.usageStartDate > entry.usageEndDate) throw new Error('Usage start must be on or before usage end.'); entry.usageDates = entryUsageDates(entry); }
-      const next = { ...plan, ledger: [entry, ...plan.ledger] };
-      savePlan(next);
+      savePlan({ ...plan, ledger: [entry, ...plan.ledger] });
       window.location.reload();
     } catch (err) { error.textContent = err instanceof Error ? err.message : 'Unable to create payment.'; error.hidden = false; }
   };
