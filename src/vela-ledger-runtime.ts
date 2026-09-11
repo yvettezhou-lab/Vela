@@ -23,25 +23,49 @@ const templateLabel = (entry: LedgerEntry) => {
   return { label: 'STANDARD', detail: 'Single payment' };
 };
 
+const entrySignature = (entry: LedgerEntry) =>
+  `${entry.description}\u0000${entry.date}\u0000${entry.category}\u0000${entry.amount}\u0000${entry.currency}\u0000${entry.payerId}\u0000${entry.accountId}`;
+
 function decorate() {
   const plan = loadPlan();
   const cards = Array.from(document.querySelectorAll<HTMLElement>('.day-ledger .ledger-card, .planned-block .ledger-card'));
   if (!cards.length) return;
 
+  const remaining = new Map<string, LedgerEntry[]>();
+  plan.ledger.forEach(entry => {
+    const key = entrySignature(entry);
+    const list = remaining.get(key) || [];
+    list.push(entry);
+    remaining.set(key, list);
+  });
+
   cards.forEach(card => {
     if (card.querySelector(':scope > .vela-ledger-template')) return;
     const title = card.querySelector(':scope > div strong');
     if (!title) return;
+
     const description = title.textContent?.trim() || '';
-    const entry = plan.ledger.find(e => e.description === description || `${e.description} — Refund` === description);
+    const metaText = card.querySelector(':scope > div')?.textContent || '';
+    const entry = plan.ledger.find(e => {
+      const displayDescription = e.description === description || `${e.description} — Refund` === description;
+      if (!displayDescription) return false;
+      const dateMatches = metaText.includes(e.date);
+      return dateMatches;
+    });
     if (!entry) return;
 
-    const meta = templateLabel(entry);
+    const key = entrySignature(entry);
+    const candidates = remaining.get(key) || [];
+    const matched = candidates.shift() || entry;
+    remaining.set(key, candidates);
+
+    const meta = templateLabel(matched);
     const marker = document.createElement('span');
     marker.className = 'vela-ledger-template';
     marker.innerHTML = `<b>${meta.label}</b><i>${meta.detail}</i>`;
     title.insertAdjacentElement('afterend', marker);
-    card.dataset.velaTemplate = entry.template || 'Standard';
+    card.dataset.velaTemplate = matched.template || 'Standard';
+    card.dataset.velaEntryId = matched.id;
   });
 }
 
