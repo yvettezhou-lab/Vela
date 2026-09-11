@@ -1,0 +1,154 @@
+/* Vela — physically legible orbital system.
+   Two stable elliptical paths, constant-size bodies, continuous motion.
+   No bouncing, no decorative box-shadow planets. */
+.home-page .map-route{
+  left:9%!important;
+  top:61%!important;
+  width:82%!important;
+  height:96px!important;
+  border:1px solid rgba(205,225,231,.34)!important;
+  border-top-color:rgba(221,235,238,.66)!important;
+  border-radius:50%!important;
+  transform:rotate(-10deg)!important;
+  background:transparent!important;
+  filter:none!important;
+  animation:none!important;
+  overflow:visible!important;
+}
+/* Second, smaller orbit: same system, deliberately fainter. */
+.home-page .map-route:after{
+  content:''!important;
+  position:absolute!important;
+  left:10%!important;
+  top:19%!important;
+  width:80%!important;
+  height:61%!important;
+  border:1px solid rgba(182,210,220,.17)!important;
+  border-radius:50%!important;
+  background:transparent!important;
+  box-shadow:none!important;
+  transform:rotate(7deg)!important;
+  animation:none!important;
+  z-index:2!important;
+}
+/* Remove the legacy four-planet box-shadow cluster. */
+.home-page .map-route:before{
+  content:''!important;
+  position:absolute!important;
+  left:50%!important;
+  top:50%!important;
+  width:8px!important;
+  height:8px!important;
+  margin:-4px!important;
+  border-radius:50%!important;
+  background:radial-gradient(circle at 30% 26%,#fff4d2 0 12%,#d8bd78 42%,#80623a 100%)!important;
+  border:1px solid rgba(245,232,193,.62)!important;
+  box-shadow:0 0 8px rgba(219,190,122,.28)!important;
+  z-index:10!important;
+  offset-path:ellipse(49% 47% at 50% 50%)!important;
+  offset-rotate:0deg!important;
+  animation:vela-orbit-outer-a 25s linear infinite!important;
+}
+.home-page .map-route i,
+.home-page .map-route b,
+.home-page .map-route span{
+  left:50%!important;
+  top:50%!important;
+  margin:0!important;
+  offset-rotate:0deg!important;
+  transform:none!important;
+  animation-timing-function:linear!important;
+  animation-iteration-count:infinite!important;
+  animation-direction:normal!important;
+  animation-fill-mode:both!important;
+}
+/* Outer orbit: two small bodies. */
+.home-page .map-route i{
+  width:9px!important;height:9px!important;
+  border-radius:50%!important;
+  background:radial-gradient(circle at 29% 24%,#f6fbfa 0 11%,#b5cfd1 34%,#557e87 72%,#213a42 100%)!important;
+  border:1px solid rgba(226,241,240,.68)!important;
+  box-shadow:0 0 8px rgba(139,198,205,.24),inset -2px -2px 3px rgba(0,8,12,.42)!important;
+  z-index:11!important;
+  offset-path:ellipse(49% 47% at 50% 50%)!important;
+  animation-name:vela-orbit-outer-b!important;
+  animation-duration:31s!important;
+}
+/* Inner orbit: one warm world and Saturn. */
+.home-page .map-route b{
+  width:13px!important;height:13px!important;
+  border-radius:50%!important;
+  background:radial-gradient(circle at 29% 23%,#fff0c7 0 8%,#c7a16c 37%,#795640 74%,#2c2521 100%)!important;
+  border:1px solid rgba(239,222,188,.66)!important;
+  box-shadow:0 0 10px rgba(220,181,115,.24),inset -3px -3px 4px rgba(12,7,4,.48)!important;
+  z-index:12!important;
+  offset-path:ellipse(40% 30% at 50% 50%)!important;
+  animation-name:vela-orbit-inner-a!important;
+  animation-duration:18s!important;
+}
+.home-page .map-route span{
+  width:15px!important;height:15px!important;
+  border-radius:50%!important;
+  background:radial-gradient(circle at 30% 23%,#fff5d7 0 8%,#d5bd87 33%,#8b7049 67%,#3b3025 100%)!important;
+  border:1px solid rgba(244,231,198,.72)!important;
+  box-shadow:0 0 11px rgba(220,190,122,.30),inset -3px -3px 5px rgba(20,12,6,.46)!important;
+  z-index:14!important;
+  offset-path:ellipse(40% 30% at 50% 50%)!important;
+  animation-name:vela-orbit-inner-b!important;
+  animation-duration:29s!important;
+}
+/* Saturn ring: two clean elliptical bands, centered on the planet.
+   The body sits above the ring so the front/back relationship reads correctly. */
+.home-page .map-route span:before{
+  content:''!important;
+  position:absolute!important;
+  left:50%!important;top:50%!important;
+  width:34px!important;height:10px!important;
+  margin:-5px -17px!important;
+  border:1px solid rgba(236,222,187,.78)!important;
+  border-radius:50%!important;
+  background:transparent!important;
+  transform:rotate(-19deg)!important;
+  box-shadow:0 0 0 1px rgba(192,163,101,.20)!important;
+  z-index:-1!important;
+}
+.home-page .map-route span:after{
+  content:''!important;
+  position:absolute!important;
+  left:50%!important;top:50%!important;
+  width:27px!important;height:6px!important;
+  margin:-3px -13.5px!important;
+  border-top:1px solid rgba(255,242,207,.56)!important;
+  border-bottom:1px solid rgba(157,128,74,.32)!important;
+  border-radius:50%!important;
+  background:transparent!important;
+  transform:rotate(-19deg)!important;
+  z-index:-1!important;
+}
+/* Keep the label-area decorative planets off the system. */
+.home-page .map-label-a:after,.home-page .map-label-b:after{display:none!important}
+@keyframes vela-orbit-outer-a{
+  from{offset-distance:7%;transform:translate(-50%,-50%)}
+  to{offset-distance:107%;transform:translate(-50%,-50%)}
+}
+@keyframes vela-orbit-outer-b{
+  from{offset-distance:54%;transform:translate(-50%,-50%)}
+  to{offset-distance:154%;transform:translate(-50%,-50%)}
+}
+@keyframes vela-orbit-inner-a{
+  from{offset-distance:22%;transform:translate(-50%,-50%)}
+  to{offset-distance:122%;transform:translate(-50%,-50%)}
+}
+@keyframes vela-orbit-inner-b{
+  from{offset-distance:69%;transform:translate(-50%,-50%)}
+  to{offset-distance:169%;transform:translate(-50%,-50%)}
+}
+@media(max-width:600px){
+  .home-page .map-route{left:7%!important;top:59%!important;width:86%!important;height:86px!important}
+  .home-page .map-route:after{left:10%!important;top:20%!important;width:80%!important;height:58%!important}
+  .home-page .map-route span:before{width:30px!important;height:9px!important;margin:-4.5px -15px!important}
+  .home-page .map-route span:after{width:24px!important;height:5px!important;margin:-2.5px -12px!important}
+}
+@media(prefers-reduced-motion:reduce){
+  .home-page .map-route:before,.home-page .map-route i,.home-page .map-route b,.home-page .map-route span{animation:none!important}
+}
