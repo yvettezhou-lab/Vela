@@ -1,56 +1,56 @@
-/* Vela — coherent celestial composition. Projected circular orbits, fixed star, restrained bodies. */
+/* Vela — coherent celestial composition. The star is a fixed gravitational focus; bodies follow stable projected ellipses. */
 .home-page .map-route{
-  left:10%!important;top:61%!important;width:80%!important;height:88px!important;
-  border:1px solid rgba(205,225,231,.27)!important;
+  left:9%!important;top:61%!important;width:82%!important;height:78px!important;
+  border:1px solid rgba(205,225,231,.28)!important;
   border-top-color:rgba(221,235,238,.48)!important;
   border-radius:50%!important;background:transparent!important;
-  transform:rotate(-8deg)!important;filter:none!important;animation:none!important;
+  transform:rotate(-7deg)!important;filter:none!important;animation:none!important;
   overflow:visible!important;z-index:5!important;
 }
-/* Inner orbit: same center as the outer projected orbit. */
+/* A smaller confocal-looking inner orbit. Both paths share the same left-side focal region. */
 .home-page .map-route:after{
-  content:''!important;position:absolute!important;left:12%!important;top:18%!important;
-  width:76%!important;height:64%!important;border:1px solid rgba(182,210,220,.13)!important;
+  content:''!important;position:absolute!important;left:11%!important;top:12%!important;
+  width:76%!important;height:76%!important;border:1px solid rgba(182,210,220,.14)!important;
   border-radius:50%!important;background:transparent!important;box-shadow:none!important;
   transform:rotate(5deg)!important;animation:none!important;z-index:2!important;
 }
-/* Fixed stellar center. The orbits are projected circles, so the star sits at their common center. */
+/* Fixed star at the common visual focus — never an orbiting object. */
 .home-page .map-route:before{
-  content:''!important;position:absolute!important;left:50%!important;top:50%!important;
-  width:17px!important;height:17px!important;margin:-8.5px!important;border-radius:50%!important;
-  background:radial-gradient(circle at 35% 28%,#fffef3 0 12%,#ffe9ad 29%,#d7ad58 55%,#8b632e 77%,rgba(80,48,21,.4) 100%)!important;
-  border:1px solid rgba(255,239,191,.68)!important;
-  box-shadow:0 0 5px rgba(255,231,166,.82),0 0 14px rgba(234,190,91,.31),0 0 25px rgba(207,154,55,.13)!important;
+  content:''!important;position:absolute!important;left:26%!important;top:50%!important;
+  width:15px!important;height:15px!important;margin:-7.5px!important;border-radius:50%!important;
+  background:radial-gradient(circle at 35% 28%,#fffef4 0 12%,#ffe9b0 30%,#d7ad58 55%,#89602c 78%,rgba(72,43,17,.38) 100%)!important;
+  border:1px solid rgba(255,239,191,.64)!important;
+  box-shadow:0 0 5px rgba(255,231,166,.72),0 0 13px rgba(234,190,91,.25),0 0 22px rgba(207,154,55,.10)!important;
   z-index:15!important;offset-path:none!important;offset-distance:auto!important;transform:none!important;
-  animation:vela-star-breathe 6s ease-in-out infinite!important;
+  animation:vela-star-breathe 7s ease-in-out infinite!important;
 }
 .home-page .map-route i,.home-page .map-route b,.home-page .map-route span{
   left:50%!important;top:50%!important;margin:0!important;transform:translate(-50%,-50%)!important;
   offset-rotate:0deg!important;animation-timing-function:linear!important;
   animation-iteration-count:infinite!important;animation-direction:normal!important;animation-fill-mode:both!important;
 }
-/* Outer orbit: distant cool world. */
+/* Outer orbit: cool distant world. */
 .home-page .map-route i{
   width:8px!important;height:8px!important;border-radius:50%!important;
   background:radial-gradient(circle at 30% 25%,#f6fbfa 0 11%,#b5cfd1 34%,#557e87 72%,#213a42 100%)!important;
   border:1px solid rgba(226,241,240,.6)!important;box-shadow:0 0 7px rgba(139,198,205,.18),inset -2px -2px 3px rgba(0,8,12,.42)!important;
-  z-index:11!important;offset-path:ellipse(49% 47% at 50% 50%)!important;animation:vela-outer-blue 36s linear infinite!important;
+  z-index:11!important;offset-path:ellipse(49% 44% at 50% 50%)!important;animation:vela-outer-blue 36s linear infinite!important;
 }
 /* Inner orbit: warm world. */
 .home-page .map-route b{
   width:10px!important;height:10px!important;border-radius:50%!important;
   background:radial-gradient(circle at 29% 23%,#fff0c7 0 8%,#c7a16c 37%,#795640 74%,#2c2521 100%)!important;
   border:1px solid rgba(239,222,188,.58)!important;box-shadow:0 0 8px rgba(220,181,115,.18),inset -3px -3px 4px rgba(12,7,4,.48)!important;
-  z-index:12!important;offset-path:ellipse(39% 29% at 50% 50%)!important;animation:vela-inner-warm 23s linear infinite!important;
+  z-index:12!important;offset-path:ellipse(39% 27% at 50% 50%)!important;animation:vela-inner-warm 23s linear infinite!important;
 }
-/* Saturn: slightly more legible, still subordinate to the star. */
+/* Saturn: smaller inner body with a restrained, centered ring. */
 .home-page .map-route span{
   width:13px!important;height:13px!important;border-radius:50%!important;
   background:radial-gradient(circle at 30% 23%,#fff5d7 0 8%,#d5bd87 33%,#8b7049 67%,#3b3025 100%)!important;
   border:1px solid rgba(244,231,198,.65)!important;box-shadow:0 0 8px rgba(220,190,122,.22),inset -3px -3px 5px rgba(20,12,6,.46)!important;
-  z-index:14!important;offset-path:ellipse(39% 29% at 50% 50%)!important;animation:vela-inner-saturn 37s linear infinite!important;
+  z-index:14!important;offset-path:ellipse(39% 27% at 50% 50%)!important;animation:vela-inner-saturn 37s linear infinite!important;
 }
-/* Saturn's ring: thin, tilted, centered on the body. */
+/* Saturn ring — two delicate arcs to suggest front/back overlap rather than a sticker. */
 .home-page .map-route span:before{
   content:''!important;position:absolute!important;left:50%!important;top:50%!important;
   width:29px!important;height:8px!important;margin:-4px -14.5px!important;
@@ -65,13 +65,13 @@
 }
 .home-page .map-label-a:after,.home-page .map-label-b:after{display:none!important}
 @keyframes vela-outer-blue{from{offset-distance:8%}to{offset-distance:108%}}
-@keyframes vela-inner-warm{from{offset-distance:32%}to{offset-distance:132%}}
-@keyframes vela-inner-saturn{from{offset-distance:68%}to{offset-distance:168%}}
-@keyframes vela-star-breathe{0%,100%{transform:scale(.97);filter:brightness(.98)}50%{transform:scale(1.03);filter:brightness(1.04)}}
+@keyframes vela-inner-warm{from{offset-distance:31%}to{offset-distance:131%}}
+@keyframes vela-inner-saturn{from{offset-distance:69%}to{offset-distance:169%}}
+@keyframes vela-star-breathe{0%,100%{transform:scale(.98);filter:brightness(.98)}50%{transform:scale(1.02);filter:brightness(1.03)}}
 @media(max-width:600px){
- .home-page .map-route{left:7%!important;top:59%!important;width:86%!important;height:82px!important}
- .home-page .map-route:after{left:12%!important;top:19%!important;width:76%!important;height:62%!important}
- .home-page .map-route:before{width:16px!important;height:16px!important;margin:-8px!important}
+ .home-page .map-route{left:7%!important;top:59%!important;width:86%!important;height:72px!important}
+ .home-page .map-route:after{left:11%!important;top:12%!important;width:76%!important;height:76%!important}
+ .home-page .map-route:before{left:26%!important;width:14px!important;height:14px!important;margin:-7px!important}
  .home-page .map-route i{width:7px!important;height:7px!important}.home-page .map-route b{width:9px!important;height:9px!important}.home-page .map-route span{width:12px!important;height:12px!important}
  .home-page .map-route span:before{width:28px!important;height:8px!important;margin:-4px -14px!important}.home-page .map-route span:after{width:22px!important;height:4px!important;margin:-2px -11px!important}
 }
