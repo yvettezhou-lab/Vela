@@ -1,0 +1,31 @@
+/* Vela — final celestial composition polish. Quiet orbit, centered star, depth through scale. */
+.home-page .home-map .map-route{
+  left:11%!important;top:61%!important;width:78%!important;height:78px!important;
+  border-color:rgba(205,225,231,.18)!important;
+  border-top-color:rgba(221,235,238,.30)!important;
+  transform:rotate(-7deg)!important;
+}
+.home-page .home-map .map-route:after{
+  left:18%!important;top:16%!important;width:64%!important;height:68%!important;
+  border-color:rgba(182,210,220,.08)!important;
+  transform:rotate(13deg)!important;
+}
+/* Keep the star visually centered in the orbital system and subordinate to the scene. */
+.home-page .map-route:before{
+  width:11px!important;height:11px!important;margin:-5.5px!important;
+  box-shadow:0 0 5px rgba(255,231,166,.48),0 0 12px rgba(234,190,91,.14)!important;
+}
+/* Give the planets more spatial hierarchy instead of equal UI-dot weight. */
+.home-page .map-route i{width:7px!important;height:7px!important;}
+.home-page .map-route b{width:8px!important;height:8px!important;}
+.home-page .map-route span{width:11px!important;height:11px!important;}
+.home-page .map-route span:before{width:30px!important;height:8px!important;margin:-4px -15px!important;border-color:rgba(236,222,187,.52)!important;}
+.home-page .map-route span:after{width:23px!important;height:4px!important;margin:-2px -11.5px!important;border-top-color:rgba(255,242,207,.38)!important;}
+@media(max-width:600px){
+ .home-page .home-map .map-route{left:9%!important;top:60%!important;width:82%!important;height:70px!important}
+ .home-page .home-map .map-route:after{left:18%!important;top:16%!important;width:64%!important;height:68%!important}
+ .home-page .map-route:before{width:10px!important;height:10px!important;margin:-5px!important}
+ .home-page .map-route i{width:6px!important;height:6px!important}
+ .home-page .map-route b{width:7px!important;height:7px!important}
+ .home-page .map-route span{width:10px!important;height:10px!important}
+}
