@@ -1,113 +1,15 @@
 /* Vela — mockup match: bring the live page closer to the refined celestial reference. */
-
-/* Warm editorial field with restrained orbital traces outside the hero. */
-.home-page{
-  position:relative!important;
-  overflow:hidden!important;
-  background:
-    radial-gradient(ellipse 42% 20% at 6% 84%,rgba(174,145,98,.075),transparent 72%),
-    radial-gradient(ellipse 38% 18% at 96% 76%,rgba(174,145,98,.055),transparent 72%),
-    #f7f2e7!important;
-}
-.home-page:before{
-  content:''!important;
-  position:absolute!important;
-  width:420px!important;height:420px!important;
-  left:-255px!important;bottom:-215px!important;
-  border:1px dashed rgba(166,133,83,.22)!important;
-  border-radius:50%!important;
-  box-shadow:110px -24px 0 -1px rgba(166,133,83,.04)!important;
-  pointer-events:none!important;
-}
-.home-page:after{
-  content:''!important;
-  position:absolute!important;
-  width:500px!important;height:500px!important;
-  right:-325px!important;top:-300px!important;
-  border:1px dashed rgba(166,133,83,.18)!important;
-  border-radius:50%!important;
-  pointer-events:none!important;
-}
-
-/* Hero: a quiet Milky-Way-like dust lane, without introducing an image asset. */
-.home-page .home-map{
-  position:relative!important;
-  isolation:isolate!important;
-  background-color:#061522!important;
-  background-image:
-    radial-gradient(ellipse 44% 13% at 63% 39%,rgba(194,211,217,.17),transparent 67%),
-    radial-gradient(ellipse 31% 8% at 69% 43%,rgba(225,229,220,.12),transparent 70%),
-    radial-gradient(circle at 11% 22%,rgba(255,255,255,.75) 0 1px,transparent 1.5px),
-    radial-gradient(circle at 29% 18%,rgba(255,255,255,.6) 0 1px,transparent 1.5px),
-    radial-gradient(circle at 51% 15%,rgba(255,255,255,.48) 0 1px,transparent 1.5px),
-    radial-gradient(circle at 77% 27%,rgba(255,255,255,.62) 0 1px,transparent 1.5px),
-    radial-gradient(circle at 89% 65%,rgba(255,255,255,.5) 0 1px,transparent 1.5px)!important;
-}
-.home-page .home-map:before{
-  content:''!important;
-  position:absolute!important;
-  inset:0!important;
-  z-index:0!important;
-  pointer-events:none!important;
-  opacity:.72!important;
-  background:
-    radial-gradient(circle at 61% 37%,rgba(255,255,255,.48) 0 1px,transparent 1.7px),
-    radial-gradient(circle at 66% 41%,rgba(255,255,255,.34) 0 1px,transparent 1.8px),
-    radial-gradient(circle at 72% 34%,rgba(255,255,255,.3) 0 1px,transparent 1.7px),
-    radial-gradient(circle at 57% 47%,rgba(255,255,255,.26) 0 1px,transparent 1.7px),
-    radial-gradient(circle at 78% 49%,rgba(255,255,255,.34) 0 1px,transparent 1.7px),
-    radial-gradient(ellipse 48% 17% at 67% 40%,transparent 44%,rgba(195,207,211,.08) 52%,transparent 67%)!important;
-}
+.home-page{position:relative!important;overflow:hidden!important;background:radial-gradient(ellipse 42% 20% at 6% 84%,rgba(174,145,98,.075),transparent 72%),radial-gradient(ellipse 38% 18% at 96% 76%,rgba(174,145,98,.055),transparent 72%),#f7f2e7!important}
+.home-page:before{content:''!important;position:absolute!important;width:420px!important;height:420px!important;left:-255px!important;bottom:-215px!important;border:1px dashed rgba(166,133,83,.22)!important;border-radius:50%!important;pointer-events:none!important}
+.home-page:after{content:''!important;position:absolute!important;width:500px!important;height:500px!important;right:-325px!important;top:-300px!important;border:1px dashed rgba(166,133,83,.18)!important;border-radius:50%!important;pointer-events:none!important}
+.home-page .home-map{position:relative!important;isolation:isolate!important;background-color:#061522!important;background-image:radial-gradient(ellipse 44% 13% at 63% 39%,rgba(194,211,217,.17),transparent 67%),radial-gradient(ellipse 31% 8% at 69% 43%,rgba(225,229,220,.12),transparent 70%),radial-gradient(circle at 11% 22%,rgba(255,255,255,.75) 0 1px,transparent 1.5px),radial-gradient(circle at 29% 18%,rgba(255,255,255,.6) 0 1px,transparent 1.5px),radial-gradient(circle at 51% 15%,rgba(255,255,255,.48) 0 1px,transparent 1.5px),radial-gradient(circle at 77% 27%,rgba(255,255,255,.62) 0 1px,transparent 1.5px),radial-gradient(circle at 89% 65%,rgba(255,255,255,.5) 0 1px,transparent 1.5px)!important}
+.home-page .home-map:before{content:''!important;position:absolute!important;inset:0!important;z-index:0!important;pointer-events:none!important;opacity:.72!important;background:radial-gradient(circle at 61% 37%,rgba(255,255,255,.48) 0 1px,transparent 1.7px),radial-gradient(circle at 66% 41%,rgba(255,255,255,.34) 0 1px,transparent 1.8px),radial-gradient(circle at 72% 34%,rgba(255,255,255,.3) 0 1px,transparent 1.7px),radial-gradient(circle at 57% 47%,rgba(255,255,255,.26) 0 1px,transparent 1.7px),radial-gradient(circle at 78% 49%,rgba(255,255,255,.34) 0 1px,transparent 1.7px),radial-gradient(ellipse 48% 17% at 67% 40%,transparent 44%,rgba(195,207,211,.08) 52%,transparent 67%)!important}
 .home-page .home-map>*{position:relative;z-index:2}
-
-/* Navigation: dark navy constellation drawings on the warm strip, matching the reference hierarchy. */
-.bottom-nav{
-  background:#f3e5c9!important;
-  border-top:1px solid rgba(145,116,75,.18)!important;
-}
-.bottom-nav button:before{
-  opacity:1!important;
-  filter:none!important;
-}
-.bottom-nav button.active:after{
-  content:''!important;
-  position:absolute!important;
-  left:50%!important;
-  bottom:5px!important;
-  width:58px!important;height:1.5px!important;
-  transform:translateX(-50%)!important;
-  background:#172535!important;
-}
-.bottom-nav button.active{color:#172535!important}
-.bottom-nav button:not(.active){color:#7e7669!important}
-
-/* Recolor the existing embedded star charts from antique-gold to the ink/navy of the reference. */
-.bottom-nav button:nth-child(1):before,
-.bottom-nav button:nth-child(2):before,
-.bottom-nav button:nth-child(3):before,
-.bottom-nav button:nth-child(4):before,
-.bottom-nav button:nth-child(5):before{
-  opacity:1!important;
-}
-
-/* The reference treats the UFO as a small navigation ornament, not a floating button. */
-.home-page .home-quick{
-  width:76px!important;height:58px!important;
-  min-width:76px!important;
-  opacity:.95!important;
-}
-.home-page .home-quick:before{
-  width:50px!important;height:20px!important;
-  border-color:rgba(184,148,92,.82)!important;
-  background:radial-gradient(circle at 50% 40%,rgba(184,148,92,.95) 0 2px,transparent 2.5px)!important;
-}
-.home-page .home-quick:after{
-  top:15px!important;
-  border-color:rgba(184,148,92,.78)!important;
-}
-
-@media(max-width:600px){
-  .home-page:before{width:340px!important;height:340px!important;left:-235px!important;bottom:-180px!important}
-  .home-page:after{width:390px!important;height:390px!important;right:-280px!important;top:-255px!important}
-  .bottom-nav button.active:after{width:48px!important;bottom:5px!important}
-}
+.bottom-nav{background:#f3e5c9!important;border-top:1px solid rgba(145,116,75,.18)!important}
+.bottom-nav button:before{opacity:1!important;filter:brightness(.46) saturate(.72) contrast(1.05)!important}
+.bottom-nav button.active:after{content:''!important;position:absolute!important;left:50%!important;bottom:5px!important;width:58px!important;height:1.5px!important;transform:translateX(-50%)!important;background:#172535!important}
+.bottom-nav button.active{color:#172535!important}.bottom-nav button:not(.active){color:#7e7669!important}
+.home-page .home-quick{width:76px!important;height:58px!important;min-width:76px!important;opacity:.95!important}
+.home-page .home-quick:before{width:50px!important;height:20px!important;border-color:rgba(184,148,92,.82)!important;background:radial-gradient(circle at 50% 40%,rgba(184,148,92,.95) 0 2px,transparent 2.5px)!important}
+.home-page .home-quick:after{top:15px!important;border-color:rgba(184,148,92,.78)!important}
+@media(max-width:600px){.home-page:before{width:340px!important;height:340px!important;left:-235px!important;bottom:-180px!important}.home-page:after{width:390px!important;height:390px!important;right:-280px!important;top:-255px!important}.bottom-nav button.active:after{width:48px!important;bottom:5px!important}}
