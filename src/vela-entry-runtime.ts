@@ -88,12 +88,24 @@ function openEntry() {
     const memberIds = fd.getAll('memberId').map(String);
     const allocationMode = String(fd.get('allocationMode') || 'Default') as AllocationMode;
     const currency = String(fd.get('currency') || 'CNY').trim().toUpperCase();
-    if (!description || !Number.isFinite(amount) || amount <= 0 || !date || !currency || !memberIds.length) { error.textContent = 'Please complete the payment, amount, date, and at least one participant.'; error.hidden = false; return; }
+    if (!description || !Number.isFinite(amount) || amount <= 0 || !/^\d{4}-\d{2}-\d{2}$/.test(date) || !currency || !memberIds.length) { error.textContent = 'Please complete the payment, amount, date, and at least one participant.'; error.hidden = false; return; }
     try {
       const entry: any = { id: crypto.randomUUID(), date, description, category: category.value as Category, amount, currency, payerId: String(fd.get('payerId') || firstMember), accountId: String(fd.get('accountId') || firstAccount), eventId: String(fd.get('eventId') || '') || undefined, item: String(fd.get('item') || '') || undefined, allocationMode, template, planned: false };
       entry.allocations = allocationMode === 'Custom' ? makeAllocations(amount, memberIds, plan.members, allocationMode, Object.fromEntries(memberIds.map(id => [id, Number(fd.get(`pct_${id}`) || 0)]))) : makeAllocations(amount, memberIds, plan.members, allocationMode);
-      if (template === 'Flight') { entry.flightType = flightType; entry.flightOutboundDate = String(fd.get('flightOutboundDate') || ''); entry.flightReturnDate = flightType === 'RoundTrip' ? String(fd.get('flightReturnDate') || '') : undefined; if (!entry.flightOutboundDate || (flightType === 'RoundTrip' && !entry.flightReturnDate)) throw new Error('Please enter the complete flight itinerary.'); }
-      if (template === 'PrepaidMultiDay') { entry.usageStartDate = String(fd.get('usageStartDate') || ''); entry.usageEndDate = String(fd.get('usageEndDate') || ''); entry.planned = fd.get('planned') === 'on'; if (!entry.usageStartDate || !entry.usageEndDate || entry.usageStartDate > entry.usageEndDate) throw new Error('Usage start must be on or before usage end.'); entry.usageDates = entryUsageDates(entry); }
+      if (template === 'Flight') {
+        entry.flightType = flightType;
+        entry.flightOutboundDate = String(fd.get('flightOutboundDate') || '');
+        entry.flightReturnDate = flightType === 'RoundTrip' ? String(fd.get('flightReturnDate') || '') : undefined;
+        if (!/^\d{4}-\d{2}-\d{2}$/.test(entry.flightOutboundDate)) throw new Error('Please enter the outbound date.');
+        if (flightType === 'RoundTrip' && (!/^\d{4}-\d{2}-\d{2}$/.test(entry.flightReturnDate) || entry.flightReturnDate < entry.flightOutboundDate)) throw new Error('Return date must be on or after outbound date.');
+      }
+      if (template === 'PrepaidMultiDay') {
+        entry.usageStartDate = String(fd.get('usageStartDate') || '');
+        entry.usageEndDate = String(fd.get('usageEndDate') || '');
+        entry.planned = fd.get('planned') === 'on';
+        if (!/^\d{4}-\d{2}-\d{2}$/.test(entry.usageStartDate) || !/^\d{4}-\d{2}-\d{2}$/.test(entry.usageEndDate) || entry.usageStartDate > entry.usageEndDate) throw new Error('Usage start must be on or before usage end.');
+        entry.usageDates = entryUsageDates(entry);
+      }
       savePlan({ ...plan, ledger: [entry, ...plan.ledger] });
       window.location.reload();
     } catch (err) { error.textContent = err instanceof Error ? err.message : 'Unable to create payment.'; error.hidden = false; }
