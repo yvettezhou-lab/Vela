@@ -1,0 +1,68 @@
+/* Vela — orbital garden: replace the fake spacecraft with recognizable orbiting planets. */
+.home-page .map-route{
+  border-top:1px solid rgba(205,225,231,.68)!important;
+  background:transparent!important;
+}
+.home-page .map-route:before{
+  content:''!important;
+  position:absolute!important;
+  left:14%!important;
+  top:42%!important;
+  width:9px!important;
+  height:9px!important;
+  border-radius:50%!important;
+  background:radial-gradient(circle at 32% 28%,#f4e6bb 0 12%,#d9bd78 34%,#9a7943 100%)!important;
+  border:1px solid rgba(245,232,193,.52)!important;
+  box-shadow:
+    102px -31px 0 2px #b8c6c2,
+    218px 18px 0 0 #d5bb7b,
+    274px -35px 0 -2px #e5ece8,
+    0 0 10px rgba(219,190,122,.30),
+    102px -31px 9px -5px rgba(185,210,214,.22),
+    218px 18px 10px -5px rgba(219,190,122,.20)!important;
+  z-index:8!important;
+}
+/* Saturn-like body: an unmistakable small planet with a tilted ring. */
+.home-page .map-route span{
+  position:absolute!important;
+  left:52%!important;
+  top:4%!important;
+  width:15px!important;
+  height:15px!important;
+  border:1px solid rgba(229,236,232,.62)!important;
+  border-radius:50%!important;
+  background:radial-gradient(circle at 30% 28%,#f2e4bd 0 10%,#c9ad6f 42%,#766142 100%)!important;
+  transform:none!important;
+  filter:drop-shadow(0 0 7px rgba(216,190,122,.34))!important;
+  z-index:9!important;
+}
+.home-page .map-route span:before{
+  content:''!important;
+  position:absolute!important;
+  left:-7px!important;
+  top:5px!important;
+  width:27px!important;
+  height:7px!important;
+  border:1px solid rgba(224,215,181,.58)!important;
+  border-radius:50%!important;
+  transform:rotate(-16deg)!important;
+  box-shadow:0 0 6px rgba(199,183,135,.18)!important;
+}
+.home-page .map-route span:after{display:none!important}
+.home-page .map-label-a:before{content:'01  /  ORBITAL SYSTEM'!important}
+.home-page .map-label-b:before{content:'TARGET  /  CELESTIAL BODY'!important}
+@media(max-width:600px){
+  .home-page .map-route:before{
+    left:12%!important;top:42%!important;
+    width:8px!important;height:8px!important;
+    box-shadow:
+      78px -25px 0 2px #b8c6c2,
+      158px 15px 0 0 #d5bb7b,
+      202px -29px 0 -2px #e5ece8,
+      0 0 9px rgba(219,190,122,.28),
+      78px -25px 8px -5px rgba(185,210,214,.20),
+      158px 15px 9px -5px rgba(219,190,122,.18)!important;
+  }
+  .home-page .map-route span{left:52%!important;top:5%!important;width:13px!important;height:13px!important}
+  .home-page .map-route span:before{left:-6px!important;top:4px!important;width:24px!important;height:6px!important}
+}
