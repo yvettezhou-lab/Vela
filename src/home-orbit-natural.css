@@ -1,0 +1,104 @@
+/* Vela — natural orbital motion.
+   Planets follow the same continuous ellipse instead of bouncing between keyframes. */
+.home-page .map-route{
+  overflow:visible!important;
+  border:1px solid rgba(205,225,231,.50)!important;
+  border-top-color:rgba(221,235,238,.76)!important;
+  border-radius:50%!important;
+  transform:rotate(-11deg)!important;
+}
+/* Put every body at the center of the orbital system; offset-path does the orbit. */
+.home-page .map-route i,
+.home-page .map-route b,
+.home-page .map-route span,
+.home-page .map-route:before,
+.home-page .map-label-a:after,
+.home-page .map-label-b:after{
+  offset-path:ellipse(47% 47% at 50% 50%)!important;
+  offset-rotate:0deg!important;
+  left:50%!important;
+  top:50%!important;
+}
+.home-page .map-route i{
+  animation:vela-natural-orbit-a 15s linear infinite!important;
+}
+.home-page .map-route b{
+  animation:vela-natural-orbit-b 21s linear infinite!important;
+}
+.home-page .map-route span{
+  animation:vela-natural-orbit-c 28s linear infinite!important;
+}
+.home-page .map-route:before{
+  animation:vela-natural-orbit-d 18s linear infinite!important;
+}
+.home-page .map-label-a:after{
+  animation:vela-natural-orbit-e 24s linear infinite!important;
+}
+.home-page .map-label-b:after{
+  animation:vela-natural-orbit-f 19s linear infinite!important;
+}
+/* A proper Saturn-like ring: broad, elliptical, layered, with the planet sitting in front. */
+.home-page .map-route span:before{
+  left:50%!important;
+  top:50%!important;
+  width:36px!important;
+  height:11px!important;
+  margin:-6px -18px!important;
+  border:1px solid rgba(236,222,187,.82)!important;
+  border-radius:50%!important;
+  background:transparent!important;
+  transform:rotate(-20deg)!important;
+  box-shadow:0 0 0 2px rgba(198,171,111,.18),0 0 8px rgba(219,190,122,.20)!important;
+  z-index:-1!important;
+}
+.home-page .map-route span:after{
+  content:''!important;
+  position:absolute!important;
+  left:50%!important;
+  top:50%!important;
+  width:30px!important;
+  height:7px!important;
+  margin:-4px -15px!important;
+  border-top:1px solid rgba(255,240,203,.58)!important;
+  border-bottom:1px solid rgba(165,137,81,.38)!important;
+  border-radius:50%!important;
+  transform:rotate(-20deg)!important;
+  background:transparent!important;
+  z-index:-1!important;
+}
+/* Keep the body visually in front of its ring. */
+.home-page .map-route span{
+  z-index:14!important;
+}
+@keyframes vela-natural-orbit-a{
+  from{offset-distance:0%;transform:translate(-50%,-50%) scale(.92)}
+  to{offset-distance:100%;transform:translate(-50%,-50%) scale(.92)}
+}
+@keyframes vela-natural-orbit-b{
+  from{offset-distance:18%;transform:translate(-50%,-50%) scale(1)}
+  to{offset-distance:118%;transform:translate(-50%,-50%) scale(1)}
+}
+@keyframes vela-natural-orbit-c{
+  from{offset-distance:48%;transform:translate(-50%,-50%) rotate(-18deg) scale(.96)}
+  to{offset-distance:148%;transform:translate(-50%,-50%) rotate(342deg) scale(.96)}
+}
+@keyframes vela-natural-orbit-d{
+  from{offset-distance:72%;transform:translate(-50%,-50%) scale(.86)}
+  to{offset-distance:172%;transform:translate(-50%,-50%) scale(.86)}
+}
+@keyframes vela-natural-orbit-e{
+  from{offset-distance:31%;transform:translate(-50%,-50%) scale(.90)}
+  to{offset-distance:131%;transform:translate(-50%,-50%) scale(.90)}
+}
+@keyframes vela-natural-orbit-f{
+  from{offset-distance:83%;transform:translate(-50%,-50%) scale(.84)}
+  to{offset-distance:183%;transform:translate(-50%,-50%) scale(.84)}
+}
+@media(max-width:600px){
+  .home-page .map-route i,.home-page .map-route b,.home-page .map-route span{offset-path:ellipse(47% 47% at 50% 50%)!important}
+  .home-page .map-route span:before{width:31px!important;height:10px!important;margin:-5px -16px!important}
+  .home-page .map-route span:after{width:26px!important;height:6px!important;margin:-3px -13px!important}
+}
+@media(prefers-reduced-motion:reduce){
+  .home-page .map-route i,.home-page .map-route b,.home-page .map-route span,.home-page .map-route:before,.home-page .map-label-a:after,.home-page .map-label-b:after{animation:none!important}
+}
