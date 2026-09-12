@@ -11,13 +11,12 @@
 /* Ledger — Taurus. A clean V-shaped head with the horn lines. */
 .bottom-nav button:nth-child(2):before{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 48 34' fill='none'%3E%3Cg stroke='%23a58d67' stroke-width='1.05' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 7L15 13L24 20L33 13L42 7M15 13L12 5M33 13L36 5M24 20L27 28L21 28'/%3E%3C/g%3E%3Cg fill='%23b79a68'%3E%3Ccircle cx='6' cy='7' r='1.45'/%3E%3Ccircle cx='15' cy='13' r='1.35'/%3E%3Ccircle cx='24' cy='20' r='1.55'/%3E%3Ccircle cx='33' cy='13' r='1.35'/%3E%3Ccircle cx='42' cy='7' r='1.45'/%3E%3Ccircle cx='12' cy='5' r='1.15'/%3E%3Ccircle cx='36' cy='5' r='1.15'/%3E%3Ccircle cx='27' cy='28' r='1.15'/%3E%3Ccircle cx='21' cy='28' r='1.15'/%3E%3C/g%3E%3C/svg%3E")}
 
-/* Balance — Libra.
-   Six principal Libra stars, with the sky-chart orientation preserved:
-   β is the high central star; γ sits upper-left; α upper-right;
-   σ drops below α; υ and τ descend to the lower-left.
-   This follows the six-star "Scales" figure: β–γ and β–α form the
-   balance bar, γ–υ–τ one side, and α–σ the other. */
-.bottom-nav button:nth-child(3):before{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 48 34' fill='none'%3E%3Cg stroke='%23a58d67' stroke-width='1.05' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M23.0 4.0L12.0 11.5L37.0 13.5M12.0 11.5L16.0 29.5L14.0 32.0M37.0 13.5L29.0 26.0'/%3E%3C/g%3E%3Cg fill='%23b79a68'%3E%3Ccircle cx='23.0' cy='4.0' r='1.35'/%3E%3Ccircle cx='12.0' cy='11.5' r='1.40'/%3E%3Ccircle cx='37.0' cy='13.5' r='1.45'/%3E%3Ccircle cx='29.0' cy='26.0' r='1.35'/%3E%3Ccircle cx='16.0' cy='29.5' r='1.15'/%3E%3Ccircle cx='14.0' cy='32.0' r='1.10'/%3E%3C/g%3E%3C/svg%3E")}
+/* Balance — Libra / the Scales.
+   Six principal stars in the standard sky-chart orientation:
+   β is high; γ is upper-left; α is upper-right; σ hangs below-left of α;
+   υ and τ continue down-left from γ. The six-star Scales figure uses
+   β–γ, β–α, γ–υ–τ, and α–σ. */
+.bottom-nav button:nth-child(3):before{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 48 34' fill='none'%3E%3Cg stroke='%23a58d67' stroke-width='1.05' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M23.0 4.0L12.0 11.5M23.0 4.0L37.0 13.5M12.0 11.5L16.0 29.5L14.0 32.0M37.0 13.5L25.5 26.0'/%3E%3C/g%3E%3Cg fill='%23b79a68'%3E%3Ccircle cx='23.0' cy='4.0' r='1.35'/%3E%3Ccircle cx='12.0' cy='11.5' r='1.40'/%3E%3Ccircle cx='37.0' cy='13.5' r='1.45'/%3E%3Ccircle cx='25.5' cy='26.0' r='1.35'/%3E%3Ccircle cx='16.0' cy='29.5' r='1.15'/%3E%3Ccircle cx='14.0' cy='32.0' r='1.10'/%3E%3C/g%3E%3C/svg%3E")}
 
 /* Logbook — Gemini. Twin chains with the characteristic parallel structure. */
 .bottom-nav button:nth-child(4):before{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 48 34' fill='none'%3E%3Cg stroke='%23a58d67' stroke-width='1.0' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M10 5L14 11L16 18L14 25L10 30M38 5L34 11L32 18L34 25L38 30M14 11L32 11M16 18L32 18M14 25L34 25'/%3E%3C/g%3E%3Cg fill='%23b79a68'%3E%3Ccircle cx='10' cy='5' r='1.35'/%3E%3Ccircle cx='14' cy='11' r='1.2'/%3E%3Ccircle cx='16' cy='18' r='1.25'/%3E%3Ccircle cx='14' cy='25' r='1.2'/%3E%3Ccircle cx='10' cy='30' r='1.35'/%3E%3Ccircle cx='38' cy='5' r='1.35'/%3E%3Ccircle cx='34' cy='11' r='1.2'/%3E%3Ccircle cx='32' cy='18' r='1.25'/%3E%3Ccircle cx='34' cy='25' r='1.2'/%3E%3Ccircle cx='38' cy='30' r='1.35'/%3E%3C/g%3E%3C/svg%3E")}
@@ -31,4 +30,4 @@
 .home-page .home-quick:before{content:''!important;width:43px!important;height:19px!important;display:block!important;border:1.5px solid rgba(177,145,92,.88)!important;border-radius:50%!important;background:radial-gradient(circle at 50% 40%,rgba(177,145,92,.95) 0 2px,transparent 2.4px)!important;box-shadow:0 0 12px rgba(177,145,92,.10)!important;position:relative!important}
 .home-page .home-quick:after{content:''!important;position:absolute!important;width:14px!important;height:7px!important;left:50%!important;top:18px!important;transform:translateX(-50%)!important;border:1.35px solid rgba(177,145,92,.86)!important;border-bottom:0!important;border-radius:12px 12px 0 0!important;box-shadow:-14px 13px 0 -5px rgba(177,145,92,.45),14px 13px 0 -5px rgba(177,145,92,.45)!important}
 @media(max-width:600px){.bottom-nav button:before{width:31px;height:24px;background-size:31px 24px;margin-bottom:5px}.home-page .home-quick{width:54px!important;height:54px!important}.home-page .home-quick:before{width:40px!important;height:18px!important}.home-page .home-quick:after{top:17px!important}}
-/* Libra orientation corrected from the astronomical chart; do not mirror RA. */
+/* Libra six-star geometry corrected: β branches to γ and α; σ is left of α. */
