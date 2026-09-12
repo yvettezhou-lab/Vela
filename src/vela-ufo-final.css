@@ -5,15 +5,15 @@
   position:fixed!important;
   right:28px!important;
   bottom:82px!important;
-  width:124px!important;
-  height:78px!important;
-  min-width:124px!important;
-  min-height:78px!important;
+  width:104px!important;
+  height:65px!important;
+  min-width:104px!important;
+  min-height:65px!important;
   padding:0!important;
   border:0!important;
-  border-radius:22px!important;
-  background:#071a2a url('/src/vela-ufo-card.svg?v=vela-ufo-art-v1') center/100% 100% no-repeat!important;
-  box-shadow:0 12px 28px rgba(20,28,34,.18)!important;
+  border-radius:19px!important;
+  background:#071a2a url('/src/vela-ufo-card.svg?v=vela-ufo-art-v2') center/100% 100% no-repeat!important;
+  box-shadow:0 10px 24px rgba(20,28,34,.16)!important;
   display:block!important;
   overflow:hidden!important;
   color:transparent!important;
@@ -37,11 +37,11 @@
   .home-page .quick-entry-button{
     right:28px!important;
     bottom:82px!important;
-    width:124px!important;
-    height:78px!important;
-    min-width:124px!important;
-    min-height:78px!important;
-    border-radius:22px!important;
+    width:104px!important;
+    height:65px!important;
+    min-width:104px!important;
+    min-height:65px!important;
+    border-radius:19px!important;
   }
 }
 @media(prefers-reduced-motion:reduce){
