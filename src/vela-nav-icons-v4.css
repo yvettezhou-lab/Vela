@@ -2,8 +2,9 @@
    All five glyphs use the same 48×34 construction field.
    Star positions are normalized from J2000 RA/Dec coordinates, with
    RA increasing to the right and declination increasing upward.
-   No star is positioned by visual guesswork. */
-.bottom-nav button:before{opacity:.82!important;background-repeat:no-repeat!important;background-position:center!important;background-size:48px 34px!important}
+   The visible glyph is rendered inside a smaller 40×28 safe field so
+   no projected constellation crowds the navigation item edges. */
+.bottom-nav button:before{opacity:.82!important;background-repeat:no-repeat!important;background-position:center!important;background-size:40px 28px!important}
 .bottom-nav button.active:before{opacity:1!important}
 
 /* HOME — 北斗七星 / Big Dipper: 7 real stars.
