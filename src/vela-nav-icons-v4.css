@@ -11,11 +11,13 @@
 /* LEDGER — 金牛座 / Taurus: 12 stars used by the Western stick-figure lines. */
 .bottom-nav button:nth-child(2):before{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 48 34' fill='none'%3E%3Cg stroke='%23a58d67' stroke-width='1.05' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M9.8 5L20.66 12.15L24.11 16.34M22.19 19.25L6 13.17M26.43 20.22L25.57 18.12M26.43 20.22L31.64 23.59L42 27.16M22.19 19.25L24.09 19.96L26.43 20.22M24.11 16.34L24.92 17.71L25.57 18.12L34.1 10.65'/%3E%3C/g%3E%3Cg fill='%23b79a68'%3E%3Ccircle cx='9.8' cy='5' r='1.25'/%3E%3Ccircle cx='20.66' cy='12.15' r='1.2'/%3E%3Ccircle cx='24.11' cy='16.34' r='1.25'/%3E%3Ccircle cx='22.19' cy='19.25' r='1.25'/%3E%3Ccircle cx='6' cy='13.17' r='1.25'/%3E%3Ccircle cx='26.43' cy='20.22' r='1.3'/%3E%3Ccircle cx='25.57' cy='18.12' r='1.15'/%3E%3Ccircle cx='31.64' cy='23.59' r='1.2'/%3E%3Ccircle cx='42' cy='27.16' r='1.2'/%3E%3Ccircle cx='24.09' cy='19.96' r='1.1'/%3E%3Ccircle cx='24.92' cy='17.71' r='1.1'/%3E%3Ccircle cx='34.1' cy='10.65' r='1.2'/%3E%3C/g%3E%3C/svg%3E")}
 
-/* BALANCE — 天秤座 / Libra: four main stars, deliberately composed as a scale.
-   Star identities remain α², β, γ, σ; the icon uses a readable scale-like layout
-   rather than the raw sky projection, which otherwise collapses visually into a diamond.
-   Beam: α²—β. Left pan: α²—γ. Right pan: β—σ. Pan edge: γ—σ. */
-.bottom-nav button:nth-child(3):before{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 48 34' fill='none'%3E%3Cg stroke='%23a58d67' stroke-width='1.05' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M7 7L41 8.5M7 7L15 27M41 8.5L33 28M15 27L33 28'/%3E%3C/g%3E%3Cg fill='%23b79a68'%3E%3Ccircle cx='7' cy='7' r='1.35'/%3E%3Ccircle cx='41' cy='8.5' r='1.35'/%3E%3Ccircle cx='15' cy='27' r='1.35'/%3E%3Ccircle cx='33' cy='28' r='1.35'/%3E%3C/g%3E%3C/svg%3E")}
+/* BALANCE — 天秤座 / Libra: 6 chart points, with Stellarium's 5-segment figure.
+   J2000 projected positions:
+   A α²=(42.00,15.18), B β=(27.09,5.00), C γ=(16.41,13.17),
+   D σ=(33.99,29.00), E υ=(16.20,34.00), F θ=(6.00,16.28).
+   Stellarium Western line chain: F→C→B→A→D→C.
+   υ is retained as a real chart star but is not part of that stick-figure chain. */
+.bottom-nav button:nth-child(3):before{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 48 34' fill='none'%3E%3Cg stroke='%23a58d67' stroke-width='1.05' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 16.28L16.41 13.17L27.09 5L42 15.18L33.99 29L16.41 13.17'/%3E%3C/g%3E%3Cg fill='%23b79a68'%3E%3Ccircle cx='6' cy='16.28' r='1.2'/%3E%3Ccircle cx='16.41' cy='13.17' r='1.25'/%3E%3Ccircle cx='27.09' cy='5' r='1.35'/%3E%3Ccircle cx='42' cy='15.18' r='1.35'/%3E%3Ccircle cx='33.99' cy='29' r='1.35'/%3E%3Ccircle cx='16.2' cy='33.2' r='1.15'/%3E%3C/g%3E%3C/svg%3E")}
 
 /* LOGBOOK — 双子座 / Gemini.
    Verified against Stellarium Western Gemini. Intermediate stars are kept,
