@@ -1,0 +1,30 @@
+/* Vela — mobile hierarchy polish. Keep the celestial/editorial language, remove excess chrome on small screens. */
+@media (max-width:600px){
+  .page:not(.home-page){padding-bottom:104px!important}
+  .page:not(.home-page) .topbar{padding-top:17px!important;padding-bottom:14px!important}
+  .page:not(.home-page) .topbar h1{font-size:34px!important}
+  .page:not(.home-page) .category-tabs{margin-left:-1px!important;margin-right:-1px!important;padding-left:0!important;padding-right:0!important;height:54px!important;overflow:visible!important}
+  .page:not(.home-page) .category-tab{width:12.5%!important;min-width:0!important;height:45px!important;margin-left:-8px!important}
+  .page:not(.home-page) .category-tab:first-child{margin-left:0!important}
+  .page:not(.home-page) .category-tab.active{height:49px!important}
+  .page:not(.home-page) .category-tab-letter{font-size:8px!important;left:6px!important;top:4px!important}
+  .page:not(.home-page) .category-tab svg{width:16px!important;height:16px!important}
+  .page:not(.home-page) .section{margin-top:14px!important;padding:17px 16px 14px!important}
+  .page:not(.home-page) .empty.large{min-height:190px!important;padding:20px!important}
+  .page:not(.home-page) .day-group{padding-left:12px!important;padding-bottom:22px!important}
+  .page:not(.home-page) .day-group+.day-group{padding-top:22px!important}
+  .page:not(.home-page) .day-heading strong{font-size:26px!important}
+  .page:not(.home-page) .reflection-total{padding:36px 4px 28px!important}
+  .page:not(.home-page) .reflection-total strong{font-size:38px!important}
+  .page:not(.home-page) .stats-grid div{padding:12px 6px!important}
+  .page:not(.home-page) .settings-list{margin-top:18px!important}
+  .page:not(.home-page) .settings-list button{padding:17px 3px!important}
+  .page:not(.home-page) .manage-row{grid-template-columns:minmax(0,1fr) 58px 14px 28px!important}
+  .bottom-nav{padding-top:9px!important}
+  .bottom-nav button{gap:4px!important;padding-top:4px!important;padding-bottom:4px!important}
+  .vela-entry-sheet{padding-left:15px!important;padding-right:15px!important;padding-bottom:calc(18px + env(safe-area-inset-bottom))!important}
+  .vela-entry-save{position:sticky!important;bottom:0!important;padding-bottom:2px!important;background:linear-gradient(180deg,rgba(238,227,208,0),#eee3d0 24%)!important}
+}
+@media (min-width:601px){
+  .page:not(.home-page) .empty.large{min-height:230px!important}
+}
