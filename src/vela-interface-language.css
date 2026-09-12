@@ -1,0 +1,168 @@
+/* Vela — interface language pass. Turn utility components into one coherent celestial journal system. */
+:root{
+  --vela-ink:#20313b;
+  --vela-ink-soft:#66716f;
+  --vela-brass:#9b7a4b;
+  --vela-brass-line:rgba(155,122,75,.22);
+  --vela-paper:#fbf7ee;
+  --vela-paper-2:#f1e7d4;
+  --vela-night:#0a2233;
+}
+
+/* Category index: monochrome navigation, like a printed star chart rather than a colorful app toolbar. */
+.page:not(.home-page) .category-tabs{
+  display:flex!important;
+  align-items:flex-end!important;
+  gap:0!important;
+  margin-top:22px!important;
+  padding:0 2px!important;
+  filter:none!important;
+  border-bottom:1px solid rgba(64,72,72,.16)!important;
+  overflow:visible!important;
+}
+.page:not(.home-page) .category-tab{
+  position:relative!important;
+  flex:1 1 0!important;
+  width:auto!important;
+  min-width:0!important;
+  height:58px!important;
+  margin:0!important;
+  padding:7px 3px 8px!important;
+  border:0!important;
+  border-right:1px solid rgba(64,72,72,.10)!important;
+  border-radius:0!important;
+  background:linear-gradient(180deg,rgba(246,239,225,.72),rgba(234,221,198,.56))!important;
+  box-shadow:none!important;
+  color:#6f6b62!important;
+  transition:background .2s ease,color .2s ease,transform .2s ease!important;
+}
+.page:not(.home-page) .category-tab:first-child{border-left:1px solid rgba(64,72,72,.10)!important}
+.page:not(.home-page) .category-tab:hover{background:rgba(255,250,240,.9)!important;color:#34464e!important;transform:translateY(-2px)!important}
+.page:not(.home-page) .category-tab.active{
+  height:64px!important;
+  background:#fffaf0!important;
+  color:#243842!important;
+  box-shadow:0 -2px 0 rgba(155,122,75,.58)!important;
+  z-index:2!important;
+}
+.page:not(.home-page) .category-tab.active:after{
+  content:''!important;
+  position:absolute!important;
+  left:50%!important;
+  bottom:-1px!important;
+  width:24px!important;
+  height:1px!important;
+  transform:translateX(-50%)!important;
+  background:#9b7a4b!important;
+}
+.page:not(.home-page) .category-tab svg{
+  width:19px!important;
+  height:19px!important;
+  stroke:#4d5b5d!important;
+  stroke-width:1.35!important;
+  opacity:.9!important;
+}
+.page:not(.home-page) .category-tab.active svg{stroke:#9b7a4b!important}
+.page:not(.home-page) .category-tab-letter{
+  color:#9a896d!important;
+  font:8px ui-monospace,SFMono-Regular,Menlo,monospace!important;
+  letter-spacing:.08em!important;
+}
+
+/* Empty states: quiet editorial panels with a small navigation glyph, not a generic app placeholder. */
+.page:not(.home-page) .empty.large{
+  position:relative!important;
+  display:flex!important;
+  flex-direction:column!important;
+  align-items:center!important;
+  justify-content:center!important;
+  border:1px solid rgba(70,78,78,.13)!important;
+  background:rgba(255,252,245,.55)!important;
+}
+.page:not(.home-page) .empty.large:before{
+  content:'✦'!important;
+  display:block!important;
+  margin-bottom:16px!important;
+  font-size:20px!important;
+  line-height:1!important;
+  color:#9b7a4b!important;
+  opacity:.7!important;
+}
+
+/* Balance cards: keep financial information calm, add only a faint coordinate line. */
+.page:not(.home-page) .balance-list .section,
+.page:not(.home-page) .stats-section{
+  position:relative!important;
+}
+.page:not(.home-page) .balance-list .section:after,
+.page:not(.home-page) .stats-section:after{
+  content:''!important;
+  position:absolute!important;
+  top:0!important;
+  right:24px!important;
+  width:72px!important;
+  border-top:1px solid rgba(155,122,75,.25)!important;
+}
+
+/* Logbook data hierarchy. */
+.page:not(.home-page) .stats-grid div:last-child{border-right:0!important}
+.page:not(.home-page) .stats-grid b{font-family:Georgia,'Times New Roman',serif!important;font-weight:400!important}
+.page:not(.home-page) .reflection-total strong{letter-spacing:-.04em!important}
+
+/* Atelier: deliberately plain; it is the workshop / archive of the journal. */
+.page:not(.home-page) .settings-list button{
+  position:relative!important;
+  background:transparent!important;
+}
+.page:not(.home-page) .settings-list button:after{
+  content:'›'!important;
+  position:absolute!important;
+  right:3px!important;
+  top:50%!important;
+  transform:translateY(-53%)!important;
+  color:#9b7a4b!important;
+  font:24px Georgia,serif!important;
+  font-weight:300!important;
+}
+.page:not(.home-page) .settings-list button svg{display:none!important}
+
+/* Quick Entry: form controls become journal fields; preserve every field and all logic. */
+.vela-entry-sheet{
+  background:linear-gradient(180deg,#f6eddd 0%,#eee2cf 100%)!important;
+}
+.vela-entry-sheet .entry-template-switch{
+  border:1px solid rgba(83,73,58,.22)!important;
+  box-shadow:0 8px 18px rgba(40,43,39,.05)!important;
+}
+.vela-entry-sheet input,
+.vela-entry-sheet select{
+  border:1px solid rgba(70,78,78,.17)!important;
+  border-radius:11px!important;
+  background:rgba(255,252,246,.66)!important;
+  min-height:48px!important;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.65)!important;
+}
+.vela-entry-sheet input:focus,
+.vela-entry-sheet select:focus{
+  outline:none!important;
+  border-color:rgba(155,122,75,.52)!important;
+  box-shadow:0 0 0 2px rgba(155,122,75,.08),inset 0 1px 0 rgba(255,255,255,.65)!important;
+}
+.vela-entry-sheet .entry label{
+  color:#88745a!important;
+  font-size:9px!important;
+  letter-spacing:.18em!important;
+}
+.vela-entry-sheet .member-picks{
+  border-radius:11px!important;
+  background:rgba(255,252,246,.42)!important;
+}
+
+@media(max-width:600px){
+  .page:not(.home-page) .category-tabs{margin-top:18px!important}
+  .page:not(.home-page) .category-tab{height:53px!important;padding-top:6px!important}
+  .page:not(.home-page) .category-tab.active{height:58px!important}
+  .page:not(.home-page) .category-tab svg{width:17px!important;height:17px!important}
+  .page:not(.home-page) .category-tab-letter{font-size:7px!important}
+  .vela-entry-sheet input,.vela-entry-sheet select{min-height:50px!important}
+}
