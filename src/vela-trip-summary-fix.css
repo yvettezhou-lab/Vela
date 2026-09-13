@@ -1,0 +1,24 @@
+/* VELA — trip summary spacing fix */
+.home-page #vela-trip-hub .vela-trip-feature-content{
+  padding-bottom:16px;
+}
+.home-page #vela-trip-hub .vela-trip-feature-copy{
+  margin-top:auto;
+}
+.home-page #vela-trip-hub .vela-trip-feature-open{
+  position:static;
+  flex:0 0 auto;
+  margin-top:9px;
+}
+.home-page #vela-trip-hub .vela-trip-summary{
+  margin-top:8px;
+  padding-top:6px;
+}
+@media(max-width:600px){
+  .home-page #vela-trip-hub .vela-trip-feature-content{
+    padding-bottom:14px;
+  }
+  .home-page #vela-trip-hub .vela-trip-feature-open{
+    margin-top:8px;
+  }
+}
