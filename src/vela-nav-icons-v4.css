@@ -26,3 +26,6 @@
 
 /* ATELIER — 六分仪座 / Sextans: Alpha, Beta, Gamma at their J2000 positions. */
 .bottom-nav button:nth-child(5):before{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 48 34' fill='none'%3E%3Cg stroke='%23a58d67' stroke-width='1.05' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 5.84L27.3 5L42 29'/%3E%3C/g%3E%3Cg fill='%23b79a68'%3E%3Ccircle cx='6' cy='5.84' r='1.35'/%3E%3Ccircle cx='27.3' cy='5' r='1.4'/%3E%3Ccircle cx='42' cy='29' r='1.35'/%3E%3C/g%3E%3C/svg%3E")}
+
+/* BALANCE — keep the empty transfer state visually aligned with the ledger rows. */
+.balance-list + .section > .empty{border-top:1px solid rgba(71,53,31,.13);padding:28px 0 8px}
