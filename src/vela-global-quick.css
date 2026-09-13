@@ -6,6 +6,7 @@
   .manage-row{grid-template-columns:minmax(0,1fr) 76px 16px 30px!important}
   .manage-row input{min-width:0!important}
   .two input{min-width:0!important}
+  section.section:has(.ratio)>.two{grid-template-columns:2fr 1fr!important;gap:18px!important}
   .primary.full{font-size:15px!important;letter-spacing:.24em!important;min-height:56px!important;color:#f1dfbb!important;background:#0a2438!important;border:1px solid rgba(216,190,137,.5)!important;border-radius:18px!important;box-shadow:0 8px 18px rgba(35,40,42,.14)!important}
   .primary.full:disabled{opacity:1!important;color:#d7c7a7!important;background:rgba(130,105,67,.16)!important;border-color:rgba(130,105,67,.22)!important;box-shadow:none!important}
 }
