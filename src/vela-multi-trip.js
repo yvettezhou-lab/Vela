@@ -81,8 +81,8 @@
   }
 
   function render() {
-    const home = Array.from(document.querySelectorAll('.page')).find(p => p.querySelector('.topbar h1')?.textContent?.trim() === (current()?.name || 'New Journey'));
-    if (!home || !home.classList.contains('home-page')) return;
+    const home = Array.from(document.querySelectorAll('.home-page'))[0];
+    if (!home) return;
     if (home.querySelector(`#${ROOT_ID}`)) return;
 
     const active = current();
