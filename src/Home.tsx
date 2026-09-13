@@ -123,7 +123,8 @@ export default function Home() {
     const displayPlanning = planning.length ? planning : DEMO_PLANNING;
     const displayRecent = achieved.length ? achieved.slice(0, 2) : DEMO_ACHIEVED;
     const current = traveling || displayPlanning[0] || null;
-    return { currentTrip: current, planningTrips: displayPlanning.filter((trip) => trip.id !== current?.id).slice(0, 2), recentJourneysTrips: displayRecent, activeCount: stored.length || 3 };
+    const activeTrips = stored.filter((trip) => trip.status === 'planning' || trip.status === 'traveling').length;
+    return { currentTrip: current, planningTrips: displayPlanning.filter((trip) => trip.id !== current?.id).slice(0, 2), recentJourneysTrips: displayRecent, activeCount: activeTrips || 3 };
   }, []);
 
   const replaceCover = (trip: Trip) => {
