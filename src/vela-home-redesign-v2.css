@@ -1,0 +1,52 @@
+/* Vela Home — editorial trip redesign */
+.home-page #vela-trip-hub{position:relative;margin:0 0 18px;padding:8px 0 0;color:#2d271f;display:block;overflow:visible}
+.home-page #vela-trip-hub:before{content:"";position:absolute;left:-28px;right:-28px;top:0;height:1px;background:linear-gradient(90deg,transparent,rgba(112,91,58,.10),transparent);pointer-events:none}
+.home-page #vela-trip-hub .vela-trips-heading{display:flex;align-items:flex-start;justify-content:space-between;padding:0 2px;margin:0 0 5px}
+.home-page #vela-trip-hub .vela-trips-title{display:block}
+.home-page #vela-trip-hub .eyebrow,.home-page #vela-trip-hub .vela-home-kicker{font-size:9px;letter-spacing:.22em;color:rgba(65,54,39,.62);text-transform:uppercase}
+.home-page #vela-trip-hub h2{display:none}
+.home-page #vela-trip-hub .vela-home-count{display:none}
+.home-page #vela-trip-hub .vela-trip-new{width:42px;height:42px;border:1px solid rgba(71,53,31,.18);border-radius:50%;background:rgba(250,247,238,.38);color:#40372c;font-size:26px;font-weight:200;line-height:38px;padding:0;margin:-4px 1px 0;box-shadow:0 2px 10px rgba(40,34,27,.025)}
+.home-page #vela-trip-hub .vela-trip-counts,.home-page #vela-trip-hub .vela-trip-meta{display:flex;gap:13px;margin:0 2px 19px;padding:0;flex-wrap:wrap}
+.home-page #vela-trip-hub .vela-trip-counts span,.home-page #vela-trip-hub .vela-trip-meta span{font-size:8px;letter-spacing:.13em;color:rgba(65,54,39,.43)}
+.home-page #vela-trip-hub .vela-trip-counts span:first-child,.home-page #vela-trip-hub .vela-trip-meta span:first-child{color:rgba(65,54,39,.48)}
+.home-page #vela-trip-hub .vela-trip-section-label,.home-page #vela-trip-hub .vela-trip-section-row{display:none}
+.home-page #vela-trip-hub .vela-trip-feature{margin:0 0 13px}
+.home-page #vela-trip-hub .vela-trip-cards{display:grid;gap:8px}
+.home-page #vela-trip-hub .vela-trip-card{position:relative;width:100%;min-height:158px;box-sizing:border-box;border:1px solid rgba(87,69,42,.17);border-radius:24px;background:linear-gradient(145deg,rgba(255,253,246,.70),rgba(239,232,215,.48));padding:22px 21px 20px;display:flex;align-items:flex-end;justify-content:space-between;text-align:left;color:inherit;overflow:hidden;box-shadow:0 10px 30px rgba(55,45,32,.055);cursor:pointer}
+.home-page #vela-trip-hub .vela-trip-card:after{content:"";position:absolute;right:-42px;top:-64px;width:150px;height:150px;border:1px solid rgba(118,98,66,.11);border-radius:50%;transform:rotate(-18deg);pointer-events:none}
+.home-page #vela-trip-hub .vela-trip-card-orbit{position:absolute;right:-18px;top:-7px;width:112px;height:46px;border:1px solid rgba(118,98,66,.12);border-radius:50%;transform:rotate(35deg);pointer-events:none}
+.home-page #vela-trip-hub .vela-trip-card.is-traveling{min-height:190px;padding:25px 23px 23px;background:linear-gradient(145deg,rgba(249,245,233,.88),rgba(221,215,196,.58));border-color:rgba(87,69,42,.23)}
+.home-page #vela-trip-hub .vela-trip-card-main{position:relative;z-index:2;display:grid;gap:6px;min-width:0}
+.home-page #vela-trip-hub .vela-trip-status{font-size:8px;letter-spacing:.21em;color:#806b4b;text-transform:uppercase;margin-bottom:3px}
+.home-page #vela-trip-hub .vela-trip-card-main strong{font-family:Georgia,'Times New Roman',serif;font-size:30px;line-height:1.03;font-weight:500;letter-spacing:-.025em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.home-page #vela-trip-hub .vela-trip-card.is-current .vela-trip-card-main strong{font-weight:700}
+.home-page #vela-trip-hub .vela-trip-card.is-traveling .vela-trip-card-main strong{font-size:34px;font-weight:500}
+.home-page #vela-trip-hub .vela-trip-card-main small{font-size:10px;line-height:1.2;color:rgba(45,39,31,.54);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.home-page #vela-trip-hub .vela-trip-card-main small:first-of-type{display:none}
+.home-page #vela-trip-hub .vela-trip-card-arrow{position:relative;z-index:2;flex:none;margin:0 0 1px 14px;font-size:25px;line-height:1;font-weight:300;color:rgba(45,39,31,.38)}
+.home-page #vela-trip-hub .vela-trip-secondary{display:grid;gap:0;margin:0 0 15px}
+.home-page #vela-trip-hub .vela-trip-secondary .vela-trip-card{min-height:72px;border:0;border-top:1px solid rgba(71,53,31,.10);border-radius:0;background:transparent;box-shadow:none;padding:14px 3px;align-items:center}
+.home-page #vela-trip-hub .vela-trip-secondary .vela-trip-card:after,.home-page #vela-trip-hub .vela-trip-secondary .vela-trip-card-orbit{display:none}
+.home-page #vela-trip-hub .vela-trip-secondary .vela-trip-card-main{display:grid;gap:3px}
+.home-page #vela-trip-hub .vela-trip-secondary .vela-trip-status{display:none}
+.home-page #vela-trip-hub .vela-trip-secondary .vela-trip-card-main strong{font-family:inherit;font-size:15px;font-weight:500;letter-spacing:0}
+.home-page #vela-trip-hub .vela-trip-secondary .vela-trip-card.is-current .vela-trip-card-main strong{font-weight:700}
+.home-page #vela-trip-hub .vela-trip-secondary .vela-trip-card-main small{font-size:9px}
+.home-page #vela-trip-hub .vela-trip-links{display:grid;margin:0;border-top:1px solid rgba(71,53,31,.11)}
+.home-page #vela-trip-hub .vela-trip-link{width:100%;height:48px;padding:0 3px;border:0;border-bottom:1px solid rgba(71,53,31,.08);background:transparent;text-align:left;color:#5f5038;font-size:9px;letter-spacing:.14em;font-weight:500}
+.home-page #vela-trip-hub .vela-trip-link b{float:right;font-size:17px;line-height:1;font-weight:300;color:rgba(45,39,31,.38)}
+.home-page #vela-trip-hub .vela-trip-cards.is-expanded .vela-trip-card{min-height:90px}
+.home-page #vela-trip-hub .vela-trip-cards.is-expanded .vela-trip-card.is-traveling{min-height:110px}
+.home-page #vela-trip-hub .vela-trip-cards.is-expanded .vela-trip-card-main strong{font-family:inherit;font-size:16px;font-weight:500}
+.home-page #vela-trip-hub .vela-trip-cards.is-expanded .vela-trip-card:after,.home-page #vela-trip-hub .vela-trip-cards.is-expanded .vela-trip-card-orbit{display:none}
+.home-page #vela-trip-hub .vela-trip-cards.is-expanded .vela-trip-card{border-radius:0;border-left:0;border-right:0;background:transparent;box-shadow:none;border-top:1px solid rgba(71,53,31,.10)}
+@media(max-width:600px){
+ .home-page #vela-trip-hub{padding-top:7px;margin-bottom:14px}
+ .home-page #vela-trip-hub .vela-trip-new{width:40px;height:40px;font-size:24px}
+ .home-page #vela-trip-hub .vela-trip-counts,.home-page #vela-trip-hub .vela-trip-meta{margin-bottom:17px;gap:11px}
+ .home-page #vela-trip-hub .vela-trip-card{min-height:154px;border-radius:22px;padding:20px 19px 19px}
+ .home-page #vela-trip-hub .vela-trip-card.is-traveling{min-height:184px;padding:23px 20px 21px}
+ .home-page #vela-trip-hub .vela-trip-card-main strong{font-size:29px}
+ .home-page #vela-trip-hub .vela-trip-card.is-traveling .vela-trip-card-main strong{font-size:32px}
+}
