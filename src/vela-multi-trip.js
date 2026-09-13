@@ -1,146 +1,27 @@
 (() => {
-  const PLAN_KEY = 'vela.plan.v1';
-  const PLANS_KEY = 'vela.plans.v1';
-  const CURRENT_KEY = 'vela.trip.current.v1';
-  const ROOT_ID = 'vela-trip-hub';
-  const VISIBLE_LIMIT = 3;
-  const read = (key, fallback) => { try { const raw = localStorage.getItem(key); return raw ? JSON.parse(raw) : fallback; } catch { return fallback; } };
-  const writePlans = plans => localStorage.setItem(PLANS_KEY, JSON.stringify(plans));
-  const normalizeStatus = p => { const s = String(p?.status || '').toLowerCase(); if (s === 'traveling' || s === 'travelling' || s === 'in progress') return 'traveling'; if (s === 'achieve' || s === 'achieved' || s === 'completed') return 'achieve'; return 'planning'; };
-  const normalize = plans => Array.isArray(plans) ? plans.filter(p => p && typeof p.id === 'string').map(p => ({ ...p, status: normalizeStatus(p) })) : [];
-  const now = () => Date.now();
-  const currentPlan = () => read(PLAN_KEY, null);
-  const lastEdited = p => Number(p?.lastEditedAt || p?.updatedAt || p?.createdAt || 0);
-  const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' }[c]));
-  const formatDate = value => { if (!value) return ''; const m = String(value).match(/^(\d{4})-(\d{2})-(\d{2})$/); return m ? `${m[1]}.${m[2]}.${m[3]}` : String(value); };
-  const dates = p => p.startDate && p.endDate ? `${formatDate(p.startDate)} — ${formatDate(p.endDate)}` : p.startDate ? formatDate(p.startDate) : 'DATES NOT SET';
-  const destination = p => { const d = Array.isArray(p.destinations) && p.destinations.length ? p.destinations.join(' · ') : ''; return d && d.toLowerCase() !== String(p.name || '').trim().toLowerCase() ? d : ''; };
-  const duration = p => { if (!p.startDate || !p.endDate) return ''; const a = new Date(`${p.startDate}T00:00:00`); const b = new Date(`${p.endDate}T00:00:00`); const n = Math.round((b-a)/86400000)+1; return Number.isFinite(n) && n > 0 ? `${n} DAYS` : ''; };
-  const money = (n, currency) => `${currency === 'CNY' ? '¥' : currency + ' '}${Math.round(Number(n) || 0).toLocaleString('en-US')}`;
-  const summary = p => {
-    const entries = Array.isArray(p.ledger) ? p.ledger : [];
-    const byCurrency = {};
-    let cny = 0;
-    entries.forEach(e => {
-      const amount = Number(e.amount) || 0;
-      const currency = String(e.currency || '').toUpperCase();
-      if (currency && currency !== 'CNY') byCurrency[currency] = (byCurrency[currency] || 0) + amount;
-      if (e.finalAmount != null && String(e.finalCurrency || '').toUpperCase() === 'CNY') cny += Number(e.finalAmount) || 0;
-      else if (currency === 'CNY') cny += amount;
-    });
-    const local = Object.entries(byCurrency).map(([c,v]) => money(v,c)).join(' · ');
-    const parts = [];
-    if (duration(p)) parts.push(duration(p));
-    if (local) parts.push(local);
-    if (entries.length || cny) parts.push(`¥${Math.round(cny).toLocaleString('en-US')}`);
-    return parts.join('  ·  ') || 'NO EXPENSES RECORDED';
-  };
-  const cover = p => String(p?.coverImage || '').trim();
-
-  function deriveCurrent(plans) {
-    const traveling = plans.filter(p => normalizeStatus(p) === 'traveling');
-    if (traveling.length) return traveling[0];
-    return plans.filter(p => normalizeStatus(p) === 'planning').sort((a,b) => lastEdited(b) - lastEdited(a))[0] || null;
+  const PLAN_KEY='vela.plan.v1', PLANS_KEY='vela.plans.v1', CURRENT_KEY='vela.trip.current.v1', ROOT_ID='vela-trip-hub', VISIBLE_LIMIT=3;
+  const read=(k,f)=>{try{const r=localStorage.getItem(k);return r?JSON.parse(r):f}catch{return f}}, write=p=>localStorage.setItem(PLANS_KEY,JSON.stringify(p)), now=()=>Date.now(), uid=()=>crypto.randomUUID?crypto.randomUUID():`trip-${Date.now()}-${Math.random().toString(16).slice(2)}`;
+  const status=p=>{const s=String(p?.status||'').toLowerCase();return s==='traveling'||s==='travelling'||s==='in progress'?'traveling':s==='achieve'||s==='achieved'||s==='completed'?'achieve':'planning'};
+  const norm=p=>Array.isArray(p)?p.filter(x=>x&&typeof x.id==='string').map(x=>({...x,status:status(x)})):[];
+  const edited=p=>Number(p?.lastEditedAt||p?.updatedAt||p?.createdAt||0), esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  const fmt=v=>{const m=String(v||'').match(/^(\d{4})-(\d{2})-(\d{2})$/);return m?`${m[1]}.${m[2]}.${m[3]}`:String(v||'')}, dates=p=>p.startDate&&p.endDate?`${fmt(p.startDate)} — ${fmt(p.endDate)}`:p.startDate?fmt(p.startDate):'DATES NOT SET';
+  const dest=p=>{const d=Array.isArray(p.destinations)&&p.destinations.length?p.destinations.join(' · '):'';return d&&d.trim().toLowerCase()!==String(p.name||'').trim().toLowerCase()?d:''};
+  const days=p=>{if(!p.startDate||!p.endDate)return '';const n=Math.round((new Date(`${p.endDate}T00:00:00`)-new Date(`${p.startDate}T00:00:00`))/86400000)+1;return n>0?`${n} DAYS`:''};
+  const summary=p=>{const es=Array.isArray(p.ledger)?p.ledger:[], by={}, cny=es.reduce((s,e)=>{const a=Number(e.amount)||0,c=String(e.currency||'').toUpperCase();if(c&&c!=='CNY')by[c]=(by[c]||0)+a;if(e.finalAmount!=null&&String(e.finalCurrency||'').toUpperCase()==='CNY')return s+(Number(e.finalAmount)||0);return s+(c==='CNY'?a:0)},0);const local=Object.entries(by).map(([c,v])=>`${c} ${Math.round(v).toLocaleString('en-US')}`).join(' · ');return [days(p),local,cny?`¥${Math.round(cny).toLocaleString('en-US')}`:''].filter(Boolean).join(' · ')};
+  const cover=p=>String(p?.coverImage||'').trim();
+  function current(ps){const t=ps.filter(p=>status(p)==='traveling');return t[0]||ps.filter(p=>status(p)==='planning').sort((a,b)=>edited(b)-edited(a))[0]||null}
+  function trips(){let ps=norm(read(PLANS_KEY,[])), legacy=read(PLAN_KEY,null);if(legacy?.id){const i=ps.findIndex(x=>x.id===legacy.id),m={...legacy,status:status(legacy),lastEditedAt:legacy.lastEditedAt||now()};if(i>=0)ps[i]={...ps[i],...m};else ps.unshift(m)}const t=ps.filter(p=>status(p)==='traveling');t.slice(1).forEach(p=>p.status='planning');return ps}
+  function seed(){const ps=trips();if(ps.length)write(ps)}
+  function openTrip(id){const p=trips().find(x=>x.id===id);if(!p)return;localStorage.setItem(CURRENT_KEY,id);localStorage.setItem(PLAN_KEY,JSON.stringify(p));location.reload()}
+  function newTrip(){const me={id:uid(),name:'Me',ratio:100},p={id:uid(),name:'New Journey',startDate:'',endDate:'',destinations:[],settlementCurrency:'CNY',status:'planning',lastEditedAt:now(),coverImage:'',members:[me],accounts:[{id:uid(),name:'Cash'},{id:uid(),name:'Bank Card'},{id:uid(),name:'Alipay'},{id:uid(),name:'WeChat Pay'}],events:[],ledger:[]};const ps=trips();ps.unshift(p);write(ps);localStorage.setItem(CURRENT_KEY,p.id);localStorage.setItem(PLAN_KEY,JSON.stringify(p));location.reload()}
+  const imgStyle=p=>cover(p)?` style="background-image:url('${esc(cover(p))}')"`:'';
+  function card(p,c,featured=false,num=''){const s=status(p),lab=s==='traveling'?'TRAVELING':s==='achieve'?'ACHIEVED':'PLANNING',d=dest(p),im=cover(p),cur=c?.id===p.id;
+    if(featured)return `<article class="vela-ref-hero ${s==='traveling'?'is-traveling':''}" data-trip-id="${esc(p.id)}"><button class="vela-ref-hero-photo ${im?'has-image':''}" type="button" data-cover-input="${esc(p.id)}"${imgStyle(p)} aria-label="Change cover"><span>${im?'':'V'}</span><i>＋</i></button><button class="vela-ref-hero-info" type="button" data-trip-open="${esc(p.id)}"><span class="vela-ref-current-dot">${cur?'●':''}</span><span class="vela-ref-kicker">${lab}</span><span class="vela-ref-number">${esc(num)}</span><strong>${esc(p.name||'New Journey')}</strong>${d?`<em>${esc(d)}</em>`:''}<span class="vela-ref-date">▣ &nbsp; ${esc(dates(p))}</span><span class="vela-ref-location">⌖ &nbsp; ${esc(d||'DESTINATION NOT SET')}</span>${summary(p)?`<span class="vela-ref-summary">${esc(summary(p))}</span>`:''}<span class="vela-ref-quick">▤ &nbsp;&nbsp; Quick Entry will be recorded<br><b>　　 to this trip</b><i>›</i></span></button><input class="vela-cover-input" type="file" accept="image/*" data-cover-for="${esc(p.id)}" /></article>`;
+    return `<article class="vela-ref-row ${s==='achieve'?'is-achieved':''}" data-trip-id="${esc(p.id)}"><button class="vela-ref-row-photo ${im?'has-image':''}" type="button" data-cover-input="${esc(p.id)}"${imgStyle(p)}>${im?'':'V'}</button><button class="vela-ref-row-main" type="button" data-trip-open="${esc(p.id)}"><strong>${esc(p.name||'New Journey')}</strong>${d?`<em>${esc(d)}</em>`:''}<span>▣ &nbsp;${esc(dates(p))}</span></button><span class="vela-ref-pill">${lab}</span><button class="vela-ref-arrow" type="button" data-trip-open="${esc(p.id)}">›</button><input class="vela-cover-input" type="file" accept="image/*" data-cover-for="${esc(p.id)}" /></article>`;
   }
-  function seed() {
-    const legacy = currentPlan();
-    let plans = normalize(read(PLANS_KEY, []));
-    if (legacy?.id) { const i = plans.findIndex(x => x.id === legacy.id); const merged = { ...legacy, status: normalizeStatus(legacy), lastEditedAt: legacy.lastEditedAt || now() }; if (i >= 0) plans[i] = { ...plans[i], ...merged }; else plans.unshift(merged); }
-    const traveling = plans.filter(p => normalizeStatus(p) === 'traveling');
-    if (traveling.length > 1) traveling.slice(1).forEach(p => { p.status = 'planning'; });
-    if (plans.length) writePlans(plans);
-  }
-  function getTrips() {
-    let plans = normalize(read(PLANS_KEY, []));
-    const legacy = currentPlan();
-    if (legacy?.id) { const i = plans.findIndex(x => x.id === legacy.id); const merged = { ...legacy, status: normalizeStatus(legacy), lastEditedAt: legacy.lastEditedAt || now() }; if (i >= 0) plans[i] = { ...plans[i], ...merged }; else plans.unshift(merged); }
-    return plans;
-  }
-  function selectCurrent(plans) {
-    const current = deriveCurrent(plans);
-    if (current?.id) { localStorage.setItem(CURRENT_KEY, current.id); localStorage.setItem(PLAN_KEY, JSON.stringify(current)); }
-    else { localStorage.removeItem(CURRENT_KEY); localStorage.removeItem(PLAN_KEY); }
-    return current;
-  }
-  seed();
-
-  function orderedHomeTrips(plans) {
-    const current = deriveCurrent(plans);
-    const traveling = plans.filter(p => normalizeStatus(p) === 'traveling');
-    const planning = plans.filter(p => normalizeStatus(p) === 'planning').sort((a,b) => lastEdited(b) - lastEdited(a));
-    const result = [];
-    if (traveling[0]) result.push(traveling[0]);
-    planning.forEach(p => { if (!result.some(x => x.id === p.id) && result.length < VISIBLE_LIMIT) result.push(p); });
-    return { current, result, planning };
-  }
-
-  function card(p, current, featured = false, number = '') {
-    const status = normalizeStatus(p);
-    const label = status === 'traveling' ? 'TRAVELING' : status === 'achieve' ? 'ACHIEVED' : 'PLANNING';
-    const dest = destination(p);
-    const image = cover(p);
-    const imageStyle = image ? ` style="background-image:url('${esc(image)}')"` : '';
-    const isCurrent = current?.id === p.id;
-    if (featured) return `<article class="vela-trip-card is-featured${status === 'traveling' ? ' is-traveling' : ''}" data-trip-id="${esc(p.id)}"><button type="button" class="vela-trip-cover${image ? ' has-image' : ''}"${imageStyle} data-cover-input="${esc(p.id)}" aria-label="Change cover image"><span class="vela-trip-cover-placeholder"><b>V</b><small>ADD COVER</small></span><span class="vela-trip-cover-edit">＋</span></button><button type="button" class="vela-trip-feature-content" data-trip-open="${esc(p.id)}"><span class="vela-trip-feature-top"><span class="vela-trip-status">${label}</span>${isCurrent ? '<span class="vela-trip-current-mark">CURRENT · LEDGER</span>' : ''}<span class="vela-trip-number">${esc(number)}</span></span><span class="vela-trip-feature-copy"><strong>${esc(p.name || 'New Journey')}</strong>${dest ? `<small class="vela-trip-destination">${esc(dest)}</small>` : ''}<small class="vela-trip-date">${esc(dates(p))}</small><small class="vela-trip-summary">${esc(summary(p))}</small></span><span class="vela-trip-feature-open">OPEN JOURNEY <b>↗</b></span></button><input class="vela-cover-input" type="file" accept="image/*" data-cover-for="${esc(p.id)}" /></article>`;
-    return `<article class="vela-trip-row-card${status === 'achieve' ? ' is-history' : ''}" data-trip-id="${esc(p.id)}"><button type="button" class="vela-trip-row-cover${image ? ' has-image' : ''}"${imageStyle} data-cover-input="${esc(p.id)}" aria-label="Change cover image"><span>${image ? '' : 'V'}</span></button><button type="button" class="vela-trip-row-main" data-trip-open="${esc(p.id)}"><span class="vela-trip-row-meta"><em>${label}</em>${isCurrent ? '<b>CURRENT</b>' : ''}</span><strong>${esc(p.name || 'New Journey')}</strong>${dest ? `<small>${esc(dest)}</small>` : ''}<small class="vela-trip-row-summary">${esc(summary(p))}</small></button><button type="button" class="vela-trip-row-arrow" data-trip-open="${esc(p.id)}" aria-label="Open trip">↗</button><input class="vela-cover-input" type="file" accept="image/*" data-cover-for="${esc(p.id)}" /></article>`;
-  }
-
-  function makePlan() {
-    const uid = () => crypto.randomUUID ? crypto.randomUUID() : `trip-${Date.now()}-${Math.random().toString(16).slice(2)}`;
-    const me = { id: uid(), name: 'Me', ratio: 100 };
-    return { id: uid(), name: 'New Journey', startDate: '', endDate: '', destinations: [], settlementCurrency: 'CNY', status: 'planning', lastEditedAt: now(), coverImage: '', members: [me], accounts: [{id:uid(),name:'Cash'},{id:uid(),name:'Bank Card'},{id:uid(),name:'Alipay'},{id:uid(),name:'WeChat Pay'}], events: [], ledger: [] };
-  }
-  function openTrip(id) { const plans = getTrips(); const target = plans.find(p => p.id === id); if (!target) return; localStorage.setItem(CURRENT_KEY, target.id); localStorage.setItem(PLAN_KEY, JSON.stringify(target)); location.reload(); }
-  function createTrip() { const plans = getTrips(); const p = makePlan(); plans.unshift(p); writePlans(plans); localStorage.setItem(CURRENT_KEY, p.id); localStorage.setItem(PLAN_KEY, JSON.stringify(p)); location.reload(); }
-  function attachOpeners(hub) { hub.querySelectorAll('[data-trip-open]').forEach(btn => btn.addEventListener('click', e => { e.stopPropagation(); openTrip(btn.dataset.tripOpen); })); }
-  function compressImage(file) {
-    return new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.onload = () => { const img = new Image(); img.onload = () => { const max = 1400; const scale = Math.min(1, max / Math.max(img.width, img.height)); const canvas = document.createElement('canvas'); canvas.width = Math.max(1, Math.round(img.width * scale)); canvas.height = Math.max(1, Math.round(img.height * scale)); const ctx = canvas.getContext('2d'); ctx.drawImage(img,0,0,canvas.width,canvas.height); resolve(canvas.toDataURL('image/jpeg', .78)); }; img.onerror = reject; img.src = reader.result; }; reader.onerror = reject; reader.readAsDataURL(file);
-    });
-  }
-  async function saveCover(id, file) {
-    if (!file || !file.type.startsWith('image/')) return;
-    try { const image = await compressImage(file); const plans = getTrips(); const i = plans.findIndex(p => p.id === id); if (i < 0) return; plans[i] = { ...plans[i], coverImage: image, lastEditedAt: now() }; writePlans(plans); const current = deriveCurrent(plans); if (current?.id === id) localStorage.setItem(PLAN_KEY, JSON.stringify(plans[i])); render(true); } catch { /* ignore invalid image */ }
-  }
-  function attachCovers(hub) { hub.querySelectorAll('[data-cover-input]').forEach(btn => btn.addEventListener('click', e => { e.stopPropagation(); const input = hub.querySelector(`[data-cover-for="${CSS.escape(btn.dataset.coverInput)}"]`); input?.click(); })); hub.querySelectorAll('.vela-cover-input').forEach(input => input.addEventListener('change', e => saveCover(input.dataset.coverFor, e.target.files?.[0]))); }
-
-  function render(force = false) {
-    const home = document.querySelector('.home-page');
-    if (!home) return;
-    const plans = getTrips();
-    if (!plans.length) return;
-    const { current, result } = orderedHomeTrips(plans);
-    selectCurrent(plans);
-    const existing = home.querySelector(`#${ROOT_ID}`);
-    const signature = JSON.stringify({ plans, current: current?.id || null });
-    if (!force && existing && existing.dataset.signature === signature) return;
-    existing?.remove();
-    const featured = current || result[0];
-    const secondary = result.filter(p => p.id !== featured?.id).slice(0, 2);
-    const history = plans.filter(p => normalizeStatus(p) === 'achieve').sort((a,b) => lastEdited(b)-lastEdited(a)).slice(0,2);
-    const activeCount = plans.filter(p => normalizeStatus(p) !== 'achieve').length;
-    const hub = document.createElement('section');
-    hub.id = ROOT_ID;
-    hub.dataset.signature = signature;
-    hub.innerHTML = `<header class="vela-home-trip-head"><div class="vela-home-title"><span>JOURNEYS</span><small>${activeCount} ACTIVE</small></div><div class="vela-home-trip-actions"><button type="button" class="vela-trip-all" aria-label="View all trips">ALL TRIPS</button><button type="button" class="vela-trip-new" aria-label="New Trip">＋</button></div></header>${featured ? `<div class="vela-current-label"><span>CURRENT TRIP</span><i></i><small>QUICK ENTRY TARGET</small></div><div class="vela-trip-stage">${card(featured,current,true,'01')}</div>` : ''}${secondary.length ? `<section class="vela-trip-planning"><div class="vela-section-head"><span>PLANNING NEXT</span><small>SWITCH TRIP</small></div>${secondary.map((p,i)=>card(p,current,false,String(i+2).padStart(2,'0'))).join('')}</section>` : ''}${history.length ? `<section class="vela-trip-history"><div class="vela-section-head"><span>HISTORY</span><button type="button" class="vela-section-view" data-history-all>VIEW ALL ↗</button></div>${history.map((p,i)=>card(p,current,false,`H${String(i+1).padStart(2,'0')}`)).join('')}</section>` : ''}`;
-    const tabs = home.querySelector('.category-tabs');
-    home.insertBefore(hub, tabs || home.querySelector('.home-recent') || home.lastElementChild);
-    hub.querySelector('.vela-trip-new')?.addEventListener('click', createTrip);
-    hub.querySelector('.vela-trip-all')?.addEventListener('click', () => showAllTrips(hub, plans, current));
-    hub.querySelector('[data-history-all]')?.addEventListener('click', () => showAllTrips(hub, plans, current, true));
-    attachOpeners(hub);
-    attachCovers(hub);
-  }
-  function showAllTrips(hub, plans, current, historyOnly = false) {
-    const active = plans.filter(p => normalizeStatus(p) !== 'achieve').sort((a,b) => (a.id===current?.id?-1:0) - (b.id===current?.id?-1:0) || lastEdited(b)-lastEdited(a));
-    const achieved = plans.filter(p => normalizeStatus(p) === 'achieve').sort((a,b)=>lastEdited(b)-lastEdited(a));
-    hub.innerHTML = `<header class="vela-home-trip-head"><div class="vela-home-title"><span>${historyOnly ? 'HISTORY' : 'ALL JOURNEYS'}</span><small>${plans.length} TOTAL</small></div><div class="vela-home-trip-actions"><button type="button" class="vela-trip-back">BACK</button><button type="button" class="vela-trip-new" aria-label="New Trip">＋</button></div></header><div class="vela-all-list">${historyOnly ? achieved.map((p,i)=>card(p,current,false,`H${String(i+1).padStart(2,'0')}`)).join('') : `${active.map((p,i)=>card(p,current,i===0,String(i+1).padStart(2,'0'))).join('')}<div class="vela-all-archive-label">HISTORY</div>${achieved.length ? achieved.map((p,i)=>card(p,current,false,`H${String(i+1).padStart(2,'0')}`)).join('') : '<div class="vela-trip-empty">No completed journeys yet.</div>'}</div>`}</div>`;
-    hub.querySelector('.vela-trip-back')?.addEventListener('click', () => render(true));
-    hub.querySelector('.vela-trip-new')?.addEventListener('click', createTrip);
-    attachOpeners(hub);
-    attachCovers(hub);
-  }
-  const boot = () => { const tick = () => render(); tick(); const root = document.getElementById('root') || document.body; new MutationObserver(tick).observe(root, { childList:true, subtree:true }); setInterval(tick, 800); };
-  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot, { once:true }); else boot();
+  function compress(f){return new Promise((res,rej)=>{const r=new FileReader();r.onload=()=>{const im=new Image();im.onload=()=>{const m=1400,s=Math.min(1,m/Math.max(im.width,im.height)),c=document.createElement('canvas');c.width=Math.round(im.width*s);c.height=Math.round(im.height*s);c.getContext('2d').drawImage(im,0,0,c.width,c.height);res(c.toDataURL('image/jpeg',.78))};im.onerror=rej;im.src=r.result};r.onerror=rej;r.readAsDataURL(f)})}
+  function attach(h){h.querySelectorAll('[data-trip-open]').forEach(b=>b.addEventListener('click',e=>{e.stopPropagation();openTrip(b.dataset.tripOpen)}));h.querySelectorAll('[data-cover-input]').forEach(b=>b.addEventListener('click',e=>{e.stopPropagation();h.querySelector(`[data-cover-for="${CSS.escape(b.dataset.coverInput)}"]`)?.click()}));h.querySelectorAll('.vela-cover-input').forEach(i=>i.addEventListener('change',async e=>{const f=e.target.files?.[0];if(!f)return;try{const data=await compress(f),ps=trips(),n=ps.findIndex(p=>p.id===i.dataset.coverFor);if(n<0)return;ps[n]={...ps[n],coverImage:data,lastEditedAt:now()};write(ps);render(true)}catch{}}));h.querySelector('.vela-ref-new')?.addEventListener('click',newTrip);h.querySelector('.vela-ref-all')?.addEventListener('click',()=>showAll(h));h.querySelector('.vela-ref-back')?.addEventListener('click',()=>render(true))}
+  function render(force=false){const home=document.querySelector('.home-page');if(!home)return;const ps=trips();if(!ps.length)return;const c=current(ps),trav=ps.filter(p=>status(p)==='traveling'),plan=ps.filter(p=>status(p)==='planning').sort((a,b)=>edited(b)-edited(a)),active=[...trav.slice(0,1),...plan.filter(p=>!trav[0]||p.id!==trav[0].id)].slice(0,VISIBLE_LIMIT),recent=ps.filter(p=>status(p)==='achieve').sort((a,b)=>edited(b)-edited(a)).slice(0,2),sig=JSON.stringify(ps.map(p=>[p.id,p.status,p.name,p.startDate,p.endDate,p.coverImage,edited(p)]));const old=home.querySelector(`#${ROOT_ID}`);if(!force&&old?.dataset.signature===sig)return;old?.remove();const f=c||active[0],next=active.filter(p=>p.id!==f?.id).slice(0,2),h=document.createElement('section');h.id=ROOT_ID;h.dataset.signature=sig;h.innerHTML=`<header class="vela-ref-head"><div class="vela-ref-brand"><span>Vela</span><small>TRAVEL&nbsp;&nbsp;·&nbsp;&nbsp;RECORD&nbsp;&nbsp;·&nbsp;&nbsp;BELONG</small></div><div class="vela-ref-actions"><strong>${ps.length}</strong><small>TRIPS</small><i></i><button class="vela-ref-all" type="button">ALL TRIPS</button><button class="vela-ref-new" type="button">＋</button></div></header><div class="vela-ref-tagline">A More<br><i>Curious You</i></div>${f?`<section class="vela-ref-current"><div class="vela-ref-section-title"><span>${c?'● &nbsp; CURRENT TRIP':'TRIP'}</span></div>${card(f,c,true,'01')}</section>`:''}${next.length?`<section class="vela-ref-section"><div class="vela-ref-section-head"><span>PLANNING NEXT</span><button class="vela-ref-view-all" type="button">View all&nbsp; ›</button></div>${next.map((p,i)=>card(p,c,false,String(i+2).padStart(2,'0'))).join('')}</section>`:''}${recent.length?`<section class="vela-ref-section vela-ref-recent"><div class="vela-ref-section-head"><span>RECENT JOURNEYS</span><button class="vela-ref-view-all" type="button">View all&nbsp; ›</button></div><div class="vela-ref-recent-grid">${recent.map((p,i)=>card(p,c,false,`H${i+1}`)).join('')}</div></section>`:''}<section class="vela-ref-quote"><div><span>SOME PLACES</span><span>STAY WITH YOU</span><i></i></div><em>Further<br>Brighter<br>Together</em></section>`;const tabs=home.querySelector('.category-tabs');home.insertBefore(h,tabs||home.querySelector('.home-recent')||home.lastElementChild);attach(h);h.querySelectorAll('.vela-ref-view-all').forEach(b=>b.addEventListener('click',()=>showAll(h)));}
+  function showAll(h){const ps=trips(),c=current(ps),arr=[...ps].sort((a,b)=>(a.id===c?.id?-1:0)-(b.id===c?.id?-1:0)||edited(b)-edited(a));h.innerHTML=`<header class="vela-ref-head"><div class="vela-ref-brand"><span>Vela</span><small>ALL JOURNEYS</small></div><div class="vela-ref-actions"><button class="vela-ref-back" type="button">BACK</button><button class="vela-ref-new" type="button">＋</button></div></header><div class="vela-ref-all-list">${arr.map((p,i)=>card(p,c,false,String(i+1).padStart(2,'0'))).join('')}</div>`;attach(h)}
+  seed(); const boot=()=>{if(document.querySelector('.home-page'))render()}; if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot);else boot(); new MutationObserver(()=>{if(document.querySelector('.home-page')&&!document.querySelector(`#${ROOT_ID}`))render()}).observe(document.body,{childList:true,subtree:true});
 })();
