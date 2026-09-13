@@ -2,12 +2,13 @@
 #vela-trip-hub .vela-current-trip,#vela-trip-hub .vela-trip-list{border:1px solid rgba(71,53,31,.13);border-radius:18px;padding:13px 15px;background:rgba(255,255,255,.30);box-shadow:0 5px 16px rgba(35,40,42,.035)}
 #vela-trip-hub .vela-trip-section-head{display:flex;align-items:center;justify-content:space-between;gap:12px}
 #vela-trip-hub h3{margin:3px 0 0;font-size:17px;font-weight:600;letter-spacing:.01em}
+#vela-trip-hub .vela-trip-actions{display:flex;align-items:center;gap:7px;flex:none}
 #vela-trip-hub .vela-trip-live{font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:#725c3b;border:1px solid rgba(114,92,59,.18);padding:5px 8px;border-radius:999px;white-space:nowrap}
+#vela-trip-hub .vela-trip-plan,#vela-trip-hub .vela-trip-new{border:1px solid rgba(71,53,31,.15);background:rgba(255,255,255,.42);border-radius:999px;padding:7px 11px;color:#40372c;font-size:11px;letter-spacing:.04em;white-space:nowrap}
 #vela-trip-hub .vela-trip-meta{display:flex;flex-wrap:wrap;gap:5px 14px;margin-top:7px;color:rgba(45,39,31,.62);font-size:11px}
 #vela-trip-hub .vela-current-note{margin-top:9px;padding-top:9px;border-top:1px solid rgba(71,53,31,.09);display:flex;align-items:baseline;justify-content:space-between;gap:10px}
 #vela-trip-hub .vela-current-note strong{font-size:12px;font-weight:600}
 #vela-trip-hub .vela-current-note small{font-size:10px;color:rgba(45,39,31,.50)}
-#vela-trip-hub .vela-trip-new{border:1px solid rgba(71,53,31,.15);background:rgba(255,255,255,.42);border-radius:999px;padding:7px 11px;color:#40372c;font-size:11px;letter-spacing:.04em;white-space:nowrap}
 #vela-trip-hub .vela-trip-cards{display:grid;gap:7px;margin-top:9px}
 #vela-trip-hub .vela-trip-card{width:100%;border:1px solid rgba(71,53,31,.10);border-radius:13px;background:rgba(255,255,255,.24);padding:10px 12px;display:flex;align-items:center;justify-content:space-between;text-align:left;color:inherit;cursor:pointer}
 #vela-trip-hub .vela-trip-card:active{transform:scale(.995)}
@@ -21,9 +22,8 @@
 #vela-trip-hub .vela-trip-empty{text-align:center;padding:10px 5px 2px;color:rgba(45,39,31,.52);font-size:11px;line-height:1.5}
 #vela-trip-hub .vela-trip-empty small{font-size:9px;color:rgba(45,39,31,.40)}
 .home-page .category-tabs,.home-page .home-recent,.home-page .home-note{display:none!important}
-
-/* Home: function first — keep the celestial card as a compact visual overview. */
-.home-page .home-map{height:270px!important;min-height:270px!important;margin:8px 0 10px!important;border-radius:22px!important;overflow:hidden!important}
+.home-page .home-topbar h1{display:none!important}
+.home-page .home-map{height:250px!important;min-height:250px!important;margin:8px 0 10px!important;border-radius:22px!important;overflow:hidden!important}
 .home-page .home-map .map-label-a{display:none!important}
 #vela-trip-hub{gap:8px!important;margin-top:8px!important}
 #vela-trip-hub .vela-current-trip,#vela-trip-hub .vela-trip-list{padding:11px 14px!important;border-radius:17px!important}
@@ -35,6 +35,8 @@
   #vela-trip-hub{margin:8px 0 6px!important;gap:7px!important}
   #vela-trip-hub .vela-current-trip,#vela-trip-hub .vela-trip-list{border-radius:16px!important;padding:10px 13px!important}
   #vela-trip-hub h3{font-size:16px!important}
+  #vela-trip-hub .vela-trip-actions{gap:6px}
+  #vela-trip-hub .vela-trip-plan,#vela-trip-hub .vela-trip-new{padding:6px 10px}
   #vela-trip-hub .vela-current-note{display:grid;gap:2px;margin-top:6px;padding-top:6px}
   #vela-trip-hub .vela-trip-card{padding:8px 9px}
   .home-page .home-map{height:250px!important;min-height:250px!important;margin:7px 0 8px!important;border-radius:20px!important}
