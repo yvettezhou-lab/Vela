@@ -1,0 +1,15 @@
+/* Vela — global Quick Entry + mobile form polish */
+@media (max-width:600px){
+  html,body{-webkit-text-size-adjust:100%;text-size-adjust:100%}
+  input,select,textarea{font-size:16px!important}
+  .entry input,.entry select,.entry textarea,.manage-row input,.manage-row select{font-size:16px!important}
+  .manage-row{grid-template-columns:minmax(0,1fr) 76px 16px 30px!important}
+  .manage-row input{min-width:0!important}
+  .two input{min-width:0!important}
+  .primary.full{font-size:15px!important;letter-spacing:.24em!important;min-height:56px!important;color:#f1dfbb!important;background:#0a2438!important;border:1px solid rgba(216,190,137,.5)!important;border-radius:18px!important;box-shadow:0 8px 18px rgba(35,40,42,.14)!important}
+  .primary.full:disabled{opacity:1!important;color:#d7c7a7!important;background:rgba(130,105,67,.16)!important;border-color:rgba(130,105,67,.22)!important;box-shadow:none!important}
+}
+.home-page .home-quick{display:none!important}
+#vela-global-quick{position:fixed;left:18px;right:auto;bottom:calc(88px + env(safe-area-inset-bottom));width:104px;height:65px;min-width:104px;min-height:65px;padding:0;border:0;border-radius:19px;background:#071a2a url('/src/vela-ufo-card.svg?v=vela-ufo-global-v1') center/100% 100% no-repeat;box-shadow:0 10px 24px rgba(20,28,34,.16);color:transparent;z-index:45;cursor:pointer;display:block;overflow:hidden}
+#vela-global-quick[hidden]{display:none!important}
+@media(max-width:600px){#vela-global-quick{left:18px;bottom:calc(88px + env(safe-area-inset-bottom));width:96px;height:60px;min-width:96px;min-height:60px;border-radius:17px}}
