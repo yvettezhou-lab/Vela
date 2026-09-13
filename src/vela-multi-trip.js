@@ -20,7 +20,9 @@
       else plans.unshift(p);
       writePlans(plans);
       localStorage.setItem(CURRENT_KEY, p.id);
-    } else if (plans.length) {
+      return;
+    }
+    if (plans.length) {
       const id = localStorage.getItem(CURRENT_KEY) || plans[0].id;
       const active = plans.find(x => x.id === id) || plans[0];
       localStorage.setItem(CURRENT_KEY, active.id);
@@ -28,27 +30,30 @@
     }
   }
 
-  const originalSetItem = localStorage.setItem.bind(localStorage);
-  localStorage.setItem = function(key, value) {
-    originalSetItem(key, value);
-    if (key !== PLAN_KEY) return;
-    try {
-      const p = JSON.parse(value);
-      if (!p?.id) return;
-      const plans = normalize(read(PLANS_KEY, []));
-      const i = plans.findIndex(x => x.id === p.id);
-      if (i >= 0) plans[i] = p; else plans.unshift(p);
-      originalSetItem(PLANS_KEY, JSON.stringify(plans));
-      originalSetItem(CURRENT_KEY, p.id);
-    } catch {}
-  };
-
   seed();
 
   const esc = (s) => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   const dates = p => p.startDate && p.endDate ? `${p.startDate} — ${p.endDate}` : 'Dates not set';
   const destination = p => Array.isArray(p.destinations) && p.destinations.length ? p.destinations.join(' · ') : 'Destination not set';
   const entries = p => Array.isArray(p.ledger) ? p.ledger.length : 0;
+
+  function activeAndPlans() {
+    let plans = normalize(read(PLANS_KEY, []));
+    const p = current();
+    const currentId = localStorage.getItem(CURRENT_KEY) || p?.id || plans[0]?.id;
+    if (p?.id) {
+      const i = plans.findIndex(x => x.id === p.id);
+      if (i >= 0) plans[i] = p; else plans.unshift(p);
+    }
+    const active = plans.find(x => x.id === currentId) || p || plans[0] || null;
+    if (active?.id) {
+      const i = plans.findIndex(x => x.id === active.id);
+      if (i >= 0 && p?.id === active.id) plans[i] = p;
+      else if (i < 0) plans.unshift(active);
+    }
+    if (plans.length) writePlans(plans);
+    return { active, plans };
+  }
 
   function makePlan() {
     const uid = () => (crypto.randomUUID ? crypto.randomUUID() : `trip-${Date.now()}-${Math.random().toString(16).slice(2)}`);
@@ -62,39 +67,42 @@
   }
 
   function switchTrip(id) {
-    const plans = normalize(read(PLANS_KEY, []));
+    const { plans } = activeAndPlans();
     const target = plans.find(p => p.id === id);
     if (!target) return;
-    originalSetItem(CURRENT_KEY, target.id);
-    originalSetItem(PLAN_KEY, JSON.stringify(target));
+    localStorage.setItem(CURRENT_KEY, target.id);
+    localStorage.setItem(PLAN_KEY, JSON.stringify(target));
     location.reload();
   }
 
   function createTrip() {
+    const { plans } = activeAndPlans();
     const p = makePlan();
-    const plans = normalize(read(PLANS_KEY, []));
     plans.unshift(p);
     writePlans(plans);
-    originalSetItem(CURRENT_KEY, p.id);
-    originalSetItem(PLAN_KEY, JSON.stringify(p));
+    localStorage.setItem(CURRENT_KEY, p.id);
+    localStorage.setItem(PLAN_KEY, JSON.stringify(p));
     location.reload();
   }
 
   function render() {
     const home = Array.from(document.querySelectorAll('.home-page'))[0];
     if (!home) return;
-    if (home.querySelector(`#${ROOT_ID}`)) return;
-
-    const active = current();
+    const { active, plans } = activeAndPlans();
     if (!active?.id) return;
-    let plans = normalize(read(PLANS_KEY, []));
-    const ai = plans.findIndex(p => p.id === active.id);
-    if (ai >= 0) plans[ai] = active; else plans.unshift(active);
-    writePlans(plans);
+
+    const existing = home.querySelector(`#${ROOT_ID}`);
+    if (existing) {
+      // Keep the hub synchronized when React saves the active plan.
+      const signature = JSON.stringify({active, count: plans.length});
+      if (existing.dataset.signature === signature) return;
+      existing.remove();
+    }
 
     const others = plans.filter(p => p.id !== active.id && p.status !== 'Completed');
     const hub = document.createElement('section');
     hub.id = ROOT_ID;
+    hub.dataset.signature = JSON.stringify({active, count: plans.length});
     hub.innerHTML = `
       <section class="vela-current-trip">
         <div class="vela-trip-section-head">
@@ -120,9 +128,11 @@
   }
 
   const boot = () => {
-    render();
+    const tick = () => render();
+    tick();
     const root = document.getElementById('root') || document.body;
-    new MutationObserver(render).observe(root, { childList: true, subtree: true });
+    new MutationObserver(tick).observe(root, { childList: true, subtree: true });
+    setInterval(tick, 800);
   };
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot, { once: true }); else boot();
 })();
