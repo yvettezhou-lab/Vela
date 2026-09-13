@@ -12,8 +12,9 @@
   const currentPlan = () => read(PLAN_KEY, null);
   const lastEdited = p => Number(p?.lastEditedAt || p?.updatedAt || p?.createdAt || 0);
   const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' }[c]));
-  const dates = p => p.startDate && p.endDate ? `${p.startDate} — ${p.endDate}` : 'Dates not set';
-  const destination = p => Array.isArray(p.destinations) && p.destinations.length ? p.destinations.join(' · ') : '';
+  const formatDate = value => { if (!value) return ''; const m = String(value).match(/^(\d{4})-(\d{2})-(\d{2})$/); return m ? `${m[1]}.${m[2]}.${m[3]}` : String(value); };
+  const dates = p => p.startDate && p.endDate ? `${formatDate(p.startDate)} — ${formatDate(p.endDate)}` : 'DATES NOT SET';
+  const destination = p => { const d = Array.isArray(p.destinations) && p.destinations.length ? p.destinations.join(' · ') : ''; return d && d.toLowerCase() !== String(p.name || '').trim().toLowerCase() ? d : ''; };
 
   function deriveCurrent(plans) {
     const traveling = plans.filter(p => normalizeStatus(p) === 'traveling');
@@ -96,8 +97,10 @@
       if (!stage) return;
       const all = plans.filter(p => normalizeStatus(p) !== 'achieve');
       stage.innerHTML = all.map((p, i) => card(p, current, i === 0)).join('');
-      const secondaryBox = hub.querySelector('.vela-trip-secondary');
-      if (secondaryBox) { const achieved = plans.filter(p => normalizeStatus(p) === 'achieve'); secondaryBox.innerHTML = achieved.map(p => card(p,current,false)).join(''); }
+      let secondaryBox = hub.querySelector('.vela-trip-secondary');
+      if (!secondaryBox) { const label = document.createElement('div'); label.className = 'vela-trip-secondary-label'; label.textContent = 'ACHIEVED'; secondaryBox = document.createElement('div'); secondaryBox.className = 'vela-trip-secondary'; hub.append(label, secondaryBox); }
+      const achieved = plans.filter(p => normalizeStatus(p) === 'achieve');
+      secondaryBox.innerHTML = achieved.map(p => card(p,current,false)).join('');
       attachCards(hub);
     });
     attachCards(hub);
