@@ -18,6 +18,8 @@ interface Trip {
   ledger?: any[];
 }
 
+const DEFAULT_COVER_IMAGE = 'https://images.unsplash.com/photo-1500534623283-312aade485b7?auto=format&fit=crop&w=1200&q=85';
+
 const readPlans = (): Trip[] => {
   let parsedData: unknown = [];
   try {
@@ -88,6 +90,8 @@ const summary = (trip: Trip) => {
   ].filter(Boolean).join(' · ');
 };
 
+const coverImage = (trip: Trip) => trip.coverImage.trim() || DEFAULT_COVER_IMAGE;
+
 function goTrip(id: string) {
   try {
     localStorage.setItem('vela.trip.current.v1', id);
@@ -143,7 +147,14 @@ export default function Home() {
     <div className={compact ? 'vela-compact-card' : 'vela-hero-card'} onClick={() => goTrip(trip.id)}>
       {compact ? (
         <>
-          <img className="vela-compact-img" src={trip.coverImage || ''} alt="" />
+          <img
+            className="vela-compact-img"
+            src={coverImage(trip)}
+            alt=""
+            onError={(event) => {
+              if (event.currentTarget.src !== DEFAULT_COVER_IMAGE) event.currentTarget.src = DEFAULT_COVER_IMAGE;
+            }}
+          />
           <div className="vela-compact-content">
             <div className="vela-compact-topline">
               <h3 className="vela-compact-title">{trip.name}</h3>
@@ -159,7 +170,7 @@ export default function Home() {
       ) : (
         <>
           <div className="vela-hero-content">
-            <div className="vela-hero-label">CURRENT TRIP <span className="vela-status-dot green" /></div>
+            <div className="vela-hero-label">CURRENT TRIP <span className={`vela-status-dot ${trip.status === 'traveling' ? 'green' : 'blue'}`} /></div>
             <div className="vela-hero-sublabel">{trip.status}</div>
             <h2 className="vela-hero-title">{trip.name}</h2>
             {destinationLabel(trip) && <div className="vela-destination"><MapPin size={13} />{destinationLabel(trip)}</div>}
@@ -168,7 +179,15 @@ export default function Home() {
             {summary(trip) && <div className="vela-summary">{summary(trip)}</div>}
             <div className="vela-hero-tether"><span><Database size={14} /> Quick Entry will be recorded<br />to this trip</span><ChevronRight size={14} /></div>
           </div>
-          <div className="vela-hero-image-wrapper" style={trip.coverImage ? { backgroundImage: `url("${trip.coverImage}")` } : undefined}>
+          <div className="vela-hero-image-wrapper" style={{ backgroundImage: `url("${coverImage(trip)}")` }}>
+            <img
+              className="vela-hero-cover-img"
+              src={coverImage(trip)}
+              alt=""
+              onError={(event) => {
+                if (event.currentTarget.src !== DEFAULT_COVER_IMAGE) event.currentTarget.src = DEFAULT_COVER_IMAGE;
+              }}
+            />
             <div className="vela-hero-index">01</div>
             {trip.scriptText && <div className="vela-hero-script">{trip.scriptText}</div>}
           </div>
