@@ -112,12 +112,12 @@
         <div class="vela-current-note"><strong>All Quick Entry payments go here.</strong><small>${entries(active)} ledger ${entries(active) === 1 ? 'entry' : 'entries'} · ${esc(active.settlementCurrency || 'CNY')}</small></div>
       </section>
       <section class="vela-trip-list">
-        <div class="vela-trip-section-head"><div><span class="eyebrow">TRIPS</span><h3>My Trips</h3></div><button type="button" class="vela-trip-new">+ New Trip</button></div>
+        <div class="vela-trip-section-head"><div><span class="eyebrow">TRIPS IN PLAN</span><h3>Trips in Plan</h3></div><button type="button" class="vela-trip-new">+ New Trip</button></div>
         ${others.length ? `<div class="vela-trip-cards">${others.map(p => `
           <button type="button" class="vela-trip-card" data-trip-id="${esc(p.id)}">
             <span class="vela-trip-card-main"><strong>${esc(p.name || 'New Journey')}</strong><small>${esc(destination(p))}</small><small>${esc(dates(p))}</small></span>
             <span class="vela-trip-card-side"><i>${esc(p.status || 'Planning')}</i><b>${entries(p)}</b><small>entries</small></span>
-          </button>`).join('')}</div>` : `<div class="vela-trip-empty">No other trips yet.<br><small>Create another trip and it will stay alongside this one.</small></div>`}
+          </button>`).join('')}</div>` : `<div class="vela-trip-empty">No other trips in plan.<br><small>+ New Trip keeps another journey alongside this one.</small></div>`}
       </section>`;
 
     const tabs = home.querySelector('.category-tabs');
