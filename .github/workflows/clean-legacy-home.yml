@@ -1,37 +1,42 @@
-name: Clean legacy HomePage
+name: Fix Home mount
 on:
   workflow_dispatch:
 permissions:
   contents: write
 jobs:
-  clean:
+  fix:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Remove legacy HomePage
+      - name: Replace Home entry
         shell: python
         run: |
           from pathlib import Path
           p = Path('src/main.tsx')
           s = p.read_text()
-          start = s.index('function HomePage(')
-          end = s.index('\nfunction LedgerPage(', start)
-          s = s[:start] + s[end+1:]
-          old = ":tab==='Home'?<HomePage plan={plan} onQuick={()=>setQuick(true)} onPlan={()=>setManage('plan')} onCategory={selectCategory}/>"
-          s = s.replace(old, ":tab==='Home'?null")
+          if "import Home from './Home';" not in s:
+              marker = "import { exportPersonalBill, exportPlanExcel } from './export';\n"
+              s = s.replace(marker, marker + "import Home from './Home';\n")
+          s = s.replace(":tab==='Home'?null", ":tab==='Home'?<Home />")
+          s = s.replace('<nav className="bottom-nav">', '<nav className="bottom-nav" style={{display:tab===\'Home\'?\'none\':undefined}}>')
           p.write_text(s)
+          i = Path('index.html')
+          h = i.read_text()
+          h = h.replace('<script type="module" src="/src/home-direct.tsx"></script>', '')
+          i.write_text(h)
+      - name: Remove bridge
+        run: rm -f src/home-direct.tsx
       - name: Build
         run: npm ci && npm run build
-      - name: Commit cleanup
+      - name: Commit
         run: |
           git config user.name github-actions[bot]
           git config user.email 41898282+github-actions[bot]@users.noreply.github.com
-          git add src/main.tsx
-          git commit -m "Remove legacy HomePage implementation" || exit 0
+          git add src/main.tsx index.html src/home-direct.tsx
+          git commit -m "Mount supplied Home directly" || exit 0
           git push
-      - name: Remove this workflow
-        shell: bash
+      - name: Remove workflow
         run: |
           git rm .github/workflows/clean-legacy-home.yml
-          git commit -m "Remove temporary home cleanup workflow"
+          git commit -m "Remove temporary Home fix workflow"
           git push
