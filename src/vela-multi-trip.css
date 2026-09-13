@@ -21,10 +21,21 @@
 #vela-trip-hub .vela-trip-empty{text-align:center;padding:10px 5px 2px;color:rgba(45,39,31,.52);font-size:11px;line-height:1.5}
 #vela-trip-hub .vela-trip-empty small{font-size:9px;color:rgba(45,39,31,.40)}
 .home-page .category-tabs,.home-page .home-recent,.home-page .home-note{display:none!important}
+
+/* Home: function first — keep the celestial card as a compact visual overview. */
+.home-page .home-map{height:270px!important;min-height:270px!important;margin:8px 0 10px!important;border-radius:22px!important;overflow:hidden!important}
+.home-page .home-map .map-label-a{display:none!important}
+#vela-trip-hub{gap:8px!important;margin-top:8px!important}
+#vela-trip-hub .vela-current-trip,#vela-trip-hub .vela-trip-list{padding:11px 14px!important;border-radius:17px!important}
+#vela-trip-hub h3{font-size:16px!important}
+#vela-trip-hub .vela-current-note{margin-top:7px;padding-top:7px}
+#vela-trip-hub .vela-trip-empty{padding:6px 4px 1px}
+
 @media(max-width:600px){
-  #vela-trip-hub{margin:11px 0 6px;gap:8px}
-  #vela-trip-hub .vela-current-trip,#vela-trip-hub .vela-trip-list{border-radius:17px;padding:12px 14px}
-  #vela-trip-hub h3{font-size:16px}
-  #vela-trip-hub .vela-current-note{display:grid;gap:3px}
-  #vela-trip-hub .vela-trip-card{padding:9px 10px}
+  #vela-trip-hub{margin:8px 0 6px!important;gap:7px!important}
+  #vela-trip-hub .vela-current-trip,#vela-trip-hub .vela-trip-list{border-radius:16px!important;padding:10px 13px!important}
+  #vela-trip-hub h3{font-size:16px!important}
+  #vela-trip-hub .vela-current-note{display:grid;gap:2px;margin-top:6px;padding-top:6px}
+  #vela-trip-hub .vela-trip-card{padding:8px 9px}
+  .home-page .home-map{height:250px!important;min-height:250px!important;margin:7px 0 8px!important;border-radius:20px!important}
 }
