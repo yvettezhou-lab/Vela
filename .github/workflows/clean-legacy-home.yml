@@ -1,0 +1,37 @@
+name: Clean legacy HomePage
+on:
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  clean:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Remove legacy HomePage
+        shell: python
+        run: |
+          from pathlib import Path
+          p = Path('src/main.tsx')
+          s = p.read_text()
+          start = s.index('function HomePage(')
+          end = s.index('\nfunction LedgerPage(', start)
+          s = s[:start] + s[end+1:]
+          old = ":tab==='Home'?<HomePage plan={plan} onQuick={()=>setQuick(true)} onPlan={()=>setManage('plan')} onCategory={selectCategory}/>"
+          s = s.replace(old, ":tab==='Home'?null")
+          p.write_text(s)
+      - name: Build
+        run: npm ci && npm run build
+      - name: Commit cleanup
+        run: |
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git add src/main.tsx
+          git commit -m "Remove legacy HomePage implementation" || exit 0
+          git push
+      - name: Remove this workflow
+        shell: bash
+        run: |
+          git rm .github/workflows/clean-legacy-home.yml
+          git commit -m "Remove temporary home cleanup workflow"
+          git push
