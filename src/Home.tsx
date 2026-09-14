@@ -1,184 +1,67 @@
-import React, { useMemo, useState } from 'react';
-import { Calendar, ChevronRight, Plus, Database, MapPin } from 'lucide-react';
+import React, { useMemo } from 'react';
+import { Calendar, ChevronRight, MapPin, Plus, Database } from 'lucide-react';
+import { calculateFinancialTotals } from './core/calculations';
+import { Trip } from './core/domain';
+import { useVelaStore } from './store/useVelaStore';
 import './Home.css';
 
-type TripStatus = 'planning' | 'traveling' | 'achieve';
+type HomeProps = { onNavigate: (label: 'Home' | 'Ledger' | 'Balance' | 'Logbook' | 'Atelier') => void };
+const DEFAULT_COVER = '/896DCF5B-31E2-44AA-ADEB-1A9E019FC6FC.png';
 
-type HomeProps = {
-  onNavigate: (label: 'Home' | 'Ledger' | 'Balance' | 'Logbook' | 'Atelier') => void;
+const dateLabel = (trip: Trip) => {
+  const start = new Date(trip.startDate), end = new Date(trip.endDate);
+  if (!Number.isFinite(start.getTime()) || !Number.isFinite(end.getTime())) return 'DATES NOT SET';
+  const fmt = (value: Date) => `${value.getFullYear()}.${String(value.getMonth() + 1).padStart(2, '0')}.${String(value.getDate()).padStart(2, '0')}`;
+  return `${fmt(start)} — ${fmt(end)}`;
 };
-
-interface Trip {
-  id: string;
-  name: string;
-  subtitle: string;
-  startDate: string;
-  endDate: string;
-  destinations: string[];
-  status: TripStatus;
-  lastEditedAt: number;
-  coverImage: string;
-  scriptText?: string;
-  ledger?: any[];
-}
-
-const DEFAULT_COVER_IMAGE = 'https://images.unsplash.com/photo-1500534623283-312aade485b7?auto=format&fit=crop&w=1200&q=85';
-const DEMO_PLANNING: Trip[] = [
-  { id: 'demo-planning-1', name: 'Japan', subtitle: 'Sunrise & Slow Days', startDate: '2026-10-10', endDate: '2026-10-16', destinations: ['Tokyo', 'Kyoto'], status: 'planning', lastEditedAt: 2, coverImage: DEFAULT_COVER_IMAGE, ledger: [] },
-  { id: 'demo-planning-2', name: 'Bali', subtitle: 'Island Notes', startDate: '2026-11-05', endDate: '2026-11-11', destinations: ['Ubud', 'Bali'], status: 'planning', lastEditedAt: 1, coverImage: DEFAULT_COVER_IMAGE, ledger: [] },
-];
-const DEMO_ACHIEVED: Trip[] = [
-  { id: 'demo-achieve-1', name: 'Coron', subtitle: 'Blue Water Journal', startDate: '2026-06-01', endDate: '2026-06-06', destinations: ['Palawan'], status: 'achieve', lastEditedAt: 2, coverImage: DEFAULT_COVER_IMAGE, ledger: [{ amount: 15000, currency: 'PHP', finalAmount: 1950, finalCurrency: 'CNY' }] },
-  { id: 'demo-achieve-2', name: 'Penang', subtitle: 'Old Streets & Food', startDate: '2026-05-18', endDate: '2026-05-21', destinations: ['George Town'], status: 'achieve', lastEditedAt: 1, coverImage: DEFAULT_COVER_IMAGE, ledger: [{ amount: 1200, currency: 'MYR', finalAmount: 1850, finalCurrency: 'CNY' }] },
-];
-
-const readPlans = (): Trip[] => {
-  let parsedData: unknown = [];
-  try {
-    const rawString = localStorage.getItem('vela.plans.v1') || '[]';
-    parsedData = JSON.parse(rawString);
-  } catch (error) {
-    console.error('Vela Data Error: Invalid JSON in localStorage', error);
-  }
-  const safeTrips = Array.isArray(parsedData) ? parsedData : [];
-  return safeTrips.map((item: any) => {
-    const source = item && typeof item === 'object' ? item : {};
-    const rawStatus = String(source.status || '').toLowerCase();
-    return {
-      ...source,
-      status: ['traveling', 'travelling', 'in progress'].includes(rawStatus) ? 'traveling' : ['achieve', 'achieved', 'completed'].includes(rawStatus) ? 'achieve' : 'planning',
-      subtitle: String(source.subtitle || ''),
-      destinations: Array.isArray(source.destinations) ? source.destinations.map(String) : [],
-      lastEditedAt: Number(source.lastEditedAt || source.updatedAt || source.createdAt || 0),
-      coverImage: String(source.coverImage || ''),
-    } as Trip;
-  });
+const dayCount = (trip: Trip) => { const days = Math.round((trip.endDate - trip.startDate) / 86400000) + 1; return days > 0 && days < 1000 ? `${days} DAYS` : ''; };
+const localSummary = (trip: Trip) => {
+  const local = trip.ledger.reduce((sum, entry) => sum + (entry.isRefund ? -entry.originalAmount : entry.originalAmount), 0);
+  const totals = calculateFinancialTotals(trip.ledger);
+  return [dayCount(trip), local ? `${trip.localCurrency} ${Math.round(local).toLocaleString('en-US')}` : '', totals.financialTotal ? `¥${Math.round(totals.financialTotal).toLocaleString('en-US')}` : ''].filter(Boolean).join(' · ');
 };
+const cover = (trip: Trip) => trip.coverImage?.trim() || DEFAULT_COVER;
 
-const fmt = (value: string) => {
-  const match = String(value || '').match(/^(\d{4})-(\d{2})-(\d{2})$/);
-  return match ? `${match[1]}.${match[2]}.${match[3]}` : String(value || '');
+const createTrip = (addTrip: (trip: unknown) => void) => {
+  const now = Date.now(), id = crypto.randomUUID(), memberId = crypto.randomUUID(), accountId = crypto.randomUUID();
+  const categoryNames = ['Accommodation', 'Food', 'Transport', 'Shopping', 'Tickets', 'Activities', 'Communication', 'Other'];
+  addTrip({ id, title: 'New Journey', destination: '', startDate: now, endDate: now + 86400000, status: 'planning', localCurrency: 'CNY', coverImage: DEFAULT_COVER,
+    members: [{ id: memberId, name: 'Me' }], accounts: [{ id: accountId, name: 'Cash' }],
+    categories: categoryNames.map((name) => ({ id: `cat_${name.toLowerCase()}`, name, type: name })), ledger: [], createdAt: now, updatedAt: now });
 };
-const dates = (trip: Trip) => trip.startDate && trip.endDate ? `${fmt(trip.startDate)} — ${fmt(trip.endDate)}` : trip.startDate ? fmt(trip.startDate) : 'DATES NOT SET';
-const dayCount = (trip: Trip) => {
-  if (!trip.startDate || !trip.endDate) return '';
-  const count = Math.round((new Date(`${trip.endDate}T00:00:00`).getTime() - new Date(`${trip.startDate}T00:00:00`).getTime()) / 86400000) + 1;
-  return count > 0 ? `${count} DAYS` : '';
-};
-const destinationLabel = (trip: Trip) => trip.destinations.filter(Boolean).join(', ');
-const summary = (trip: Trip) => {
-  const local: Record<string, number> = {};
-  let cny = 0;
-  (Array.isArray(trip.ledger) ? trip.ledger : []).forEach((entry: any) => {
-    const safeEntry = entry && typeof entry === 'object' ? entry : {};
-    const amount = Number(safeEntry.amount) || 0;
-    const currency = String(safeEntry.currency || '').toUpperCase();
-    if (currency && currency !== 'CNY') local[currency] = (local[currency] || 0) + amount;
-    if (String(safeEntry.finalCurrency || '').toUpperCase() === 'CNY' && safeEntry.finalAmount != null) cny += Number(safeEntry.finalAmount) || 0;
-    else if (currency === 'CNY') cny += amount;
-  });
-  return [dayCount(trip), Object.entries(local).map(([currency, amount]) => `${currency} ${Math.round(amount).toLocaleString('en-US')}`).join(' · '), cny ? `¥${Math.round(cny).toLocaleString('en-US')}` : ''].filter(Boolean).join(' · ');
-};
-const coverImage = (trip: Trip) => trip.coverImage.trim() || DEFAULT_COVER_IMAGE;
-
-function persistCoverImage(id: string, image: string) {
-  try {
-    const plans = readPlans();
-    const now = Date.now();
-    const next = plans.map((trip) => trip.id === id ? { ...trip, coverImage: image, lastEditedAt: now } : trip);
-    localStorage.setItem('vela.plans.v1', JSON.stringify(next));
-    const current = plans.find((trip) => trip.id === id);
-    if (current) localStorage.setItem('vela.plan.v1', JSON.stringify({ ...current, coverImage: image, lastEditedAt: now }));
-  } catch (error) {
-    console.error('Vela Cover Image Error', error);
-  }
-}
-
-function goTrip(id: string) {
-  try {
-    localStorage.setItem('vela.trip.current.v1', id);
-    const trip = readPlans().find((item) => item.id === id);
-    if (trip) localStorage.setItem('vela.plan.v1', JSON.stringify(trip));
-  } catch (error) {
-    console.error('Vela Trip Error', error);
-  }
-  window.location.reload();
-}
-
-function newTrip() {
-  const id = crypto.randomUUID();
-  const me = { id: crypto.randomUUID(), name: 'Me', ratio: 100 };
-  const trip: any = { id, name: 'New Journey', subtitle: '', startDate: '', endDate: '', destinations: [], settlementCurrency: 'CNY', status: 'planning', lastEditedAt: Date.now(), coverImage: '', members: [me], accounts: [{ id: crypto.randomUUID(), name: 'Cash' }, { id: crypto.randomUUID(), name: 'Bank Card' }, { id: crypto.randomUUID(), name: 'Alipay' }, { id: crypto.randomUUID(), name: 'WeChat Pay' }], events: [], ledger: [] };
-  const plans = readPlans();
-  localStorage.setItem('vela.plans.v1', JSON.stringify([trip, ...plans]));
-  goTrip(id);
-}
 
 export default function Home({ onNavigate }: HomeProps) {
-  const [coverOverrides, setCoverOverrides] = useState<Record<string, string>>({});
-  const { currentTrip, planningTrips, recentJourneysTrips, activeCount } = useMemo(() => {
-    const stored = readPlans();
-    const planning = stored.filter((trip) => trip.status === 'planning').sort((a, b) => b.lastEditedAt - a.lastEditedAt);
-    const traveling = stored.find((trip) => trip.status === 'traveling');
-    const achieved = stored.filter((trip) => trip.status === 'achieve').sort((a, b) => b.lastEditedAt - a.lastEditedAt);
-    const displayPlanning = planning.length ? planning : DEMO_PLANNING;
-    const displayRecent = achieved.length ? achieved.slice(0, 2) : DEMO_ACHIEVED;
-    const current = traveling || displayPlanning[0] || null;
-    const active = stored.filter((trip) => trip.status === 'planning' || trip.status === 'traveling').length;
-    return { currentTrip: current, planningTrips: displayPlanning.filter((trip) => trip.id !== current?.id).slice(0, 2), recentJourneysTrips: displayRecent, activeCount: active || 3 };
-  }, []);
+  const trips = useVelaStore((state) => state.trips), addTrip = useVelaStore((state) => state.addTrip);
+  const { current, planning, recent } = useMemo(() => {
+    const traveling = trips.find((trip) => trip.status === 'traveling');
+    const planningTrips = trips.filter((trip) => trip.status === 'planning').sort((a, b) => b.updatedAt - a.updatedAt);
+    const achieved = trips.filter((trip) => trip.status === 'achieve').sort((a, b) => b.updatedAt - a.updatedAt);
+    const active = traveling || planningTrips[0] || null;
+    return { current: active, planning: planningTrips.filter((trip) => trip.id !== active?.id).slice(0, 2), recent: achieved.slice(0, 3) };
+  }, [trips]);
+  const handleNewTrip = () => { try { createTrip(addTrip); } catch (error) { window.alert(error instanceof Error ? error.message : 'Unable to create trip.'); } };
 
-  const replaceCover = (trip: Trip) => {
-    const next = window.prompt('Enter a new cover image URL', coverOverrides[trip.id] || trip.coverImage || '');
-    if (!next?.trim()) return;
-    const image = next.trim();
-    persistCoverImage(trip.id, image);
-    setCoverOverrides((previous) => ({ ...previous, [trip.id]: image }));
-  };
-  const imageFor = (trip: Trip) => coverOverrides[trip.id] || coverImage(trip);
-  const handleImageError = (event: React.SyntheticEvent<HTMLImageElement>) => {
-    if (event.currentTarget.src !== DEFAULT_COVER_IMAGE) event.currentTarget.src = DEFAULT_COVER_IMAGE;
-  };
-
-  const card = (trip: Trip, compact = false, recent = false) => (
-    <div className={compact ? `vela-compact-card${recent ? ' vela-recent-card' : ''}` : 'vela-hero-card'} onClick={() => goTrip(trip.id)}>
-      {compact ? <>
-        <img className="vela-compact-img" src={imageFor(trip)} alt="" onClick={(event) => { event.stopPropagation(); replaceCover(trip); }} onError={handleImageError} />
-        <div className="vela-compact-content">
-          <div className="vela-compact-topline"><h3 className="vela-compact-title">{trip.name}</h3><span className={`vela-badge ${trip.status === 'achieve' ? 'achieve' : ''}`}>{trip.status}</span></div>
-          {destinationLabel(trip) && <div className="vela-destination"><MapPin size={11} />{destinationLabel(trip)}</div>}
-          {recent ? <div className="vela-compact-subtitle">{summary(trip)}</div> : trip.subtitle && trip.subtitle !== trip.name ? <div className="vela-compact-subtitle">{trip.subtitle}</div> : null}
-          <div className="vela-date"><Calendar size={12} />{dates(trip)}</div>
-          {summary(trip) && <small className="vela-summary">{summary(trip)}</small>}
-        </div><ChevronRight size={16} />
-      </> : <>
-        <div className="vela-hero-content">
-          <div className="vela-hero-label">CURRENT TRIP <span className={`vela-status-dot ${trip.status === 'traveling' ? 'green' : 'blue'}`} /></div>
-          <div className="vela-hero-sublabel">{trip.status}</div>
-          <h2 className="vela-hero-title">{trip.name}</h2>
-          {destinationLabel(trip) && <div className="vela-destination"><MapPin size={13} />{destinationLabel(trip)}</div>}
-          {trip.subtitle && trip.subtitle !== trip.name && <div className="vela-hero-subtitle">{trip.subtitle}</div>}
-          <div className="vela-date"><Calendar size={14} />{dates(trip)}</div>
-          {summary(trip) && <div className="vela-summary">{summary(trip)}</div>}
-          <div className="vela-hero-tether"><span><Database size={14} /> Quick Entry will be recorded<br />to this trip</span><ChevronRight size={14} /></div>
-        </div>
-        <div className="vela-hero-image-wrapper" onClick={(event) => { event.stopPropagation(); replaceCover(trip); }} style={{ backgroundImage: `url("${imageFor(trip)}")` }}>
-          <img className="vela-hero-cover-img" src={imageFor(trip)} alt="" onError={handleImageError} />
-          <div className="vela-hero-index">01</div>
-          {trip.scriptText && <div className="vela-hero-script">{trip.scriptText}</div>}
-        </div>
-      </>}
-    </div>
+  const card = (trip: Trip, compact = false) => compact ? (
+    <button className="vela-trip-row" key={trip.id} type="button" onClick={() => onNavigate('Ledger')}>
+      <img src={cover(trip)} alt="" onError={(event) => { event.currentTarget.src = DEFAULT_COVER; }} />
+      <span className="vela-trip-row-copy"><strong>{trip.title}</strong><small>{trip.destination || 'Destination not set'} · {dateLabel(trip)}</small><em>{localSummary(trip) || 'No payments yet'}</em></span><ChevronRight size={17} />
+    </button>
+  ) : (
+    <button className="vela-current-card" key={trip.id} type="button" onClick={() => onNavigate('Ledger')}>
+      <span className="vela-current-copy"><span className="vela-current-label">CURRENT TRIP <i /></span><span className="vela-current-status">{trip.status}</span><strong>{trip.title}</strong>
+        <span className="vela-destination"><MapPin size={12} />{trip.destination || 'Choose a destination'}</span><span className="vela-date"><Calendar size={13} />{dateLabel(trip)}</span><span className="vela-summary">{localSummary(trip) || 'Your travel record starts here.'}</span>
+        <span className="vela-current-tether"><Database size={13} /> Quick Entry will be recorded to this trip <ChevronRight size={13} /></span></span>
+      <span className="vela-current-image"><img src={cover(trip)} alt="" onError={(event) => { event.currentTarget.src = DEFAULT_COVER; }} /><b>01</b></span>
+    </button>
   );
 
-  return <div className="vela-app-container">
-    <header className="vela-header"><div className="vela-brand"><h1>Vela <span>/ JOURNEYS</span></h1><div className="vela-subtitle">TRAVEL · RECORD · BELONG</div></div><div className="vela-header-actions"><div className="vela-trip-count"><strong>{activeCount}</strong> TRIPS</div><button className="vela-all-trips" onClick={() => onNavigate('Ledger')}>ALL TRIPS</button><button className="vela-add-btn" onClick={newTrip}><Plus size={18} /></button></div></header>
-    {currentTrip && <section className="vela-hero-section">{card(currentTrip)}</section>}
-    <main className="vela-trip-list">
-      <section className="vela-list-section"><div className="vela-list-header"><div className="vela-list-title">PLANNING NEXT</div><button className="vela-view-all" onClick={() => onNavigate('Ledger')}>View all <ChevronRight size={14} /></button></div>{planningTrips.length ? planningTrips.map((trip) => <div key={trip.id}>{card(trip, true)}</div>) : <div className="vela-section-placeholder">YOUR NEXT JOURNEY AWAITS.</div>}</section>
-      <section className="vela-list-section vela-recent-section"><div className="vela-list-header"><div className="vela-list-title">RECENT JOURNEYS</div><button className="vela-view-all" onClick={() => onNavigate('Ledger')}>View all <ChevronRight size={14} /></button></div>{recentJourneysTrips.map((trip) => <div key={trip.id}>{card(trip, true, true)}</div>)}</section>
-    </main>
-    <div className="vela-bottom-scenery"><div className="vela-scenery-text">FURTHER<br />BRIGHTER<br />TOGETHER</div></div>
-    <nav className="vela-bottom-nav">{['Home', 'Ledger', 'Balance', 'Logbook', 'Atelier'].map((label) => <button key={label} className={`vela-nav-item ${label === 'Home' ? 'active' : ''}`} onClick={() => (label === 'Home' ? null : onNavigate(label as 'Ledger' | 'Balance' | 'Logbook' | 'Atelier'))}><span className="vela-nav-icon">{label === 'Home' ? '⌂' : label === 'Ledger' ? '▤' : label === 'Balance' ? '⚖' : label === 'Logbook' ? '◎' : '⌘'}</span>{label}</button>)}</nav>
-  </div>;
+  return <main className="vela-home">
+    <header className="vela-home-header"><div><h1>Vela <span>/ JOURNEYS</span></h1><p>TRAVEL · RECORD · BELONG</p></div>
+      <div className="vela-home-actions"><span><b>{trips.filter((trip) => trip.status !== 'achieve').length}</b> TRIPS</span><button type="button" onClick={() => onNavigate('Ledger')}>ALL TRIPS</button><button type="button" className="vela-add" onClick={handleNewTrip} aria-label="Start a new trip"><Plus size={18} /></button></div>
+    </header>
+    <section className="vela-home-map"><div className="vela-map-copy"><small>VELA · JOURNEY INDEX</small><strong>Further,<br />brighter,<br />together.</strong><span>{current?.destination || 'A place for every journey.'}</span></div><div className="vela-map-orbit" /><div className="vela-map-compass">N<br /><b>✦</b><br />S</div></section>
+    {current ? <section className="vela-current-wrap">{card(current)}</section> : <section className="vela-empty-home"><small>YOUR JOURNEY INDEX</small><h2>Nothing has set sail yet.</h2><p>Create your first trip and Vela will keep its plans, payments and balance together.</p><button type="button" onClick={handleNewTrip}><Plus size={15} /> Start a New Journey</button></section>}
+    <section className="vela-home-list"><div className="vela-list-heading"><span>PLANNING NEXT</span><button type="button" onClick={() => onNavigate('Ledger')}>View all <ChevronRight size={13} /></button></div>{planning.length ? planning.map((trip) => card(trip, true)) : <div className="vela-list-empty">YOUR NEXT JOURNEY AWAITS.</div>}</section>
+    <section className="vela-home-list vela-recent-list"><div className="vela-list-heading"><span>RECENT JOURNEYS</span><button type="button" onClick={() => onNavigate('Logbook')}>View all <ChevronRight size={13} /></button></div>{recent.length ? recent.map((trip) => card(trip, true)) : <div className="vela-list-empty">NO COMPLETED JOURNEYS YET.</div>}</section>
+  </main>;
 }
