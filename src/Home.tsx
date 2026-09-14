@@ -114,6 +114,16 @@ function clickElement(selector: string) {
   const element = document.querySelector(selector);
   if (element instanceof HTMLElement) element.click();
 }
+function openQuickEntry(trip: Trip | null) {
+  if (!trip) return;
+  try {
+    localStorage.setItem('vela.trip.current.v1', trip.id);
+    localStorage.setItem('vela.plan.v1', JSON.stringify(trip));
+  } catch (error) {
+    console.error('Vela Quick Entry Context Error', error);
+  }
+  clickElement('.home-quick');
+}
 
 export default function Home() {
   const [coverOverrides, setCoverOverrides] = useState<Record<string, string>>({});
@@ -178,7 +188,7 @@ export default function Home() {
   );
 
   const quickEntryButton = (
-    <div className="vela-ufo-wrapper" onClick={() => clickElement('.home-quick')} aria-label="Quick Entry">
+    <div className="vela-ufo-wrapper" onClick={() => openQuickEntry(currentTrip)} aria-label="Quick Entry">
       <div className="vela-ufo-btn"><svg className="vela-celestial-star" viewBox="0 0 64 64" aria-hidden="true"><path d="M32 3 C35 19 45 29 61 32 C45 35 35 45 32 61 C29 45 19 35 3 32 C19 29 29 19 32 3 Z" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinejoin="round"/><path d="M32 14 C34 24 40 30 50 32 C40 34 34 40 32 50 C30 40 24 34 14 32 C24 30 30 24 32 14 Z" fill="currentColor" opacity=".16"/></svg></div><div className="vela-ufo-label">QUICK ENTRY</div>
     </div>
   );
