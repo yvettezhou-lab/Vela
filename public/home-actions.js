@@ -6,7 +6,7 @@
     return Array.from(nav.querySelectorAll('button')).find(button=>button.textContent?.trim()===label)||null;
   }
   function install(){
-    const home=document.querySelector('.vela-clean-home');
+    const home=document.querySelector('#vela-supplied-home');
     const newTrip=document.querySelector('.vela-clean-new');
     if(home&&!home.dataset.navBridgeInstalled){
       home.dataset.navBridgeInstalled='1';
@@ -14,7 +14,7 @@
         const target=event.target;
         if(!(target instanceof Element))return;
         const button=target.closest('.vela-bottom-nav button');
-        if(!(button instanceof HTMLElement))return;
+        if(!(button instanceof HTMLElement)||!home.contains(button))return;
         const label=button.textContent?.trim()||'';
         const mainButton=mainNavButton(label);
         if(mainButton){
