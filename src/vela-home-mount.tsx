@@ -38,7 +38,7 @@ const installHomeChrome = () => {
   const style = document.createElement('style');
   style.id = 'vela-home-structural-fix';
   style.textContent = `
-    #vela-supplied-home{width:100%;min-height:100vh;position:relative;transform:none;filter:none;will-change:auto;}
+    #vela-supplied-home{width:100%;position:relative;transform:none;filter:none;will-change:auto;}
     #vela-supplied-home .vela-header{position:sticky;top:0;z-index:80;background:rgba(247,244,235,.95);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);padding-top:max(env(safe-area-inset-top),20px);}
     #vela-supplied-home .vela-compact-card,#vela-supplied-home .vela-hero-card{z-index:31;}
     body>.vela-ufo-wrapper{position:fixed!important;right:24px!important;bottom:90px!important;z-index:100!important;transform:none!important;filter:none!important;will-change:auto!important;}
@@ -55,11 +55,12 @@ const mount = () => {
   const host = document.createElement('div');
   host.id = 'vela-supplied-home';
 
-  // Hide the legacy navigation, but mount the new Home outside .app so no
-  // page-level scrolling/transform/overflow container can trap fixed children.
+  // Keep the Home page in the normal App/.app layout tree. Only Quick Entry
+  // is portaled by Home itself as an overlay attached directly to <body>.
   const nav = app.querySelector(':scope > .bottom-nav');
   if (nav instanceof HTMLElement) nav.style.display = 'none';
-  document.body.appendChild(host);
+  if (nav) app.insertBefore(host, nav);
+  else app.appendChild(host);
 
   installHomeChrome();
 
