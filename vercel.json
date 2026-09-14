@@ -1,3 +1,1 @@
-{
-  "rewrites": [{ "source": "/v2-test", "destination": "/index.html" }]
-}
+{}
