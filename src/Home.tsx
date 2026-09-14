@@ -25,8 +25,8 @@ const DEMO_PLANNING: Trip[] = [
   { id: 'demo-planning-2', name: 'Bali', subtitle: 'Island Notes', startDate: '2026-11-05', endDate: '2026-11-11', destinations: ['Ubud', 'Bali'], status: 'planning', lastEditedAt: 1, coverImage: DEFAULT_COVER_IMAGE, ledger: [] },
 ];
 const DEMO_ACHIEVED: Trip[] = [
-  { id: 'demo-achieve-1', name: 'Coron', subtitle: 'Blue Water Journal', startDate: '2026-06-01', endDate: '2026-06-06', destinations: ['Palawan'], status: 'achieve', lastEditedAt: 2, coverImage: DEFAULT_COVER_IMAGE, ledger: [] },
-  { id: 'demo-achieve-2', name: 'Penang', subtitle: 'Old Streets & Food', startDate: '2026-05-18', endDate: '2026-05-21', destinations: ['George Town'], status: 'achieve', lastEditedAt: 1, coverImage: DEFAULT_COVER_IMAGE, ledger: [] },
+  { id: 'demo-achieve-1', name: 'Coron', subtitle: 'Blue Water Journal', startDate: '2026-06-01', endDate: '2026-06-06', destinations: ['Palawan'], status: 'achieve', lastEditedAt: 2, coverImage: DEFAULT_COVER_IMAGE, ledger: [{ amount: 15000, currency: 'PHP', finalAmount: 1950, finalCurrency: 'CNY' }] },
+  { id: 'demo-achieve-2', name: 'Penang', subtitle: 'Old Streets & Food', startDate: '2026-05-18', endDate: '2026-05-21', destinations: ['George Town'], status: 'achieve', lastEditedAt: 1, coverImage: DEFAULT_COVER_IMAGE, ledger: [{ amount: 1200, currency: 'MYR', finalAmount: 1850, finalCurrency: 'CNY' }] },
 ];
 
 const readPlans = (): Trip[] => {
@@ -153,7 +153,7 @@ export default function Home() {
         <div className="vela-compact-content">
           <div className="vela-compact-topline"><h3 className="vela-compact-title">{trip.name}</h3><span className={`vela-badge ${trip.status === 'achieve' ? 'achieve' : ''}`}>{trip.status}</span></div>
           {destinationLabel(trip) && <div className="vela-destination"><MapPin size={11} />{destinationLabel(trip)}</div>}
-          {trip.subtitle && trip.subtitle !== trip.name && <div className="vela-compact-subtitle">{trip.subtitle}</div>}
+          {recent ? <div className="vela-compact-subtitle">{summary(trip)}</div> : trip.subtitle && trip.subtitle !== trip.name ? <div className="vela-compact-subtitle">{trip.subtitle}</div> : null}
           <div className="vela-date"><Calendar size={12} />{dates(trip)}</div>
           {summary(trip) && <small className="vela-summary">{summary(trip)}</small>}
         </div><ChevronRight size={16} />
