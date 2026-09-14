@@ -5,6 +5,7 @@ import './styles.css';
 import './vela-polish.css';
 import './vela-secondary-polish.css';
 import './vela-secondary-finish.css';
+import './vela-home-shell.css';
 import HomePage from './Home';
 import TripManager from './components/TripManager';
 import { QuickEntry } from './components/QuickEntry';
@@ -33,8 +34,7 @@ const App: React.FC = () => {
   const [tab, setTab] = useState<Tab>('Home');
   const [quickOpen, setQuickOpen] = useState(false);
   const currentTrip = useVelaStore((state) => state.getCurrentTrip());
-  const handleNavigate = (next: Tab) => { setQuickOpen(false); setTab(next); window.scrollTo({ top: 0, behavior: 'instant' as ScrollBehavior }); };
-
+  const handleNavigate = (next: Tab) => { setQuickOpen(false); setTab(next); window.scrollTo({ top: 0 }); };
   const content = tab === 'Home' ? <HomePage onNavigate={handleNavigate} />
     : tab === 'Ledger' ? <main className="page vela-secondary-shell"><LedgerView /></main>
     : tab === 'Balance' ? <main className="page vela-secondary-shell"><BalanceEngine /></main>
