@@ -1,5 +1,4 @@
 import React, { useMemo, useState } from 'react';
-import { createPortal } from 'react-dom';
 import { Calendar, ChevronRight, Plus, Database, MapPin } from 'lucide-react';
 import './Home.css';
 
@@ -7,7 +6,6 @@ type TripStatus = 'planning' | 'traveling' | 'achieve';
 
 type HomeProps = {
   onNavigate: (label: 'Home' | 'Ledger' | 'Balance' | 'Logbook' | 'Atelier') => void;
-  onOpenQuickEntry: () => void;
 };
 
 interface Trip {
@@ -116,7 +114,7 @@ function newTrip() {
   goTrip(id);
 }
 
-export default function Home({ onNavigate, onOpenQuickEntry }: HomeProps) {
+export default function Home({ onNavigate }: HomeProps) {
   const [coverOverrides, setCoverOverrides] = useState<Record<string, string>>({});
   const { currentTrip, planningTrips, recentJourneysTrips, activeCount } = useMemo(() => {
     const stored = readPlans();
@@ -173,23 +171,14 @@ export default function Home({ onNavigate, onOpenQuickEntry }: HomeProps) {
     </div>
   );
 
-  const quickEntryButton = (
-    <div className="vela-ufo-wrapper" onClick={onOpenQuickEntry} aria-label="Quick Entry">
-      <div className="vela-ufo-btn"><svg className="vela-celestial-star" viewBox="0 0 64 64" aria-hidden="true"><path d="M32 3 C35 19 45 29 61 32 C45 35 35 45 32 61 C29 45 19 35 3 32 C19 29 29 19 32 3 Z" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinejoin="round"/><path d="M32 14 C34 24 40 30 50 32 C40 34 34 40 32 50 C30 40 24 34 14 32 C24 30 30 24 32 14 Z" fill="currentColor" opacity=".16"/></svg></div><div className="vela-ufo-label">QUICK ENTRY</div>
-    </div>
-  );
-
-  return <>
-    <div className="vela-app-container">
-      <header className="vela-header"><div className="vela-brand"><h1>Vela <span>/ JOURNEYS</span></h1><div className="vela-subtitle">TRAVEL · RECORD · BELONG</div></div><div className="vela-header-actions"><div className="vela-trip-count"><strong>{activeCount}</strong> TRIPS</div><button className="vela-all-trips" onClick={() => onNavigate('Ledger')}>ALL TRIPS</button><button className="vela-add-btn" onClick={newTrip}><Plus size={18} /></button></div></header>
-      {currentTrip && <section className="vela-hero-section">{card(currentTrip)}</section>}
-      <main className="vela-trip-list">
-        <section className="vela-list-section"><div className="vela-list-header"><div className="vela-list-title">PLANNING NEXT</div><button className="vela-view-all" onClick={() => onNavigate('Ledger')}>View all <ChevronRight size={14} /></button></div>{planningTrips.length ? planningTrips.map((trip) => <div key={trip.id}>{card(trip, true)}</div>) : <div className="vela-section-placeholder">YOUR NEXT JOURNEY AWAITS.</div>}</section>
-        <section className="vela-list-section vela-recent-section"><div className="vela-list-header"><div className="vela-list-title">RECENT JOURNEYS</div><button className="vela-view-all" onClick={() => onNavigate('Ledger')}>View all <ChevronRight size={14} /></button></div>{recentJourneysTrips.map((trip) => <div key={trip.id}>{card(trip, true, true)}</div>)}</section>
-      </main>
-      <div className="vela-bottom-scenery"><div className="vela-scenery-text">FURTHER<br />BRIGHTER<br />TOGETHER</div></div>
-      <nav className="vela-bottom-nav">{['Home', 'Ledger', 'Balance', 'Logbook', 'Atelier'].map((label) => <button key={label} className={`vela-nav-item ${label === 'Home' ? 'active' : ''}`} onClick={() => (label === 'Home' ? null : onNavigate(label as 'Ledger' | 'Balance' | 'Logbook' | 'Atelier'))}><span className="vela-nav-icon">{label === 'Home' ? '⌂' : label === 'Ledger' ? '▤' : label === 'Balance' ? '⚖' : label === 'Logbook' ? '◎' : '⌘'}</span>{label}</button>)}</nav>
-    </div>
-    {typeof document !== 'undefined' ? createPortal(quickEntryButton, document.body) : null}
-  </>;
+  return <div className="vela-app-container">
+    <header className="vela-header"><div className="vela-brand"><h1>Vela <span>/ JOURNEYS</span></h1><div className="vela-subtitle">TRAVEL · RECORD · BELONG</div></div><div className="vela-header-actions"><div className="vela-trip-count"><strong>{activeCount}</strong> TRIPS</div><button className="vela-all-trips" onClick={() => onNavigate('Ledger')}>ALL TRIPS</button><button className="vela-add-btn" onClick={newTrip}><Plus size={18} /></button></div></header>
+    {currentTrip && <section className="vela-hero-section">{card(currentTrip)}</section>}
+    <main className="vela-trip-list">
+      <section className="vela-list-section"><div className="vela-list-header"><div className="vela-list-title">PLANNING NEXT</div><button className="vela-view-all" onClick={() => onNavigate('Ledger')}>View all <ChevronRight size={14} /></button></div>{planningTrips.length ? planningTrips.map((trip) => <div key={trip.id}>{card(trip, true)}</div>) : <div className="vela-section-placeholder">YOUR NEXT JOURNEY AWAITS.</div>}</section>
+      <section className="vela-list-section vela-recent-section"><div className="vela-list-header"><div className="vela-list-title">RECENT JOURNEYS</div><button className="vela-view-all" onClick={() => onNavigate('Ledger')}>View all <ChevronRight size={14} /></button></div>{recentJourneysTrips.map((trip) => <div key={trip.id}>{card(trip, true, true)}</div>)}</section>
+    </main>
+    <div className="vela-bottom-scenery"><div className="vela-scenery-text">FURTHER<br />BRIGHTER<br />TOGETHER</div></div>
+    <nav className="vela-bottom-nav">{['Home', 'Ledger', 'Balance', 'Logbook', 'Atelier'].map((label) => <button key={label} className={`vela-nav-item ${label === 'Home' ? 'active' : ''}`} onClick={() => (label === 'Home' ? null : onNavigate(label as 'Ledger' | 'Balance' | 'Logbook' | 'Atelier'))}><span className="vela-nav-icon">{label === 'Home' ? '⌂' : label === 'Ledger' ? '▤' : label === 'Balance' ? '⚖' : label === 'Logbook' ? '◎' : '⌘'}</span>{label}</button>)}</nav>
+  </div>;
 }
