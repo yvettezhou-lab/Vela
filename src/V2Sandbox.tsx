@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { QuickEntry } from './components/QuickEntry';
+import { BalanceEngine } from './components/BalanceEngine';
 import { useVelaStore } from './store/useVelaStore';
 
 const TEST_TRIP_ID = 'v2-sandbox-trip';
@@ -61,14 +62,15 @@ export default function V2Sandbox() {
       <header style={styles.header}>
         <div>
           <div style={styles.eyebrow}>ISOLATED TEST</div>
-          <h1 style={styles.title}>V2 Quick Entry</h1>
+          <h1 style={styles.title}>V2 Quick Entry + Balance Engine</h1>
           <p style={styles.meta}>Current Trip: {currentTrip?.title ?? '—'} · Traveling trips: {travelingCount}</p>
         </div>
         <div style={styles.badge}>Core Store</div>
       </header>
       <section style={styles.panel}>
-        <p style={styles.note}>Sandbox only. Quick Entry writes exclusively through useVelaStore.</p>
+        <p style={styles.note}>Sandbox only. Quick Entry writes through useVelaStore; Balance Engine is read-only and renders core calculations.</p>
         <QuickEntry onClose={() => undefined} />
+        <BalanceEngine />
       </section>
     </main>
   );
