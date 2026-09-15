@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useState } from 'react';
 import { BookOpen, Compass, Home as HomeIcon, Plus, Scale, Settings } from 'lucide-react';
 import { createRoot } from 'react-dom/client';
 import './styles.css';
@@ -12,7 +12,7 @@ import { TripCreation } from './components/TripCreation';
 import { QuickEntry } from './components/QuickEntry';
 import { BalanceEngine } from './components/BalanceEngine';
 import { LedgerView } from './components/LedgerView';
-import { calculateFinancialTotals } from './core/calculations';
+import LogbookView from './components/Logbook';
 import { useVelaStore } from './store/useVelaStore';
 
 type Tab = 'Home' | 'Ledger' | 'Balance' | 'Logbook' | 'Atelier';
@@ -23,13 +23,6 @@ const nav = [
   { label: 'Logbook', icon: Compass },
   { label: 'Atelier', icon: Settings },
 ] as const;
-
-const Logbook: React.FC = () => {
-  const trip = useVelaStore((state) => state.getCurrentTrip());
-  const totals = useMemo(() => calculateFinancialTotals(trip?.ledger ?? []), [trip]);
-  if (!trip) return <section className="vela-secondary-page"><span className="vela-kicker">LOGBOOK</span><h1>Logbook</h1><p>Select or start a trip to review its financial record.</p></section>;
-  return <section className="vela-secondary-page"><span className="vela-kicker">LOGBOOK · {trip.title}</span><h1>Financial Reflection</h1><div className="vela-logbook-stats"><div><small>TOTAL</small><b>¥{totals.financialTotal.toFixed(2)}</b></div><div><small>SETTLED</small><b>¥{totals.settledAmount.toFixed(2)}</b></div><div><small>PENDING</small><b>¥{totals.pendingAmount.toFixed(2)}</b></div></div><p>{trip.ledger.length} payment records in the current trip.</p></section>;
-};
 
 const App: React.FC = () => {
   const [activeNav, setActiveNav] = useState<Tab>('Home');
@@ -42,7 +35,7 @@ const App: React.FC = () => {
   const content = activeNav === 'Home' ? <HomePage onNavigate={handleNavigate} onCreateTrip={() => setCreationOpen(true)} />
     : activeNav === 'Ledger' ? <main className="page vela-secondary-shell"><LedgerView /></main>
     : activeNav === 'Balance' ? <main className="page vela-secondary-shell"><BalanceEngine /></main>
-    : activeNav === 'Logbook' ? <Logbook />
+    : activeNav === 'Logbook' ? <LogbookView />
     : <main className="page vela-secondary-shell"><TripManager /></main>;
 
   return <div className="vela-app-root">
