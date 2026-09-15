@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useState } from 'react';
 import { Calendar, ChevronRight, MapPin, Plus, Database } from 'lucide-react';
 import { calculateFinancialTotals } from './core/calculations';
 import { Trip } from './core/domain';
@@ -14,6 +14,7 @@ const cover = (trip: Trip) => trip.coverImage?.trim() || DEFAULT_COVER;
 
 export default function Home({ onNavigate, onCreateTrip }: HomeProps) {
   const trips = useVelaStore((state) => state.trips);
+  const [transitionError, setTransitionError] = useState('');
   const { current, planning, recent } = useMemo(() => {
     const traveling = trips.find((trip) => trip.status === 'traveling');
     const planningTrips = trips.filter((trip) => trip.status === 'planning').sort((a, b) => b.updatedAt - a.updatedAt);
@@ -21,12 +22,31 @@ export default function Home({ onNavigate, onCreateTrip }: HomeProps) {
     return { current: traveling || null, planning: planningTrips.slice(0, 3), recent: achieved.slice(0, 3) };
   }, [trips]);
 
+  const startJourney = (tripId: string) => {
+    setTransitionError('');
+    try {
+      useVelaStore.getState().updateTripStatus(tripId, 'traveling');
+      onNavigate('Home');
+    } catch (error) {
+      const message = error instanceof Error ? error.message : '';
+      if (/traveling|already|active|ongoing|in progress/i.test(message)) {
+        setTransitionError('Action Denied: You already have an active journey. Archive it before starting a new one.');
+      } else {
+        setTransitionError(message || 'Unable to start this journey.');
+      }
+    }
+  };
+
   const card = (trip: Trip, compact = false) => compact ? (
-    <button className="vela-trip-row" key={trip.id} type="button" onClick={() => onNavigate('Ledger')}>
-      <img src={cover(trip)} alt="" onError={(event) => { event.currentTarget.src = DEFAULT_COVER; }} />
-      <span className="vela-trip-row-copy"><strong>{trip.title}</strong><small>{trip.destination || 'Destination not set'} · {dateLabel(trip)}</small><em>{localSummary(trip) || 'No payments yet'}</em></span>
-      <span className={`vela-status-pill ${trip.status}`}>{trip.status === 'achieve' ? 'ACHIEVE' : 'PLANNING'}</span><ChevronRight size={17} />
-    </button>
+    <div className="vela-trip-row" key={trip.id}>
+      <button className="vela-trip-row-main" type="button" onClick={() => onNavigate('Ledger')}>
+        <img src={cover(trip)} alt="" onError={(event) => { event.currentTarget.src = DEFAULT_COVER; }} />
+        <span className="vela-trip-row-copy"><strong>{trip.title}</strong><small>{trip.destination || 'Destination not set'} · {dateLabel(trip)}</small><em>{localSummary(trip) || 'No payments yet'}</em></span>
+        <span className={`vela-status-pill ${trip.status}`}>{trip.status === 'achieve' ? 'ACHIEVE' : 'PLANNING'}</span>
+      </button>
+      {trip.status === 'planning' && <button className="vela-start-journey" type="button" onClick={() => startJourney(trip.id)}>Start Journey</button>}
+      <ChevronRight className="vela-trip-row-chevron" size={17} />
+    </div>
   ) : (
     <button className="vela-current-card" key={trip.id} type="button" onClick={() => onNavigate('Ledger')}>
       <span className="vela-current-copy"><span className="vela-current-label">CURRENT TRIP <i /></span><span className="vela-current-status">{trip.status}</span><strong>{trip.title}</strong><span className="vela-destination"><MapPin size={12} />{trip.destination || 'Choose a destination'}</span><span className="vela-date"><Calendar size={13} />{dateLabel(trip)}</span><span className="vela-summary">{localSummary(trip) || 'Your travel record starts here.'}</span><span className="vela-current-tether"><Database size={13} /> Quick Entry will be recorded to this trip <ChevronRight size={13} /></span></span>
@@ -37,7 +57,7 @@ export default function Home({ onNavigate, onCreateTrip }: HomeProps) {
   return <main className="vela-home">
     <header className="vela-home-header"><div><h1>Vela <span>/ JOURNEYS</span></h1><p>TRAVEL · RECORD · BELONG</p></div><div className="vela-home-actions"><span><b>{trips.filter((trip) => trip.status !== 'achieve').length}</b> TRIPS</span><button type="button" onClick={() => onNavigate('Ledger')}>ALL TRIPS</button><button type="button" className="vela-add" onClick={onCreateTrip} aria-label="Start a new trip"><Plus size={18} /></button></div></header>
     {current ? <section className="vela-current-wrap">{card(current)}</section> : <section className="vela-empty-home"><small>YOUR JOURNEY INDEX</small><h2>Nothing has set sail yet.</h2><p>Create your first trip and Vela will keep its plans, payments and balance together.</p><button type="button" onClick={onCreateTrip}><Plus size={15} /> Start a New Journey</button></section>}
-    <section className="vela-home-list"><div className="vela-list-heading"><span>PLANNING NEXT</span><button type="button" onClick={() => onNavigate('Ledger')}>View all <ChevronRight size={13} /></button></div>{planning.length ? planning.map((trip) => card(trip, true)) : <div className="vela-list-empty">YOUR NEXT JOURNEY AWAITS.</div>}</section>
+    <section className="vela-home-list"><div className="vela-list-heading"><span>PLANNING NEXT</span><button type="button" onClick={() => onNavigate('Ledger')}>View all <ChevronRight size={13} /></button></div><div className="vela-planning-stack">{planning.length ? planning.map((trip) => card(trip, true)) : <div className="vela-list-empty">YOUR NEXT JOURNEY AWAITS.</div>}</div>{transitionError && <div className="vela-transition-alert" role="alert">{transitionError}</div>}</section>
     <section className="vela-home-list vela-recent-list"><div className="vela-list-heading"><span>RECENT JOURNEYS</span><button type="button" onClick={() => onNavigate('Logbook')}>View all <ChevronRight size={13} /></button></div>{recent.length ? recent.map((trip) => card(trip, true)) : <div className="vela-list-empty">NO COMPLETED JOURNEYS YET.</div>}</section>
   </main>;
 }
