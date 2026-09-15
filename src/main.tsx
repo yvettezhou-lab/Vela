@@ -36,6 +36,7 @@ const App: React.FC = () => {
   const [quickOpen, setQuickOpen] = useState(false);
   const [creationOpen, setCreationOpen] = useState(false);
   const currentTrip = useVelaStore((state) => state.getCurrentTrip());
+  const hasActiveJourney = Boolean(currentTrip && currentTrip.status === 'traveling');
   const handleNavigate = (next: Tab) => { setQuickOpen(false); setCreationOpen(false); setActiveNav(next); window.scrollTo({ top: 0 }); };
   const handleCreated = () => { setActiveNav('Home'); setCreationOpen(false); };
   const content = activeNav === 'Home' ? <HomePage onNavigate={handleNavigate} onCreateTrip={() => setCreationOpen(true)} />
@@ -49,8 +50,8 @@ const App: React.FC = () => {
     <nav className="vela-global-nav" aria-label="Primary navigation">
       {nav.map(({ label, icon: Icon }) => <button key={label} type="button" className={activeNav === label ? 'active' : ''} onClick={() => handleNavigate(label)}><Icon size={18} strokeWidth={1.7} /><span>{label}</span></button>)}
     </nav>
-    {currentTrip && <button type="button" className="vela-global-quick" aria-label="Quick Entry" onClick={() => setQuickOpen(true)}><Plus size={25} strokeWidth={1.5} /></button>}
-    {quickOpen && <div className="vela-quick-backdrop" onMouseDown={(event) => { if (event.target === event.currentTarget) setQuickOpen(false); }}><div className="vela-quick-sheet"><QuickEntry onClose={() => setQuickOpen(false)} /></div></div>}
+    {hasActiveJourney && currentTrip && <button type="button" className="vela-global-quick" aria-label="Quick Entry" onClick={() => setQuickOpen(true)}><Plus size={25} strokeWidth={1.5} /></button>}
+    {quickOpen && hasActiveJourney && currentTrip && <div className="vela-quick-backdrop" onMouseDown={(event) => { if (event.target === event.currentTarget) setQuickOpen(false); }}><div className="vela-quick-sheet"><QuickEntry onClose={() => setQuickOpen(false)} /></div></div>}
     {creationOpen && <div className="vela-quick-backdrop" onMouseDown={(event) => { if (event.target === event.currentTarget) setCreationOpen(false); }}><div className="vela-quick-sheet"><TripCreation onClose={() => setCreationOpen(false)} onCreated={handleCreated} /></div></div>}
   </div>;
 };
