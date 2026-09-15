@@ -15,11 +15,17 @@ const cover = (trip: Trip) => trip.coverImage?.trim() || DEFAULT_COVER;
 export default function Home({ onNavigate, onCreateTrip }: HomeProps) {
   const trips = useVelaStore((state) => state.trips);
   const [transitionError, setTransitionError] = useState('');
-  const { current, planning, recent } = useMemo(() => {
+  const { current, planning, recent, planningCount, recentCount } = useMemo(() => {
     const traveling = trips.find((trip) => trip.status === 'traveling');
     const planningTrips = trips.filter((trip) => trip.status === 'planning').sort((a, b) => b.updatedAt - a.updatedAt);
     const achieved = trips.filter((trip) => trip.status === 'achieve').sort((a, b) => b.updatedAt - a.updatedAt);
-    return { current: traveling || null, planning: planningTrips.slice(0, 3), recent: achieved.slice(0, 3) };
+    return {
+      current: traveling || null,
+      planning: planningTrips.slice(0, 3),
+      recent: achieved.slice(0, 3),
+      planningCount: planningTrips.length,
+      recentCount: achieved.length,
+    };
   }, [trips]);
 
   const startJourney = (tripId: string) => {
@@ -54,8 +60,6 @@ export default function Home({ onNavigate, onCreateTrip }: HomeProps) {
     </button>
   );
 
-  const planningCount = planning.length;
-  const recentCount = recent.length;
   const tripCountIndicator = (count: number, onClick: () => void) => count > 0
     ? <button type="button" onClick={onClick}>{count} TRIPS <ChevronRight size={13} /></button>
     : <span className="vela-list-count-empty">0 TRIPS</span>;
