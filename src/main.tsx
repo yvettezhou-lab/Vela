@@ -1,5 +1,5 @@
-import React, { useMemo, useState } from 'react';
-import { BookOpen, Compass, Home as HomeIcon, Plus, Scale, Settings } from 'lucide-react';
+import React, { useEffect, useMemo, useState } from 'react';
+import { BookOpen, CirclePlus, Compass, Home as HomeIcon, Scale, Settings } from 'lucide-react';
 import { createRoot } from 'react-dom/client';
 import './styles.css';
 import './vela-polish.css';
@@ -43,6 +43,16 @@ const App: React.FC = () => {
     [achieveTrips],
   );
   const hasActiveJourney = Boolean(currentTrip && currentTrip.status === 'traveling');
+
+  useEffect(() => {
+    if (!quickOpen) return;
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    return () => {
+      document.body.style.overflow = previousOverflow;
+    };
+  }, [quickOpen]);
+
   const handleNavigate = (next: Tab) => { setQuickOpen(false); setCreationOpen(false); setActiveNav(next); window.scrollTo({ top: 0 }); };
   const handleCreated = () => { setActiveNav('Home'); setCreationOpen(false); };
   const content = activeNav === 'Home' ? <HomePage onNavigate={handleNavigate} onCreateTrip={() => setCreationOpen(true)} />
@@ -56,8 +66,8 @@ const App: React.FC = () => {
     <nav className="vela-global-nav" aria-label="Primary navigation">
       {nav.map(({ label, icon: Icon }) => <button key={label} type="button" className={activeNav === label ? 'active' : ''} onClick={() => handleNavigate(label)}><Icon size={18} strokeWidth={1.7} /><span>{label}</span></button>)}
     </nav>
-    {hasActiveJourney && currentTrip && <button type="button" className="vela-global-quick" aria-label="Quick Entry" onClick={() => setQuickOpen(true)}><Plus size={25} strokeWidth={1.5} /></button>}
-    {quickOpen && hasActiveJourney && currentTrip && <div className="vela-quick-backdrop" onMouseDown={(event) => { if (event.target === event.currentTarget) setQuickOpen(false); }}><div className="vela-quick-sheet"><QuickEntry onClose={() => setQuickOpen(false)} /></div></div>}
+    {hasActiveJourney && currentTrip && <button type="button" className="vela-global-quick" aria-label="Add Quick Entry" onClick={() => setQuickOpen(true)}><CirclePlus size={25} strokeWidth={1.7} /></button>}
+    {quickOpen && hasActiveJourney && currentTrip && <div className="vela-quick-backdrop" role="dialog" aria-modal="true" aria-label="Quick Entry" onMouseDown={(event) => { if (event.target === event.currentTarget) setQuickOpen(false); }}><div className="vela-quick-fullscreen"><QuickEntry onClose={() => setQuickOpen(false)} /></div></div>}
     {creationOpen && <div className="vela-quick-backdrop" onMouseDown={(event) => { if (event.target === event.currentTarget) setCreationOpen(false); }}><div className="vela-quick-sheet"><TripCreation onClose={() => setCreationOpen(false)} onCreated={handleCreated} /></div></div>}
   </div>;
 };
