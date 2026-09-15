@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { Trip, TripStatus } from '../core/domain';
-import { DEFAULT_CATEGORIES, getDefaultCategories } from '../core/defaults';
+import { getDefaultCategories } from '../core/defaults';
 import { DomainValidator, isRecord } from '../core/validation';
 import { migrateLegacyPlanToTrip } from '../core/legacyAdapter';
 
@@ -119,5 +119,3 @@ export const useVelaStore = create<VelaState>()(
     },
   ),
 );
-
-void DEFAULT_CATEGORIES;
