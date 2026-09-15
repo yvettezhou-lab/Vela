@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { BookOpen, Compass, Home as HomeIcon, Plus, Scale, Settings } from 'lucide-react';
 import { createRoot } from 'react-dom/client';
 import './styles.css';
@@ -13,6 +13,7 @@ import { QuickEntry } from './components/QuickEntry';
 import { BalanceEngine } from './components/BalanceEngine';
 import { LedgerView } from './components/LedgerView';
 import LogbookView from './components/Logbook';
+import { generateAnnualReflection, generateTripInsights } from './utils/reflectionEngine';
 import { useVelaStore } from './store/useVelaStore';
 
 type Tab = 'Home' | 'Ledger' | 'Balance' | 'Logbook' | 'Atelier';
@@ -28,14 +29,26 @@ const App: React.FC = () => {
   const [activeNav, setActiveNav] = useState<Tab>('Home');
   const [quickOpen, setQuickOpen] = useState(false);
   const [creationOpen, setCreationOpen] = useState(false);
+  const trips = useVelaStore((state) => state.trips);
   const currentTrip = useVelaStore((state) => state.getCurrentTrip());
+  const currentYear = new Date().getFullYear();
+  const achieveTrips = useMemo(() => trips.filter((trip) => trip.status === 'achieve'), [trips]);
+  const planningTrips = useMemo(() => trips.filter((trip) => trip.status === 'planning'), [trips]);
+  const annualReflection = useMemo(
+    () => generateAnnualReflection(achieveTrips, currentYear),
+    [achieveTrips, currentYear],
+  );
+  const completedTripInsights = useMemo(
+    () => achieveTrips.map(generateTripInsights),
+    [achieveTrips],
+  );
   const hasActiveJourney = Boolean(currentTrip && currentTrip.status === 'traveling');
   const handleNavigate = (next: Tab) => { setQuickOpen(false); setCreationOpen(false); setActiveNav(next); window.scrollTo({ top: 0 }); };
   const handleCreated = () => { setActiveNav('Home'); setCreationOpen(false); };
   const content = activeNav === 'Home' ? <HomePage onNavigate={handleNavigate} onCreateTrip={() => setCreationOpen(true)} />
     : activeNav === 'Ledger' ? <main className="page vela-secondary-shell"><LedgerView /></main>
     : activeNav === 'Balance' ? <main className="page vela-secondary-shell"><BalanceEngine /></main>
-    : activeNav === 'Logbook' ? <LogbookView />
+    : activeNav === 'Logbook' ? <LogbookView annualReflection={annualReflection} plannedTrips={planningTrips} completedTripInsights={completedTripInsights} />
     : <main className="page vela-secondary-shell"><TripManager /></main>;
 
   return <div className="vela-app-root">
