@@ -1,10 +1,17 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { Trip, TripStatus } from '../core/domain';
+import { DEFAULT_CATEGORIES, getDefaultCategories } from '../core/defaults';
 import { DomainValidator, isRecord } from '../core/validation';
 import { migrateLegacyPlanToTrip } from '../core/legacyAdapter';
 
 const LEGACY_STORAGE_KEY = 'vela.plan.v1';
+
+const withDefaultCategories = (trip: Trip): Trip =>
+  trip.categories.length > 0 ? trip : { ...trip, categories: getDefaultCategories() };
+
+const normalizeTrips = (trips: Trip[]): Trip[] =>
+  trips.map((trip) => withDefaultCategories(trip));
 
 interface VelaState {
   trips: Trip[];
@@ -42,7 +49,9 @@ export const useVelaStore = create<VelaState>()(
     (set, get) => ({
       trips: [],
       addTrip: (rawTrip: unknown) => {
-        const strictTrip = DomainValidator.validateEntireTrip(rawTrip, get().trips);
+        const strictTrip = withDefaultCategories(
+          DomainValidator.validateEntireTrip(rawTrip, get().trips),
+        );
         set((state) => ({ trips: [...state.trips, strictTrip] }));
       },
       updateTripStatus: (tripId: string, newStatus: unknown) => {
@@ -62,8 +71,9 @@ export const useVelaStore = create<VelaState>()(
         if (tripIndex === -1) throw new Error(`Store Error: Trip ${tripId} not found`);
         if (!isRecord(rawEntry)) throw new Error('Store Error: Entry must be an object');
         const now = Date.now();
+        const baseTrip = withDefaultCategories(trips[tripIndex]);
         const rawClone = { ...rawEntry, createdAt: now, updatedAt: now };
-        const tripClone = { ...trips[tripIndex], ledger: [...trips[tripIndex].ledger, rawClone] };
+        const tripClone = { ...baseTrip, ledger: [...baseTrip.ledger, rawClone] };
         const strictTrip = DomainValidator.validateEntireTrip(tripClone, trips.filter((t) => t.id !== tripId));
         set((state) => ({ trips: state.trips.map((t) => t.id === tripId ? strictTrip : t) }));
       },
@@ -71,7 +81,7 @@ export const useVelaStore = create<VelaState>()(
         const trips = get().trips;
         const tripIndex = trips.findIndex((t) => t.id === tripId);
         if (tripIndex === -1) throw new Error(`Store Error: Trip ${tripId} not found`);
-        const trip = trips[tripIndex];
+        const trip = withDefaultCategories(trips[tripIndex]);
         if (!trip.ledger.some((e) => e.id === entryId)) throw new Error(`Store Error: Entry ${entryId} not found in Trip ${tripId}`);
         if (!isRecord(fullReconstructedEntry)) throw new Error('Store Error: Entry must be an object');
         const rawClone = { ...fullReconstructedEntry, updatedAt: Date.now() };
@@ -101,10 +111,13 @@ export const useVelaStore = create<VelaState>()(
       onRehydrateStorage: () => (state, error) => {
         if (error || !state) return;
         const migratedTrips = migrateLegacyStorageIfNeeded(state.trips);
-        if (migratedTrips !== state.trips) {
-          useVelaStore.setState({ trips: migratedTrips });
+        const normalizedTrips = normalizeTrips(migratedTrips);
+        if (normalizedTrips !== state.trips) {
+          useVelaStore.setState({ trips: normalizedTrips });
         }
       },
     },
   ),
 );
+
+void DEFAULT_CATEGORIES;
