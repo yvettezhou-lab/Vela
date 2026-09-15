@@ -1,44 +1,25 @@
-import { useMemo } from 'react';
-import { useVelaStore } from '../../store/useVelaStore';
-import { generateAnnualReflection, generateTripInsights } from '../../utils/reflectionEngine';
+import { AnnualReflection, TripInsights } from '../../types/logbook';
+import { Trip } from '../../core/domain';
 
-export const LogbookView = () => {
-  const trips = useVelaStore((state) => state.trips);
-  const currentYear = new Date().getFullYear();
+interface LogbookViewProps {
+  annualReflection: AnnualReflection;
+  plannedTrips: Trip[];
+  completedTripInsights: TripInsights[];
+}
 
-  const achieveTrips = useMemo(
-    () => trips.filter((trip) => trip.status === 'achieve'),
-    [trips],
-  );
-  const planningTrips = useMemo(
-    () => trips.filter((trip) => trip.status === 'planning'),
-    [trips],
-  );
-
-  const annualData = useMemo(
-    () => generateAnnualReflection(achieveTrips, currentYear),
-    [achieveTrips, currentYear],
-  );
-
-  const completedInsights = useMemo(
-    () => achieveTrips.map(generateTripInsights),
-    [achieveTrips],
-  );
-
-  return (
-    <main>
-      <h1>Logbook</h1>
-      <pre>{JSON.stringify({
-        annualReflection: annualData,
-        plannedTrips: planningTrips.map((trip) => ({
-          tripId: trip.id,
-          title: trip.title,
-          localCurrency: trip.localCurrency,
-        })),
-        completedTripInsights: completedInsights,
-      }, null, 2)}</pre>
-    </main>
-  );
-};
+export const LogbookView = ({ annualReflection, plannedTrips, completedTripInsights }: LogbookViewProps) => (
+  <main>
+    <h1>Logbook</h1>
+    <pre>{JSON.stringify({
+      annualReflection,
+      plannedTrips: plannedTrips.map((trip) => ({
+        tripId: trip.id,
+        title: trip.title,
+        localCurrency: trip.localCurrency,
+      })),
+      completedTripInsights,
+    }, null, 2)}</pre>
+  </main>
+);
 
 export default LogbookView;
