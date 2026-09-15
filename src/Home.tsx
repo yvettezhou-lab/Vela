@@ -44,7 +44,8 @@ export default function Home({ onNavigate }: HomeProps) {
   const card = (trip: Trip, compact = false) => compact ? (
     <button className="vela-trip-row" key={trip.id} type="button" onClick={() => onNavigate('Ledger')}>
       <img src={cover(trip)} alt="" onError={(event) => { event.currentTarget.src = DEFAULT_COVER; }} />
-      <span className="vela-trip-row-copy"><strong>{trip.title}</strong><small>{trip.destination || 'Destination not set'} · {dateLabel(trip)}</small><em>{localSummary(trip) || 'No payments yet'}</em></span><ChevronRight size={17} />
+      <span className="vela-trip-row-copy"><strong>{trip.title}</strong><small>{trip.destination || 'Destination not set'} · {dateLabel(trip)}</small><em>{localSummary(trip) || 'No payments yet'}</em></span>
+      <span className={`vela-status-pill ${trip.status}`}>{trip.status === 'achieve' ? 'ACHIEVE' : 'PLANNING'}</span><ChevronRight size={17} />
     </button>
   ) : (
     <button className="vela-current-card" key={trip.id} type="button" onClick={() => onNavigate('Ledger')}>
@@ -59,7 +60,6 @@ export default function Home({ onNavigate }: HomeProps) {
     <header className="vela-home-header"><div><h1>Vela <span>/ JOURNEYS</span></h1><p>TRAVEL · RECORD · BELONG</p></div>
       <div className="vela-home-actions"><span><b>{trips.filter((trip) => trip.status !== 'achieve').length}</b> TRIPS</span><button type="button" onClick={() => onNavigate('Ledger')}>ALL TRIPS</button><button type="button" className="vela-add" onClick={handleNewTrip} aria-label="Start a new trip"><Plus size={18} /></button></div>
     </header>
-    <section className="vela-home-map"><div className="vela-map-copy"><small>VELA · JOURNEY INDEX</small><strong>Further,<br />brighter,<br />together.</strong><span>{current?.destination || 'A place for every journey.'}</span></div><div className="vela-map-orbit" /><div className="vela-map-compass">N<br /><b>✦</b><br />S</div></section>
     {current ? <section className="vela-current-wrap">{card(current)}</section> : <section className="vela-empty-home"><small>YOUR JOURNEY INDEX</small><h2>Nothing has set sail yet.</h2><p>Create your first trip and Vela will keep its plans, payments and balance together.</p><button type="button" onClick={handleNewTrip}><Plus size={15} /> Start a New Journey</button></section>}
     <section className="vela-home-list"><div className="vela-list-heading"><span>PLANNING NEXT</span><button type="button" onClick={() => onNavigate('Ledger')}>View all <ChevronRight size={13} /></button></div>{planning.length ? planning.map((trip) => card(trip, true)) : <div className="vela-list-empty">YOUR NEXT JOURNEY AWAITS.</div>}</section>
     <section className="vela-home-list vela-recent-list"><div className="vela-list-heading"><span>RECENT JOURNEYS</span><button type="button" onClick={() => onNavigate('Logbook')}>View all <ChevronRight size={13} /></button></div>{recent.length ? recent.map((trip) => card(trip, true)) : <div className="vela-list-empty">NO COMPLETED JOURNEYS YET.</div>}</section>
