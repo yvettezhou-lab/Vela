@@ -8,6 +8,7 @@ import './vela-secondary-finish.css';
 import './vela-home-shell.css';
 import HomePage from './Home';
 import TripManager from './components/TripManager';
+import { TripCreation } from './components/TripCreation';
 import { QuickEntry } from './components/QuickEntry';
 import { BalanceEngine } from './components/BalanceEngine';
 import { LedgerView } from './components/LedgerView';
@@ -31,23 +32,26 @@ const Logbook: React.FC = () => {
 };
 
 const App: React.FC = () => {
-  const [tab, setTab] = useState<Tab>('Home');
+  const [activeNav, setActiveNav] = useState<Tab>('Home');
   const [quickOpen, setQuickOpen] = useState(false);
+  const [creationOpen, setCreationOpen] = useState(false);
   const currentTrip = useVelaStore((state) => state.getCurrentTrip());
-  const handleNavigate = (next: Tab) => { setQuickOpen(false); setTab(next); window.scrollTo({ top: 0 }); };
-  const content = tab === 'Home' ? <HomePage onNavigate={handleNavigate} />
-    : tab === 'Ledger' ? <main className="page vela-secondary-shell"><LedgerView /></main>
-    : tab === 'Balance' ? <main className="page vela-secondary-shell"><BalanceEngine /></main>
-    : tab === 'Logbook' ? <Logbook />
+  const handleNavigate = (next: Tab) => { setQuickOpen(false); setCreationOpen(false); setActiveNav(next); window.scrollTo({ top: 0 }); };
+  const handleCreated = () => { setActiveNav('Home'); setCreationOpen(false); };
+  const content = activeNav === 'Home' ? <HomePage onNavigate={handleNavigate} onCreateTrip={() => setCreationOpen(true)} />
+    : activeNav === 'Ledger' ? <main className="page vela-secondary-shell"><LedgerView /></main>
+    : activeNav === 'Balance' ? <main className="page vela-secondary-shell"><BalanceEngine /></main>
+    : activeNav === 'Logbook' ? <Logbook />
     : <main className="page vela-secondary-shell"><TripManager /></main>;
 
   return <div className="vela-app-root">
     {content}
     <nav className="vela-global-nav" aria-label="Primary navigation">
-      {nav.map(({ label, icon: Icon }) => <button key={label} type="button" className={tab === label ? 'active' : ''} onClick={() => handleNavigate(label)}><Icon size={18} strokeWidth={1.7} /><span>{label}</span></button>)}
+      {nav.map(({ label, icon: Icon }) => <button key={label} type="button" className={activeNav === label ? 'active' : ''} onClick={() => handleNavigate(label)}><Icon size={18} strokeWidth={1.7} /><span>{label}</span></button>)}
     </nav>
     {currentTrip && <button type="button" className="vela-global-quick" aria-label="Quick Entry" onClick={() => setQuickOpen(true)}><Plus size={25} strokeWidth={1.5} /></button>}
     {quickOpen && <div className="vela-quick-backdrop" onMouseDown={(event) => { if (event.target === event.currentTarget) setQuickOpen(false); }}><div className="vela-quick-sheet"><QuickEntry onClose={() => setQuickOpen(false)} /></div></div>}
+    {creationOpen && <div className="vela-quick-backdrop" onMouseDown={(event) => { if (event.target === event.currentTarget) setCreationOpen(false); }}><div className="vela-quick-sheet"><TripCreation onClose={() => setCreationOpen(false)} onCreated={handleCreated} /></div></div>}
   </div>;
 };
 
