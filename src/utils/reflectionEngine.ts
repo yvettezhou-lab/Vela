@@ -50,12 +50,12 @@ export const generateAnnualReflection = (trips: Trip[], targetYear: number): Ann
   const annualExpenditure: Record<string, number> = {};
   const topCategories: Record<string, number> = {};
 
-  const completedTrips = trips.filter((trip) => {
-    if (trip.status !== 'achieve') return false;
+  const reflectionTrips = trips.filter((trip) => {
+    if (trip.status !== 'achieve' && trip.status !== 'traveling') return false;
     return new Date(trip.endDate).getFullYear() === targetYear;
   });
 
-  completedTrips.forEach((trip) => {
+  reflectionTrips.forEach((trip) => {
     trip.ledger.forEach((entry) => {
       const signedAmount = getSignedAmount(entry);
       addAmount(annualExpenditure, entry.originalCurrency, signedAmount);
@@ -65,8 +65,8 @@ export const generateAnnualReflection = (trips: Trip[], targetYear: number): Ann
 
   return {
     year: targetYear,
-    totalTripsCompleted: completedTrips.length,
-    totalDaysTraveled: completedTrips.reduce((days, trip) => days + getTripDays(trip), 0),
+    totalTripsCompleted: reflectionTrips.length,
+    totalDaysTraveled: reflectionTrips.reduce((days, trip) => days + getTripDays(trip), 0),
     annualExpenditure,
     topCategories,
   };
