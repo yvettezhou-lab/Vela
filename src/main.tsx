@@ -26,14 +26,11 @@ const nav = [
 ] as const;
 
 const VelaConstellationIcon = () => (
-  <svg width="27" height="27" viewBox="0 0 32 32" fill="none" aria-hidden="true">
-    <g stroke="currentColor" strokeWidth="1.15" strokeLinecap="round" strokeLinejoin="round" opacity=".9">
-      <path d="M6 9.5 12.5 7 18 11.5 24.5 8.5 27 14 21 18.5 17 25 10.5 22 7 17 6 9.5" />
-      <path d="M12.5 7 10.5 22M18 11.5 21 18.5M24.5 8.5 21 18.5M7 17 17 25" opacity=".78" />
-    </g>
-    <g fill="currentColor">
-      <circle cx="6" cy="9.5" r="1.65"/><circle cx="12.5" cy="7" r="1.5"/><circle cx="18" cy="11.5" r="1.65"/><circle cx="24.5" cy="8.5" r="1.5"/><circle cx="27" cy="14" r="1.25"/><circle cx="21" cy="18.5" r="1.55"/><circle cx="17" cy="25" r="1.6"/><circle cx="10.5" cy="22" r="1.35"/><circle cx="7" cy="17" r="1.2"/>
-    </g>
+  <svg width="32" height="32" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+    <path d="M6 18l6-10 6 4" stroke="#FAF9F5" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round" strokeDasharray="2 4" />
+    <circle cx="6" cy="18" r="1.5" fill="#FAF9F5" />
+    <circle cx="12" cy="8" r="1.5" fill="#FAF9F5" />
+    <circle cx="18" cy="12" r="1.5" fill="#FAF9F5" />
   </svg>
 );
 
@@ -73,16 +70,13 @@ const App: React.FC = () => {
     : activeNav === 'Logbook' ? <LogbookView annualReflection={annualReflection} plannedTrips={planningTrips} completedTripInsights={completedTripInsights} />
     : <main className="page vela-secondary-shell"><TripManager /></main>;
 
-  const activeTripCount = trips.filter((trip) => trip.status !== 'achieve').length;
-  const tripLabel = activeTripCount === 1 ? 'TRIP' : 'TRIPS';
-
   return <div className="vela-app-root">
     {content}
     <nav className="vela-global-nav" aria-label="Primary navigation">
       {nav.map(({ label, icon: Icon }) => <button key={label} type="button" className={activeNav === label ? 'active' : ''} onClick={() => handleNavigate(label)}><Icon size={18} strokeWidth={1.7} /><span>{label}</span></button>)}
     </nav>
     {hasActiveJourney && currentTrip && <button type="button" className="vela-global-quick" aria-label="Add Quick Entry" onClick={() => setQuickOpen(true)}><VelaConstellationIcon /></button>}
-    {quickOpen && hasActiveJourney && currentTrip && <div className="vela-quick-backdrop" role="dialog" aria-modal="true" aria-label="Quick Entry" onMouseDown={(event) => { if (event.target === event.currentTarget) setQuickOpen(false); }}><div className="vela-quick-fullscreen"><QuickEntry onClose={() => setQuickOpen(false)} /></div></div>}
+    {quickOpen && hasActiveJourney && currentTrip && <div className="vela-quick-backdrop" role="dialog" aria-modal="true" aria-label="Quick Entry" onMouseDown={(event) => { if (event.target === event.currentTarget) setQuickOpen(false); }}><div className="vela-quick-fullscreen [&_input]:text-base [&_select]:text-base"><QuickEntry onClose={() => setQuickOpen(false)} /></div></div>}
     {creationOpen && <div className="vela-quick-backdrop" onMouseDown={(event) => { if (event.target === event.currentTarget) setCreationOpen(false); }}><div className="vela-quick-sheet"><TripCreation onClose={() => setCreationOpen(false)} onCreated={handleCreated} /></div></div>}
   </div>;
 };
