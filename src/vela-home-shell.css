@@ -2,11 +2,14 @@
 
 /* Quick Entry structural isolation: no positioning offsets in the page content. */
 .vela-entry-route .vela-quick-fullscreen,.vela-entry-route .vela-quick-fullscreen header,.vela-entry-route .vela-quick-fullscreen form,.vela-entry-route .vela-quick-fullscreen form>div.grid.grid-cols-3{position:static!important;top:auto!important;right:auto!important;bottom:auto!important;left:auto!important;transform:none!important}
-.vela-entry-route .vela-quick-fullscreen{display:block!important;overflow:hidden!important}
+.vela-entry-route .vela-quick-fullscreen{display:flex!important;flex-direction:column!important;overflow:hidden!important}
 .vela-entry-route .vela-quick-fullscreen header{display:flex!important}
-.vela-entry-route .vela-quick-fullscreen form{display:block!important;overflow:hidden!important}
+.vela-entry-route .vela-quick-fullscreen form{display:flex!important;flex-direction:column!important;width:100%!important;flex:1 1 auto!important;min-height:0!important;overflow-y:auto!important;overflow-x:hidden!important}
 
-/* Date controls also stay in normal flow; the calendar icon is inline, not absolutely positioned. */
+/* Date controls stay in normal flow; the calendar icon is inline, not absolutely positioned. */
 .vela-entry-route .vela-quick-fullscreen .relative{position:static!important}
 .vela-entry-route .vela-quick-fullscreen .relative>.absolute{position:static!important;transform:none!important;display:inline-block!important;vertical-align:middle!important;margin-right:8px!important;flex:0 0 auto!important}
 .vela-entry-route .vela-quick-fullscreen .relative>input[type='date']{display:inline-block!important;width:calc(100% - 31px)!important;vertical-align:middle!important}
+
+/* The standalone /entry/new route does not need modal dismissal UI. */
+.vela-entry-route .vela-quick-fullscreen .vela-quick-close{display:none!important}
