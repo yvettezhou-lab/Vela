@@ -28,8 +28,8 @@ textarea {
   justify-content: space-between;
   gap: 18px;
   flex: 0 0 auto;
-  min-height: 118px;
-  padding: max(18px, env(safe-area-inset-top)) 30px 18px;
+  min-height: 96px;
+  padding: max(18px, env(safe-area-inset-top)) 30px 14px;
 }
 
 .vela-quick-fullscreen header > div:first-child {
@@ -285,9 +285,35 @@ textarea {
   box-shadow: 0 8px 20px rgba(23,36,58,.16);
 }
 
+.vela-success-toast {
+  position: fixed;
+  left: 50%;
+  top: max(76px, calc(env(safe-area-inset-top) + 58px));
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transform: translateX(-50%);
+  padding: 10px 15px;
+  border-radius: 14px;
+  background: #17243a;
+  color: #fffdf8;
+  box-shadow: 0 10px 28px rgba(23,36,58,.22);
+  font: 14px ui-sans-serif, system-ui, -apple-system, sans-serif;
+  white-space: nowrap;
+}
+
+.vela-success-toast strong {
+  font-weight: 600;
+}
+
+.vela-success-toast span {
+  opacity: .9;
+}
+
 @media (max-width: 520px) {
   .vela-quick-fullscreen header {
-    min-height: 108px;
+    min-height: 88px;
     padding-left: 30px;
     padding-right: 30px;
   }
