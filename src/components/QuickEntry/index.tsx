@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { Calendar, ChevronLeft, ChevronRight, CreditCard, Plane, X } from 'lucide-react';
+import { Calendar, ChevronLeft, ChevronRight, X } from 'lucide-react';
 import { useVelaStore } from '../../store/useVelaStore';
 import { TRANSPORT_CATEGORY_ID } from '../../core/validation';
 import { Allocation, AllocationMode, FlightType, LedgerEntry } from '../../core/domain';
@@ -137,7 +137,7 @@ const DatePicker: React.FC<DatePickerProps> = ({ value, onChange, label, require
                   type="button"
                   onClick={() => selectDate(cellDate)}
                   aria-pressed={selected}
-                  className={`grid min-h-12 place-items-center rounded-xl text-base transition ${selected ? 'bg-[#17243a] text-[#fffdf8] shadow-sm' : 'text-[#17243a] hover:bg-[#f3eadb]'}`}
+                  className={`grid min-h-12 place-items-center rounded-xl text-base transition ${selected ? 'bg-[#17243a] text-[#fffdf8] shadow-sm' : 'bg-[#fbf7ee] text-[#17243a] shadow-[inset_0_0_0_1px_rgba(80,64,42,.08)] hover:bg-[#f3eadb]'}`}
                 >
                   {day}
                 </button>
@@ -164,9 +164,9 @@ export const QuickEntry: React.FC<QuickEntryProps> = ({ onClose }) => {
   const currentTrip = useVelaStore((state) => state.getCurrentTrip());
   const addLedgerEntry = useVelaStore((state) => state.addLedgerEntry);
   const [entryType, setEntryType] = useState<'standard' | 'flight' | 'prepaid_multi_day'>('standard');
-  const [amount, setAmount] = useState<number | ''>('');
+  const [amount, setAmount] = useState('');
   const [currency, setCurrency] = useState('CNY');
-  const [cnyEquivalent, setCnyEquivalent] = useState<number | ''>('');
+  const [cnyEquivalent, setCnyEquivalent] = useState('');
   const [categoryId, setCategoryId] = useState('');
   const [accountId, setAccountId] = useState('');
   const [payerId, setPayerId] = useState('');
@@ -180,6 +180,9 @@ export const QuickEntry: React.FC<QuickEntryProps> = ({ onClose }) => {
   const [selectedParticipants, setSelectedParticipants] = useState<Set<string>>(new Set());
   const [customPercentages, setCustomPercentages] = useState<Record<string, number>>({});
   const [error, setError] = useState<string | null>(null);
+  const currencyComposingRef = useRef(false);
+  const amountComposingRef = useRef(false);
+  const cnyEquivalentComposingRef = useRef(false);
 
   const accounts = currentTrip?.accounts.length ? currentTrip.accounts : FALLBACK_ACCOUNTS;
   const members = currentTrip?.members.length ? currentTrip.members : FALLBACK_MEMBERS;
@@ -251,7 +254,7 @@ export const QuickEntry: React.FC<QuickEntryProps> = ({ onClose }) => {
         id: `entry_${generateId()}`,
         categoryId: entryType === 'flight' ? TRANSPORT_CATEGORY_ID : categoryId,
         originalAmount,
-        originalCurrency: currency,
+        originalCurrency: currency.trim().toUpperCase(),
         cnyEquivalent: cnyTotal,
         isRefund: false,
         isPending: false,
@@ -326,33 +329,81 @@ export const QuickEntry: React.FC<QuickEntryProps> = ({ onClose }) => {
       <form onSubmit={handleSubmit} className="flex-1 overflow-y-auto px-5 pb-[calc(120px+env(safe-area-inset-bottom))] pt-2">
         {error && <div role="alert" className="mb-4 rounded-xl bg-[#f5d8d2] px-4 py-3 text-sm text-[#7c3e35]">{error}</div>}
 
-        <div className="grid grid-cols-3 gap-2 rounded-2xl bg-[#eee5d5] p-1.5">
+        <div className="grid grid-cols-3 gap-3 rounded-2xl bg-[#eee5d5] p-1.5">
           {([
             ['standard', 'Standard'],
             ['flight', 'Flight'],
             ['prepaid_multi_day', 'Prepaid'],
           ] as const).map(([value, label]) => (
-            <button key={value} type="button" onClick={() => setEntryType(value)} aria-pressed={entryType === value} className={`min-h-12 rounded-xl px-2 text-sm transition ${entryType === value ? 'bg-[#17243a] text-[#fffdf8] shadow-sm' : 'text-[#6f6659]'}`}>
+            <button key={value} type="button" onClick={() => setEntryType(value)} aria-pressed={entryType === value} className={`min-h-12 rounded-xl border px-2 text-sm font-medium transition ${entryType === value ? 'border-[#17243a] bg-[#17243a] text-[#fffdf8] shadow-md' : 'border-black/5 bg-[#fbf7ee] text-[#6f6659] shadow-sm hover:bg-white'}`}>
               {label}
             </button>
           ))}
         </div>
 
-        <div className="mt-5 grid grid-cols-2 gap-4">
+        <div className="mt-6 grid grid-cols-2 gap-5">
           <label className="block">
             <span className="mb-2 block text-xs uppercase tracking-[0.14em] text-[#857a6a]">Amount</span>
             <div className="flex rounded-xl bg-[#fbf7ee] shadow-[inset_0_0_0_1px_rgba(80,64,42,.10)]">
-              <input type="text" value={currency} onChange={(event) => setCurrency(event.target.value.toUpperCase())} aria-label="Currency" className="w-[72px] rounded-l-xl bg-transparent px-3 text-base text-[#17243a] outline-none" />
-              <input type="number" min="0.01" step="0.01" value={amount} onChange={(event) => setAmount(event.target.value === '' ? '' : Number(event.target.value))} className="min-w-0 flex-1 rounded-r-xl bg-transparent px-2 text-base text-[#17243a] outline-none" placeholder="0.00" required />
+              <input
+                type="text"
+                value={currency}
+                onCompositionStart={() => { currencyComposingRef.current = true; }}
+                onCompositionEnd={(event) => {
+                  currencyComposingRef.current = false;
+                  setCurrency(event.currentTarget.value.trim().toUpperCase());
+                }}
+                onChange={(event) => {
+                  const next = event.currentTarget.value;
+                  if (!currencyComposingRef.current) setCurrency(next.toUpperCase());
+                  else setCurrency(next);
+                }}
+                autoCapitalize="characters"
+                spellCheck={false}
+                aria-label="Currency"
+                className="w-[72px] rounded-l-xl bg-transparent px-3 text-base text-[#17243a] outline-none"
+              />
+              <input
+                type="text"
+                inputMode="decimal"
+                value={amount}
+                onCompositionStart={() => { amountComposingRef.current = true; }}
+                onCompositionEnd={(event) => {
+                  amountComposingRef.current = false;
+                  setAmount(event.currentTarget.value);
+                }}
+                onChange={(event) => {
+                  if (!amountComposingRef.current) setAmount(event.currentTarget.value);
+                }}
+                className="min-w-0 flex-1 rounded-r-xl bg-transparent px-2 text-base text-[#17243a] outline-none"
+                placeholder="0.00"
+                required
+                aria-label="Amount"
+              />
             </div>
           </label>
           <label className="block">
             <span className="mb-2 block text-xs uppercase tracking-[0.14em] text-[#857a6a]">CNY Equivalent</span>
-            <input type="number" min="0.01" step="0.01" value={cnyEquivalent} onChange={(event) => setCnyEquivalent(event.target.value === '' ? '' : Number(event.target.value))} className="w-full rounded-xl bg-[#fbf7ee] px-4 text-base text-[#17243a] shadow-[inset_0_0_0_1px_rgba(80,64,42,.10)] outline-none" placeholder="Same as amount" />
+            <input
+              type="text"
+              inputMode="decimal"
+              value={cnyEquivalent}
+              onCompositionStart={() => { cnyEquivalentComposingRef.current = true; }}
+              onCompositionEnd={(event) => {
+                cnyEquivalentComposingRef.current = false;
+                setCnyEquivalent(event.currentTarget.value);
+              }}
+              onChange={(event) => {
+                if (!cnyEquivalentComposingRef.current) setCnyEquivalent(event.currentTarget.value);
+              }}
+              className="w-full rounded-xl bg-[#fbf7ee] px-4 text-base text-[#17243a] shadow-[inset_0_0_0_1px_rgba(80,64,42,.10)] outline-none"
+              placeholder="Same as amount"
+              aria-label="CNY Equivalent"
+            />
           </label>
         </div>
 
-        <div className="mt-5 grid grid-cols-2 gap-4">
+        <div className="mt-6 grid grid-cols-2 gap-5">
           {entryType !== 'flight' && (
             <label className="block">
               <span className="mb-2 block text-xs uppercase tracking-[0.14em] text-[#857a6a]">Category</span>
@@ -363,27 +414,27 @@ export const QuickEntry: React.FC<QuickEntryProps> = ({ onClose }) => {
           )}
           <div className={entryType === 'flight' ? 'col-span-2' : ''}>
             <span className="mb-2 block text-xs uppercase tracking-[0.14em] text-[#857a6a]">Payment Account</span>
-            <div className="grid grid-cols-2 gap-2">
-              {accounts.map((account) => <button key={account.id} type="button" onClick={() => setAccountId(account.id)} aria-pressed={accountId === account.id} className={`min-h-12 rounded-xl px-3 text-sm ${accountId === account.id ? 'bg-[#17243a] text-[#fffdf8]' : 'bg-[#fbf7ee] text-[#17243a] shadow-[inset_0_0_0_1px_rgba(80,64,42,.10)]'}`}>{account.name}</button>)}
+            <div className="grid grid-cols-2 gap-3">
+              {accounts.map((account) => <button key={account.id} type="button" onClick={() => setAccountId(account.id)} aria-pressed={accountId === account.id} className={`min-h-12 rounded-xl border px-3 text-sm font-medium transition ${accountId === account.id ? 'border-[#17243a] bg-[#17243a] text-[#fffdf8] shadow-md' : 'border-black/5 bg-[#fbf7ee] text-[#17243a] shadow-sm hover:bg-white'}`}>{account.name}</button>)}
             </div>
           </div>
         </div>
 
         {entryType === 'standard' && (
-          <div className="mt-5">
+          <div className="mt-6">
             <DatePicker value={paymentDate} onChange={setPaymentDate} label="Date" required />
           </div>
         )}
 
         {entryType === 'flight' && (
-          <div className="mt-5 space-y-4">
+          <div className="mt-6 space-y-5">
             <div>
               <span className="mb-2 block text-xs uppercase tracking-[0.14em] text-[#857a6a]">Flight</span>
-              <div className="grid grid-cols-2 gap-2">
-                {([['one_way', 'One Way'], ['round_trip', 'Round Trip']] as const).map(([value, label]) => <button key={value} type="button" onClick={() => setFlightType(value)} aria-pressed={flightType === value} className={`min-h-12 rounded-xl text-sm ${flightType === value ? 'bg-[#17243a] text-[#fffdf8]' : 'bg-[#fbf7ee] text-[#17243a] shadow-[inset_0_0_0_1px_rgba(80,64,42,.10)]'}`}>{label}</button>)}
+              <div className="grid grid-cols-2 gap-3">
+                {([['one_way', 'One Way'], ['round_trip', 'Round Trip']] as const).map(([value, label]) => <button key={value} type="button" onClick={() => setFlightType(value)} aria-pressed={flightType === value} className={`min-h-12 rounded-xl border px-4 text-sm font-medium transition ${flightType === value ? 'border-[#17243a] bg-[#17243a] text-[#fffdf8] shadow-md' : 'border-black/5 bg-[#fbf7ee] text-[#17243a] shadow-sm hover:bg-white'}`}>{label}</button>)}
               </div>
             </div>
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-2 gap-5">
               <DatePicker value={outboundDate} onChange={setOutboundDate} label="Outbound" required />
               {flightType === 'round_trip' && <DatePicker value={returnDate} onChange={setReturnDate} label="Return" required />}
             </div>
@@ -391,34 +442,34 @@ export const QuickEntry: React.FC<QuickEntryProps> = ({ onClose }) => {
         )}
 
         {entryType === 'prepaid_multi_day' && (
-          <div className="mt-5 space-y-4">
+          <div className="mt-6 space-y-5">
             <DatePicker value={paymentDate} onChange={setPaymentDate} label="Payment Date" required />
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-2 gap-5">
               <DatePicker value={usageStart} onChange={setUsageStart} label="Usage Start" required />
               <DatePicker value={usageEnd} onChange={setUsageEnd} label="Usage End" required />
             </div>
           </div>
         )}
 
-        <div className="mt-5">
+        <div className="mt-6">
           <span className="mb-2 block text-xs uppercase tracking-[0.14em] text-[#857a6a]">Who Paid?</span>
-          <div className="flex flex-wrap gap-2">
-            {members.map((member) => <button key={member.id} type="button" onClick={() => setPayerId(member.id)} aria-pressed={payerId === member.id} className={`min-h-12 rounded-xl px-5 text-sm ${payerId === member.id ? 'bg-[#17243a] text-[#fffdf8]' : 'bg-[#fbf7ee] text-[#17243a] shadow-[inset_0_0_0_1px_rgba(80,64,42,.10)]'}`}>{member.name}</button>)}
+          <div className="flex flex-wrap gap-3">
+            {members.map((member) => <button key={member.id} type="button" onClick={() => setPayerId(member.id)} aria-pressed={payerId === member.id} className={`min-h-12 rounded-xl border px-5 text-sm font-medium transition ${payerId === member.id ? 'border-[#17243a] bg-[#17243a] text-[#fffdf8] shadow-md' : 'border-black/5 bg-[#fbf7ee] text-[#17243a] shadow-sm hover:bg-white'}`}>{member.name}</button>)}
           </div>
         </div>
 
-        <div className="mt-5">
-          <div className="mb-2 flex items-center justify-between gap-3">
+        <div className="mt-6">
+          <div className="mb-3 flex items-center justify-between gap-3">
             <span className="text-xs uppercase tracking-[0.14em] text-[#857a6a]">Participants</span>
             <div className="flex gap-1.5 rounded-xl bg-[#eee5d5] p-1">
-              {([['equal', 'Equal'], ['custom_percentage', 'Custom %']] as const).map(([value, label]) => <button key={value} type="button" onClick={() => setAllocationMode(value)} aria-pressed={allocationMode === value} className={`min-h-10 rounded-lg px-3 text-xs ${allocationMode === value ? 'bg-[#fffdf8] text-[#17243a] shadow-sm' : 'text-[#746b5e]'}`}>{label}</button>)}
+              {([['equal', 'Equal'], ['custom_percentage', 'Custom %']] as const).map(([value, label]) => <button key={value} type="button" onClick={() => setAllocationMode(value)} aria-pressed={allocationMode === value} className={`min-h-10 rounded-lg border px-3 text-xs font-medium transition ${allocationMode === value ? 'border-[#17243a] bg-[#fffdf8] text-[#17243a] shadow-sm' : 'border-transparent text-[#746b5e] hover:bg-[#fbf7ee]'}`}>{label}</button>)}
             </div>
           </div>
-          <div className="flex flex-wrap gap-2">
+          <div className="flex flex-wrap gap-3">
             {members.map((member) => {
               const selected = selectedParticipants.has(member.id);
               return (
-                <button key={member.id} type="button" onClick={() => toggleParticipant(member.id)} aria-pressed={selected} className={`min-h-12 rounded-xl px-5 text-sm ${selected ? 'bg-[#17243a] text-[#fffdf8]' : 'bg-[#fbf7ee] text-[#17243a] shadow-[inset_0_0_0_1px_rgba(80,64,42,.10)]'}`}>
+                <button key={member.id} type="button" onClick={() => toggleParticipant(member.id)} aria-pressed={selected} className={`min-h-12 rounded-xl border px-5 text-sm font-medium transition ${selected ? 'border-[#17243a] bg-[#17243a] text-[#fffdf8] shadow-md' : 'border-black/5 bg-[#fbf7ee] text-[#17243a] shadow-sm hover:bg-white'}`}>
                   {member.name}
                   {allocationMode === 'custom_percentage' && selected && <span className="ml-2 opacity-80">{customPercentages[member.id] ?? 0}%</span>}
                 </button>
@@ -426,13 +477,13 @@ export const QuickEntry: React.FC<QuickEntryProps> = ({ onClose }) => {
             })}
           </div>
           {allocationMode === 'custom_percentage' && (
-            <div className="mt-3 grid grid-cols-2 gap-2">
-              {members.filter((member) => selectedParticipants.has(member.id)).map((member) => <label key={member.id} className="flex min-h-12 items-center justify-between rounded-xl bg-[#fbf7ee] px-4 shadow-[inset_0_0_0_1px_rgba(80,64,42,.10)]"><span className="text-sm">{member.name}</span><span className="flex items-center gap-1"><input type="number" min="0" max="100" step="0.01" value={customPercentages[member.id] ?? ''} onChange={(event) => setCustomPercentages((previous) => ({ ...previous, [member.id]: event.target.value === '' ? 0 : Number(event.target.value) }))} className="w-16 bg-transparent text-right text-base outline-none" aria-label={`${member.name} percentage`} /><span className="text-sm text-[#857a6a]">%</span></span></label>)}
+            <div className="mt-4 grid grid-cols-2 gap-3">
+              {members.filter((member) => selectedParticipants.has(member.id)).map((member) => <label key={member.id} className="flex min-h-12 items-center justify-between rounded-xl bg-[#fbf7ee] px-4 shadow-[inset_0_0_0_1px_rgba(80,64,42,.10)]"><span className="text-sm">{member.name}</span><span className="flex items-center gap-1"><input type="text" inputMode="decimal" value={customPercentages[member.id] ?? ''} onChange={(event) => setCustomPercentages((previous) => ({ ...previous, [member.id]: event.target.value === '' ? 0 : Number(event.target.value) }))} className="w-16 bg-transparent text-right text-base outline-none" aria-label={`${member.name} percentage`} /><span className="text-sm text-[#857a6a]">%</span></span></label>)}
             </div>
           )}
         </div>
 
-        <button type="submit" className="mt-7 w-full rounded-2xl bg-[#17243a] px-5 text-base font-medium text-[#fffdf8] shadow-[0_8px_20px_rgba(23,36,58,.16)] transition active:scale-[.99]">Save Entry</button>
+        <button type="submit" className="mt-8 min-h-12 w-full rounded-2xl bg-[#17243a] px-5 text-base font-medium text-[#fffdf8] shadow-[0_8px_20px_rgba(23,36,58,.16)] transition active:scale-[.99]">Save Entry</button>
       </form>
     </section>
   );
