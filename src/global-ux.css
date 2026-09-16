@@ -1,0 +1,18 @@
+/* Global iOS Safari form baseline: keep editable controls at 16px to prevent focus zoom. */
+input:not([type='checkbox']):not([type='radio']):not([type='range']),
+textarea,
+select {
+  font-size: 16px !important;
+  -webkit-text-size-adjust: 100%;
+}
+
+input:not([type='checkbox']):not([type='radio']):not([type='range']),
+textarea,
+select,
+button {
+  min-height: 48px;
+}
+
+textarea {
+  min-height: 96px;
+}
