@@ -23,12 +23,31 @@ const toDateValue = (date: Date) => {
 
 const todayValue = () => toDateValue(new Date());
 
-const isLegacyIOS = () => {
-  if (typeof navigator === 'undefined') return false;
+/** Carina dual-track date behavior:
+ * iOS 15/16 -> native input[type=date]
+ * iOS 17+ / Android / desktop -> custom React calendar
+ * iPadOS desktop UA is identified through Macintosh + touch points.
+ */
+const getIOSMajorVersion = (): number | null => {
+  if (typeof navigator === 'undefined') return null;
   const ua = navigator.userAgent;
-  if (!/(iPhone|iPad|iPod)/i.test(ua)) return false;
-  const match = ua.match(/OS (\d+)[._]/i);
-  return Boolean(match && Number(match[1]) < 14);
+  const isIOSDevice = /(iPhone|iPad|iPod)/i.test(ua);
+  const isIPadDesktopUA = /Macintosh/i.test(ua) && navigator.maxTouchPoints > 1;
+  if (!isIOSDevice && !isIPadDesktopUA) return null;
+
+  const iosMatch = ua.match(/OS (\d+)[._]/i);
+  if (iosMatch) return Number(iosMatch[1]);
+
+  const versionMatch = ua.match(/Version\/(\d+)(?:[._]|\.)/i);
+  return versionMatch ? Number(versionMatch[1]) : null;
+};
+
+const useNativeDateInput = () => {
+  const [native] = useState(() => {
+    const version = getIOSMajorVersion();
+    return version === 15 || version === 16;
+  });
+  return native;
 };
 
 const formatCny = (value: number) => (Number.isFinite(value) ? value.toFixed(2).replace(/\.00$/, '') : '');
@@ -42,7 +61,7 @@ interface DatePickerProps {
 
 const DatePicker: React.FC<DatePickerProps> = ({ value, onChange, label, required }) => {
   const [open, setOpen] = useState(false);
-  const [legacyIOS] = useState(isLegacyIOS);
+  const useNative = useNativeDateInput();
   const [viewDate, setViewDate] = useState(() => {
     const initial = value ? new Date(`${value}T00:00:00`) : new Date();
     return Number.isNaN(initial.getTime()) ? new Date() : initial;
@@ -55,6 +74,7 @@ const DatePicker: React.FC<DatePickerProps> = ({ value, onChange, label, require
   }, [value]);
 
   const selectDate = (date: Date) => {
+    // Only the calendar date is changed; the picker never owns or edits a time field.
     onChange(toDateValue(date));
     setOpen(false);
   };
@@ -70,7 +90,7 @@ const DatePicker: React.FC<DatePickerProps> = ({ value, onChange, label, require
     ? new Date(`${value}T00:00:00`).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
     : 'Select date';
 
-  if (legacyIOS) {
+  if (useNative) {
     return (
       <label className="block">
         <span className="mb-2 block text-xs uppercase tracking-[0.14em] text-[#857a6a]">{label}</span>
@@ -80,10 +100,7 @@ const DatePicker: React.FC<DatePickerProps> = ({ value, onChange, label, require
             type="date"
             value={value}
             required={required}
-            onChange={(event) => {
-              onChange(event.target.value);
-              event.currentTarget.blur();
-            }}
+            onChange={(event) => onChange(event.currentTarget.value)}
             className="w-full rounded-xl bg-[#fbf7ee] px-12 py-3.5 text-base text-[#17243a] shadow-[inset_0_0_0_1px_rgba(80,64,42,.10)] outline-none"
           />
         </div>
@@ -96,7 +113,6 @@ const DatePicker: React.FC<DatePickerProps> = ({ value, onChange, label, require
       <span className="mb-2 block text-xs uppercase tracking-[0.14em] text-[#857a6a]">{label}</span>
       <button
         type="button"
-        onTouchStart={() => setOpen(true)}
         onClick={() => setOpen(true)}
         aria-expanded={open}
         className="flex min-h-12 w-full items-center gap-3 rounded-xl bg-[#fbf7ee] px-4 text-left text-base text-[#17243a] shadow-[inset_0_0_0_1px_rgba(80,64,42,.10)]"
@@ -105,7 +121,7 @@ const DatePicker: React.FC<DatePickerProps> = ({ value, onChange, label, require
         <span className={value ? '' : 'text-[#a7a097]'}>{displayValue}</span>
       </button>
       {open && (
-        <div className="vela-date-popover" onTouchStart={(event) => event.stopPropagation()} onClick={(event) => event.stopPropagation()}>
+        <div className="vela-date-popover" role="dialog" aria-label={`${label} date picker`}>
           <div className="vela-date-header">
             <button type="button" onClick={() => setViewDate(new Date(viewDate.getFullYear(), viewDate.getMonth() - 1, 1))} aria-label="Previous month">
               <ChevronLeft size={20} />
@@ -167,14 +183,20 @@ export const QuickEntry: React.FC<QuickEntryProps> = ({ onClose }) => {
   const [selectedParticipants, setSelectedParticipants] = useState<Set<string>>(new Set());
   const [customPercentages, setCustomPercentages] = useState<Record<string, number>>({});
   const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState(false);
   const [fxRate, setFxRate] = useState<number | null>(null);
   const currencyComposingRef = useRef(false);
   const amountComposingRef = useRef(false);
   const cnyEquivalentComposingRef = useRef(false);
   const cnyManualRef = useRef(false);
+  const successTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const accounts = currentTrip?.accounts.length ? currentTrip.accounts : FALLBACK_ACCOUNTS;
   const members = currentTrip?.members.length ? currentTrip.members : FALLBACK_MEMBERS;
+
+  useEffect(() => () => {
+    if (successTimerRef.current) clearTimeout(successTimerRef.current);
+  }, []);
 
   useEffect(() => {
     if (!currentTrip) return;
@@ -325,10 +347,15 @@ export const QuickEntry: React.FC<QuickEntryProps> = ({ onClose }) => {
 
       if (!currentTrip) throw new Error('No active trip found.');
       addLedgerEntry(currentTrip.id, finalEntry);
+
       setAmount('');
       setCnyEquivalent('');
-      onClose?.();
+      setError(null);
+      setSuccess(true);
+      if (successTimerRef.current) clearTimeout(successTimerRef.current);
+      successTimerRef.current = setTimeout(() => setSuccess(false), 1800);
     } catch (submissionError: unknown) {
+      setSuccess(false);
       setError(submissionError instanceof Error ? submissionError.message : String(submissionError));
     }
   };
@@ -356,6 +383,8 @@ export const QuickEntry: React.FC<QuickEntryProps> = ({ onClose }) => {
         </div>
         {onClose && <button type="button" onClick={onClose} aria-label="Close Quick Entry" className="vela-quick-close grid min-h-12 min-w-12 place-items-center rounded-full text-[#17243a]"><X size={23} strokeWidth={1.7} /></button>}
       </header>
+
+      {success && <div className="vela-success-toast" role="status" aria-live="polite"><strong>✓ Success</strong><span>已保存</span></div>}
 
       <form onSubmit={handleSubmit} className="flex-1 overflow-y-auto px-5 pb-[calc(120px+env(safe-area-inset-bottom))] pt-2">
         {error && <div role="alert" className="mb-4 rounded-xl bg-[#f5d8d2] px-4 py-3 text-sm text-[#7c3e35]">{error}</div>}
