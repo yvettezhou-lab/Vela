@@ -6,6 +6,7 @@ import './vela-polish.css';
 import './vela-secondary-polish.css';
 import './vela-secondary-finish.css';
 import './vela-home-shell.css';
+import './global-ux.css';
 import HomePage from './Home';
 import TripManager from './components/TripManager';
 import { TripCreation } from './components/TripCreation';
@@ -41,15 +42,18 @@ const App: React.FC = () => {
   const trips = useVelaStore((state) => state.trips);
   const currentTrip = useVelaStore((state) => state.getCurrentTrip());
   const currentYear = new Date().getFullYear();
-  const achieveTrips = useMemo(() => trips.filter((trip) => trip.status === 'achieve'), [trips]);
+  const reflectionTrips = useMemo(
+    () => trips.filter((trip) => trip.status === 'achieve' || trip.status === 'traveling'),
+    [trips],
+  );
   const planningTrips = useMemo(() => trips.filter((trip) => trip.status === 'planning'), [trips]);
   const annualReflection = useMemo(
-    () => generateAnnualReflection(achieveTrips, currentYear),
-    [achieveTrips, currentYear],
+    () => generateAnnualReflection(reflectionTrips, currentYear),
+    [reflectionTrips, currentYear],
   );
-  const completedTripInsights = useMemo(
-    () => achieveTrips.map(generateTripInsights),
-    [achieveTrips],
+  const tripInsights = useMemo(
+    () => reflectionTrips.map(generateTripInsights),
+    [reflectionTrips],
   );
   const hasActiveJourney = Boolean(currentTrip && currentTrip.status === 'traveling');
 
@@ -67,7 +71,7 @@ const App: React.FC = () => {
   const content = activeNav === 'Home' ? <HomePage onNavigate={handleNavigate} onCreateTrip={() => setCreationOpen(true)} />
     : activeNav === 'Ledger' ? <main className="page vela-secondary-shell"><LedgerView /></main>
     : activeNav === 'Balance' ? <main className="page vela-secondary-shell"><BalanceEngine /></main>
-    : activeNav === 'Logbook' ? <LogbookView annualReflection={annualReflection} plannedTrips={planningTrips} completedTripInsights={completedTripInsights} />
+    : activeNav === 'Logbook' ? <LogbookView annualReflection={annualReflection} plannedTrips={planningTrips} tripInsights={tripInsights} />
     : <main className="page vela-secondary-shell"><TripManager /></main>;
 
   return <div className="vela-app-root">
