@@ -23,10 +23,9 @@
 .vela-entry-route .vela-quick-fullscreen form button[aria-pressed='false']{background:#fbf7ee!important;color:#17243a!important;border-color:rgba(0,0,0,.05)!important;box-shadow:0 1px 2px rgba(0,0,0,.04)!important}
 .vela-entry-route .vela-quick-fullscreen form button[aria-pressed]:active{transform:scale(.96)!important;opacity:.8!important}
 
-/* Every date field uses the same normal-flow wrapper; the reusable DatePicker owns the icon layout. */
-.vela-entry-route .vela-quick-fullscreen form .vela-date-field{display:flex!important;flex-direction:column!important;gap:8px!important;width:100%!important;position:static!important;margin:0!important}
-.vela-entry-route .vela-quick-fullscreen form .vela-date-input-row{display:flex!important;align-items:center!important;gap:8px!important;width:100%!important;position:static!important}
-.vela-entry-route .vela-quick-fullscreen form .vela-date-input-row svg{position:static!important;flex:0 0 auto!important}
-.vela-entry-route .vela-quick-fullscreen form .vela-date-input-row input[type='date']{flex:1 1 auto!important;min-width:0!important;width:auto!important;margin:0!important;padding-left:16px!important;padding-right:16px!important}
+/* Universal DatePicker layout: every instance shares this structure. */
+.vela-entry-route .vela-quick-fullscreen form label>.relative{display:flex!important;flex-direction:row!important;align-items:center!important;gap:8px!important;width:100%!important;position:static!important;margin:0!important}
+.vela-entry-route .vela-quick-fullscreen form label>.relative>.absolute{position:static!important;display:block!important;flex:0 0 auto!important;width:19px!important;height:19px!important;margin:0!important;transform:none!important}
+.vela-entry-route .vela-quick-fullscreen form label>.relative>input[type='date']{display:block!important;flex:1 1 auto!important;min-width:0!important;width:auto!important;margin:0!important;padding-left:16px!important;padding-right:16px!important;box-sizing:border-box!important}
 
 .vela-entry-route .vela-quick-fullscreen .vela-quick-close{display:none!important}
