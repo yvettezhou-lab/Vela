@@ -51,7 +51,19 @@ const App: React.FC = () => {
       {nav.map(({ label, icon: Icon }) => <button key={label} type="button" className={activeNav === label ? 'active' : ''} onClick={() => handleNavigate(label)}><Icon size={18} strokeWidth={1.7} /><span>{label}</span></button>)}
     </nav>
     {hasActiveJourney && currentTrip && <button type="button" className="vela-global-quick" aria-label="Quick Entry" onClick={() => setQuickOpen(true)}><Plus size={25} strokeWidth={1.5} /></button>}
-    {quickOpen && hasActiveJourney && currentTrip && <div className="vela-quick-backdrop" onMouseDown={(event) => { if (event.target === event.currentTarget) setQuickOpen(false); }}><div className="vela-quick-sheet"><QuickEntry onClose={() => setQuickOpen(false)} /></div></div>}
+    {quickOpen && hasActiveJourney && currentTrip && (
+      <div
+        className="vela-quick-backdrop fixed inset-0 z-50 w-screen h-screen"
+        onClick={(event) => { if (event.target === event.currentTarget) setQuickOpen(false); }}
+      >
+        <div
+          className="fixed inset-0 z-50 w-screen h-screen bg-white overflow-y-auto"
+          onClick={(event) => event.stopPropagation()}
+        >
+          <QuickEntry onClose={() => setQuickOpen(false)} />
+        </div>
+      </div>
+    )}
     {creationOpen && <div className="vela-quick-backdrop" onMouseDown={(event) => { if (event.target === event.currentTarget) setCreationOpen(false); }}><div className="vela-quick-sheet"><TripCreation onClose={() => setCreationOpen(false)} onCreated={handleCreated} /></div></div>}
   </div>;
 };
