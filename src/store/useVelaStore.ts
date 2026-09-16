@@ -10,8 +10,21 @@ const LEGACY_STORAGE_KEY = 'vela.plan.v1';
 const withDefaultCategories = (trip: Trip): Trip =>
   trip.categories.length > 0 ? trip : { ...trip, categories: getDefaultCategories() };
 
+const withDefaultAccountsAndMember = (trip: Trip): Trip => ({
+  ...trip,
+  accounts: trip.accounts.length > 0
+    ? trip.accounts
+    : [
+        { id: 'default-account-cash', name: 'Cash' },
+        { id: 'default-account-credit-card', name: 'Credit Card' },
+      ],
+  members: trip.members.length > 0
+    ? trip.members
+    : [{ id: 'default-member-me', name: 'Me' }],
+});
+
 const normalizeTrips = (trips: Trip[]): Trip[] =>
-  trips.map((trip) => withDefaultCategories(trip));
+  trips.map((trip) => withDefaultAccountsAndMember(withDefaultCategories(trip)));
 
 interface VelaState {
   trips: Trip[];
@@ -49,8 +62,10 @@ export const useVelaStore = create<VelaState>()(
     (set, get) => ({
       trips: [],
       addTrip: (rawTrip: unknown) => {
-        const strictTrip = withDefaultCategories(
-          DomainValidator.validateEntireTrip(rawTrip, get().trips),
+        const strictTrip = withDefaultAccountsAndMember(
+          withDefaultCategories(
+            DomainValidator.validateEntireTrip(rawTrip, get().trips),
+          ),
         );
         set((state) => ({ trips: [...state.trips, strictTrip] }));
       },
@@ -71,7 +86,7 @@ export const useVelaStore = create<VelaState>()(
         if (tripIndex === -1) throw new Error(`Store Error: Trip ${tripId} not found`);
         if (!isRecord(rawEntry)) throw new Error('Store Error: Entry must be an object');
         const now = Date.now();
-        const baseTrip = withDefaultCategories(trips[tripIndex]);
+        const baseTrip = withDefaultAccountsAndMember(withDefaultCategories(trips[tripIndex]));
         const rawClone = { ...rawEntry, createdAt: now, updatedAt: now };
         const tripClone = { ...baseTrip, ledger: [...baseTrip.ledger, rawClone] };
         const strictTrip = DomainValidator.validateEntireTrip(tripClone, trips.filter((t) => t.id !== tripId));
@@ -81,7 +96,7 @@ export const useVelaStore = create<VelaState>()(
         const trips = get().trips;
         const tripIndex = trips.findIndex((t) => t.id === tripId);
         if (tripIndex === -1) throw new Error(`Store Error: Trip ${tripId} not found`);
-        const trip = withDefaultCategories(trips[tripIndex]);
+        const trip = withDefaultAccountsAndMember(withDefaultCategories(trips[tripIndex]));
         if (!trip.ledger.some((e) => e.id === entryId)) throw new Error(`Store Error: Entry ${entryId} not found in Trip ${tripId}`);
         if (!isRecord(fullReconstructedEntry)) throw new Error('Store Error: Entry must be an object');
         const rawClone = { ...fullReconstructedEntry, updatedAt: Date.now() };
