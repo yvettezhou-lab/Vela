@@ -1,0 +1,72 @@
+.vela-quick-fullscreen form > div {
+  margin-top: 22px;
+}
+
+.vela-quick-fullscreen form > div:first-of-type {
+  margin-top: 0;
+}
+
+/* Quick Entry uses semantic CSS because this project does not ship Tailwind. */
+.vela-quick-fullscreen form .grid-cols-2 {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 18px;
+}
+
+.vela-quick-fullscreen form .grid-cols-3 {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.vela-quick-fullscreen form .flex-wrap {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.vela-quick-fullscreen form [aria-pressed="true"] {
+  border: 1px solid #17243a !important;
+  background: #17243a !important;
+  color: #fffdf8 !important;
+  box-shadow: 0 5px 12px rgba(23, 36, 58, .18) !important;
+}
+
+.vela-quick-fullscreen form button[aria-pressed] {
+  min-height: 48px;
+  border-radius: 12px;
+  padding: 0 16px;
+  border: 1px solid rgba(80, 64, 42, .10);
+  background: #fbf7ee;
+  color: #17243a;
+  font: 500 14px ui-sans-serif, system-ui, -apple-system, sans-serif;
+  cursor: pointer;
+  transition: background .15s ease, color .15s ease, box-shadow .15s ease, transform .15s ease;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.vela-quick-fullscreen form button[aria-pressed]:not([aria-pressed="true"]):active {
+  transform: scale(.98);
+}
+
+.vela-quick-fullscreen form button[aria-pressed]:not([aria-pressed="true"]):hover {
+  background: #f3eadb;
+}
+
+.vela-quick-fullscreen form .gap-3 {
+  gap: 10px;
+}
+
+.vela-quick-fullscreen form .gap-5 {
+  gap: 18px;
+}
+
+@media (max-width: 520px) {
+  .vela-quick-fullscreen form .grid-cols-2 {
+    gap: 12px;
+  }
+
+  .vela-quick-fullscreen form button[aria-pressed] {
+    padding: 0 13px;
+  }
+}
