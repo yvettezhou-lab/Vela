@@ -11,4 +11,109 @@ textarea {
   min-height: 96px;
 }
 
-/* Quick Entry layout is scoped to /entry/new in vela-home-shell.css. */
+/* Quick Entry structural fallback: the project does not ship Tailwind's utility layer,
+   so layout utilities used by the component are defined here, strictly inside /entry/new. */
+.vela-entry-route .vela-quick-fullscreen form {
+  display: flex !important;
+  flex-direction: column !important;
+  justify-content: flex-start !important;
+  align-items: stretch !important;
+  width: 100% !important;
+  min-height: 0 !important;
+  margin: 0 !important;
+  padding-top: 0 !important;
+  gap: 0 !important;
+}
+
+.vela-entry-route .vela-quick-fullscreen form label {
+  display: block !important;
+  width: 100% !important;
+  min-width: 0 !important;
+}
+
+.vela-entry-route .vela-quick-fullscreen form label.flex {
+  display: flex !important;
+}
+
+.vela-entry-route .vela-quick-fullscreen form .grid {
+  display: grid !important;
+}
+
+.vela-entry-route .vela-quick-fullscreen form .grid-cols-2 {
+  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+}
+
+.vela-entry-route .vela-quick-fullscreen form .grid-cols-3 {
+  grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+}
+
+.vela-entry-route .vela-quick-fullscreen form .flex {
+  display: flex !important;
+}
+
+.vela-entry-route .vela-quick-fullscreen form .flex-1 {
+  flex: 1 1 0% !important;
+}
+
+.vela-entry-route .vela-quick-fullscreen form .min-w-0 {
+  min-width: 0 !important;
+}
+
+.vela-entry-route .vela-quick-fullscreen form .w-full {
+  width: 100% !important;
+}
+
+.vela-entry-route .vela-quick-fullscreen form .col-span-2 {
+  grid-column: span 2 / span 2 !important;
+}
+
+.vela-entry-route .vela-quick-fullscreen form .items-center {
+  align-items: center !important;
+}
+
+.vela-entry-route .vela-quick-fullscreen form .justify-between {
+  justify-content: space-between !important;
+}
+
+.vela-entry-route .vela-quick-fullscreen form .flex-wrap {
+  flex-wrap: wrap !important;
+}
+
+.vela-entry-route .vela-quick-fullscreen form .space-y-5 > * + * {
+  margin-top: 10px !important;
+}
+
+.vela-entry-route .vela-quick-fullscreen form .gap-5 {
+  gap: 10px !important;
+}
+
+.vela-entry-route .vela-quick-fullscreen form .gap-3 {
+  gap: 8px !important;
+}
+
+.vela-entry-route .vela-quick-fullscreen form .gap-1\.5 {
+  gap: 4px !important;
+}
+
+/* No inner Quick Entry positioning hacks. */
+.vela-entry-route .vela-quick-fullscreen form .relative,
+.vela-entry-route .vela-quick-fullscreen form .absolute {
+  position: static !important;
+  top: auto !important;
+  right: auto !important;
+  bottom: auto !important;
+  left: auto !important;
+  transform: none !important;
+}
+
+/* Native date controls remain ordinary block-flow fields. */
+.vela-entry-route .vela-quick-fullscreen form input[type='date'] {
+  display: block !important;
+  width: 100% !important;
+  margin: 0 !important;
+}
+
+/* The standalone /entry/new route does not need modal dismissal UI. */
+.vela-entry-route .vela-quick-fullscreen .vela-quick-close {
+  display: none !important;
+}
