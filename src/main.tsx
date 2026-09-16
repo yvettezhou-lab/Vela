@@ -42,28 +42,17 @@ const App: React.FC = () => {
   const trips = useVelaStore((state) => state.trips);
   const currentTrip = useVelaStore((state) => state.getCurrentTrip());
   const currentYear = new Date().getFullYear();
-  const reflectionTrips = useMemo(
-    () => trips.filter((trip) => trip.status === 'achieve' || trip.status === 'traveling'),
-    [trips],
-  );
+  const reflectionTrips = useMemo(() => trips.filter((trip) => trip.status === 'achieve' || trip.status === 'traveling'), [trips]);
   const planningTrips = useMemo(() => trips.filter((trip) => trip.status === 'planning'), [trips]);
-  const annualReflection = useMemo(
-    () => generateAnnualReflection(reflectionTrips, currentYear),
-    [reflectionTrips, currentYear],
-  );
-  const tripInsights = useMemo(
-    () => reflectionTrips.map(generateTripInsights),
-    [reflectionTrips],
-  );
+  const annualReflection = useMemo(() => generateAnnualReflection(reflectionTrips, currentYear), [reflectionTrips, currentYear]);
+  const tripInsights = useMemo(() => reflectionTrips.map(generateTripInsights), [reflectionTrips]);
   const hasActiveJourney = Boolean(currentTrip && currentTrip.status === 'traveling');
 
   useEffect(() => {
     if (!quickOpen) return;
     const previousOverflow = document.body.style.overflow;
     document.body.style.overflow = 'hidden';
-    return () => {
-      document.body.style.overflow = previousOverflow;
-    };
+    return () => { document.body.style.overflow = previousOverflow; };
   }, [quickOpen]);
 
   const handleNavigate = (next: Tab) => { setQuickOpen(false); setCreationOpen(false); setActiveNav(next); window.scrollTo({ top: 0 }); };
@@ -80,7 +69,11 @@ const App: React.FC = () => {
       {nav.map(({ label, icon: Icon }) => <button key={label} type="button" className={activeNav === label ? 'active' : ''} onClick={() => handleNavigate(label)}><Icon size={18} strokeWidth={1.7} /><span>{label}</span></button>)}
     </nav>
     {hasActiveJourney && currentTrip && <button type="button" className="vela-global-quick" aria-label="Add Quick Entry" onClick={() => setQuickOpen(true)}><VelaConstellationIcon /></button>}
-    {quickOpen && hasActiveJourney && currentTrip && <div className="vela-quick-backdrop" role="dialog" aria-modal="true" aria-label="Quick Entry" onMouseDown={(event) => { if (event.target === event.currentTarget) setQuickOpen(false); }}><div className="vela-quick-overlay"><QuickEntry onClose={() => setQuickOpen(false)} /></div></div>}
+    {quickOpen && hasActiveJourney && currentTrip && (
+      <div className="fixed inset-0 z-[9999] w-screen h-[100dvh] bg-white overflow-y-auto" role="dialog" aria-modal="true" aria-label="Quick Entry">
+        <QuickEntry onClose={() => setQuickOpen(false)} />
+      </div>
+    )}
     {creationOpen && <div className="vela-quick-backdrop" onMouseDown={(event) => { if (event.target === event.currentTarget) setCreationOpen(false); }}><div className="vela-quick-sheet"><TripCreation onClose={() => setCreationOpen(false)} onCreated={handleCreated} /></div></div>}
   </div>;
 };
