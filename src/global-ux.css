@@ -123,15 +123,6 @@ textarea {
 .vela-success-toast strong { font-weight:600; }
 .vela-success-toast span { opacity:.9; }
 
-/* Fix: the old shell CSS also targets .vela-quick-fullscreen. The nested QuickEntry must win over those legacy wrapper rules. */
-.vela-quick-backdrop > .vela-quick-fullscreen {
-  position:fixed!important; inset:0!important; z-index:121!important; width:100%!important; max-width:none!important; height:100dvh!important; max-height:100dvh!important; padding:0!important; margin:0!important; overflow:hidden!important; background:transparent!important;
-}
-.vela-quick-backdrop > .vela-quick-fullscreen > .vela-quick-fullscreen {
-  position:relative!important; inset:auto!important; z-index:auto!important; width:min(100%,760px)!important; max-width:760px!important; height:100%!important; max-height:100dvh!important; min-height:100dvh!important; margin:0 auto!important; padding:0!important; overflow:hidden!important; background:#f7efdf!important; box-shadow:none!important; border-radius:0!important;
-}
-.vela-quick-backdrop > .vela-quick-fullscreen > .vela-quick-fullscreen > form { flex:1 1 auto!important; min-height:0!important; overflow-y:auto!important; }
-
 @media (max-width:520px) {
   .vela-quick-fullscreen header { min-height:88px; padding-left:30px; padding-right:30px; }
   .vela-quick-fullscreen .vela-quick-close { right:30px; }
