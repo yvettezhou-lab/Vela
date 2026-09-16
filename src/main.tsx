@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { BookOpen, Compass, Home as HomeIcon, Scale, Settings } from 'lucide-react';
+import { createPortal } from 'react-dom';
 import { createRoot } from 'react-dom/client';
 import './styles.css';
 import './vela-polish.css';
@@ -63,18 +64,23 @@ const App: React.FC = () => {
     : activeNav === 'Logbook' ? <LogbookView annualReflection={annualReflection} plannedTrips={planningTrips} tripInsights={tripInsights} />
     : <main className="page vela-secondary-shell"><TripManager /></main>;
 
+  const quickEntryOverlay = quickOpen && hasActiveJourney && currentTrip
+    ? createPortal(
+        <div className="fixed inset-0 z-[9999] w-screen h-[100dvh] bg-white overflow-y-auto" role="dialog" aria-modal="true" aria-label="Quick Entry">
+          <QuickEntry onClose={() => setQuickOpen(false)} />
+        </div>,
+        document.body,
+      )
+    : null;
+
   return <div className="vela-app-root">
     {content}
     <nav className="vela-global-nav" aria-label="Primary navigation">
       {nav.map(({ label, icon: Icon }) => <button key={label} type="button" className={activeNav === label ? 'active' : ''} onClick={() => handleNavigate(label)}><Icon size={18} strokeWidth={1.7} /><span>{label}</span></button>)}
     </nav>
     {hasActiveJourney && currentTrip && <button type="button" className="vela-global-quick" aria-label="Add Quick Entry" onClick={() => setQuickOpen(true)}><VelaConstellationIcon /></button>}
-    {quickOpen && hasActiveJourney && currentTrip && (
-      <div className="fixed inset-0 z-[9999] w-screen h-[100dvh] bg-white overflow-y-auto" role="dialog" aria-modal="true" aria-label="Quick Entry">
-        <QuickEntry onClose={() => setQuickOpen(false)} />
-      </div>
-    )}
     {creationOpen && <div className="vela-quick-backdrop" onMouseDown={(event) => { if (event.target === event.currentTarget) setCreationOpen(false); }}><div className="vela-quick-sheet"><TripCreation onClose={() => setCreationOpen(false)} onCreated={handleCreated} /></div></div>}
+    {quickEntryOverlay}
   </div>;
 };
 
