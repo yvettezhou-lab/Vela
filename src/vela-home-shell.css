@@ -5,3 +5,8 @@
 .vela-entry-route .vela-quick-fullscreen{display:block!important;overflow:hidden!important}
 .vela-entry-route .vela-quick-fullscreen header{display:flex!important}
 .vela-entry-route .vela-quick-fullscreen form{display:block!important;overflow:hidden!important}
+
+/* Date controls also stay in normal flow; the calendar icon is inline, not absolutely positioned. */
+.vela-entry-route .vela-quick-fullscreen .relative{position:static!important}
+.vela-entry-route .vela-quick-fullscreen .relative>.absolute{position:static!important;transform:none!important;display:inline-block!important;vertical-align:middle!important;margin-right:8px!important;flex:0 0 auto!important}
+.vela-entry-route .vela-quick-fullscreen .relative>input[type='date']{display:inline-block!important;width:calc(100% - 31px)!important;vertical-align:middle!important}
