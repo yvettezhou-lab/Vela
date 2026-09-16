@@ -117,3 +117,64 @@ textarea {
 .vela-entry-route .vela-quick-fullscreen .vela-quick-close {
   display: none !important;
 }
+
+/* Quick Entry choices: explicit state styling because this project has no Tailwind utility layer. */
+.vela-entry-route .vela-quick-fullscreen form button[aria-pressed='true'] {
+  min-height: 48px !important;
+  min-width: 96px !important;
+  padding-left: 18px !important;
+  padding-right: 18px !important;
+  appearance: none !important;
+  -webkit-appearance: none !important;
+  background: #17243a !important;
+  border-color: #17243a !important;
+  color: #fffdf8 !important;
+  box-shadow: 0 6px 14px rgba(23,36,58,.16) !important;
+}
+
+.vela-entry-route .vela-quick-fullscreen form button[aria-pressed='false'] {
+  min-height: 48px !important;
+  min-width: 96px !important;
+  padding-left: 18px !important;
+  padding-right: 18px !important;
+  appearance: none !important;
+  -webkit-appearance: none !important;
+  background: #fbf7ee !important;
+  border-color: rgba(23,36,58,.10) !important;
+  color: #17243a !important;
+}
+
+.vela-entry-route .vela-quick-fullscreen form button[aria-pressed] {
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+  transition: transform .12s ease, opacity .12s ease, background-color .12s ease, color .12s ease, box-shadow .12s ease !important;
+}
+
+.vela-entry-route .vela-quick-fullscreen form button[aria-pressed]:active {
+  transform: scale(.96) !important;
+  opacity: .8 !important;
+}
+
+/* A single payer/participant should read as a full-width choice, not a tiny square. */
+.vela-entry-route .vela-quick-fullscreen form > div:has(> span:first-child) button[aria-pressed]:only-child {
+  width: 100% !important;
+}
+
+/* Date: keep the calendar icon inside the date field rather than on its own line. */
+.vela-entry-route .vela-quick-fullscreen form div:has(> input[type='date']) {
+  position: relative !important;
+}
+
+.vela-entry-route .vela-quick-fullscreen form div:has(> input[type='date']) > svg {
+  position: absolute !important;
+  left: 16px !important;
+  top: 50% !important;
+  transform: translateY(-50%) !important;
+  z-index: 1 !important;
+  pointer-events: none !important;
+  color: #9a7440 !important;
+}
+
+.vela-entry-route .vela-quick-fullscreen form div:has(> input[type='date']) > input[type='date'] {
+  padding-left: 48px !important;
+}
