@@ -32,9 +32,7 @@ textarea {
   padding: max(18px, env(safe-area-inset-top)) 30px 14px;
 }
 
-.vela-quick-fullscreen header > div:first-child {
-  min-width: 0;
-}
+.vela-quick-fullscreen header > div:first-child { min-width: 0; }
 
 .vela-quick-fullscreen .vela-quick-close {
   position: absolute;
@@ -61,87 +59,33 @@ textarea {
   -webkit-overflow-scrolling: touch;
 }
 
-.vela-quick-fullscreen form > div {
-  margin-top: 18px;
-}
-
-.vela-quick-fullscreen form > div:first-child {
-  margin-top: 0;
-}
-
-.vela-quick-fullscreen form .grid {
-  display: grid;
-}
-
-.vela-quick-fullscreen form .grid-cols-2 {
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 12px;
-}
-
-.vela-quick-fullscreen form .grid-cols-3 {
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 8px;
-}
-
-.vela-quick-fullscreen form .grid-cols-7 {
-  grid-template-columns: repeat(7, minmax(0, 1fr));
-}
-
-.vela-quick-fullscreen form .flex {
-  display: flex;
-}
-
-.vela-quick-fullscreen form .flex-wrap {
-  flex-wrap: wrap;
-}
-
-.vela-quick-fullscreen form .items-center {
-  align-items: center;
-}
-
-.vela-quick-fullscreen form .items-start {
-  align-items: flex-start;
-}
-
-.vela-quick-fullscreen form .justify-between {
-  justify-content: space-between;
-}
-
+.vela-quick-fullscreen form > div { margin-top: 18px; }
+.vela-quick-fullscreen form > div:first-child { margin-top: 0; }
+.vela-quick-fullscreen form .grid { display: grid; }
+.vela-quick-fullscreen form .grid-cols-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+.vela-quick-fullscreen form .grid-cols-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+.vela-quick-fullscreen form .grid-cols-7 { grid-template-columns: repeat(7, minmax(0, 1fr)); }
+.vela-quick-fullscreen form .flex { display: flex; }
+.vela-quick-fullscreen form .flex-wrap { flex-wrap: wrap; }
+.vela-quick-fullscreen form .items-center { align-items: center; }
+.vela-quick-fullscreen form .items-start { align-items: flex-start; }
+.vela-quick-fullscreen form .justify-between { justify-content: space-between; }
 .vela-quick-fullscreen form .gap-1,
-.vela-quick-fullscreen form .gap-1\.5 {
-  gap: 6px;
-}
-
-.vela-quick-fullscreen form .gap-3 {
-  gap: 10px;
-}
-
-.vela-quick-fullscreen form .gap-5 {
-  gap: 14px;
-}
-
-.vela-quick-fullscreen form .space-y-5 > * + * {
-  margin-top: 14px;
-}
-
+.vela-quick-fullscreen form .gap-1\.5 { gap: 6px; }
+.vela-quick-fullscreen form .gap-3 { gap: 10px; }
+.vela-quick-fullscreen form .gap-5 { gap: 14px; }
+.vela-quick-fullscreen form .space-y-5 > * + * { margin-top: 14px; }
 .vela-quick-fullscreen form label.block,
-.vela-quick-fullscreen form label {
-  display: block;
-  min-width: 0;
-}
-
+.vela-quick-fullscreen form label { display: block; min-width: 0; }
 .vela-quick-fullscreen form label > span:first-child,
-.vela-quick-fullscreen form > div > span:first-child {
-  display: block;
-  margin-bottom: 7px;
-}
+.vela-quick-fullscreen form > div > span:first-child { display: block; margin-bottom: 7px; }
 
 .vela-quick-fullscreen form button[aria-pressed] {
   min-height: 48px;
   height: 48px;
   border-radius: 12px;
   padding: 0 14px;
-  border: 1px solid rgba(80, 64, 42, .10);
+  border: 1px solid rgba(80,64,42,.10);
   background: #fbf7ee;
   color: #17243a;
   font: 500 14px ui-sans-serif, system-ui, -apple-system, sans-serif;
@@ -149,200 +93,52 @@ textarea {
   transition: background .15s ease, color .15s ease, box-shadow .15s ease, transform .15s ease;
   -webkit-tap-highlight-color: transparent;
 }
-
-.vela-quick-fullscreen form button[aria-pressed='true'] {
-  border-color: #17243a !important;
-  background: #17243a !important;
-  color: #fffdf8 !important;
-  box-shadow: 0 5px 12px rgba(23, 36, 58, .18) !important;
-}
-
-.vela-quick-fullscreen form button[aria-pressed='false']:active {
-  transform: scale(.98);
-}
-
+.vela-quick-fullscreen form button[aria-pressed='true'] { border-color:#17243a!important; background:#17243a!important; color:#fffdf8!important; box-shadow:0 5px 12px rgba(23,36,58,.18)!important; }
+.vela-quick-fullscreen form button[aria-pressed='false']:active { transform: scale(.98); }
 .vela-quick-fullscreen form input,
-.vela-quick-fullscreen form select {
-  box-sizing: border-box;
-}
-
-.vela-quick-fullscreen form > div > label > div.flex {
-  min-height: 48px;
-  align-items: center;
-  display: flex;
-  overflow: hidden;
-}
-
-.vela-quick-fullscreen form > div > label > div.flex input {
-  min-height: 48px;
-  height: 48px;
-}
-
-.vela-quick-fullscreen form > div > label > div.flex input:first-child {
-  width: 68px;
-  flex: 0 0 68px;
-}
-
-.vela-quick-fullscreen form > div > label > div.flex input:last-child {
-  flex: 1 1 auto;
-  min-width: 0;
-}
-
+.vela-quick-fullscreen form select { box-sizing: border-box; }
+.vela-quick-fullscreen form > div > label > div.flex { min-height:48px; align-items:center; display:flex; overflow:hidden; }
+.vela-quick-fullscreen form > div > label > div.flex input { min-height:48px; height:48px; }
+.vela-quick-fullscreen form > div > label > div.flex input:first-child { width:68px; flex:0 0 68px; }
+.vela-quick-fullscreen form > div > label > div.flex input:last-child { flex:1 1 auto; min-width:0; }
 .vela-quick-fullscreen form > div:nth-of-type(2) > div > div.grid,
-.vela-quick-fullscreen form .grid-cols-2 {
-  min-width: 0;
-}
+.vela-quick-fullscreen form .grid-cols-2 { min-width:0; }
 
 /* Date picker: match the spacious, card-like calendar treatment from the reference. */
-.vela-quick-fullscreen .vela-date-popover {
-  position: absolute;
-  left: 0;
-  top: calc(100% + 8px);
-  z-index: 60;
-  width: min(604px, calc(100vw - 60px));
-  padding: 22px 18px 18px;
-  border-radius: 2px;
-  background: #fffdf8;
-  box-shadow: 0 18px 45px rgba(55,43,28,.18);
-  border: 1px solid rgba(80,64,42,.08);
-}
-
-.vela-quick-fullscreen .vela-date-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 8px;
-  margin-bottom: 18px;
-}
-
-.vela-quick-fullscreen .vela-date-header strong {
-  font: 400 20px Georgia, 'Times New Roman', serif;
-}
-
-.vela-quick-fullscreen .vela-date-header button {
-  width: 44px;
-  height: 44px;
-  min-width: 44px;
-  border: 0;
-  border-radius: 10px;
-  background: transparent;
-  color: #17243a;
-  display: grid;
-  place-items: center;
-}
-
+.vela-quick-fullscreen .vela-date-popover { position:absolute; left:0; top:calc(100% + 8px); z-index:60; width:min(604px,calc(100vw - 60px)); padding:22px 18px 18px; border-radius:2px; background:#fffdf8; box-shadow:0 18px 45px rgba(55,43,28,.18); border:1px solid rgba(80,64,42,.08); }
+.vela-quick-fullscreen .vela-date-header { display:flex; align-items:center; justify-content:space-between; gap:8px; margin-bottom:18px; }
+.vela-quick-fullscreen .vela-date-header strong { font:400 20px Georgia,'Times New Roman',serif; }
+.vela-quick-fullscreen .vela-date-header button { width:44px; height:44px; min-width:44px; border:0; border-radius:10px; background:transparent; color:#17243a; display:grid; place-items:center; }
 .vela-quick-fullscreen .vela-date-weekdays,
-.vela-quick-fullscreen .vela-date-grid {
-  display: grid;
-  grid-template-columns: repeat(7, minmax(0, 1fr));
-  gap: 5px;
-  text-align: center;
-}
-
-.vela-quick-fullscreen .vela-date-weekdays {
-  margin-bottom: 8px;
-  color: #887c6b;
-  font: 12px ui-sans-serif, system-ui, sans-serif;
-}
-
-.vela-quick-fullscreen .vela-date-weekdays span {
-  min-height: 28px;
-  display: grid;
-  place-items: center;
-}
-
+.vela-quick-fullscreen .vela-date-grid { display:grid; grid-template-columns:repeat(7,minmax(0,1fr)); gap:5px; text-align:center; }
+.vela-quick-fullscreen .vela-date-weekdays { margin-bottom:8px; color:#887c6b; font:12px ui-sans-serif,system-ui,sans-serif; }
+.vela-quick-fullscreen .vela-date-weekdays span { min-height:28px; display:grid; place-items:center; }
 .vela-quick-fullscreen .vela-date-grid button,
-.vela-quick-fullscreen .vela-date-grid > span {
-  min-height: 48px;
-  height: 48px;
+.vela-quick-fullscreen .vela-date-grid > span { min-height:48px; height:48px; }
+.vela-quick-fullscreen .vela-date-grid button { border:0; border-radius:8px; background:transparent; color:#17243a; font:16px ui-sans-serif,system-ui,sans-serif; }
+.vela-quick-fullscreen .vela-date-grid button[aria-pressed='true'] { background:#17243a; color:#fffdf8; box-shadow:0 0 0 5px #eee5d5; }
+.vela-quick-fullscreen form > button[type='submit'] { display:block; width:100%; min-height:48px; height:48px; margin-top:24px; border:0; border-radius:24px; background:#17243a; color:#fffdf8; font:500 16px ui-sans-serif,system-ui,-apple-system,sans-serif; box-shadow:0 8px 20px rgba(23,36,58,.16); }
+
+.vela-success-toast { position:fixed; left:50%; top:max(76px,calc(env(safe-area-inset-top) + 58px)); z-index:100; display:flex; align-items:center; gap:8px; transform:translateX(-50%); padding:10px 15px; border-radius:14px; background:#17243a; color:#fffdf8; box-shadow:0 10px 28px rgba(23,36,58,.22); font:14px ui-sans-serif,system-ui,-apple-system,sans-serif; white-space:nowrap; }
+.vela-success-toast strong { font-weight:600; }
+.vela-success-toast span { opacity:.9; }
+
+/* Fix: the old shell CSS also targets .vela-quick-fullscreen. The nested QuickEntry must win over those legacy wrapper rules. */
+.vela-quick-backdrop > .vela-quick-fullscreen {
+  position:fixed!important; inset:0!important; z-index:121!important; width:100%!important; max-width:none!important; height:100dvh!important; max-height:100dvh!important; padding:0!important; margin:0!important; overflow:hidden!important; background:transparent!important;
 }
-
-.vela-quick-fullscreen .vela-date-grid button {
-  border: 0;
-  border-radius: 8px;
-  background: transparent;
-  color: #17243a;
-  font: 16px ui-sans-serif, system-ui, sans-serif;
+.vela-quick-backdrop > .vela-quick-fullscreen > .vela-quick-fullscreen {
+  position:relative!important; inset:auto!important; z-index:auto!important; width:min(100%,760px)!important; max-width:760px!important; height:100%!important; max-height:100dvh!important; min-height:100dvh!important; margin:0 auto!important; padding:0!important; overflow:hidden!important; background:#f7efdf!important; box-shadow:none!important; border-radius:0!important;
 }
+.vela-quick-backdrop > .vela-quick-fullscreen > .vela-quick-fullscreen > form { flex:1 1 auto!important; min-height:0!important; overflow-y:auto!important; }
 
-.vela-quick-fullscreen .vela-date-grid button[aria-pressed='true'] {
-  background: #17243a;
-  color: #fffdf8;
-  box-shadow: 0 0 0 5px #eee5d5;
-}
-
-.vela-quick-fullscreen form > button[type='submit'] {
-  display: block;
-  width: 100%;
-  min-height: 48px;
-  height: 48px;
-  margin-top: 24px;
-  border: 0;
-  border-radius: 24px;
-  background: #17243a;
-  color: #fffdf8;
-  font: 500 16px ui-sans-serif, system-ui, -apple-system, sans-serif;
-  box-shadow: 0 8px 20px rgba(23,36,58,.16);
-}
-
-.vela-success-toast {
-  position: fixed;
-  left: 50%;
-  top: max(76px, calc(env(safe-area-inset-top) + 58px));
-  z-index: 100;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  transform: translateX(-50%);
-  padding: 10px 15px;
-  border-radius: 14px;
-  background: #17243a;
-  color: #fffdf8;
-  box-shadow: 0 10px 28px rgba(23,36,58,.22);
-  font: 14px ui-sans-serif, system-ui, -apple-system, sans-serif;
-  white-space: nowrap;
-}
-
-.vela-success-toast strong {
-  font-weight: 600;
-}
-
-.vela-success-toast span {
-  opacity: .9;
-}
-
-@media (max-width: 520px) {
-  .vela-quick-fullscreen header {
-    min-height: 88px;
-    padding-left: 30px;
-    padding-right: 30px;
-  }
-
-  .vela-quick-fullscreen .vela-quick-close {
-    right: 30px;
-  }
-
-  .vela-quick-fullscreen form {
-    padding-left: 30px;
-    padding-right: 30px;
-  }
-
-  .vela-quick-fullscreen form .grid-cols-2 {
-    gap: 10px;
-  }
-
-  .vela-quick-fullscreen form button[aria-pressed] {
-    padding: 0 11px;
-  }
-
-  .vela-quick-fullscreen .vela-date-popover {
-    width: calc(100vw - 60px);
-    padding: 18px 10px 12px;
-  }
-
+@media (max-width:520px) {
+  .vela-quick-fullscreen header { min-height:88px; padding-left:30px; padding-right:30px; }
+  .vela-quick-fullscreen .vela-quick-close { right:30px; }
+  .vela-quick-fullscreen form { padding-left:30px; padding-right:30px; }
+  .vela-quick-fullscreen form .grid-cols-2 { gap:10px; }
+  .vela-quick-fullscreen form button[aria-pressed] { padding:0 11px; }
+  .vela-quick-fullscreen .vela-date-popover { width:calc(100vw - 60px); padding:18px 10px 12px; }
   .vela-quick-fullscreen .vela-date-grid button,
-  .vela-quick-fullscreen .vela-date-grid > span {
-    min-height: 44px;
-    height: 44px;
-  }
+  .vela-quick-fullscreen .vela-date-grid > span { min-height:44px; height:44px; }
 }
