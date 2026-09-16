@@ -35,6 +35,12 @@ const VelaConstellationIcon = () => (
   </svg>
 );
 
+const GlobalNav: React.FC<{ activeNav: Tab; onNavigate: (next: Tab) => void }> = ({ activeNav, onNavigate }) => (
+  <nav className="vela-global-nav" aria-label="Primary navigation">
+    {nav.map(({ label, icon: Icon }) => <button key={label} type="button" className={activeNav === label ? 'active' : ''} onClick={() => onNavigate(label)}><Icon size={18} strokeWidth={1.7} /><span>{label}</span></button>)}
+  </nav>
+);
+
 const App: React.FC = () => {
   const [activeNav, setActiveNav] = useState<Tab>('Home');
   const [route, setRoute] = useState(() => window.location.pathname);
@@ -78,6 +84,7 @@ const App: React.FC = () => {
     return (
       <div className="vela-entry-route">
         <QuickEntry onClose={closeQuickEntry} />
+        <GlobalNav activeNav={activeNav} onNavigate={handleNavigate} />
       </div>
     );
   }
@@ -90,9 +97,7 @@ const App: React.FC = () => {
 
   return <div className="vela-app-root">
     {content}
-    <nav className="vela-global-nav" aria-label="Primary navigation">
-      {nav.map(({ label, icon: Icon }) => <button key={label} type="button" className={activeNav === label ? 'active' : ''} onClick={() => handleNavigate(label)}><Icon size={18} strokeWidth={1.7} /><span>{label}</span></button>)}
-    </nav>
+    <GlobalNav activeNav={activeNav} onNavigate={handleNavigate} />
     {hasActiveJourney && currentTrip && <button type="button" className="vela-global-quick" aria-label="Add Quick Entry" onClick={openQuickEntry}><VelaConstellationIcon /></button>}
     {creationOpen && <div className="vela-quick-backdrop" onMouseDown={(event) => { if (event.target === event.currentTarget) setCreationOpen(false); }}><div className="vela-quick-sheet"><TripCreation onClose={() => setCreationOpen(false)} onCreated={handleCreated} /></div></div>}
   </div>;
