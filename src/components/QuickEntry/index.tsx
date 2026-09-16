@@ -31,6 +31,8 @@ const isLegacyIOS = () => {
   return Boolean(match && Number(match[1]) < 14);
 };
 
+const formatCny = (value: number) => (Number.isFinite(value) ? value.toFixed(2).replace(/\.00$/, '') : '');
+
 interface DatePickerProps {
   value: string;
   onChange: (value: string) => void;
@@ -45,16 +47,6 @@ const DatePicker: React.FC<DatePickerProps> = ({ value, onChange, label, require
     const initial = value ? new Date(`${value}T00:00:00`) : new Date();
     return Number.isNaN(initial.getTime()) ? new Date() : initial;
   });
-  const rootRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    if (!open) return;
-    const handleOutside = (event: MouseEvent) => {
-      if (!rootRef.current?.contains(event.target as Node)) setOpen(false);
-    };
-    document.addEventListener('mousedown', handleOutside);
-    return () => document.removeEventListener('mousedown', handleOutside);
-  }, [open]);
 
   useEffect(() => {
     if (!value) return;
@@ -100,7 +92,7 @@ const DatePicker: React.FC<DatePickerProps> = ({ value, onChange, label, require
   }
 
   return (
-    <div ref={rootRef} className="relative">
+    <div className="relative">
       <span className="mb-2 block text-xs uppercase tracking-[0.14em] text-[#857a6a]">{label}</span>
       <button
         type="button"
@@ -112,33 +104,27 @@ const DatePicker: React.FC<DatePickerProps> = ({ value, onChange, label, require
         <span className={value ? '' : 'text-[#a7a097]'}>{displayValue}</span>
       </button>
       {open && (
-        <div className="absolute left-0 top-[calc(100%+8px)] z-50 w-[min(360px,calc(100vw-32px))] rounded-2xl bg-[#fffdf8] p-4 shadow-[0_18px_45px_rgba(55,43,28,.22)] ring-1 ring-black/5">
-          <div className="mb-4 flex items-center justify-between">
-            <button type="button" onClick={() => setViewDate(new Date(viewDate.getFullYear(), viewDate.getMonth() - 1, 1))} className="grid min-h-12 min-w-12 place-items-center rounded-xl text-[#17243a] hover:bg-[#f3eadb]" aria-label="Previous month">
+        <div className="vela-date-popover">
+          <div className="vela-date-header">
+            <button type="button" onClick={() => setViewDate(new Date(viewDate.getFullYear(), viewDate.getMonth() - 1, 1))} aria-label="Previous month">
               <ChevronLeft size={20} />
             </button>
-            <strong className="text-base font-normal tracking-wide">{monthLabel}</strong>
-            <button type="button" onClick={() => setViewDate(new Date(viewDate.getFullYear(), viewDate.getMonth() + 1, 1))} className="grid min-h-12 min-w-12 place-items-center rounded-xl text-[#17243a] hover:bg-[#f3eadb]" aria-label="Next month">
+            <strong>{monthLabel}</strong>
+            <button type="button" onClick={() => setViewDate(new Date(viewDate.getFullYear(), viewDate.getMonth() + 1, 1))} aria-label="Next month">
               <ChevronRight size={20} />
             </button>
           </div>
-          <div className="grid grid-cols-7 gap-1 text-center text-xs text-[#887c6b]">
-            {['M', 'T', 'W', 'T', 'F', 'S', 'S'].map((day, index) => <span key={`${day}-${index}`} className="grid min-h-8 place-items-center">{day}</span>)}
+          <div className="vela-date-weekdays">
+            {['M', 'T', 'W', 'T', 'F', 'S', 'S'].map((day, index) => <span key={`${day}-${index}`}>{day}</span>)}
           </div>
-          <div className="mt-1 grid grid-cols-7 gap-1">
+          <div className="vela-date-grid">
             {cells.map((day, index) => {
-              if (!day) return <span key={`blank-${index}`} className="min-h-12" />;
+              if (!day) return <span key={`blank-${index}`} aria-hidden="true" />;
               const cellDate = new Date(viewDate.getFullYear(), viewDate.getMonth(), day);
               const cellValue = toDateValue(cellDate);
               const selected = value === cellValue;
               return (
-                <button
-                  key={cellValue}
-                  type="button"
-                  onClick={() => selectDate(cellDate)}
-                  aria-pressed={selected}
-                  className={`grid min-h-12 place-items-center rounded-xl text-base transition ${selected ? 'bg-[#17243a] text-[#fffdf8] shadow-sm' : 'bg-[#fbf7ee] text-[#17243a] shadow-[inset_0_0_0_1px_rgba(80,64,42,.08)] hover:bg-[#f3eadb]'}`}
-                >
+                <button key={cellValue} type="button" onClick={() => selectDate(cellDate)} aria-pressed={selected}>
                   {day}
                 </button>
               );
@@ -180,9 +166,11 @@ export const QuickEntry: React.FC<QuickEntryProps> = ({ onClose }) => {
   const [selectedParticipants, setSelectedParticipants] = useState<Set<string>>(new Set());
   const [customPercentages, setCustomPercentages] = useState<Record<string, number>>({});
   const [error, setError] = useState<string | null>(null);
+  const [fxRate, setFxRate] = useState<number | null>(null);
   const currencyComposingRef = useRef(false);
   const amountComposingRef = useRef(false);
   const cnyEquivalentComposingRef = useRef(false);
+  const cnyManualRef = useRef(false);
 
   const accounts = currentTrip?.accounts.length ? currentTrip.accounts : FALLBACK_ACCOUNTS;
   const members = currentTrip?.members.length ? currentTrip.members : FALLBACK_MEMBERS;
@@ -199,6 +187,48 @@ export const QuickEntry: React.FC<QuickEntryProps> = ({ onClose }) => {
       return new Set(retained.length ? retained : members.map((member) => member.id));
     });
   }, [currentTrip, accounts, members]);
+
+  useEffect(() => {
+    const normalizedCurrency = currency.trim().toUpperCase();
+    cnyManualRef.current = false;
+    if (!normalizedCurrency) {
+      setFxRate(null);
+      setCnyEquivalent('');
+      return;
+    }
+    if (normalizedCurrency === 'CNY') {
+      setFxRate(1);
+      return;
+    }
+
+    const controller = new AbortController();
+    setFxRate(null);
+    setCnyEquivalent('');
+    fetch(`https://api.frankfurter.app/latest?from=${encodeURIComponent(normalizedCurrency)}&to=CNY`, { signal: controller.signal })
+      .then((response) => {
+        if (!response.ok) throw new Error('FX request failed');
+        return response.json() as Promise<{ rates?: Record<string, number> }>;
+      })
+      .then((data) => {
+        const rate = Number(data.rates?.CNY);
+        if (Number.isFinite(rate) && rate > 0) setFxRate(rate);
+      })
+      .catch(() => {
+        if (!controller.signal.aborted) setFxRate(null);
+      });
+
+    return () => controller.abort();
+  }, [currency]);
+
+  useEffect(() => {
+    if (cnyManualRef.current) return;
+    const numericAmount = Number(amount);
+    if (!Number.isFinite(numericAmount) || numericAmount <= 0 || !fxRate) {
+      if (!amount) setCnyEquivalent('');
+      return;
+    }
+    setCnyEquivalent(formatCny(numericAmount * fxRate));
+  }, [amount, fxRate]);
 
   const toggleParticipant = (id: string) => {
     setSelectedParticipants((current) => {
@@ -317,13 +347,13 @@ export const QuickEntry: React.FC<QuickEntryProps> = ({ onClose }) => {
   }
 
   return (
-    <section className="flex min-h-[100dvh] flex-col bg-[#f7efdf] text-[#17243a]">
+    <section className="vela-quick-fullscreen flex min-h-[100dvh] flex-col bg-[#f7efdf] text-[#17243a]">
       <header className="flex shrink-0 items-start justify-between px-5 pb-4 pt-[max(18px,env(safe-area-inset-top))]">
         <div>
           <p className="mb-1 text-[11px] uppercase tracking-[0.2em] text-[#9a7440]">Vela · Record</p>
           <h2 className="text-[34px] font-normal leading-none">Quick Entry</h2>
         </div>
-        {onClose && <button type="button" onClick={onClose} aria-label="Close Quick Entry" className="grid min-h-12 min-w-12 place-items-center rounded-full text-[#17243a]"><X size={23} strokeWidth={1.7} /></button>}
+        {onClose && <button type="button" onClick={onClose} aria-label="Close Quick Entry" className="vela-quick-close grid min-h-12 min-w-12 place-items-center rounded-full text-[#17243a]"><X size={23} strokeWidth={1.7} /></button>}
       </header>
 
       <form onSubmit={handleSubmit} className="flex-1 overflow-y-auto px-5 pb-[calc(120px+env(safe-area-inset-bottom))] pt-2">
@@ -391,13 +421,15 @@ export const QuickEntry: React.FC<QuickEntryProps> = ({ onClose }) => {
               onCompositionStart={() => { cnyEquivalentComposingRef.current = true; }}
               onCompositionEnd={(event) => {
                 cnyEquivalentComposingRef.current = false;
+                cnyManualRef.current = true;
                 setCnyEquivalent(event.currentTarget.value);
               }}
               onChange={(event) => {
+                cnyManualRef.current = true;
                 if (!cnyEquivalentComposingRef.current) setCnyEquivalent(event.currentTarget.value);
               }}
               className="w-full rounded-xl bg-[#fbf7ee] px-4 text-base text-[#17243a] shadow-[inset_0_0_0_1px_rgba(80,64,42,.10)] outline-none"
-              placeholder="Same as amount"
+              placeholder={fxRate ? 'Auto' : 'Enter manually'}
               aria-label="CNY Equivalent"
             />
           </label>
