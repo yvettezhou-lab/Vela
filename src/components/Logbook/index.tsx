@@ -4,10 +4,10 @@ import { Trip } from '../../core/domain';
 interface LogbookViewProps {
   annualReflection: AnnualReflection;
   plannedTrips: Trip[];
-  completedTripInsights: TripInsights[];
+  tripInsights: TripInsights[];
 }
 
-export const LogbookView = ({ annualReflection, plannedTrips, completedTripInsights }: LogbookViewProps) => (
+export const LogbookView = ({ annualReflection, plannedTrips, tripInsights }: LogbookViewProps) => (
   <main>
     <h1>Logbook</h1>
     <pre>{JSON.stringify({
@@ -17,7 +17,7 @@ export const LogbookView = ({ annualReflection, plannedTrips, completedTripInsig
         title: trip.title,
         localCurrency: trip.localCurrency,
       })),
-      completedTripInsights,
+      tripInsights,
     }, null, 2)}</pre>
   </main>
 );
