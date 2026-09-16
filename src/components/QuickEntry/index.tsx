@@ -96,7 +96,8 @@ const DatePicker: React.FC<DatePickerProps> = ({ value, onChange, label, require
       <span className="mb-2 block text-xs uppercase tracking-[0.14em] text-[#857a6a]">{label}</span>
       <button
         type="button"
-        onClick={() => setOpen((current) => !current)}
+        onTouchStart={() => setOpen(true)}
+        onClick={() => setOpen(true)}
         aria-expanded={open}
         className="flex min-h-12 w-full items-center gap-3 rounded-xl bg-[#fbf7ee] px-4 text-left text-base text-[#17243a] shadow-[inset_0_0_0_1px_rgba(80,64,42,.10)]"
       >
@@ -104,7 +105,7 @@ const DatePicker: React.FC<DatePickerProps> = ({ value, onChange, label, require
         <span className={value ? '' : 'text-[#a7a097]'}>{displayValue}</span>
       </button>
       {open && (
-        <div className="vela-date-popover">
+        <div className="vela-date-popover" onTouchStart={(event) => event.stopPropagation()} onClick={(event) => event.stopPropagation()}>
           <div className="vela-date-header">
             <button type="button" onClick={() => setViewDate(new Date(viewDate.getFullYear(), viewDate.getMonth() - 1, 1))} aria-label="Previous month">
               <ChevronLeft size={20} />
@@ -418,17 +419,22 @@ export const QuickEntry: React.FC<QuickEntryProps> = ({ onClose }) => {
               type="text"
               inputMode="decimal"
               value={cnyEquivalent}
+              readOnly={currency.trim().toUpperCase() === 'CNY'}
               onCompositionStart={() => { cnyEquivalentComposingRef.current = true; }}
               onCompositionEnd={(event) => {
                 cnyEquivalentComposingRef.current = false;
-                cnyManualRef.current = true;
-                setCnyEquivalent(event.currentTarget.value);
+                if (currency.trim().toUpperCase() !== 'CNY') {
+                  cnyManualRef.current = true;
+                  setCnyEquivalent(event.currentTarget.value);
+                }
               }}
               onChange={(event) => {
-                cnyManualRef.current = true;
-                if (!cnyEquivalentComposingRef.current) setCnyEquivalent(event.currentTarget.value);
+                if (currency.trim().toUpperCase() !== 'CNY') {
+                  cnyManualRef.current = true;
+                  if (!cnyEquivalentComposingRef.current) setCnyEquivalent(event.currentTarget.value);
+                }
               }}
-              className="w-full rounded-xl bg-[#fbf7ee] px-4 text-base text-[#17243a] shadow-[inset_0_0_0_1px_rgba(80,64,42,.10)] outline-none"
+              className="w-full rounded-xl bg-[#fbf7ee] px-4 text-base text-[#17243a] shadow-[inset_0_0_0_1px_rgba(80,64,42,.10)] outline-none read-only:text-[#857a6a]"
               placeholder={fxRate ? 'Auto' : 'Enter manually'}
               aria-label="CNY Equivalent"
             />
