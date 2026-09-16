@@ -1,6 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { BookOpen, Compass, Home as HomeIcon, Scale, Settings } from 'lucide-react';
-import { createPortal } from 'react-dom';
 import { createRoot } from 'react-dom/client';
 import './styles.css';
 import './vela-polish.css';
@@ -38,7 +37,7 @@ const VelaConstellationIcon = () => (
 
 const App: React.FC = () => {
   const [activeNav, setActiveNav] = useState<Tab>('Home');
-  const [quickOpen, setQuickOpen] = useState(false);
+  const [route, setRoute] = useState(() => window.location.pathname);
   const [creationOpen, setCreationOpen] = useState(false);
   const trips = useVelaStore((state) => state.trips);
   const currentTrip = useVelaStore((state) => state.getCurrentTrip());
@@ -50,37 +49,52 @@ const App: React.FC = () => {
   const hasActiveJourney = Boolean(currentTrip && currentTrip.status === 'traveling');
 
   useEffect(() => {
-    if (!quickOpen) return;
-    const previousOverflow = document.body.style.overflow;
-    document.body.style.overflow = 'hidden';
-    return () => { document.body.style.overflow = previousOverflow; };
-  }, [quickOpen]);
+    const onPopState = () => setRoute(window.location.pathname);
+    window.addEventListener('popstate', onPopState);
+    return () => window.removeEventListener('popstate', onPopState);
+  }, []);
 
-  const handleNavigate = (next: Tab) => { setQuickOpen(false); setCreationOpen(false); setActiveNav(next); window.scrollTo({ top: 0 }); };
+  const openQuickEntry = () => {
+    window.history.pushState({}, '', '/entry/new');
+    setRoute('/entry/new');
+  };
+
+  const closeQuickEntry = () => {
+    window.history.pushState({}, '', '/');
+    setRoute('/');
+  };
+
+  const handleNavigate = (next: Tab) => {
+    if (window.location.pathname !== '/') window.history.pushState({}, '', '/');
+    setRoute('/');
+    setCreationOpen(false);
+    setActiveNav(next);
+    window.scrollTo({ top: 0 });
+  };
+
   const handleCreated = () => { setActiveNav('Home'); setCreationOpen(false); };
+
+  if (route === '/entry/new') {
+    return (
+      <div className="vela-entry-route">
+        <QuickEntry onClose={closeQuickEntry} />
+      </div>
+    );
+  }
+
   const content = activeNav === 'Home' ? <HomePage onNavigate={handleNavigate} onCreateTrip={() => setCreationOpen(true)} />
     : activeNav === 'Ledger' ? <main className="page vela-secondary-shell"><LedgerView /></main>
     : activeNav === 'Balance' ? <main className="page vela-secondary-shell"><BalanceEngine /></main>
     : activeNav === 'Logbook' ? <LogbookView annualReflection={annualReflection} plannedTrips={planningTrips} tripInsights={tripInsights} />
     : <main className="page vela-secondary-shell"><TripManager /></main>;
 
-  const quickEntryOverlay = quickOpen && hasActiveJourney && currentTrip
-    ? createPortal(
-        <div className="fixed inset-0 z-[9999] w-screen h-[100dvh] bg-white overflow-y-auto" role="dialog" aria-modal="true" aria-label="Quick Entry">
-          <QuickEntry onClose={() => setQuickOpen(false)} />
-        </div>,
-        document.body,
-      )
-    : null;
-
   return <div className="vela-app-root">
     {content}
     <nav className="vela-global-nav" aria-label="Primary navigation">
       {nav.map(({ label, icon: Icon }) => <button key={label} type="button" className={activeNav === label ? 'active' : ''} onClick={() => handleNavigate(label)}><Icon size={18} strokeWidth={1.7} /><span>{label}</span></button>)}
     </nav>
-    {hasActiveJourney && currentTrip && <button type="button" className="vela-global-quick" aria-label="Add Quick Entry" onClick={() => setQuickOpen(true)}><VelaConstellationIcon /></button>}
+    {hasActiveJourney && currentTrip && <button type="button" className="vela-global-quick" aria-label="Add Quick Entry" onClick={openQuickEntry}><VelaConstellationIcon /></button>}
     {creationOpen && <div className="vela-quick-backdrop" onMouseDown={(event) => { if (event.target === event.currentTarget) setCreationOpen(false); }}><div className="vela-quick-sheet"><TripCreation onClose={() => setCreationOpen(false)} onCreated={handleCreated} /></div></div>}
-    {quickEntryOverlay}
   </div>;
 };
 
