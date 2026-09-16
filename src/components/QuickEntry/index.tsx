@@ -449,7 +449,7 @@ export const QuickEntry: React.FC<QuickEntryProps> = ({ onClose }) => {
           )}
         </div>
 
-        <button type="submit" className="mt-8 min-h-12 w-full rounded-2xl bg-[#17243a] px-5 text-base font-medium text-[#fffdf8] shadow-[0_8px_20px_rgba(23,36,58,.16)] transition active:scale-[.99]">Save Entry</button>
+        <button type="submit" className="mt-8 min-h-12 w-full rounded-2xl bg-slate-900 px-5 text-base font-semibold text-white shadow-md shadow-slate-900/20 transition-all duration-200 active:scale-[0.98] active:opacity-80">Save Entry</button>
       </form>
     </section>
   );
