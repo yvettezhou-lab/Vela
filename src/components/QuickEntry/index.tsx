@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { Calendar, ChevronLeft, ChevronRight, X } from 'lucide-react';
+import { Calendar, X } from 'lucide-react';
 import { useVelaStore } from '../../store/useVelaStore';
 import { TRANSPORT_CATEGORY_ID } from '../../core/validation';
 import { Allocation, AllocationMode, FlightType, LedgerEntry } from '../../core/domain';
@@ -22,34 +22,6 @@ const toDateValue = (date: Date) => {
 };
 
 const todayValue = () => toDateValue(new Date());
-
-/** Carina dual-track date behavior:
- * iOS 15/16 -> native input[type=date]
- * iOS 17+ / Android / desktop -> custom React calendar
- * iPadOS desktop UA is identified through Macintosh + touch points.
- */
-const getIOSMajorVersion = (): number | null => {
-  if (typeof navigator === 'undefined') return null;
-  const ua = navigator.userAgent;
-  const isIOSDevice = /(iPhone|iPad|iPod)/i.test(ua);
-  const isIPadDesktopUA = /Macintosh/i.test(ua) && navigator.maxTouchPoints > 1;
-  if (!isIOSDevice && !isIPadDesktopUA) return null;
-
-  const iosMatch = ua.match(/OS (\d+)[._]/i);
-  if (iosMatch) return Number(iosMatch[1]);
-
-  const versionMatch = ua.match(/Version\/(\d+)(?:[._]|\.)/i);
-  return versionMatch ? Number(versionMatch[1]) : null;
-};
-
-const useNativeDateInput = () => {
-  const [native] = useState(() => {
-    const version = getIOSMajorVersion();
-    return version === 15 || version === 16;
-  });
-  return native;
-};
-
 const formatCny = (value: number) => (Number.isFinite(value) ? value.toFixed(2).replace(/\.00$/, '') : '');
 
 interface DatePickerProps {
@@ -59,99 +31,26 @@ interface DatePickerProps {
   required?: boolean;
 }
 
-const DatePicker: React.FC<DatePickerProps> = ({ value, onChange, label, required }) => {
-  const [open, setOpen] = useState(false);
-  const useNative = useNativeDateInput();
-  const [viewDate, setViewDate] = useState(() => {
-    const initial = value ? new Date(`${value}T00:00:00`) : new Date();
-    return Number.isNaN(initial.getTime()) ? new Date() : initial;
-  });
-
-  useEffect(() => {
-    if (!value) return;
-    const selected = new Date(`${value}T00:00:00`);
-    if (!Number.isNaN(selected.getTime())) setViewDate(selected);
-  }, [value]);
-
-  const selectDate = (date: Date) => {
-    // Only the calendar date is changed; the picker never owns or edits a time field.
-    onChange(toDateValue(date));
-    setOpen(false);
-  };
-
-  const monthStart = new Date(viewDate.getFullYear(), viewDate.getMonth(), 1);
-  const firstWeekday = (monthStart.getDay() + 6) % 7;
-  const daysInMonth = new Date(viewDate.getFullYear(), viewDate.getMonth() + 1, 0).getDate();
-  const cells = Array.from({ length: firstWeekday + daysInMonth }, (_, index) =>
-    index < firstWeekday ? null : index - firstWeekday + 1,
-  );
-  const monthLabel = viewDate.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
-  const displayValue = value
-    ? new Date(`${value}T00:00:00`).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
-    : 'Select date';
-
-  if (useNative) {
-    return (
-      <label className="block">
-        <span className="mb-2 block text-xs uppercase tracking-[0.14em] text-[#857a6a]">{label}</span>
-        <div className="relative">
-          <Calendar className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-[#9a7440]" size={19} strokeWidth={1.8} />
-          <input
-            type="date"
-            value={value}
-            required={required}
-            onChange={(event) => onChange(event.currentTarget.value)}
-            className="w-full rounded-xl bg-[#fbf7ee] px-12 py-3.5 text-base text-[#17243a] shadow-[inset_0_0_0_1px_rgba(80,64,42,.10)] outline-none"
-          />
-        </div>
-      </label>
-    );
-  }
-
-  return (
+/**
+ * Intentionally bare native date control.
+ * No custom calendar, no open state, no blur(), no click/focus handlers,
+ * and no React-controlled dismissal. iOS owns the date picker lifecycle.
+ */
+const DatePicker: React.FC<DatePickerProps> = ({ value, onChange, label, required }) => (
+  <label className="block">
+    <span className="mb-2 block text-xs uppercase tracking-[0.14em] text-[#857a6a]">{label}</span>
     <div className="relative">
-      <span className="mb-2 block text-xs uppercase tracking-[0.14em] text-[#857a6a]">{label}</span>
-      <button
-        type="button"
-        onClick={() => setOpen(true)}
-        aria-expanded={open}
-        className="flex min-h-12 w-full items-center gap-3 rounded-xl bg-[#fbf7ee] px-4 text-left text-base text-[#17243a] shadow-[inset_0_0_0_1px_rgba(80,64,42,.10)]"
-      >
-        <Calendar size={19} strokeWidth={1.8} className="shrink-0 text-[#9a7440]" />
-        <span className={value ? '' : 'text-[#a7a097]'}>{displayValue}</span>
-      </button>
-      {open && (
-        <div className="vela-date-popover" role="dialog" aria-label={`${label} date picker`}>
-          <div className="vela-date-header">
-            <button type="button" onClick={() => setViewDate(new Date(viewDate.getFullYear(), viewDate.getMonth() - 1, 1))} aria-label="Previous month">
-              <ChevronLeft size={20} />
-            </button>
-            <strong>{monthLabel}</strong>
-            <button type="button" onClick={() => setViewDate(new Date(viewDate.getFullYear(), viewDate.getMonth() + 1, 1))} aria-label="Next month">
-              <ChevronRight size={20} />
-            </button>
-          </div>
-          <div className="vela-date-weekdays">
-            {['M', 'T', 'W', 'T', 'F', 'S', 'S'].map((day, index) => <span key={`${day}-${index}`}>{day}</span>)}
-          </div>
-          <div className="vela-date-grid">
-            {cells.map((day, index) => {
-              if (!day) return <span key={`blank-${index}`} aria-hidden="true" />;
-              const cellDate = new Date(viewDate.getFullYear(), viewDate.getMonth(), day);
-              const cellValue = toDateValue(cellDate);
-              const selected = value === cellValue;
-              return (
-                <button key={cellValue} type="button" onClick={() => selectDate(cellDate)} aria-pressed={selected}>
-                  {day}
-                </button>
-              );
-            })}
-          </div>
-        </div>
-      )}
+      <Calendar className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-[#9a7440]" size={19} strokeWidth={1.8} />
+      <input
+        type="date"
+        value={value}
+        required={required}
+        onChange={(event) => onChange(event.currentTarget.value)}
+        className="w-full rounded-xl bg-[#fbf7ee] px-12 py-3.5 text-base text-[#17243a] shadow-[inset_0_0_0_1px_rgba(80,64,42,.10)] outline-none"
+      />
     </div>
-  );
-};
+  </label>
+);
 
 export interface QuickEntryProps {
   onClose?: () => void;
