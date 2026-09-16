@@ -305,7 +305,7 @@ export const QuickEntry: React.FC<QuickEntryProps> = ({ onClose }) => {
           {entryType === 'standard' && (
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Payment Date</label>
-              <input type="date" value={paymentDate} onChange={(e) => setPaymentDate(e.target.value)} className="w-full p-2 border rounded-md" required />
+              <input type="date" value={paymentDate} onChange={(e) => { setPaymentDate(e.target.value); e.currentTarget.blur(); }} className="w-full p-2 border rounded-md" required />
             </div>
           )}
 
@@ -318,12 +318,12 @@ export const QuickEntry: React.FC<QuickEntryProps> = ({ onClose }) => {
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Outbound Date</label>
-                  <input type="date" value={outboundDate} onChange={(e) => setOutboundDate(e.target.value)} className="w-full p-2 border rounded-md" required />
+                  <input type="date" value={outboundDate} onChange={(e) => { setOutboundDate(e.target.value); e.currentTarget.blur(); }} className="w-full p-2 border rounded-md" required />
                 </div>
                 {flightType === 'round_trip' && (
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">Return Date</label>
-                    <input type="date" value={returnDate} onChange={(e) => setReturnDate(e.target.value)} className="w-full p-2 border rounded-md" required />
+                    <input type="date" value={returnDate} onChange={(e) => { setReturnDate(e.target.value); e.currentTarget.blur(); }} className="w-full p-2 border rounded-md" required />
                   </div>
                 )}
               </div>
@@ -334,16 +334,16 @@ export const QuickEntry: React.FC<QuickEntryProps> = ({ onClose }) => {
             <div className="space-y-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Payment Date</label>
-                <input type="date" value={paymentDate} onChange={(e) => setPaymentDate(e.target.value)} className="w-full p-2 border rounded-md" required />
+                <input type="date" value={paymentDate} onChange={(e) => { setPaymentDate(e.target.value); e.currentTarget.blur(); }} className="w-full p-2 border rounded-md" required />
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Usage Start</label>
-                  <input type="date" value={usageStart} onChange={(e) => setUsageStart(e.target.value)} className="w-full p-2 border rounded-md" required />
+                  <input type="date" value={usageStart} onChange={(e) => { setUsageStart(e.target.value); e.currentTarget.blur(); }} className="w-full p-2 border rounded-md" required />
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Usage End</label>
-                  <input type="date" value={usageEnd} onChange={(e) => setUsageEnd(e.target.value)} className="w-full p-2 border rounded-md" required />
+                  <input type="date" value={usageEnd} onChange={(e) => { setUsageEnd(e.target.value); e.currentTarget.blur(); }} className="w-full p-2 border rounded-md" required />
                 </div>
               </div>
             </div>
