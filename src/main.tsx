@@ -67,16 +67,19 @@ const App: React.FC = () => {
 
   const openQuickEntry = () => { window.history.pushState({}, '', '/entry/new'); setRoute('/entry/new'); };
   const closeQuickEntry = () => { window.history.pushState({}, '', '/'); setRoute('/'); };
+  const openTripManager = () => { window.history.pushState({}, '', '/trips'); setRoute('/trips'); setCreationOpen(false); window.scrollTo({ top: 0 }); };
+  const closeTripManager = () => { window.history.pushState({}, '', '/'); setRoute('/'); setActiveNav('Home'); window.scrollTo({ top: 0 }); };
   const handleNavigate = (next: Tab) => { if (window.location.pathname !== '/') window.history.pushState({}, '', '/'); setRoute('/'); setCreationOpen(false); setActiveNav(next); window.scrollTo({ top: 0 }); };
   const handleCreated = () => { setActiveNav('Home'); setCreationOpen(false); };
 
   if (route === '/entry/new') return <div className="vela-entry-route"><QuickEntry onClose={closeQuickEntry} /><GlobalNav activeNav={activeNav} onNavigate={handleNavigate} /></div>;
+  if (route === '/trips') return <div className="vela-trip-manager-route"><div className="vela-trip-manager-page"><button type="button" className="vela-trip-manager-back" onClick={closeTripManager}>← Home</button><TripManager /></div><GlobalNav activeNav="Home" onNavigate={handleNavigate} /></div>;
 
-  const content = activeNav === 'Home' ? <HomePage onNavigate={handleNavigate} onCreateTrip={() => setCreationOpen(true)} />
+  const content = activeNav === 'Home' ? <HomePage onNavigate={handleNavigate} onCreateTrip={() => setCreationOpen(true)} onManageTrips={openTripManager} />
     : activeNav === 'Ledger' ? <main className="page vela-secondary-shell"><LedgerView /></main>
     : activeNav === 'Balance' ? <main className="page vela-secondary-shell"><BalanceEngine /></main>
     : activeNav === 'Logbook' ? <LogbookView annualReflection={annualReflection} activeTrip={activeTrip} plannedTrips={planningTrips} tripInsights={tripInsights} reflectionTrips={reflectionTrips} />
-    : <main className="page vela-secondary-shell"><TripContextHub /><div style={{ marginTop: 16 }}><TripManager /><DataManagement /></div></main>;
+    : <main className="page vela-secondary-shell"><header className="vela-settings-header"><span>ATELIER / SETTINGS</span><h1>Settings</h1><p>Data, privacy and master data management.</p></header><DataManagement /></main>;
 
   return <div className="vela-app-root">
     {content}
