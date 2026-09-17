@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react';
 import { AnnualReflection, LedgerEntry, Trip, TripInsights } from '../../types/logbook';
+import CrossTripIntelligence from '../CrossTripIntelligence';
 
 interface LogbookViewProps {
   annualReflection: AnnualReflection;
@@ -49,6 +50,8 @@ export const LogbookView = ({ annualReflection, activeTrip, plannedTrips, tripIn
         <div><p className="logbook-kicker">REFLECTION / {annualReflection.year}</p><h1>Logbook</h1><p className="logbook-subtitle">A quiet record of where the year has taken you.</p></div>
         <span className="logbook-mark">✦</span>
       </header>
+
+      <CrossTripIntelligence trips={reflectionTrips.filter((trip) => trip.status === 'achieve')} />
 
       <section className="logbook-section">
         <div className="logbook-section-heading"><div><span className="logbook-overline">THE YEAR IN MOTION</span><h2>Annual totals</h2></div><span className="logbook-year">{annualReflection.year}</span></div>
