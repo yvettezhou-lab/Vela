@@ -1,9 +1,9 @@
 export type TripStatus = 'planning' | 'traveling' | 'achieve';
 export type AllocationMode = 'equal' | 'custom_percentage';
 export type FlightType = 'one_way' | 'round_trip';
-export interface Member { id: string; name: string; }
-export interface Account { id: string; name: string; }
-export interface Category { id: string; name: string; type: string; }
+export interface Member { id: string; name: string; archived?: boolean; }
+export interface Account { id: string; name: string; archived?: boolean; }
+export interface Category { id: string; name: string; type: string; archived?: boolean; }
 export interface Allocation {
 memberId: string;
 percentage?: number;
