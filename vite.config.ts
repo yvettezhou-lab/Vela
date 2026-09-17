@@ -10,7 +10,10 @@ export default defineConfig({
       strategies: 'injectManifest',
       srcDir: 'src',
       filename: 'sw.ts',
-      injectRegister: 'auto',
+      // Register the service worker inline so registration does not depend on
+      // a separately fetched registerSW.js document. This is more reliable
+      // for Safari/PWA offline startup and refresh.
+      injectRegister: 'inline',
       includeAssets: [
         '10D69AAA-D679-43CD-B511-947B2737ADE2.png',
         '896DCF5B-31E2-44AA-ADEB-1A9E019FC6FC.png',
