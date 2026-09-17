@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { TripStatus } from '../../core/domain';
 import { useVelaStore } from '../../store/useVelaStore';
+import { calculatePlanningContext } from '../../utils/planningEngine';
 
 const STATUS_LABELS: Record<TripStatus, string> = {
   traveling: 'Traveling',
@@ -87,35 +88,45 @@ export const TripManager: React.FC = () => {
             <div style={styles.empty}>No {STATUS_LABELS[status].toLowerCase()} trips.</div>
           ) : (
             <div style={styles.list}>
-              {grouped[status].map((trip) => (
-                <article key={trip.id} style={styles.card}>
-                  <div style={styles.cardMain}>
-                    <div style={styles.tripTitle}>{trip.title}</div>
-                    <div style={styles.destination}>{trip.destination || '—'}</div>
-                    <div style={styles.meta}>{trip.localCurrency} · {trip.members.length} members</div>
-                  </div>
-                  <div style={styles.actions}>
-                    {status === 'planning' && (
-                      <button
-                        type="button"
-                        onClick={() => startTrip(trip.id)}
-                        style={styles.primaryButton}
-                      >
-                        Start Trip
-                      </button>
-                    )}
-                    {status === 'traveling' && (
-                      <button
-                        type="button"
-                        onClick={() => requestEndJourney(trip.id)}
-                        style={styles.secondaryButton}
-                      >
-                        End Journey
-                      </button>
-                    )}
-                  </div>
-                </article>
-              ))}
+              {grouped[status].map((trip) => {
+                const planningContext = status === 'planning' ? calculatePlanningContext(trip) : null;
+                return (
+                  <article key={trip.id} style={styles.card}>
+                    <div style={styles.cardMain}>
+                      <div style={styles.tripTitle}>{trip.title}</div>
+                      <div style={styles.destination}>{trip.destination || '—'}</div>
+                      <div style={styles.meta}>{trip.localCurrency} · {trip.members.length} members</div>
+                      {planningContext && (
+                        <div style={styles.planningContext} aria-label={`Planning context for ${trip.title}`}>
+                          <span>{planningContext.durationDays} days</span>
+                          <span>{planningContext.memberCount} {planningContext.memberCount === 1 ? 'traveler' : 'travelers'}</span>
+                          <span>{planningContext.currency}</span>
+                        </div>
+                      )}
+                    </div>
+                    <div style={styles.actions}>
+                      {status === 'planning' && (
+                        <button
+                          type="button"
+                          onClick={() => startTrip(trip.id)}
+                          style={styles.primaryButton}
+                        >
+                          Start Trip
+                        </button>
+                      )}
+                      {status === 'traveling' && (
+                        <button
+                          type="button"
+                          onClick={() => requestEndJourney(trip.id)}
+                          style={styles.secondaryButton}
+                        >
+                          End Journey
+                        </button>
+                      )}
+                    </div>
+                  </article>
+                );
+              })}
             </div>
           )}
         </section>
@@ -175,6 +186,7 @@ const styles: Record<string, React.CSSProperties> = {
   tripTitle: { fontWeight: 650, fontSize: 15, overflow: 'hidden', textOverflow: 'ellipsis' },
   destination: { marginTop: 2, fontSize: 13, opacity: 0.72 },
   meta: { marginTop: 5, fontSize: 11, opacity: 0.5 },
+  planningContext: { display: 'flex', flexWrap: 'wrap', gap: 7, marginTop: 8, fontSize: 11, color: '#62656b' },
   actions: { flexShrink: 0 },
   primaryButton: { border: 0, borderRadius: 7, padding: '8px 11px', background: '#172033', color: '#fff', cursor: 'pointer', fontSize: 12 },
   secondaryButton: { border: '1px solid #c9c5ba', borderRadius: 7, padding: '8px 11px', background: '#fff', color: '#172033', cursor: 'pointer', fontSize: 12 },
