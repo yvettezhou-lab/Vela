@@ -11,125 +11,170 @@ textarea {
   min-height: 96px;
 }
 
-/* Quick Entry uses existing project CSS rather than a Tailwind build. */
-.vela-quick-fullscreen {
-  position: fixed;
-  inset: 0;
-  z-index: 40;
-  width: 100%;
-  height: 100dvh;
-  overflow: hidden;
+/* Quick Entry structural fallback: the project does not ship Tailwind's utility layer,
+   so layout utilities used by the component are defined here, strictly inside /entry/new. */
+.vela-entry-route .vela-quick-fullscreen form {
+  display: flex !important;
+  flex-direction: column !important;
+  justify-content: flex-start !important;
+  align-items: stretch !important;
+  width: 100% !important;
+  min-height: 0 !important;
+  margin: 0 !important;
+  padding-top: 0 !important;
+  gap: 0 !important;
 }
 
-.vela-quick-fullscreen header {
-  position: relative;
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 18px;
-  flex: 0 0 auto;
-  min-height: 96px;
-  padding: max(18px, env(safe-area-inset-top)) 30px 14px;
+.vela-entry-route .vela-quick-fullscreen form label {
+  display: block !important;
+  width: 100% !important;
+  min-width: 0 !important;
 }
 
-.vela-quick-fullscreen header > div:first-child { min-width: 0; }
-
-.vela-quick-fullscreen .vela-quick-close {
-  position: absolute;
-  top: max(18px, env(safe-area-inset-top));
-  right: 30px;
-  width: 48px;
-  height: 48px;
-  min-width: 48px;
-  min-height: 48px;
-  display: grid;
-  place-items: center;
-  flex: 0 0 48px;
-  border: 1px solid rgba(80,64,42,.10);
-  border-radius: 50%;
-  background: #fbf7ee;
-  color: #17243a;
+.vela-entry-route .vela-quick-fullscreen form label.flex {
+  display: flex !important;
 }
 
-.vela-quick-fullscreen form {
-  flex: 1 1 auto;
-  min-height: 0;
-  overflow-y: auto;
-  padding: 4px 30px calc(120px + env(safe-area-inset-bottom));
-  -webkit-overflow-scrolling: touch;
+.vela-entry-route .vela-quick-fullscreen form .grid {
+  display: grid !important;
 }
 
-.vela-quick-fullscreen form > div { margin-top: 18px; }
-.vela-quick-fullscreen form > div:first-child { margin-top: 0; }
-.vela-quick-fullscreen form .grid { display: grid; }
-.vela-quick-fullscreen form .grid-cols-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
-.vela-quick-fullscreen form .grid-cols-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
-.vela-quick-fullscreen form .grid-cols-7 { grid-template-columns: repeat(7, minmax(0, 1fr)); }
-.vela-quick-fullscreen form .flex { display: flex; }
-.vela-quick-fullscreen form .flex-wrap { flex-wrap: wrap; }
-.vela-quick-fullscreen form .items-center { align-items: center; }
-.vela-quick-fullscreen form .items-start { align-items: flex-start; }
-.vela-quick-fullscreen form .justify-between { justify-content: space-between; }
-.vela-quick-fullscreen form .gap-1,
-.vela-quick-fullscreen form .gap-1\.5 { gap: 6px; }
-.vela-quick-fullscreen form .gap-3 { gap: 10px; }
-.vela-quick-fullscreen form .gap-5 { gap: 14px; }
-.vela-quick-fullscreen form .space-y-5 > * + * { margin-top: 14px; }
-.vela-quick-fullscreen form label.block,
-.vela-quick-fullscreen form label { display: block; min-width: 0; }
-.vela-quick-fullscreen form label > span:first-child,
-.vela-quick-fullscreen form > div > span:first-child { display: block; margin-bottom: 7px; }
+.vela-entry-route .vela-quick-fullscreen form .grid-cols-2 {
+  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+}
 
-.vela-quick-fullscreen form button[aria-pressed] {
-  min-height: 48px;
-  height: 48px;
-  border-radius: 12px;
-  padding: 0 14px;
-  border: 1px solid rgba(80,64,42,.10);
-  background: #fbf7ee;
-  color: #17243a;
-  font: 500 14px ui-sans-serif, system-ui, -apple-system, sans-serif;
-  cursor: pointer;
-  transition: background .15s ease, color .15s ease, box-shadow .15s ease, transform .15s ease;
+.vela-entry-route .vela-quick-fullscreen form .grid-cols-3 {
+  grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+}
+
+.vela-entry-route .vela-quick-fullscreen form .flex {
+  display: flex !important;
+}
+
+.vela-entry-route .vela-quick-fullscreen form .flex-1 {
+  flex: 1 1 0% !important;
+}
+
+.vela-entry-route .vela-quick-fullscreen form .min-w-0 {
+  min-width: 0 !important;
+}
+
+.vela-entry-route .vela-quick-fullscreen form .w-full {
+  width: 100% !important;
+}
+
+.vela-entry-route .vela-quick-fullscreen form .col-span-2 {
+  grid-column: span 2 / span 2 !important;
+}
+
+.vela-entry-route .vela-quick-fullscreen form .items-center {
+  align-items: center !important;
+}
+
+.vela-entry-route .vela-quick-fullscreen form .justify-between {
+  justify-content: space-between !important;
+}
+
+.vela-entry-route .vela-quick-fullscreen form .flex-wrap {
+  flex-wrap: wrap !important;
+}
+
+.vela-entry-route .vela-quick-fullscreen form .space-y-5 > * + * {
+  margin-top: 10px !important;
+}
+
+.vela-entry-route .vela-quick-fullscreen form .gap-5 {
+  gap: 10px !important;
+}
+
+.vela-entry-route .vela-quick-fullscreen form .gap-3 {
+  gap: 8px !important;
+}
+
+.vela-entry-route .vela-quick-fullscreen form .gap-1\.5 {
+  gap: 4px !important;
+}
+
+/* No inner Quick Entry positioning hacks. */
+.vela-entry-route .vela-quick-fullscreen form .relative,
+.vela-entry-route .vela-quick-fullscreen form .absolute {
+  position: static !important;
+  top: auto !important;
+  right: auto !important;
+  bottom: auto !important;
+  left: auto !important;
+  transform: none !important;
+}
+
+/* Native date controls remain ordinary block-flow fields. */
+.vela-entry-route .vela-quick-fullscreen form input[type='date'] {
+  display: block !important;
+  width: 100% !important;
+  margin: 0 !important;
+}
+
+/* The standalone /entry/new route does not need modal dismissal UI. */
+.vela-entry-route .vela-quick-fullscreen .vela-quick-close {
+  display: none !important;
+}
+
+/* Quick Entry choices: explicit state styling because this project has no Tailwind utility layer. */
+.vela-entry-route .vela-quick-fullscreen form button[aria-pressed='true'] {
+  min-height: 48px !important;
+  min-width: 96px !important;
+  padding-left: 18px !important;
+  padding-right: 18px !important;
+  appearance: none !important;
+  -webkit-appearance: none !important;
+  background: #17243a !important;
+  border-color: #17243a !important;
+  color: #fffdf8 !important;
+  box-shadow: 0 6px 14px rgba(23,36,58,.16) !important;
+}
+
+.vela-entry-route .vela-quick-fullscreen form button[aria-pressed='false'] {
+  min-height: 48px !important;
+  min-width: 96px !important;
+  padding-left: 18px !important;
+  padding-right: 18px !important;
+  appearance: none !important;
+  -webkit-appearance: none !important;
+  background: #fbf7ee !important;
+  border-color: rgba(23,36,58,.10) !important;
+  color: #17243a !important;
+}
+
+.vela-entry-route .vela-quick-fullscreen form button[aria-pressed] {
+  touch-action: manipulation;
   -webkit-tap-highlight-color: transparent;
+  transition: transform .12s ease, opacity .12s ease, background-color .12s ease, color .12s ease, box-shadow .12s ease !important;
 }
-.vela-quick-fullscreen form button[aria-pressed='true'] { border-color:#17243a!important; background:#17243a!important; color:#fffdf8!important; box-shadow:0 5px 12px rgba(23,36,58,.18)!important; }
-.vela-quick-fullscreen form button[aria-pressed='false']:active { transform: scale(.98); }
-.vela-quick-fullscreen form input,
-.vela-quick-fullscreen form select { box-sizing: border-box; }
-.vela-quick-fullscreen form > div > label > div.flex { min-height:48px; align-items:center; display:flex; overflow:hidden; }
-.vela-quick-fullscreen form > div > label > div.flex input { min-height:48px; height:48px; }
-.vela-quick-fullscreen form > div > label > div.flex input:first-child { width:68px; flex:0 0 68px; }
-.vela-quick-fullscreen form > div > label > div.flex input:last-child { flex:1 1 auto; min-width:0; }
-.vela-quick-fullscreen form > div:nth-of-type(2) > div > div.grid,
-.vela-quick-fullscreen form .grid-cols-2 { min-width:0; }
 
-/* Date picker: match the spacious, card-like calendar treatment from the reference. */
-.vela-quick-fullscreen .vela-date-popover { position:absolute; left:0; top:calc(100% + 8px); z-index:60; width:min(604px,calc(100vw - 60px)); padding:22px 18px 18px; border-radius:2px; background:#fffdf8; box-shadow:0 18px 45px rgba(55,43,28,.18); border:1px solid rgba(80,64,42,.08); }
-.vela-quick-fullscreen .vela-date-header { display:flex; align-items:center; justify-content:space-between; gap:8px; margin-bottom:18px; }
-.vela-quick-fullscreen .vela-date-header strong { font:400 20px Georgia,'Times New Roman',serif; }
-.vela-quick-fullscreen .vela-date-header button { width:44px; height:44px; min-width:44px; border:0; border-radius:10px; background:transparent; color:#17243a; display:grid; place-items:center; }
-.vela-quick-fullscreen .vela-date-weekdays,
-.vela-quick-fullscreen .vela-date-grid { display:grid; grid-template-columns:repeat(7,minmax(0,1fr)); gap:5px; text-align:center; }
-.vela-quick-fullscreen .vela-date-weekdays { margin-bottom:8px; color:#887c6b; font:12px ui-sans-serif,system-ui,sans-serif; }
-.vela-quick-fullscreen .vela-date-weekdays span { min-height:28px; display:grid; place-items:center; }
-.vela-quick-fullscreen .vela-date-grid button,
-.vela-quick-fullscreen .vela-date-grid > span { min-height:48px; height:48px; }
-.vela-quick-fullscreen .vela-date-grid button { border:0; border-radius:8px; background:transparent; color:#17243a; font:16px ui-sans-serif,system-ui,sans-serif; }
-.vela-quick-fullscreen .vela-date-grid button[aria-pressed='true'] { background:#17243a; color:#fffdf8; box-shadow:0 0 0 5px #eee5d5; }
-.vela-quick-fullscreen form > button[type='submit'] { display:block; width:100%; min-height:48px; height:48px; margin-top:24px; border:0; border-radius:24px; background:#17243a; color:#fffdf8; font:500 16px ui-sans-serif,system-ui,-apple-system,sans-serif; box-shadow:0 8px 20px rgba(23,36,58,.16); }
+.vela-entry-route .vela-quick-fullscreen form button[aria-pressed]:active {
+  transform: scale(.96) !important;
+  opacity: .8 !important;
+}
 
-.vela-success-toast { position:fixed; left:50%; top:max(76px,calc(env(safe-area-inset-top) + 58px)); z-index:100; display:flex; align-items:center; gap:8px; transform:translateX(-50%); padding:10px 15px; border-radius:14px; background:#17243a; color:#fffdf8; box-shadow:0 10px 28px rgba(23,36,58,.22); font:14px ui-sans-serif,system-ui,-apple-system,sans-serif; white-space:nowrap; }
-.vela-success-toast strong { font-weight:600; }
-.vela-success-toast span { opacity:.9; }
+/* A single payer/participant should read as a full-width choice, not a tiny square. */
+.vela-entry-route .vela-quick-fullscreen form > div:has(> span:first-child) button[aria-pressed]:only-child {
+  width: 100% !important;
+}
 
-@media (max-width:520px) {
-  .vela-quick-fullscreen header { min-height:88px; padding-left:30px; padding-right:30px; }
-  .vela-quick-fullscreen .vela-quick-close { right:30px; }
-  .vela-quick-fullscreen form { padding-left:30px; padding-right:30px; }
-  .vela-quick-fullscreen form .grid-cols-2 { gap:10px; }
-  .vela-quick-fullscreen form button[aria-pressed] { padding:0 11px; }
-  .vela-quick-fullscreen .vela-date-popover { width:calc(100vw - 60px); padding:18px 10px 12px; }
-  .vela-quick-fullscreen .vela-date-grid button,
-  .vela-quick-fullscreen .vela-date-grid > span { min-height:44px; height:44px; }
+/* Date: keep the calendar icon inside the date field rather than on its own line. */
+.vela-entry-route .vela-quick-fullscreen form div:has(> input[type='date']) {
+  position: relative !important;
+}
+
+.vela-entry-route .vela-quick-fullscreen form div:has(> input[type='date']) > svg {
+  position: absolute !important;
+  left: 16px !important;
+  top: 50% !important;
+  transform: translateY(-50%) !important;
+  z-index: 1 !important;
+  pointer-events: none !important;
+  color: #9a7440 !important;
+}
+
+.vela-entry-route .vela-quick-fullscreen form div:has(> input[type='date']) > input[type='date'] {
+  padding-left: 48px !important;
 }
