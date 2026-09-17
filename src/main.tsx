@@ -10,6 +10,7 @@ import './global-ux.css';
 import './logbook.css';
 import HomePage from './Home';
 import TripManager from './components/TripManager';
+import TripContextHub from './components/TripContextHub';
 import { TripCreation } from './components/TripCreation';
 import { QuickEntry } from './components/QuickEntry';
 import { BalanceEngine } from './components/BalanceEngine';
@@ -52,14 +53,8 @@ const App: React.FC = () => {
   const achieveTrips = useMemo(() => trips.filter((trip) => trip.status === 'achieve'), [trips]);
   const activeTrip = useMemo(() => trips.find((trip) => trip.status === 'traveling') ?? null, [trips]);
   const planningTrips = useMemo(() => trips.filter((trip) => trip.status === 'planning'), [trips]);
-  const annualReflection = useMemo(
-    () => calculateAnnualTotals(achieveTrips, activeTrip, planningTrips, currentYear),
-    [achieveTrips, activeTrip, planningTrips, currentYear],
-  );
-  const reflectionTrips = useMemo(
-    () => activeTrip ? [...achieveTrips, activeTrip] : achieveTrips,
-    [achieveTrips, activeTrip],
-  );
+  const annualReflection = useMemo(() => calculateAnnualTotals(achieveTrips, activeTrip, planningTrips, currentYear), [achieveTrips, activeTrip, planningTrips, currentYear]);
+  const reflectionTrips = useMemo(() => activeTrip ? [...achieveTrips, activeTrip] : achieveTrips, [achieveTrips, activeTrip]);
   const tripInsights = useMemo(() => reflectionTrips.map(generateTripInsights), [reflectionTrips]);
   const hasActiveJourney = Boolean(currentTrip && currentTrip.status === 'traveling');
 
@@ -69,40 +64,18 @@ const App: React.FC = () => {
     return () => window.removeEventListener('popstate', onPopState);
   }, []);
 
-  const openQuickEntry = () => {
-    window.history.pushState({}, '', '/entry/new');
-    setRoute('/entry/new');
-  };
-
-  const closeQuickEntry = () => {
-    window.history.pushState({}, '', '/');
-    setRoute('/');
-  };
-
-  const handleNavigate = (next: Tab) => {
-    if (window.location.pathname !== '/') window.history.pushState({}, '', '/');
-    setRoute('/');
-    setCreationOpen(false);
-    setActiveNav(next);
-    window.scrollTo({ top: 0 });
-  };
-
+  const openQuickEntry = () => { window.history.pushState({}, '', '/entry/new'); setRoute('/entry/new'); };
+  const closeQuickEntry = () => { window.history.pushState({}, '', '/'); setRoute('/'); };
+  const handleNavigate = (next: Tab) => { if (window.location.pathname !== '/') window.history.pushState({}, '', '/'); setRoute('/'); setCreationOpen(false); setActiveNav(next); window.scrollTo({ top: 0 }); };
   const handleCreated = () => { setActiveNav('Home'); setCreationOpen(false); };
 
-  if (route === '/entry/new') {
-    return (
-      <div className="vela-entry-route">
-        <QuickEntry onClose={closeQuickEntry} />
-        <GlobalNav activeNav={activeNav} onNavigate={handleNavigate} />
-      </div>
-    );
-  }
+  if (route === '/entry/new') return <div className="vela-entry-route"><QuickEntry onClose={closeQuickEntry} /><GlobalNav activeNav={activeNav} onNavigate={handleNavigate} /></div>;
 
   const content = activeNav === 'Home' ? <HomePage onNavigate={handleNavigate} onCreateTrip={() => setCreationOpen(true)} />
     : activeNav === 'Ledger' ? <main className="page vela-secondary-shell"><LedgerView /></main>
     : activeNav === 'Balance' ? <main className="page vela-secondary-shell"><BalanceEngine /></main>
     : activeNav === 'Logbook' ? <LogbookView annualReflection={annualReflection} activeTrip={activeTrip} plannedTrips={planningTrips} tripInsights={tripInsights} reflectionTrips={reflectionTrips} />
-    : <main className="page vela-secondary-shell"><TripManager /></main>;
+    : <main className="page vela-secondary-shell"><TripContextHub /><div style={{ marginTop: 16 }}><TripManager /></div></main>;
 
   return <div className="vela-app-root">
     {content}
