@@ -52,9 +52,57 @@
 }
 .vela-app-root > .page:has(.settings-list) .settings-list button:last-child{border-bottom:0!important}
 
+/* Global iOS Safari zoom guard: every editable control is at least 16px. */
+.vela-app-root input,
+.vela-app-root textarea,
+.vela-app-root select{
+  font-size:16px!important;
+}
+
+/* Quick Entry full-screen overlay: use the viewport instead of stacking everything at the top. */
+.vela-quick-fullscreen{
+  width:min(100%,640px)!important;
+  height:100dvh!important;
+  max-height:100dvh!important;
+  overflow:hidden!important;
+  display:flex!important;
+  flex-direction:column!important;
+}
+.vela-quick-fullscreen > *{
+  flex:1 1 auto!important;
+  min-height:0!important;
+  width:100%!important;
+  max-width:none!important;
+  height:100%!important;
+  margin:0!important;
+  border-radius:0!important;
+  display:flex!important;
+  flex-direction:column!important;
+}
+.vela-quick-fullscreen form{
+  display:flex!important;
+  flex-direction:column!important;
+  gap:16px!important;
+  flex:1 1 auto!important;
+  min-height:0!important;
+  overflow:auto!important;
+}
+.vela-quick-fullscreen form > *{flex:0 0 auto}
+.vela-quick-fullscreen input:not([type="radio"]):not([type="checkbox"]),
+.vela-quick-fullscreen select,
+.vela-quick-fullscreen textarea{
+  min-height:48px!important;
+  padding-top:12px!important;
+  padding-bottom:12px!important;
+  font-size:16px!important;
+}
+.vela-quick-fullscreen input[type="radio"],
+.vela-quick-fullscreen input[type="checkbox"]{font-size:16px!important}
+
 @media(max-width:600px){
   .vela-app-root > .page:has(.balance-list) .section,
   .vela-app-root > .page:has(.reflection-total) .section{padding:17px!important;border-radius:22px!important}
   .vela-app-root > .page:has(.reflection-total) .reflection-total{padding:22px 17px 25px!important;border-radius:22px!important}
   .vela-app-root > .page:has(.settings-list) .settings-list{border-radius:22px!important}
+  .vela-quick-fullscreen{width:100%!important}
 }

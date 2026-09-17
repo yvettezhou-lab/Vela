@@ -1,18 +1,20 @@
-import React, { useMemo, useState } from 'react';
-import { BookOpen, Compass, Home as HomeIcon, Plus, Scale, Settings } from 'lucide-react';
+import React, { useEffect, useMemo, useState } from 'react';
+import { BookOpen, Compass, Home as HomeIcon, Scale, Settings } from 'lucide-react';
 import { createRoot } from 'react-dom/client';
 import './styles.css';
 import './vela-polish.css';
 import './vela-secondary-polish.css';
 import './vela-secondary-finish.css';
 import './vela-home-shell.css';
+import './global-ux.css';
 import HomePage from './Home';
 import TripManager from './components/TripManager';
 import { TripCreation } from './components/TripCreation';
 import { QuickEntry } from './components/QuickEntry';
 import { BalanceEngine } from './components/BalanceEngine';
 import { LedgerView } from './components/LedgerView';
-import { calculateFinancialTotals } from './core/calculations';
+import LogbookView from './components/Logbook';
+import { generateAnnualReflection, generateTripInsights } from './utils/reflectionEngine';
 import { useVelaStore } from './store/useVelaStore';
 
 type Tab = 'Home' | 'Ledger' | 'Balance' | 'Logbook' | 'Atelier';
@@ -24,34 +26,79 @@ const nav = [
   { label: 'Atelier', icon: Settings },
 ] as const;
 
-const Logbook: React.FC = () => {
-  const trip = useVelaStore((state) => state.getCurrentTrip());
-  const totals = useMemo(() => calculateFinancialTotals(trip?.ledger ?? []), [trip]);
-  if (!trip) return <section className="vela-secondary-page"><span className="vela-kicker">LOGBOOK</span><h1>Logbook</h1><p>Select or start a trip to review its financial record.</p></section>;
-  return <section className="vela-secondary-page"><span className="vela-kicker">LOGBOOK · {trip.title}</span><h1>Financial Reflection</h1><div className="vela-logbook-stats"><div><small>TOTAL</small><b>¥{totals.financialTotal.toFixed(2)}</b></div><div><small>SETTLED</small><b>¥{totals.settledAmount.toFixed(2)}</b></div><div><small>PENDING</small><b>¥{totals.pendingAmount.toFixed(2)}</b></div></div><p>{trip.ledger.length} payment records in the current trip.</p></section>;
-};
+const VelaConstellationIcon = () => (
+  <svg width="32" height="32" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+    <path d="M6 18l6-10 6 4" stroke="#FAF9F5" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round" strokeDasharray="2 4" />
+    <circle cx="6" cy="18" r="1.5" fill="#FAF9F5" />
+    <circle cx="12" cy="8" r="1.5" fill="#FAF9F5" />
+    <circle cx="18" cy="12" r="1.5" fill="#FAF9F5" />
+  </svg>
+);
+
+const GlobalNav: React.FC<{ activeNav: Tab; onNavigate: (next: Tab) => void }> = ({ activeNav, onNavigate }) => (
+  <nav className="vela-global-nav" aria-label="Primary navigation">
+    {nav.map(({ label, icon: Icon }) => <button key={label} type="button" className={activeNav === label ? 'active' : ''} onClick={() => onNavigate(label)}><Icon size={18} strokeWidth={1.7} /><span>{label}</span></button>)}
+  </nav>
+);
 
 const App: React.FC = () => {
   const [activeNav, setActiveNav] = useState<Tab>('Home');
-  const [quickOpen, setQuickOpen] = useState(false);
+  const [route, setRoute] = useState(() => window.location.pathname);
   const [creationOpen, setCreationOpen] = useState(false);
+  const trips = useVelaStore((state) => state.trips);
   const currentTrip = useVelaStore((state) => state.getCurrentTrip());
+  const currentYear = new Date().getFullYear();
+  const reflectionTrips = useMemo(() => trips.filter((trip) => trip.status === 'achieve' || trip.status === 'traveling'), [trips]);
+  const planningTrips = useMemo(() => trips.filter((trip) => trip.status === 'planning'), [trips]);
+  const annualReflection = useMemo(() => generateAnnualReflection(reflectionTrips, currentYear), [reflectionTrips, currentYear]);
+  const tripInsights = useMemo(() => reflectionTrips.map(generateTripInsights), [reflectionTrips]);
   const hasActiveJourney = Boolean(currentTrip && currentTrip.status === 'traveling');
-  const handleNavigate = (next: Tab) => { setQuickOpen(false); setCreationOpen(false); setActiveNav(next); window.scrollTo({ top: 0 }); };
+
+  useEffect(() => {
+    const onPopState = () => setRoute(window.location.pathname);
+    window.addEventListener('popstate', onPopState);
+    return () => window.removeEventListener('popstate', onPopState);
+  }, []);
+
+  const openQuickEntry = () => {
+    window.history.pushState({}, '', '/entry/new');
+    setRoute('/entry/new');
+  };
+
+  const closeQuickEntry = () => {
+    window.history.pushState({}, '', '/');
+    setRoute('/');
+  };
+
+  const handleNavigate = (next: Tab) => {
+    if (window.location.pathname !== '/') window.history.pushState({}, '', '/');
+    setRoute('/');
+    setCreationOpen(false);
+    setActiveNav(next);
+    window.scrollTo({ top: 0 });
+  };
+
   const handleCreated = () => { setActiveNav('Home'); setCreationOpen(false); };
+
+  if (route === '/entry/new') {
+    return (
+      <div className="vela-entry-route">
+        <QuickEntry onClose={closeQuickEntry} />
+        <GlobalNav activeNav={activeNav} onNavigate={handleNavigate} />
+      </div>
+    );
+  }
+
   const content = activeNav === 'Home' ? <HomePage onNavigate={handleNavigate} onCreateTrip={() => setCreationOpen(true)} />
     : activeNav === 'Ledger' ? <main className="page vela-secondary-shell"><LedgerView /></main>
     : activeNav === 'Balance' ? <main className="page vela-secondary-shell"><BalanceEngine /></main>
-    : activeNav === 'Logbook' ? <Logbook />
+    : activeNav === 'Logbook' ? <LogbookView annualReflection={annualReflection} plannedTrips={planningTrips} tripInsights={tripInsights} />
     : <main className="page vela-secondary-shell"><TripManager /></main>;
 
   return <div className="vela-app-root">
     {content}
-    <nav className="vela-global-nav" aria-label="Primary navigation">
-      {nav.map(({ label, icon: Icon }) => <button key={label} type="button" className={activeNav === label ? 'active' : ''} onClick={() => handleNavigate(label)}><Icon size={18} strokeWidth={1.7} /><span>{label}</span></button>)}
-    </nav>
-    {hasActiveJourney && currentTrip && <button type="button" className="vela-global-quick" aria-label="Quick Entry" onClick={() => setQuickOpen(true)}><Plus size={25} strokeWidth={1.5} /></button>}
-    {quickOpen && hasActiveJourney && currentTrip && <div className="vela-quick-backdrop" onMouseDown={(event) => { if (event.target === event.currentTarget) setQuickOpen(false); }}><div className="vela-quick-sheet"><QuickEntry onClose={() => setQuickOpen(false)} /></div></div>}
+    <GlobalNav activeNav={activeNav} onNavigate={handleNavigate} />
+    {hasActiveJourney && currentTrip && <button type="button" className="vela-global-quick" aria-label="Add Quick Entry" onClick={openQuickEntry}><VelaConstellationIcon /></button>}
     {creationOpen && <div className="vela-quick-backdrop" onMouseDown={(event) => { if (event.target === event.currentTarget) setCreationOpen(false); }}><div className="vela-quick-sheet"><TripCreation onClose={() => setCreationOpen(false)} onCreated={handleCreated} /></div></div>}
   </div>;
 };
