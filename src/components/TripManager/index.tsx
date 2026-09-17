@@ -15,13 +15,14 @@ function lifecycleError(error: unknown, action: 'start' | 'archive'): string {
   if (action === 'start' && message.toLowerCase().includes('traveling')) {
     return '无法开始行程，已有正在进行中的行程';
   }
-  return action === 'start' ? `无法开始行程：${message}` : `无法归档行程：${message}`;
+  return action === 'start' ? `无法开始行程：${message}` : `无法结束行程：${message}`;
 }
 
 export const TripManager: React.FC = () => {
   const trips = useVelaStore((state) => state.trips);
   const updateTripStatus = useVelaStore((state) => state.updateTripStatus);
   const [error, setError] = useState<string | null>(null);
+  const [endingTripId, setEndingTripId] = useState<string | null>(null);
 
   const grouped: Record<TripStatus, typeof trips> = {
     traveling: trips.filter((trip) => trip.status === 'traveling'),
@@ -31,14 +32,32 @@ export const TripManager: React.FC = () => {
     achieve: trips.filter((trip) => trip.status === 'achieve'),
   };
 
-  const changeStatus = (tripId: string, newStatus: TripStatus, action: 'start' | 'archive') => {
+  const startTrip = (tripId: string) => {
     setError(null);
     try {
-      updateTripStatus(tripId, newStatus);
+      updateTripStatus(tripId, 'traveling');
     } catch (caught) {
-      setError(lifecycleError(caught, action));
+      setError(lifecycleError(caught, 'start'));
     }
   };
+
+  const requestEndJourney = (tripId: string) => {
+    setError(null);
+    setEndingTripId(tripId);
+  };
+
+  const confirmEndJourney = () => {
+    if (!endingTripId) return;
+    setError(null);
+    try {
+      updateTripStatus(endingTripId, 'achieve');
+      setEndingTripId(null);
+    } catch (caught) {
+      setError(lifecycleError(caught, 'archive'));
+    }
+  };
+
+  const endingTrip = endingTripId ? trips.find((trip) => trip.id === endingTripId) : null;
 
   return (
     <section style={styles.container} aria-label="Trip Manager">
@@ -79,7 +98,7 @@ export const TripManager: React.FC = () => {
                     {status === 'planning' && (
                       <button
                         type="button"
-                        onClick={() => changeStatus(trip.id, 'traveling', 'start')}
+                        onClick={() => startTrip(trip.id)}
                         style={styles.primaryButton}
                       >
                         Start Trip
@@ -88,10 +107,10 @@ export const TripManager: React.FC = () => {
                     {status === 'traveling' && (
                       <button
                         type="button"
-                        onClick={() => changeStatus(trip.id, 'achieve', 'archive')}
+                        onClick={() => requestEndJourney(trip.id)}
                         style={styles.secondaryButton}
                       >
-                        Archive
+                        End Journey
                       </button>
                     )}
                   </div>
@@ -101,6 +120,24 @@ export const TripManager: React.FC = () => {
           )}
         </section>
       ))}
+
+      {endingTrip && (
+        <div role="presentation" style={styles.backdrop} onMouseDown={(event) => {
+          if (event.target === event.currentTarget) setEndingTripId(null);
+        }}>
+          <div role="dialog" aria-modal="true" aria-labelledby="end-journey-title" style={styles.dialog}>
+            <div style={styles.dialogEyebrow}>END JOURNEY</div>
+            <h3 id="end-journey-title" style={styles.dialogTitle}>Finish {endingTrip.title}?</h3>
+            <p style={styles.dialogBody}>
+              This will close the active journey and move it to Achieve. Its existing ledger entries remain unchanged and will be reflected in completed journeys.
+            </p>
+            <div style={styles.dialogActions}>
+              <button type="button" onClick={() => setEndingTripId(null)} style={styles.cancelButton}>Keep traveling</button>
+              <button type="button" onClick={confirmEndJourney} style={styles.confirmButton}>End Journey</button>
+            </div>
+          </div>
+        </div>
+      )}
     </section>
   );
 };
@@ -141,6 +178,14 @@ const styles: Record<string, React.CSSProperties> = {
   actions: { flexShrink: 0 },
   primaryButton: { border: 0, borderRadius: 7, padding: '8px 11px', background: '#172033', color: '#fff', cursor: 'pointer', fontSize: 12 },
   secondaryButton: { border: '1px solid #c9c5ba', borderRadius: 7, padding: '8px 11px', background: '#fff', color: '#172033', cursor: 'pointer', fontSize: 12 },
+  backdrop: { position: 'fixed', inset: 0, zIndex: 1000, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20, background: 'rgba(23, 32, 51, 0.28)' },
+  dialog: { width: 'min(420px, 100%)', padding: 22, borderRadius: 16, border: '1px solid #d7d4ca', background: '#fffdf8', boxShadow: '0 18px 50px rgba(23, 32, 51, 0.18)' },
+  dialogEyebrow: { fontSize: 10, letterSpacing: '0.16em', opacity: 0.55 },
+  dialogTitle: { margin: '6px 0 10px', fontSize: 22, lineHeight: 1.2 },
+  dialogBody: { margin: 0, color: '#62656b', fontSize: 14, lineHeight: 1.55 },
+  dialogActions: { display: 'flex', justifyContent: 'flex-end', gap: 8, marginTop: 20 },
+  cancelButton: { border: '1px solid #c9c5ba', borderRadius: 8, padding: '9px 12px', background: '#fff', color: '#172033', cursor: 'pointer', fontSize: 12 },
+  confirmButton: { border: 0, borderRadius: 8, padding: '9px 12px', background: '#172033', color: '#fff', cursor: 'pointer', fontSize: 12 },
 };
 
 export default TripManager;

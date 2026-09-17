@@ -23,7 +23,7 @@ return val;
 };
 export const DomainValidator = {
 validateTripStatus: (trips: Trip[], targetTripId: string, newStatus: unknown, currentStatus?: unknown) => {
-const transitions: Record<string, string[]> = {'planning': ['traveling', 'achieve'], 'traveling': ['achieve'], 'achieve': []};
+const transitions: Record<string, string[]> = {'planning': ['traveling'], 'traveling': ['achieve'], 'achieve': []};
 if (typeof newStatus !== 'string' || !transitions[newStatus]) throw new Error(`Lifecycle Violation: Invalid target status '${newStatus}'`);
 if (currentStatus !== undefined) {
 if (typeof currentStatus !== 'string' || !transitions[currentStatus]) throw new Error(`Lifecycle Violation: Invalid current status '${currentStatus}'`);
