@@ -90,8 +90,10 @@ export const QuickEntry: React.FC<QuickEntryProps> = ({ onClose }) => {
   const cnyManualRef = useRef(false);
   const successTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  const accounts = currentTrip?.accounts.length ? currentTrip.accounts : FALLBACK_ACCOUNTS;
-  const members = currentTrip?.members.length ? currentTrip.members : FALLBACK_MEMBERS;
+  const activeAccounts = currentTrip?.accounts.filter((account) => account.archived !== true) ?? [];
+  const accounts = activeAccounts.length ? activeAccounts : FALLBACK_ACCOUNTS;
+  const activeMembers = currentTrip?.members.filter((member) => member.archived !== true) ?? [];
+  const members = activeMembers.length ? activeMembers : FALLBACK_MEMBERS;
 
   useEffect(() => () => {
     if (successTimerRef.current) clearTimeout(successTimerRef.current);
@@ -374,7 +376,7 @@ export const QuickEntry: React.FC<QuickEntryProps> = ({ onClose }) => {
             <label className="block">
               <span className="mb-2 block text-xs uppercase tracking-[0.14em] text-[#857a6a]">Category</span>
               <select value={categoryId} onChange={(event) => setCategoryId(event.target.value)} className="w-full appearance-none rounded-xl bg-[#fbf7ee] px-4 text-base text-[#17243a] shadow-[inset_0_0_0_1px_rgba(80,64,42,.10)] outline-none" required>
-                {currentTrip.categories.map((category) => <option key={category.id} value={category.id}>{category.name}</option>)}
+                {currentTrip.categories.filter((category) => category.archived !== true).map((category) => <option key={category.id} value={category.id}>{category.name}</option>)}
               </select>
             </label>
           )}
