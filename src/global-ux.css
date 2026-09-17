@@ -1,5 +1,5 @@
-/* Global iOS Safari form baseline: keep editable controls at 16px to prevent focus zoom. */
-input:not([type='checkbox']):not([type='radio']):not([type='range']),
+/* Global iOS Safari form baseline: keep every form control at an explicit 16px minimum to prevent focus zoom. */
+input,
 textarea,
 select {
   font-size: 16px !important;
@@ -116,6 +116,17 @@ textarea {
 /* The standalone /entry/new route does not need modal dismissal UI. */
 .vela-entry-route .vela-quick-fullscreen .vela-quick-close {
   display: none !important;
+}
+
+/* Offline-cached local Quick Entry icon. */
+.vela-entry-route .vela-quick-fullscreen header h2::before {
+  content: '';
+  display: inline-block;
+  width: 24px;
+  height: 24px;
+  margin-right: 8px;
+  vertical-align: 0.12em;
+  background: url('/quick-entry.svg') center / contain no-repeat;
 }
 
 /* Quick Entry choices: explicit state styling because this project has no Tailwind utility layer. */
