@@ -11,6 +11,7 @@ import './logbook.css';
 import HomePage from './Home';
 import TripManager from './components/TripManager';
 import TripContextHub from './components/TripContextHub';
+import DataManagement from './components/DataManagement';
 import { TripCreation } from './components/TripCreation';
 import { QuickEntry } from './components/QuickEntry';
 import { BalanceEngine } from './components/BalanceEngine';
@@ -75,7 +76,7 @@ const App: React.FC = () => {
     : activeNav === 'Ledger' ? <main className="page vela-secondary-shell"><LedgerView /></main>
     : activeNav === 'Balance' ? <main className="page vela-secondary-shell"><BalanceEngine /></main>
     : activeNav === 'Logbook' ? <LogbookView annualReflection={annualReflection} activeTrip={activeTrip} plannedTrips={planningTrips} tripInsights={tripInsights} reflectionTrips={reflectionTrips} />
-    : <main className="page vela-secondary-shell"><TripContextHub /><div style={{ marginTop: 16 }}><TripManager /></div></main>;
+    : <main className="page vela-secondary-shell"><TripContextHub /><div style={{ marginTop: 16 }}><TripManager /><DataManagement /></div></main>;
 
   return <div className="vela-app-root">
     {content}
