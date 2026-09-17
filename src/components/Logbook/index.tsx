@@ -28,8 +28,8 @@ export const LogbookView = ({ annualReflection, activeTrip, plannedTrips, tripIn
       <section className="logbook-section">
         <div className="logbook-section-heading"><div><span className="logbook-overline">THE YEAR IN MOTION</span><h2>Annual totals</h2></div><span className="logbook-year">{annualReflection.year}</span></div>
         <div className="logbook-stat-grid">
-          <article className="logbook-stat"><span>TRIPS</span><strong>{annualReflection.totalTripsCompleted}</strong><small>completed journeys</small>{annualReflection.activeTripCount > 0 && <small className="logbook-live-note">+ 1 journey in progress</small>}</article>
-          <article className="logbook-stat"><span>DAYS</span><strong>{annualReflection.totalDaysTraveled}</strong><small>days on the road</small>{annualReflection.activeTripCount > 0 && <small className="logbook-live-note">includes current journey</small>}</article>
+          <article className="logbook-stat"><span>TRIPS</span><strong>{annualReflection.totalTripsCompleted}</strong><small>{annualReflection.activeTripCount > 0 ? 'completed journeys + 1 journey in progress' : 'completed journeys'}</small></article>
+          <article className="logbook-stat"><span>DAYS</span><strong>{annualReflection.totalDaysTraveled}</strong><small>{annualReflection.activeTripCount > 0 ? 'days on the road includes current journey' : 'days on the road'}</small></article>
           <article className="logbook-stat logbook-stat-wide"><span>EXPENDITURE</span><div className="logbook-money-list">{currencies.length ? currencies.map(([currency, amount]) => <div key={currency}><strong>{number(amount)}</strong><small>{currency}</small></div>) : <small>No recorded expenditure yet.</small>}</div>{annualReflection.activeTripCount > 0 && <small className="logbook-live-note">live spend included</small>}</article>
         </div>
       </section>
