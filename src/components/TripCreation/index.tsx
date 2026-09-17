@@ -64,8 +64,8 @@ export const TripCreation: React.FC<Props> = ({ onClose, onCreated }) => {
       <label><span>TRIP TITLE</span><input autoFocus value={title} onChange={(e) => setTitle(e.target.value)} placeholder="e.g. Penang" /></label>
       <label><span>BASE CURRENCY</span><input value={localCurrency} onChange={(e) => setLocalCurrency(e.target.value)} placeholder="CNY" maxLength={8} /></label>
       <div className="trip-creation-dates">
-        <label><span>START DATE</span><div><CalendarDays size={15} /><input type="date" value={startDate} onChange={(e) => { setStartDate(e.target.value); e.currentTarget.blur(); }} /></div></label>
-        <label><span>END DATE</span><div><CalendarDays size={15} /><input type="date" value={endDate} onChange={(e) => { setEndDate(e.target.value); e.currentTarget.blur(); }} /></div></label>
+        <label><span>START DATE</span><div><CalendarDays size={15} /><input type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)} /></div></label>
+        <label><span>END DATE</span><div><CalendarDays size={15} /><input type="date" value={endDate} onChange={(e) => setEndDate(e.target.value)} /></div></label>
       </div>
       <div className="trip-creation-member"><span>DEFAULT MEMBER</span><strong>Me</strong><small>Added automatically</small></div>
       {error && <p className="trip-creation-error" role="alert">{error}</p>}
