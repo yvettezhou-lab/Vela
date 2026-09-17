@@ -6,6 +6,11 @@ import { NavigationRoute, registerRoute, setCatchHandler } from 'workbox-routing
 
 const sw = self as unknown as ServiceWorkerGlobalScope;
 
+// Offline shell version bump: changing this source forces a new SW build and
+// lets Workbox cleanupOutdatedCaches retire the previous precache generation.
+const OFFLINE_SHELL_VERSION = '2026-09-17.2';
+void OFFLINE_SHELL_VERSION;
+
 self.skipWaiting();
 clientsClaim();
 cleanupOutdatedCaches();
