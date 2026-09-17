@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react';
+import { useRef, useState, type ChangeEvent } from 'react';
 import { DomainValidator } from '../../core/validation';
 import { getDefaultCategories } from '../../core/defaults';
 import { useVelaStore } from '../../store/useVelaStore';
@@ -11,9 +11,7 @@ type ExportPayload = {
   format: 'vela-data-export';
   version: number;
   exportedAt: string;
-  state: {
-    trips: Trip[];
-  };
+  state: { trips: Trip[] };
 };
 
 const isRecord = (value: unknown): value is Record<string, unknown> =>
@@ -91,7 +89,7 @@ export const DataManagement = () => {
     }
   };
 
-  const onFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const onFileChange = (event: ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) void importData(file);
   };
