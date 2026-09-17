@@ -10,7 +10,6 @@ import './global-ux.css';
 import './logbook.css';
 import HomePage from './Home';
 import TripManager from './components/TripManager';
-import TripContextHub from './components/TripContextHub';
 import DataManagement from './components/DataManagement';
 import { TripCreation } from './components/TripCreation';
 import { QuickEntry } from './components/QuickEntry';
@@ -21,28 +20,9 @@ import { calculateAnnualTotals, generateTripInsights } from './utils/reflectionE
 import { useVelaStore } from './store/useVelaStore';
 
 type Tab = 'Home' | 'Ledger' | 'Balance' | 'Logbook' | 'Atelier';
-const nav = [
-  { label: 'Home', icon: HomeIcon },
-  { label: 'Ledger', icon: BookOpen },
-  { label: 'Balance', icon: Scale },
-  { label: 'Logbook', icon: Compass },
-  { label: 'Atelier', icon: Settings },
-] as const;
-
-const VelaConstellationIcon = () => (
-  <svg width="32" height="32" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-    <path d="M6 18l6-10 6 4" stroke="#FAF9F5" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round" strokeDasharray="2 4" />
-    <circle cx="6" cy="18" r="1.5" fill="#FAF9F5" />
-    <circle cx="12" cy="8" r="1.5" fill="#FAF9F5" />
-    <circle cx="18" cy="12" r="1.5" fill="#FAF9F5" />
-  </svg>
-);
-
-const GlobalNav: React.FC<{ activeNav: Tab; onNavigate: (next: Tab) => void }> = ({ activeNav, onNavigate }) => (
-  <nav className="vela-global-nav" aria-label="Primary navigation">
-    {nav.map(({ label, icon: Icon }) => <button key={label} type="button" className={activeNav === label ? 'active' : ''} onClick={() => onNavigate(label)}><Icon size={18} strokeWidth={1.7} /><span>{label}</span></button>)}
-  </nav>
-);
+const nav = [{ label: 'Home', icon: HomeIcon }, { label: 'Ledger', icon: BookOpen }, { label: 'Balance', icon: Scale }, { label: 'Logbook', icon: Compass }, { label: 'Atelier', icon: Settings }] as const;
+const VelaConstellationIcon = () => <svg width="32" height="32" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M6 18l6-10 6 4" stroke="#FAF9F5" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round" strokeDasharray="2 4" /><circle cx="6" cy="18" r="1.5" fill="#FAF9F5" /><circle cx="12" cy="8" r="1.5" fill="#FAF9F5" /><circle cx="18" cy="12" r="1.5" fill="#FAF9F5" /></svg>;
+const GlobalNav: React.FC<{ activeNav: Tab; onNavigate: (next: Tab) => void }> = ({ activeNav, onNavigate }) => <nav className="vela-global-nav" aria-label="Primary navigation">{nav.map(({ label, icon: Icon }) => <button key={label} type="button" className={activeNav === label ? 'active' : ''} onClick={() => onNavigate(label)}><Icon size={18} strokeWidth={1.7} /><span>{label}</span></button>)}</nav>;
 
 const App: React.FC = () => {
   const [activeNav, setActiveNav] = useState<Tab>('Home');
@@ -58,13 +38,7 @@ const App: React.FC = () => {
   const reflectionTrips = useMemo(() => activeTrip ? [...achieveTrips, activeTrip] : achieveTrips, [achieveTrips, activeTrip]);
   const tripInsights = useMemo(() => reflectionTrips.map(generateTripInsights), [reflectionTrips]);
   const hasActiveJourney = Boolean(currentTrip && currentTrip.status === 'traveling');
-
-  useEffect(() => {
-    const onPopState = () => setRoute(window.location.pathname);
-    window.addEventListener('popstate', onPopState);
-    return () => window.removeEventListener('popstate', onPopState);
-  }, []);
-
+  useEffect(() => { const onPopState = () => setRoute(window.location.pathname); window.addEventListener('popstate', onPopState); return () => window.removeEventListener('popstate', onPopState); }, []);
   const openQuickEntry = () => { window.history.pushState({}, '', '/entry/new'); setRoute('/entry/new'); };
   const closeQuickEntry = () => { window.history.pushState({}, '', '/'); setRoute('/'); };
   const openTripManager = () => { window.history.pushState({}, '', '/trips'); setRoute('/trips'); setCreationOpen(false); window.scrollTo({ top: 0 }); };
@@ -73,20 +47,13 @@ const App: React.FC = () => {
   const handleCreated = () => { setActiveNav('Home'); setCreationOpen(false); };
 
   if (route === '/entry/new') return <div className="vela-entry-route"><QuickEntry onClose={closeQuickEntry} /><GlobalNav activeNav={activeNav} onNavigate={handleNavigate} /></div>;
-  if (route === '/trips') return <div className="vela-trip-manager-route"><div className="vela-trip-manager-page"><button type="button" className="vela-trip-manager-back" onClick={closeTripManager}>← Home</button><TripManager /></div><GlobalNav activeNav="Home" onNavigate={handleNavigate} /></div>;
+  if (route === '/trips') return <div style={{ minHeight: '100dvh', background: '#f6f1e5', paddingBottom: 92, boxSizing: 'border-box' }}><main style={{ width: '100%', maxWidth: 900, margin: '0 auto', padding: '18px 20px 40px', boxSizing: 'border-box' }}><button type="button" onClick={closeTripManager} style={{ border: 0, background: 'transparent', color: '#62656b', padding: '4px 0 14px', cursor: 'pointer', font: '600 11px/1 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif' }}>← Home</button><TripManager /></main><GlobalNav activeNav="Home" onNavigate={handleNavigate} /></div>;
 
   const content = activeNav === 'Home' ? <HomePage onNavigate={handleNavigate} onCreateTrip={() => setCreationOpen(true)} onManageTrips={openTripManager} />
     : activeNav === 'Ledger' ? <main className="page vela-secondary-shell"><LedgerView /></main>
     : activeNav === 'Balance' ? <main className="page vela-secondary-shell"><BalanceEngine /></main>
     : activeNav === 'Logbook' ? <LogbookView annualReflection={annualReflection} activeTrip={activeTrip} plannedTrips={planningTrips} tripInsights={tripInsights} reflectionTrips={reflectionTrips} />
-    : <main className="page vela-secondary-shell"><header className="vela-settings-header"><span>ATELIER / SETTINGS</span><h1>Settings</h1><p>Data, privacy and master data management.</p></header><DataManagement /></main>;
-
-  return <div className="vela-app-root">
-    {content}
-    <GlobalNav activeNav={activeNav} onNavigate={handleNavigate} />
-    {hasActiveJourney && currentTrip && <button type="button" className="vela-global-quick" aria-label="Add Quick Entry" onClick={openQuickEntry}><VelaConstellationIcon /></button>}
-    {creationOpen && <div className="vela-quick-backdrop" onMouseDown={(event) => { if (event.target === event.currentTarget) setCreationOpen(false); }}><div className="vela-quick-sheet"><TripCreation onClose={() => setCreationOpen(false)} onCreated={handleCreated} /></div></div>}
-  </div>;
+    : <main className="page vela-secondary-shell"><header style={{ margin: '0 0 18px', padding: '6px 4px 0' }}><span style={{ font: '700 9px/1 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif', letterSpacing: '.17em', color: '#8b806d' }}>ATELIER / SETTINGS</span><h1 style={{ margin: '7px 0 4px', font: '500 31px/1 Georgia,"Times New Roman",serif', color: '#23383d' }}>Settings</h1><p style={{ margin: 0, color: '#7b817d', font: '11px/1.4 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif' }}>Data, privacy and master data management.</p></header><DataManagement /></main>;
+  return <div className="vela-app-root">{content}<GlobalNav activeNav={activeNav} onNavigate={handleNavigate} />{hasActiveJourney && currentTrip && <button type="button" className="vela-global-quick" aria-label="Add Quick Entry" onClick={openQuickEntry}><VelaConstellationIcon /></button>}{creationOpen && <div className="vela-quick-backdrop" onMouseDown={(event) => { if (event.target === event.currentTarget) setCreationOpen(false); }}><div className="vela-quick-sheet"><TripCreation onClose={() => setCreationOpen(false)} onCreated={handleCreated} /></div></div>}</div>;
 };
-
 createRoot(document.getElementById('root')!).render(<App />);
