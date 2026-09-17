@@ -1,10 +1,14 @@
 /// <reference lib="webworker" />
 
 import { clientsClaim } from 'workbox-core';
-import { cleanupOutdatedCaches, createHandlerBoundToURL, precacheAndRoute } from 'workbox-precaching';
-import { NavigationRoute, registerRoute } from 'workbox-routing';
+import { cleanupOutdatedCaches, createHandlerBoundToURL, matchPrecache, precacheAndRoute } from 'workbox-precaching';
+import { NavigationRoute, registerRoute, setCatchHandler } from 'workbox-routing';
 
 const sw = self as unknown as ServiceWorkerGlobalScope;
+
+// Bump this when the offline shell logic changes so a new SW is generated.
+const OFFLINE_SHELL_VERSION = '2026-09-17.3';
+void OFFLINE_SHELL_VERSION;
 
 self.skipWaiting();
 clientsClaim();
@@ -17,6 +21,16 @@ registerRoute(
     denylist: [/^\/api\//],
   }),
 );
+
+// If an offline navigation cannot be resolved through the normal navigation
+// route, serve the precached app shell instead of letting Safari show a
+// network/offline error page.
+setCatchHandler(async ({ request }) => {
+  if (request.mode === 'navigate') {
+    return matchPrecache('/index.html');
+  }
+  return Response.error();
+});
 
 sw.addEventListener('message', (event) => {
   if (event.data?.type === 'SKIP_WAITING') {
