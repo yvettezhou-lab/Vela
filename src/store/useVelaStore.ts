@@ -26,10 +26,25 @@ const withDefaultAccountsAndMember = (trip: Trip): Trip => ({
 const normalizeTrips = (trips: Trip[]): Trip[] =>
   trips.map((trip) => withDefaultAccountsAndMember(withDefaultCategories(trip)));
 
+const getLocalCalendarStart = (timestamp: number): number => {
+  const date = new Date(timestamp);
+  return new Date(date.getFullYear(), date.getMonth(), date.getDate()).getTime();
+};
+
+const findAutoStartTrip = (trips: Trip[], now: number): Trip | null => {
+  if (trips.some((trip) => trip.status === 'traveling')) return null;
+  const today = getLocalCalendarStart(now);
+  return trips
+    .filter((trip) => trip.status === 'planning' && getLocalCalendarStart(trip.startDate) <= today)
+    .sort((a, b) => a.startDate - b.startDate || a.createdAt - b.createdAt)[0] ?? null;
+};
+
 interface VelaState {
   trips: Trip[];
   addTrip: (rawTrip: unknown) => void;
   updateTripStatus: (tripId: string, newStatus: unknown) => void;
+  updateTripDates: (tripId: string, startDate: number, endDate: number) => void;
+  evaluateAutoStart: (now?: number) => void;
   addLedgerEntry: (tripId: string, rawEntry: unknown) => void;
   updateLedgerEntry: (tripId: string, entryId: string, fullReconstructedEntry: unknown) => void;
   deleteLedgerEntry: (tripId: string, entryId: string) => void;
@@ -68,6 +83,7 @@ export const useVelaStore = create<VelaState>()(
           ),
         );
         set((state) => ({ trips: [...state.trips, strictTrip] }));
+        get().evaluateAutoStart();
       },
       updateTripStatus: (tripId: string, newStatus: unknown) => {
         const trips = get().trips;
@@ -79,6 +95,30 @@ export const useVelaStore = create<VelaState>()(
         }
         const status: TripStatus = newStatus;
         set({ trips: trips.map((t) => t.id === tripId ? { ...t, status, updatedAt: Date.now() } : t) });
+      },
+      updateTripDates: (tripId: string, startDate: number, endDate: number) => {
+        if (!Number.isFinite(startDate) || !Number.isFinite(endDate)) {
+          throw new Error('Store Error: Trip dates must be finite numbers');
+        }
+        if (startDate > endDate) throw new Error('Store Error: Start date cannot be after end date');
+        const trips = get().trips;
+        const trip = trips.find((t) => t.id === tripId);
+        if (!trip) throw new Error(`Store Error: Trip ${tripId} not found`);
+        const tripClone = { ...trip, startDate, endDate, updatedAt: Date.now() };
+        const strictTrip = DomainValidator.validateEntireTrip(tripClone, trips.filter((t) => t.id !== tripId));
+        set((state) => ({ trips: state.trips.map((t) => t.id === tripId ? strictTrip : t) }));
+        get().evaluateAutoStart();
+      },
+      evaluateAutoStart: (now = Date.now()) => {
+        const trips = get().trips;
+        const candidate = findAutoStartTrip(trips, now);
+        if (!candidate) return;
+        DomainValidator.validateTripStatus(trips, candidate.id, 'traveling', candidate.status);
+        set((state) => ({
+          trips: state.trips.map((trip) => trip.id === candidate.id
+            ? { ...trip, status: 'traveling', updatedAt: Date.now() }
+            : trip),
+        }));
       },
       addLedgerEntry: (tripId: string, rawEntry: unknown) => {
         const trips = get().trips;
@@ -130,6 +170,7 @@ export const useVelaStore = create<VelaState>()(
         if (normalizedTrips !== state.trips) {
           useVelaStore.setState({ trips: normalizedTrips });
         }
+        useVelaStore.getState().evaluateAutoStart();
       },
     },
   ),
