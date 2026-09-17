@@ -101,7 +101,7 @@ const App: React.FC = () => {
   const content = activeNav === 'Home' ? <HomePage onNavigate={handleNavigate} onCreateTrip={() => setCreationOpen(true)} />
     : activeNav === 'Ledger' ? <main className="page vela-secondary-shell"><LedgerView /></main>
     : activeNav === 'Balance' ? <main className="page vela-secondary-shell"><BalanceEngine /></main>
-    : activeNav === 'Logbook' ? <LogbookView annualReflection={annualReflection} plannedTrips={planningTrips} tripInsights={tripInsights} />
+    : activeNav === 'Logbook' ? <LogbookView annualReflection={annualReflection} activeTrip={activeTrip} plannedTrips={planningTrips} tripInsights={tripInsights} />
     : <main className="page vela-secondary-shell"><TripManager /></main>;
 
   return <div className="vela-app-root">
