@@ -7,6 +7,7 @@ import './vela-secondary-polish.css';
 import './vela-secondary-finish.css';
 import './vela-home-shell.css';
 import './global-ux.css';
+import './logbook.css';
 import HomePage from './Home';
 import TripManager from './components/TripManager';
 import { TripCreation } from './components/TripCreation';
@@ -14,7 +15,7 @@ import { QuickEntry } from './components/QuickEntry';
 import { BalanceEngine } from './components/BalanceEngine';
 import { LedgerView } from './components/LedgerView';
 import LogbookView from './components/Logbook';
-import { generateAnnualReflection, generateTripInsights } from './utils/reflectionEngine';
+import { calculateAnnualTotals, generateTripInsights } from './utils/reflectionEngine';
 import { useVelaStore } from './store/useVelaStore';
 
 type Tab = 'Home' | 'Ledger' | 'Balance' | 'Logbook' | 'Atelier';
@@ -48,10 +49,10 @@ const App: React.FC = () => {
   const trips = useVelaStore((state) => state.trips);
   const currentTrip = useVelaStore((state) => state.getCurrentTrip());
   const currentYear = new Date().getFullYear();
-  const reflectionTrips = useMemo(() => trips.filter((trip) => trip.status === 'achieve' || trip.status === 'traveling'), [trips]);
+  const achieveTrips = useMemo(() => trips.filter((trip) => trip.status === 'achieve'), [trips]);
   const planningTrips = useMemo(() => trips.filter((trip) => trip.status === 'planning'), [trips]);
-  const annualReflection = useMemo(() => generateAnnualReflection(reflectionTrips, currentYear), [reflectionTrips, currentYear]);
-  const tripInsights = useMemo(() => reflectionTrips.map(generateTripInsights), [reflectionTrips]);
+  const annualReflection = useMemo(() => calculateAnnualTotals(achieveTrips, currentYear), [achieveTrips, currentYear]);
+  const tripInsights = useMemo(() => achieveTrips.map(generateTripInsights), [achieveTrips]);
   const hasActiveJourney = Boolean(currentTrip && currentTrip.status === 'traveling');
 
   useEffect(() => {
