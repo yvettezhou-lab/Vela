@@ -1,26 +1,18 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import { Trip, TripStatus } from '../core/domain';
+import { Trip, TripStatus, Member, Account, Category } from '../core/domain';
 import { getDefaultCategories } from '../core/defaults';
 import { DomainValidator, isRecord } from '../core/validation';
 import { migrateLegacyPlanToTrip } from '../core/legacyAdapter';
 import { getAutoStartTripId } from '../utils/tripLifecycle';
 
 const LEGACY_STORAGE_KEY = 'vela.plan.v1';
-
-const withDefaultCategories = (trip: Trip): Trip =>
-  trip.categories.length > 0 ? trip : { ...trip, categories: getDefaultCategories() };
-
-const withDefaultAccountsAndMember = (trip: Trip): Trip => ({
-  ...trip,
-  accounts: trip.accounts.length > 0 ? trip.accounts : [
-    { id: 'default-account-cash', name: 'Cash' },
-    { id: 'default-account-credit-card', name: 'Credit Card' },
-  ],
-  members: trip.members.length > 0 ? trip.members : [{ id: 'default-member-me', name: 'Me' }],
-});
-
+const withDefaultCategories = (trip: Trip): Trip => trip.categories.length > 0 ? trip : { ...trip, categories: getDefaultCategories() };
+const withDefaultAccountsAndMember = (trip: Trip): Trip => ({ ...trip, accounts: trip.accounts.length > 0 ? trip.accounts : [{ id: 'default-account-cash', name: 'Cash' }, { id: 'default-account-credit-card', name: 'Credit Card' }], members: trip.members.length > 0 ? trip.members : [{ id: 'default-member-me', name: 'Me' }] });
 const normalizeTrips = (trips: Trip[]): Trip[] => trips.map((trip) => withDefaultAccountsAndMember(withDefaultCategories(trip)));
+
+export type MasterDataType = 'members' | 'categories' | 'accounts';
+export type MasterDataItem = Member | Category | Account;
 
 interface VelaState {
   trips: Trip[];
@@ -31,108 +23,34 @@ interface VelaState {
   addLedgerEntry: (tripId: string, rawEntry: unknown) => void;
   updateLedgerEntry: (tripId: string, entryId: string, fullReconstructedEntry: unknown) => void;
   deleteLedgerEntry: (tripId: string, entryId: string) => void;
+  updateMasterData: (tripId: string, type: MasterDataType, id: string | null, item: MasterDataItem) => void;
+  archiveMasterData: (tripId: string, type: MasterDataType, id: string) => void;
   getCurrentTrip: () => Trip | null;
 }
 
 const migrateLegacyStorageIfNeeded = (currentTrips: Trip[]): Trip[] => {
   if (typeof window === 'undefined' || currentTrips.length > 0) return currentTrips;
-  const raw = window.localStorage.getItem(LEGACY_STORAGE_KEY);
-  if (!raw) return currentTrips;
-  let legacyData: unknown;
-  try { legacyData = JSON.parse(raw); } catch (error) {
-    console.error('Vela legacy migration skipped: invalid JSON.', error);
-    return currentTrips;
-  }
-  try { return [migrateLegacyPlanToTrip(legacyData)]; } catch (error) {
-    console.error('Vela legacy migration failed; legacy data remains untouched.', error);
-    return currentTrips;
-  }
+  const raw = window.localStorage.getItem(LEGACY_STORAGE_KEY); if (!raw) return currentTrips;
+  let legacyData: unknown; try { legacyData = JSON.parse(raw); } catch (error) { console.error('Vela legacy migration skipped: invalid JSON.', error); return currentTrips; }
+  try { return [migrateLegacyPlanToTrip(legacyData)]; } catch (error) { console.error('Vela legacy migration failed; legacy data remains untouched.', error); return currentTrips; }
 };
 
-export const useVelaStore = create<VelaState>()(
-  persist(
-    (set, get) => ({
-      trips: [],
-      addTrip: (rawTrip: unknown) => {
-        const strictTrip = withDefaultAccountsAndMember(withDefaultCategories(DomainValidator.validateEntireTrip(rawTrip, get().trips)));
-        set((state) => ({ trips: [...state.trips, strictTrip] }));
-        get().evaluateAutoStart();
-      },
-      updateTripStatus: (tripId: string, newStatus: unknown) => {
-        const trips = get().trips;
-        const trip = trips.find((t) => t.id === tripId);
-        if (!trip) throw new Error(`Store Error: Trip ${tripId} not found`);
-        DomainValidator.validateTripStatus(trips, tripId, newStatus, trip.status);
-        if (newStatus !== 'planning' && newStatus !== 'traveling' && newStatus !== 'achieve') throw new Error(`Store Error: Invalid status ${newStatus}`);
-        const status: TripStatus = newStatus;
-        set({ trips: trips.map((t) => t.id === tripId ? { ...t, status, updatedAt: Date.now() } : t) });
-      },
-      updateTripDates: (tripId: string, startDate: number, endDate: number) => {
-        if (!Number.isFinite(startDate) || !Number.isFinite(endDate)) throw new Error('Store Error: Trip dates must be finite numbers');
-        if (startDate > endDate) throw new Error('Store Error: Start date cannot be after end date');
-        const trips = get().trips;
-        const trip = trips.find((t) => t.id === tripId);
-        if (!trip) throw new Error(`Store Error: Trip ${tripId} not found`);
-        const strictTrip = DomainValidator.validateEntireTrip({ ...trip, startDate, endDate, updatedAt: Date.now() }, trips.filter((t) => t.id !== tripId));
-        set((state) => ({ trips: state.trips.map((t) => t.id === tripId ? strictTrip : t) }));
-        get().evaluateAutoStart();
-      },
-      evaluateAutoStart: (now = Date.now()) => {
-        const trips = get().trips;
-        const candidateId = getAutoStartTripId(trips, now);
-        if (!candidateId) return;
-        const candidate = trips.find((trip) => trip.id === candidateId);
-        if (!candidate) return;
-        DomainValidator.validateTripStatus(trips, candidate.id, 'traveling', candidate.status);
-        set((state) => ({ trips: state.trips.map((trip) => trip.id === candidate.id ? { ...trip, status: 'traveling', updatedAt: Date.now() } : trip) }));
-      },
-      addLedgerEntry: (tripId: string, rawEntry: unknown) => {
-        const trips = get().trips;
-        const tripIndex = trips.findIndex((t) => t.id === tripId);
-        if (tripIndex === -1) throw new Error(`Store Error: Trip ${tripId} not found`);
-        if (!isRecord(rawEntry)) throw new Error('Store Error: Entry must be an object');
-        const now = Date.now();
-        const baseTrip = withDefaultAccountsAndMember(withDefaultCategories(trips[tripIndex]));
-        const rawClone = { ...rawEntry, createdAt: now, updatedAt: now };
-        const strictTrip = DomainValidator.validateEntireTrip({ ...baseTrip, ledger: [...baseTrip.ledger, rawClone] }, trips.filter((t) => t.id !== tripId));
-        set((state) => ({ trips: state.trips.map((t) => t.id === tripId ? strictTrip : t) }));
-      },
-      updateLedgerEntry: (tripId: string, entryId: string, fullReconstructedEntry: unknown) => {
-        const trips = get().trips;
-        const tripIndex = trips.findIndex((t) => t.id === tripId);
-        if (tripIndex === -1) throw new Error(`Store Error: Trip ${tripId} not found`);
-        const trip = withDefaultAccountsAndMember(withDefaultCategories(trips[tripIndex]));
-        if (!trip.ledger.some((e) => e.id === entryId)) throw new Error(`Store Error: Entry ${entryId} not found in Trip ${tripId}`);
-        if (!isRecord(fullReconstructedEntry)) throw new Error('Store Error: Entry must be an object');
-        const rawClone = { ...fullReconstructedEntry, updatedAt: Date.now() };
-        if (rawClone.id !== entryId) throw new Error(`Store Error: Reconstructed entry ID does not match target ID ${entryId}`);
-        const strictTrip = DomainValidator.validateEntireTrip({ ...trip, ledger: trip.ledger.map((e) => e.id === entryId ? rawClone : e) }, trips.filter((t) => t.id !== tripId));
-        set((state) => ({ trips: state.trips.map((t) => t.id === tripId ? strictTrip : t) }));
-      },
-      deleteLedgerEntry: (tripId: string, entryId: string) => {
-        const trips = get().trips;
-        const trip = trips.find((t) => t.id === tripId);
-        if (!trip) throw new Error(`Store Error: Trip ${tripId} not found`);
-        if (!trip.ledger.some((e) => e.id === entryId)) throw new Error(`Store Error: Cannot delete nonexistent Entry ${entryId}`);
-        set((state) => ({ trips: state.trips.map((t) => t.id === tripId ? { ...t, ledger: t.ledger.filter((e) => e.id !== entryId), updatedAt: Date.now() } : t) }));
-      },
-      getCurrentTrip: () => {
-        const trips = get().trips;
-        const traveling = trips.find((t) => t.status === 'traveling');
-        if (traveling) return traveling;
-        const planningTrips = trips.filter((t) => t.status === 'planning').sort((a, b) => b.updatedAt - a.updatedAt);
-        return planningTrips[0] ?? null;
-      },
-    }),
-    {
-      name: 'vela-core-v2',
-      onRehydrateStorage: () => (state, error) => {
-        if (error || !state) return;
-        const migratedTrips = migrateLegacyStorageIfNeeded(state.trips);
-        const normalizedTrips = normalizeTrips(migratedTrips);
-        if (normalizedTrips !== state.trips) useVelaStore.setState({ trips: normalizedTrips });
-        useVelaStore.getState().evaluateAutoStart();
-      },
-    },
-  ),
-);
+const replaceMasterData = (trip: Trip, type: MasterDataType, id: string | null, item: MasterDataItem): Trip => {
+  const collection = trip[type];
+  const next = id ? collection.map((entry) => entry.id === id ? item : entry) : [...collection, item];
+  return { ...trip, [type]: next, updatedAt: Date.now() } as Trip;
+};
+
+export const useVelaStore = create<VelaState>()(persist((set, get) => ({
+  trips: [],
+  addTrip: (rawTrip) => { const strictTrip = withDefaultAccountsAndMember(withDefaultCategories(DomainValidator.validateEntireTrip(rawTrip, get().trips))); set((state) => ({ trips: [...state.trips, strictTrip] })); get().evaluateAutoStart(); },
+  updateTripStatus: (tripId, newStatus) => { const trips = get().trips; const trip = trips.find((t) => t.id === tripId); if (!trip) throw new Error(`Store Error: Trip ${tripId} not found`); DomainValidator.validateTripStatus(trips, tripId, newStatus, trip.status); if (newStatus !== 'planning' && newStatus !== 'traveling' && newStatus !== 'achieve') throw new Error(`Store Error: Invalid status ${newStatus}`); set({ trips: trips.map((t) => t.id === tripId ? { ...t, status: newStatus as TripStatus, updatedAt: Date.now() } : t) }); },
+  updateTripDates: (tripId, startDate, endDate) => { if (!Number.isFinite(startDate) || !Number.isFinite(endDate)) throw new Error('Store Error: Trip dates must be finite numbers'); if (startDate > endDate) throw new Error('Store Error: Start date cannot be after end date'); const trips = get().trips; const trip = trips.find((t) => t.id === tripId); if (!trip) throw new Error(`Store Error: Trip ${tripId} not found`); const strictTrip = DomainValidator.validateEntireTrip({ ...trip, startDate, endDate, updatedAt: Date.now() }, trips.filter((t) => t.id !== tripId)); set((state) => ({ trips: state.trips.map((t) => t.id === tripId ? strictTrip : t) })); get().evaluateAutoStart(); },
+  evaluateAutoStart: (now = Date.now()) => { const trips = get().trips; const candidateId = getAutoStartTripId(trips, now); if (!candidateId) return; const candidate = trips.find((trip) => trip.id === candidateId); if (!candidate) return; DomainValidator.validateTripStatus(trips, candidate.id, 'traveling', candidate.status); set((state) => ({ trips: state.trips.map((trip) => trip.id === candidate.id ? { ...trip, status: 'traveling', updatedAt: Date.now() } : trip) })); },
+  addLedgerEntry: (tripId, rawEntry) => { const trips = get().trips; const tripIndex = trips.findIndex((t) => t.id === tripId); if (tripIndex === -1) throw new Error(`Store Error: Trip ${tripId} not found`); if (!isRecord(rawEntry)) throw new Error('Store Error: Entry must be an object'); const now = Date.now(); const baseTrip = withDefaultAccountsAndMember(withDefaultCategories(trips[tripIndex])); const strictTrip = DomainValidator.validateEntireTrip({ ...baseTrip, ledger: [...baseTrip.ledger, { ...rawEntry, createdAt: now, updatedAt: now }] }, trips.filter((t) => t.id !== tripId)); set((state) => ({ trips: state.trips.map((t) => t.id === tripId ? strictTrip : t) })); },
+  updateLedgerEntry: (tripId, entryId, fullReconstructedEntry) => { const trips = get().trips; const tripIndex = trips.findIndex((t) => t.id === tripId); if (tripIndex === -1) throw new Error(`Store Error: Trip ${tripId} not found`); const trip = withDefaultAccountsAndMember(withDefaultCategories(trips[tripIndex])); if (!trip.ledger.some((e) => e.id === entryId)) throw new Error(`Store Error: Entry ${entryId} not found in Trip ${tripId}`); if (!isRecord(fullReconstructedEntry)) throw new Error('Store Error: Entry must be an object'); const rawClone = { ...fullReconstructedEntry, updatedAt: Date.now() }; if (rawClone.id !== entryId) throw new Error(`Store Error: Reconstructed entry ID does not match target ID ${entryId}`); const strictTrip = DomainValidator.validateEntireTrip({ ...trip, ledger: trip.ledger.map((e) => e.id === entryId ? rawClone : e) }, trips.filter((t) => t.id !== tripId)); set((state) => ({ trips: state.trips.map((t) => t.id === tripId ? strictTrip : t) })); },
+  deleteLedgerEntry: (tripId, entryId) => { const trips = get().trips; const trip = trips.find((t) => t.id === tripId); if (!trip) throw new Error(`Store Error: Trip ${tripId} not found`); if (!trip.ledger.some((e) => e.id === entryId)) throw new Error(`Store Error: Cannot delete nonexistent Entry ${entryId}`); set((state) => ({ trips: state.trips.map((t) => t.id === tripId ? { ...t, ledger: t.ledger.filter((e) => e.id !== entryId), updatedAt: Date.now() } : t) })); },
+  updateMasterData: (tripId, type, id, item) => { const trips = get().trips; const trip = trips.find((t) => t.id === tripId); if (!trip) throw new Error(`Store Error: Trip ${tripId} not found`); if (id && !trip[type].some((entry) => entry.id === id)) throw new Error(`Master Data Error: ${type} ${id} not found`); if (!item.name.trim()) throw new Error('Master Data Error: Name is required'); if (id && item.id !== id) throw new Error('Master Data Error: ID cannot change'); if (!id && trip[type].some((entry) => entry.name.trim().toLowerCase() === item.name.trim().toLowerCase() && !entry.archived)) throw new Error('Master Data Error: An active item with this name already exists'); set({ trips: trips.map((t) => t.id === tripId ? replaceMasterData(t, type, id, { ...item, name: item.name.trim() }) : t) }); },
+  archiveMasterData: (tripId, type, id) => { const trips = get().trips; const trip = trips.find((t) => t.id === tripId); if (!trip) throw new Error(`Trip ${tripId} not found`); const entry = trip[type].find((item) => item.id === id); if (!entry) throw new Error(`Master Data Error: ${type} ${id} not found`); set({ trips: trips.map((t) => t.id === tripId ? { ...t, [type]: t[type].map((item) => item.id === id ? { ...item, archived: true } : item), updatedAt: Date.now() } : t) }); },
+  getCurrentTrip: () => { const trips = get().trips; const traveling = trips.find((t) => t.status === 'traveling'); if (traveling) return traveling; return trips.filter((t) => t.status === 'planning').sort((a, b) => b.updatedAt - a.updatedAt)[0] ?? null; },
+}), { name: 'vela-core-v2', onRehydrateStorage: () => (state, error) => { if (error || !state) return; const migratedTrips = migrateLegacyStorageIfNeeded(state.trips); const normalizedTrips = normalizeTrips(migratedTrips); if (normalizedTrips !== state.trips) useVelaStore.setState({ trips: normalizedTrips }); useVelaStore.getState().evaluateAutoStart(); } }));
