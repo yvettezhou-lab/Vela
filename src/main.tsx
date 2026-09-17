@@ -50,9 +50,17 @@ const App: React.FC = () => {
   const currentTrip = useVelaStore((state) => state.getCurrentTrip());
   const currentYear = new Date().getFullYear();
   const achieveTrips = useMemo(() => trips.filter((trip) => trip.status === 'achieve'), [trips]);
+  const activeTrip = useMemo(() => trips.find((trip) => trip.status === 'traveling') ?? null, [trips]);
   const planningTrips = useMemo(() => trips.filter((trip) => trip.status === 'planning'), [trips]);
-  const annualReflection = useMemo(() => calculateAnnualTotals(achieveTrips, currentYear), [achieveTrips, currentYear]);
-  const tripInsights = useMemo(() => achieveTrips.map(generateTripInsights), [achieveTrips]);
+  const annualReflection = useMemo(
+    () => calculateAnnualTotals(achieveTrips, activeTrip, planningTrips, currentYear),
+    [achieveTrips, activeTrip, planningTrips, currentYear],
+  );
+  const reflectionTrips = useMemo(
+    () => activeTrip ? [...achieveTrips, activeTrip] : achieveTrips,
+    [achieveTrips, activeTrip],
+  );
+  const tripInsights = useMemo(() => reflectionTrips.map(generateTripInsights), [reflectionTrips]);
   const hasActiveJourney = Boolean(currentTrip && currentTrip.status === 'traveling');
 
   useEffect(() => {
