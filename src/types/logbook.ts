@@ -12,7 +12,10 @@ export interface TripInsights {
 export interface AnnualReflection {
   year: number;
   totalTripsCompleted: number;
+  activeTripCount: number;
+  plannedTripCount: number;
   totalDaysTraveled: number;
+  plannedDays: number;
   annualExpenditure: Record<string, number>;
   topCategories: Record<string, number>;
 }
