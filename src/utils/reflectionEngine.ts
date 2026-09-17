@@ -1,5 +1,5 @@
 import { LedgerEntry, Trip } from '../core/domain';
-import { AnnualReflection, TripInsights } from '../types/logbook';
+import { AnnualReflection, TripInsights, TravelFrequency, TripExpenseStructure } from '../types/logbook';
 
 const DAY_MS = 86_400_000;
 
@@ -16,6 +16,17 @@ const addAmount = (target: Record<string, number>, key: string, amount: number):
 const getCategoryName = (trip: Trip, entry: LedgerEntry): string =>
   trip.categories.find((category) => category.id === entry.categoryId)?.name ?? entry.categoryId;
 
+const round = (value: number): number => Math.round(value * 100) / 100;
+
+const buildExpenseStructure = (breakdown: Record<string, number>): TripExpenseStructure[] => {
+  const positive = Object.entries(breakdown).filter(([, amount]) => amount > 0);
+  const total = positive.reduce((sum, [, amount]) => sum + amount, 0);
+  if (total <= 0) return [];
+  return positive
+    .map(([category, amount]) => ({ category, amount: round(amount), share: round((amount / total) * 100) }))
+    .sort((a, b) => b.amount - a.amount);
+};
+
 /** Read-only derived insight for one achieved or currently traveling trip. */
 export const generateTripInsights = (trip: Trip): TripInsights => {
   const totalDays = getTripDays(trip);
@@ -28,7 +39,6 @@ export const generateTripInsights = (trip: Trip): TripInsights => {
     const signedAmount = getSignedAmount(entry);
     addAmount(totalExpenditure, entry.originalCurrency, signedAmount);
     addAmount(categoryBreakdown, getCategoryName(trip, entry), signedAmount);
-
     if (!entry.isRefund && signedAmount > largestExpenseAmount) {
       largestExpense = entry;
       largestExpenseAmount = signedAmount;
@@ -36,7 +46,7 @@ export const generateTripInsights = (trip: Trip): TripInsights => {
   });
 
   const averageCostPerDay = Object.fromEntries(
-    Object.entries(totalExpenditure).map(([currency, amount]) => [currency, amount / totalDays]),
+    Object.entries(totalExpenditure).map(([currency, amount]) => [currency, round(amount / totalDays)]),
   );
 
   return {
@@ -44,8 +54,34 @@ export const generateTripInsights = (trip: Trip): TripInsights => {
     totalDays,
     totalExpenditure,
     categoryBreakdown,
+    expenseStructure: buildExpenseStructure(categoryBreakdown),
     largestExpense,
     averageCostPerDay,
+  };
+};
+
+/** Derive travel cadence from the supplied trips; no state is persisted. */
+export const calculateTravelFrequency = (trips: Trip[], targetYear: number): TravelFrequency => {
+  const yearTrips = trips
+    .filter((trip) => new Date(trip.startDate).getFullYear() === targetYear)
+    .sort((a, b) => a.startDate - b.startDate);
+  const travelDays = yearTrips.reduce((sum, trip) => sum + getTripDays(trip), 0);
+  const months = new Set<number>();
+  yearTrips.forEach((trip) => {
+    const cursor = new Date(trip.startDate);
+    const end = new Date(trip.endDate);
+    while (cursor <= end) {
+      if (cursor.getFullYear() === targetYear) months.add(cursor.getMonth());
+      cursor.setDate(cursor.getDate() + 1);
+    }
+  });
+  const gaps = yearTrips.slice(1).map((trip, index) => Math.max(0, Math.round((trip.startDate - yearTrips[index].endDate) / DAY_MS)));
+  return {
+    tripsPerYear: yearTrips.length,
+    travelDaysPerYear: travelDays,
+    averageTripLength: yearTrips.length ? round(travelDays / yearTrips.length) : 0,
+    monthsWithTravel: months.size,
+    averageGapBetweenTrips: gaps.length ? round(gaps.reduce((sum, gap) => sum + gap, 0) / gaps.length) : null,
   };
 };
 
@@ -67,6 +103,7 @@ export const calculateAnnualTotals = (
   const yearActiveTrip = activeTrip && new Date(activeTrip.endDate).getFullYear() === targetYear ? activeTrip : null;
   const yearPlanningTrips = planningTrips.filter((trip) => new Date(trip.startDate).getFullYear() === targetYear);
   const reflectedTrips = yearActiveTrip ? [...yearAchievedTrips, yearActiveTrip] : yearAchievedTrips;
+  const frequencyTrips = reflectedTrips;
 
   reflectedTrips.forEach((trip) => {
     trip.ledger.forEach((entry) => {
@@ -85,6 +122,7 @@ export const calculateAnnualTotals = (
     plannedDays: yearPlanningTrips.reduce((days, trip) => days + getTripDays(trip), 0),
     annualExpenditure,
     topCategories,
+    travelFrequency: calculateTravelFrequency(frequencyTrips, targetYear),
   };
 };
 
