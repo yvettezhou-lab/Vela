@@ -15,6 +15,7 @@ export default defineConfig({
         '10D69AAA-D679-43CD-B511-947B2737ADE2.png',
         '896DCF5B-31E2-44AA-ADEB-1A9E019FC6FC.png',
         'E338C85B-A1F5-4DB3-9C3C-E03DC47C6380.png',
+        'quick-entry.svg',
       ],
       manifest: {
         name: 'Vela',
@@ -41,6 +42,7 @@ export default defineConfig({
         ],
       },
       injectManifest: {
+        cacheId: 'vela-offline-v3',
         globPatterns: ['**/*.{js,css,html,ico,png,svg,woff,woff2,ttf,json}'],
         maximumFileSizeToCacheInBytes: 10 * 1024 * 1024,
       },
