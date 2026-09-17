@@ -45,7 +45,7 @@ describe('reflection deepening', () => {
       travelDaysPerYear: 8,
       averageTripLength: 2.67,
       monthsWithTravel: 3,
-      averageGapBetweenTrips: 47.5,
+      averageGapBetweenTrips: 74,
     });
   });
 
