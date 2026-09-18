@@ -1,10 +1,11 @@
+import { getTripEndDate, getTripStartDate } from '../core/travelSegment';
 import { LedgerEntry, Trip } from '../core/domain';
 import { AnnualReflection, TripInsights, TravelFrequency, TripExpenseStructure } from '../types/logbook';
 
 const DAY_MS = 86_400_000;
 
 const getTripDays = (trip: Trip): number =>
-  Math.max(1, Math.floor((trip.endDate - trip.startDate) / DAY_MS) + 1);
+  Math.max(1, Math.floor((getTripEndDate(trip) - getTripStartDate(trip)) / DAY_MS) + 1);
 
 const getSignedAmount = (entry: LedgerEntry): number =>
   entry.isRefund ? -entry.originalAmount : entry.originalAmount;
@@ -63,19 +64,19 @@ export const generateTripInsights = (trip: Trip): TripInsights => {
 /** Derive travel cadence from the supplied trips; no state is persisted. */
 export const calculateTravelFrequency = (trips: Trip[], targetYear: number): TravelFrequency => {
   const yearTrips = trips
-    .filter((trip) => new Date(trip.startDate).getFullYear() === targetYear)
+    .filter((trip) => new Date(getTripStartDate(trip)).getFullYear() === targetYear)
     .sort((a, b) => a.startDate - b.startDate);
   const travelDays = yearTrips.reduce((sum, trip) => sum + getTripDays(trip), 0);
   const months = new Set<number>();
   yearTrips.forEach((trip) => {
-    const cursor = new Date(trip.startDate);
-    const end = new Date(trip.endDate);
+    const cursor = new Date(getTripStartDate(trip));
+    const end = new Date(getTripEndDate(trip));
     while (cursor <= end) {
       if (cursor.getFullYear() === targetYear) months.add(cursor.getMonth());
       cursor.setDate(cursor.getDate() + 1);
     }
   });
-  const gaps = yearTrips.slice(1).map((trip, index) => Math.max(0, Math.round((trip.startDate - yearTrips[index].endDate) / DAY_MS)));
+  const gaps = yearTrips.slice(1).map((trip, index) => Math.max(0, Math.round((getTripStartDate(trip) - yearTrips[index].endDate) / DAY_MS)));
   return {
     tripsPerYear: yearTrips.length,
     travelDaysPerYear: travelDays,
@@ -99,9 +100,9 @@ export const calculateAnnualTotals = (
 ): AnnualReflection => {
   const annualExpenditure: Record<string, number> = {};
   const topCategories: Record<string, number> = {};
-  const yearAchievedTrips = achieveTrips.filter((trip) => new Date(trip.endDate).getFullYear() === targetYear);
-  const yearActiveTrip = activeTrip && new Date(activeTrip.endDate).getFullYear() === targetYear ? activeTrip : null;
-  const yearPlanningTrips = planningTrips.filter((trip) => new Date(trip.startDate).getFullYear() === targetYear);
+  const yearAchievedTrips = achieveTrips.filter((trip) => new Date(getTripEndDate(trip)).getFullYear() === targetYear);
+  const yearActiveTrip = activeTrip && new Date(getTripEndDate(activeTrip)).getFullYear() === targetYear ? activeTrip : null;
+  const yearPlanningTrips = planningTrips.filter((trip) => new Date(getTripStartDate(trip)).getFullYear() === targetYear);
   const reflectedTrips = yearActiveTrip ? [...yearAchievedTrips, yearActiveTrip] : yearAchievedTrips;
   const frequencyTrips = reflectedTrips;
 
