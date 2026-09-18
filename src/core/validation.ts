@@ -16,7 +16,7 @@ const parseSegments = (raw: unknown): TravelSegment[] => {
   const destinationsArray = getArray(rawSegment.destinations, `TravelSegment ${id} destinations`); const destinations = destinationsArray.map((rawDestination) => { if (!isRecord(rawDestination)) throw new Error('Domain Violation: Destination must be an object'); const country = typeof rawDestination.country === 'string' ? rawDestination.country.trim() : ''; const city = typeof rawDestination.city === 'string' ? rawDestination.city.trim() : ''; if (!country && !city) throw new Error(`Domain Violation: TravelSegment ${id} destination must contain country or city`); return { country, city }; });
   const primaryCurrency = requireString(rawSegment.primaryCurrency, `TravelSegment ${id} primaryCurrency`); segments.push({ id, destinations, startDate, endDate, primaryCurrency });
  }
- const ordered = [...segments].sort((a, b) => a.startDate - b.startDate); for (let i = 1; i < ordered.length; i++) if (ordered[i].startDate <= ordered[i - 1].endDate) throw new Error(`Domain Violation: TravelSegment date ranges cannot overlap (${ordered[i - 1].id} and ${ordered[i].id})`);
+ const ordered = [...segments].sort((a, b) => a.startDate - b.startDate); for (let i = 1; i < ordered.length; i++) if (ordered[i].startDate < ordered[i - 1].endDate) throw new Error(`Domain Violation: TravelSegment date ranges cannot overlap (${ordered[i - 1].id} and ${ordered[i].id})`);
  return segments;
 };
 export const DomainValidator = {
