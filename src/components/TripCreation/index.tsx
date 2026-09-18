@@ -19,7 +19,7 @@ type DraftSegment = {
 const CURRENCIES = ['CNY', 'MYR', 'SGD', 'THB', 'IDR', 'PHP', 'JPY', 'KRW', 'USD', 'EUR', 'GBP', 'AUD', 'HKD'];
 const COUNTRY_CURRENCIES: Record<string, string> = {
   china: 'CNY', malaysia: 'MYR', singapore: 'SGD', thailand: 'THB', indonesia: 'IDR', philippines: 'PHP',
-  japan: 'JPY', south korea: 'KRW', korea: 'KRW', 'united states': 'USD', usa: 'USD', 'united kingdom': 'GBP',
+  japan: 'JPY', 'south korea': 'KRW', korea: 'KRW', 'united states': 'USD', usa: 'USD', 'united kingdom': 'GBP',
   australia: 'AUD', 'hong kong': 'HKD',
 };
 
