@@ -15,6 +15,12 @@ export const getSegmentForLedgerEntry = (
   entry: LedgerEntry,
 ): TravelSegment | undefined => findSegmentByDate(segments, getLedgerEntryDate(entry));
 
+export const getTripStartDate = (trip: { segments: TravelSegment[] }): number => Math.min(...trip.segments.map((segment) => segment.startDate));
+export const getTripEndDate = (trip: { segments: TravelSegment[] }): number => Math.max(...trip.segments.map((segment) => segment.endDate));
+export const getTripPrimaryCurrency = (trip: { segments: TravelSegment[] }): string => trip.segments[0]?.primaryCurrency ?? 'CNY';
+export const getTripDestinations = (trip: { segments: TravelSegment[] }): string[] =>
+  trip.segments.flatMap((segment) => segment.destinations.map((destination) => destination.city || destination.country)).filter(Boolean);
+
 export const getSegmentPrimaryCurrency = (segments: TravelSegment[], date: number): string | undefined =>
   findSegmentByDate(segments, date)?.primaryCurrency;
 
