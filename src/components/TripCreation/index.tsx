@@ -52,7 +52,7 @@ export const TripCreation: React.FC<Props> = ({ onClose, onCreated, onUpdated, t
       .filter((range) => Number.isFinite(range.start) && Number.isFinite(range.end) && range.start <= range.end);
     const pairs: [number, number][] = [];
     for (let i = 0; i < ranges.length; i++) for (let j = i + 1; j < ranges.length; j++)
-      if (ranges[i].start <= ranges[j].end && ranges[j].start <= ranges[i].end) pairs.push([ranges[i].index, ranges[j].index]);
+      if (ranges[i].start < ranges[j].end && ranges[j].start < ranges[i].end) pairs.push([ranges[i].index, ranges[j].index]);
     return pairs;
   }, [segments]);
 
