@@ -4,13 +4,14 @@ import { findSegmentByDate, getLedgerEntryDate, resolveLedgerEntryCurrency } fro
 
 const segments: TravelSegment[] = [
   { id: 's1', destinations: [{ country: 'Malaysia', city: 'Kuala Lumpur' }], startDate: 100, endDate: 199, primaryCurrency: 'MYR' },
-  { id: 's2', destinations: [{ country: 'Singapore', city: 'Singapore' }], startDate: 200, endDate: 299, primaryCurrency: 'SGD' },
+  { id: 's2', destinations: [{ country: 'Singapore', city: 'Singapore' }], startDate: 199, endDate: 299, primaryCurrency: 'SGD' },
 ];
 
 describe('travel segment resolution', () => {
   it('matches inclusive segment date ranges', () => {
     expect(findSegmentByDate(segments, 100)?.id).toBe('s1');
-    expect(findSegmentByDate(segments, 199)?.id).toBe('s1');
+    expect(findSegmentByDate(segments, 198)?.id).toBe('s1');
+    expect(findSegmentByDate(segments, 199)?.id).toBe('s2');
     expect(findSegmentByDate(segments, 200)?.id).toBe('s2');
     expect(findSegmentByDate(segments, 999)).toBeUndefined();
   });
@@ -25,5 +26,12 @@ describe('travel segment resolution', () => {
     expect(resolveLedgerEntryCurrency(segments, { entryType: 'standard', paymentDate: 120 } as any)).toBe('MYR');
     expect(resolveLedgerEntryCurrency(segments, { entryType: 'flight', flightType: 'one_way', outboundDate: 240 } as any)).toBe('SGD');
     expect(() => resolveLedgerEntryCurrency(segments, { entryType: 'standard', paymentDate: 300 } as any)).toThrow(/must fall within a TravelSegment/);
+  });
+});
+
+
+describe('boundary day resolution', () => {
+  it('prefers the newer segment when a date belongs to both segments', () => {
+    expect(resolveLedgerEntryCurrency(segments, { entryType: 'standard', paymentDate: 199 } as any)).toBe('SGD');
   });
 });
