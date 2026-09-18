@@ -1,3 +1,4 @@
+import { getTripEndDate, getTripStartDate } from '../core/travelSegment';
 import type { LedgerEntry, Trip } from '../core/domain';
 
 const DAY_MS = 86_400_000;
@@ -38,7 +39,7 @@ export interface TripContextHub {
 }
 
 const round = (value: number): number => Math.round(value * 100) / 100;
-const getDays = (trip: Trip): number => Math.max(1, Math.floor((trip.endDate - trip.startDate) / DAY_MS) + 1);
+const getDays = (trip: Trip): number => Math.max(1, Math.floor((getTripEndDate(trip) - getTripStartDate(trip)) / DAY_MS) + 1);
 const signedAmount = (entry: LedgerEntry): number => entry.isRefund ? -entry.originalAmount : entry.originalAmount;
 const categoryName = (trip: Trip, entry: LedgerEntry): string => trip.categories.find((item) => item.id === entry.categoryId)?.name ?? entry.categoryId;
 const accountName = (trip: Trip, entry: LedgerEntry): string => trip.accounts.find((item) => item.id === entry.accountId)?.name ?? entry.accountId;
