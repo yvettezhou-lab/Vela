@@ -1,6 +1,6 @@
 import React, { FormEvent, useMemo, useState } from 'react';
 import { CalendarDays, ChevronDown, Plus, Trash2, X } from 'lucide-react';
-import { Destination, TravelSegment, Trip } from '../../core/domain';
+import { AllocationRule, Destination, TravelSegment, Trip } from '../../core/domain';
 import { useVelaStore } from '../../store/useVelaStore';
 import './styles.css';
 
@@ -46,6 +46,11 @@ export const TripCreation: React.FC<Props> = ({ onClose, onCreated, onUpdated, t
   const [title, setTitle] = useState(trip?.title ?? '');
   const [segments, setSegments] = useState<DraftSegment[]>(() => trip?.segments.map(makeDraftSegment) ?? [makeDraftSegment()]);
   const [error, setError] = useState('');
+  const [members, setMembers] = useState(() => trip?.members.map((member) => ({ ...member })) ?? []);
+  const [accounts, setAccounts] = useState(() => trip?.accounts.map((account) => ({ ...account })) ?? []);
+  const [categories, setCategories] = useState(() => trip?.categories.map((category) => ({ ...category })) ?? []);
+  const [allocationRules, setAllocationRules] = useState<AllocationRule | undefined>(() => trip?.allocationRules ? { allocationMode: trip.allocationRules.allocationMode, percentages: trip.allocationRules.percentages ? { ...trip.allocationRules.percentages } : undefined } : undefined);
+  const availableSourceTrips = useVelaStore((state) => state.trips).filter((source) => source.status === 'achieve' && source.id !== trip?.id).sort((a, b) => b.updatedAt - a.updatedAt);
 
   const overlapPairs = useMemo(() => {
     const ranges = segments.map((segment, index) => ({ index, start: toTimestamp(segment.startDate), end: toTimestamp(segment.endDate) }))
@@ -55,6 +60,23 @@ export const TripCreation: React.FC<Props> = ({ onClose, onCreated, onUpdated, t
       if (ranges[i].start < ranges[j].end && ranges[j].start < ranges[i].end) pairs.push([ranges[i].index, ranges[j].index]);
     return pairs;
   }, [segments]);
+
+  const cloneSettingsFrom = (source: Trip) => {
+    const memberIdMap = new Map<string, string>();
+    const clonedMembers = source.members.map((member) => { const id = crypto.randomUUID(); memberIdMap.set(member.id, id); return { ...member, id }; });
+    setMembers(clonedMembers);
+    setAccounts(source.accounts.map((account) => ({ ...account, id: crypto.randomUUID() })));
+    setCategories(source.categories.map((category) => ({ ...category })));
+    if (source.allocationRules) {
+      const percentages = source.allocationRules.percentages ? Object.fromEntries(Object.entries(source.allocationRules.percentages).map(([memberId, percentage]) => [memberIdMap.get(memberId) ?? crypto.randomUUID(), percentage])) : undefined;
+      setAllocationRules({ allocationMode: source.allocationRules.allocationMode, percentages });
+    } else {
+      const customEntry = [...source.ledger].reverse().find((entry) => entry.allocationMode === 'custom_percentage');
+      if (customEntry) {
+        setAllocationRules({ allocationMode: 'custom_percentage', percentages: Object.fromEntries(customEntry.allocations.map((allocation) => [memberIdMap.get(allocation.memberId) ?? '', allocation.percentage ?? 0]).filter(([memberId]) => Boolean(memberId))) });
+      } else setAllocationRules(undefined);
+    }
+  };
 
   const updateSegment = (index: number, patch: Partial<DraftSegment>) =>
     setSegments((current) => current.map((segment, i) => i === index ? { ...segment, ...patch } : segment));
@@ -102,9 +124,9 @@ export const TripCreation: React.FC<Props> = ({ onClose, onCreated, onUpdated, t
 
     const now = Date.now();
     const payload: Trip = {
-      id: trip?.id ?? crypto.randomUUID(), title: cleanTitle, segments, status: trip?.status ?? 'planning',
-      coverImage: trip?.coverImage, members: trip?.members ?? [{ id: crypto.randomUUID(), name: 'Me' }],
-      accounts: trip?.accounts ?? [], categories: trip?.categories ?? [], ledger: trip?.ledger ?? [], createdAt: trip?.createdAt ?? now, updatedAt: now,
+      id: trip?.id ?? crypto.randomUUID(), title: cleanTitle, segments, status: trip?.status ?? 'planning', allocationRules,
+      coverImage: trip?.coverImage, members: editing ? members : (members.length ? members : [{ id: crypto.randomUUID(), name: 'Me' }]),
+      accounts: editing ? accounts : accounts, categories: editing ? categories : categories, ledger: trip?.ledger ?? [], createdAt: trip?.createdAt ?? now, updatedAt: now,
     };
     payload.segments = normalizedSegments;
     try {
@@ -123,6 +145,7 @@ export const TripCreation: React.FC<Props> = ({ onClose, onCreated, onUpdated, t
     </div>
     <form onSubmit={submit}>
       <label><span>TRIP TITLE</span><input autoFocus value={title} onChange={(e) => setTitle(e.target.value)} placeholder="e.g. Penang" /></label>
+      {!editing && availableSourceTrips.length > 0 && <label className="trip-clone-settings"><span>SETTINGS</span><div className="trip-select-wrap"><select defaultValue="" onChange={(e) => { const source = availableSourceTrips.find((item) => item.id === e.target.value); if (source) cloneSettingsFrom(source); }}><option value="">Clone settings from a past journey…</option>{availableSourceTrips.map((source) => <option key={source.id} value={source.id}>{source.title}</option>)}</select><ChevronDown size={14} /></div><small>Copies people, categories, accounts and saved allocation rules. Historical data is never copied.</small></label>}
 
       <div className="trip-segments">
         <div className="trip-segments-heading"><span>TRAVEL SEGMENTS</span><small>{segments.length} {segments.length === 1 ? 'segment' : 'segments'}</small></div>
