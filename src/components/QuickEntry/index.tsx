@@ -107,11 +107,19 @@ export const QuickEntry: React.FC<QuickEntryProps> = ({ onClose }) => {
     setAccountId((current) => current && accounts.some((account) => account.id === current) ? current : accounts[0]?.id ?? '');
     setPayerId((current) => current && members.some((member) => member.id === current) ? current : members[0]?.id ?? '');
     setCurrency(getTripPrimaryCurrency(currentTrip));
-    setSelectedParticipants((current) => {
-      const validIds = new Set(members.map((member) => member.id));
-      const retained = Array.from(current).filter((id) => validIds.has(id));
-      return new Set(retained.length ? retained : members.map((member) => member.id));
-    });
+    const savedRule = currentTrip.allocationRules;
+    if (savedRule) {
+      setAllocationMode(savedRule.allocationMode);
+      setCustomPercentages(savedRule.percentages ? { ...savedRule.percentages } : {});
+      const ruleMemberIds = savedRule.percentages ? Object.keys(savedRule.percentages) : [];
+      setSelectedParticipants(new Set(ruleMemberIds.filter((id) => members.some((member) => member.id === id))));
+    } else {
+      setSelectedParticipants((current) => {
+        const validIds = new Set(members.map((member) => member.id));
+        const retained = Array.from(current).filter((id) => validIds.has(id));
+        return new Set(retained.length ? retained : members.map((member) => member.id));
+      });
+    }
   }, [currentTrip, accounts, members]);
 
   useEffect(() => {
