@@ -2,6 +2,8 @@ import React, { FormEvent, useMemo, useState } from 'react';
 import { CalendarDays, ChevronDown, Plus, Trash2, X } from 'lucide-react';
 import { AllocationRule, Destination, TravelSegment, Trip } from '../../core/domain';
 import { useVelaStore } from '../../store/useVelaStore';
+import { deleteTripCover, isIndexedDbCoverKey, putTripCover } from '../../core/coverImageStore';
+import { useTripCover } from '../../hooks/useTripCover';
 import './styles.css';
 
 type Props = { onClose: () => void; onCreated?: () => void; onUpdated?: () => void; trip?: Trip | null };
@@ -49,7 +51,11 @@ export const TripCreation: React.FC<Props> = ({ onClose, onCreated, onUpdated, t
   const [members, setMembers] = useState(() => trip?.members.map((member) => ({ ...member })) ?? []);
   const [accounts, setAccounts] = useState(() => trip?.accounts.map((account) => ({ ...account })) ?? []);
   const [categories, setCategories] = useState(() => trip?.categories.map((category) => ({ ...category })) ?? []);
+  const [coverFile, setCoverFile] = useState<File | null>(null);
+  const [coverPreview, setCoverPreview] = useState<string | null>(null);
+  const [isSaving, setIsSaving] = useState(false);
   const [allocationRules, setAllocationRules] = useState<AllocationRule | undefined>(() => trip?.allocationRules ? { allocationMode: trip.allocationRules.allocationMode, percentages: trip.allocationRules.percentages ? { ...trip.allocationRules.percentages } : undefined } : undefined);
+  const persistedCover = useTripCover(trip?.coverImage);
   const availableSourceTrips = useVelaStore((state) => state.trips).filter((source) => source.status === 'achieve' && source.id !== trip?.id).sort((a, b) => b.updatedAt - a.updatedAt);
 
   const overlapPairs = useMemo(() => {
@@ -78,6 +84,20 @@ export const TripCreation: React.FC<Props> = ({ onClose, onCreated, onUpdated, t
     }
   };
 
+  const selectCover = (file?: File) => {
+    if (!file) return;
+    if (!file.type.startsWith('image/')) return setError('Please choose an image file.');
+    if (file.size > 8 * 1024 * 1024) return setError('Cover image must be 8 MB or smaller.');
+    setError('');
+    setCoverFile(file);
+    setCoverPreview((current) => { if (current) URL.revokeObjectURL(current); return URL.createObjectURL(file); });
+  };
+
+  const clearSelectedCover = () => {
+    setCoverFile(null);
+    setCoverPreview((current) => { if (current) URL.revokeObjectURL(current); return null; });
+  };
+
   const updateSegment = (index: number, patch: Partial<DraftSegment>) =>
     setSegments((current) => current.map((segment, i) => i === index ? { ...segment, ...patch } : segment));
   const updateDestination = (segmentIndex: number, destinationIndex: number, patch: Partial<DraftDestination>) =>
@@ -102,7 +122,7 @@ export const TripCreation: React.FC<Props> = ({ onClose, onCreated, onUpdated, t
   const addSegment = () => setSegments((current) => [...current, makeDraftSegment()]);
   const removeSegment = (index: number) => setSegments((current) => current.length <= 1 ? current : current.filter((_, i) => i !== index));
 
-  const submit = (event: FormEvent) => {
+  const submit = async (event: FormEvent) => {
     event.preventDefault();
     setError('');
     const cleanTitle = title.trim();
@@ -123,19 +143,25 @@ export const TripCreation: React.FC<Props> = ({ onClose, onCreated, onUpdated, t
     }
 
     const now = Date.now();
-    const payload: Trip = {
-      id: trip?.id ?? crypto.randomUUID(), title: cleanTitle, segments, status: trip?.status ?? 'planning', allocationRules,
-      coverImage: trip?.coverImage, members: editing ? members : (members.length ? members : [{ id: crypto.randomUUID(), name: 'Me' }]),
-      accounts: editing ? accounts : accounts, categories: editing ? categories : categories, ledger: trip?.ledger ?? [], createdAt: trip?.createdAt ?? now, updatedAt: now,
-    };
-    payload.segments = normalizedSegments;
+    let storedCoverKey: string | undefined;
     try {
-      if (editing && trip) useVelaStore.getState().updateTrip(trip.id, payload);
-      else useVelaStore.getState().addTrip(payload);
+      setIsSaving(true);
+      if (coverFile) storedCoverKey = await putTripCover(coverFile);
+      const payload: Trip = {
+        id: trip?.id ?? crypto.randomUUID(), title: cleanTitle, segments: normalizedSegments, status: trip?.status ?? 'planning', allocationRules,
+        coverImage: storedCoverKey ?? trip?.coverImage, members: editing ? members : (members.length ? members : [{ id: crypto.randomUUID(), name: 'Me' }]),
+        accounts, categories, ledger: trip?.ledger ?? [], createdAt: trip?.createdAt ?? now, updatedAt: now,
+      };
+      if (editing && trip) {
+        useVelaStore.getState().updateTrip(trip.id, payload);
+        if (storedCoverKey && trip.coverImage && isIndexedDbCoverKey(trip.coverImage)) await deleteTripCover(trip.coverImage);
+      } else useVelaStore.getState().addTrip(payload);
+      clearSelectedCover();
       editing ? onUpdated?.() : onCreated?.();
     } catch (submissionError) {
+      if (storedCoverKey) await deleteTripCover(storedCoverKey).catch(() => undefined);
       setError(submissionError instanceof Error ? submissionError.message : 'Unable to save this journey.');
-    }
+    } finally { setIsSaving(false); }
   };
 
   return <div className="trip-creation-modal" role="dialog" aria-modal="true" aria-labelledby="trip-creation-title">
@@ -146,6 +172,14 @@ export const TripCreation: React.FC<Props> = ({ onClose, onCreated, onUpdated, t
     <form onSubmit={submit}>
       <label><span>TRIP TITLE</span><input autoFocus value={title} onChange={(e) => setTitle(e.target.value)} placeholder="e.g. Penang" /></label>
       {!editing && availableSourceTrips.length > 0 && <label className="trip-clone-settings"><span>SETTINGS</span><div className="trip-select-wrap"><select defaultValue="" onChange={(e) => { const source = availableSourceTrips.find((item) => item.id === e.target.value); if (source) cloneSettingsFrom(source); }}><option value="">Clone settings from a past journey…</option>{availableSourceTrips.map((source) => <option key={source.id} value={source.id}>{source.title}</option>)}</select><ChevronDown size={14} /></div><small>Copies people, categories, accounts and saved allocation rules. Historical data is never copied.</small></label>}
+
+      <div className="trip-cover-field">
+        <span className="trip-field-label">COVER IMAGE</span>
+        <div className="trip-cover-picker">
+          <div className="trip-cover-preview"><img src={coverPreview || persistedCover || '/896DCF5B-31E2-44AA-ADEB-1A9E019FC6FC.png'} alt="" /></div>
+          <div className="trip-cover-actions"><label className="trip-cover-upload">Choose image<input type="file" accept="image/*" onChange={(e) => selectCover(e.target.files?.[0])} /></label>{coverPreview && <button type="button" className="trip-cover-clear" onClick={clearSelectedCover}>Remove selection</button>}<small>Stored locally in IndexedDB · max 8 MB</small></div>
+        </div>
+      </div>
 
       <div className="trip-segments">
         <div className="trip-segments-heading"><span>TRAVEL SEGMENTS</span><small>{segments.length} {segments.length === 1 ? 'segment' : 'segments'}</small></div>
@@ -174,7 +208,7 @@ export const TripCreation: React.FC<Props> = ({ onClose, onCreated, onUpdated, t
 
       <div className="trip-creation-member"><span>DEFAULT MEMBER</span><strong>Me</strong><small>Added automatically</small></div>
       {error && <p className="trip-creation-error" role="alert">{error}</p>}
-      <button className="trip-creation-submit" type="submit">{editing ? 'Save Journey' : 'Create Journey'} <ChevronDown size={15} /></button>
+      <button className="trip-creation-submit" type="submit" disabled={isSaving}>{isSaving ? 'Saving…' : editing ? 'Save Journey' : 'Create Journey'} <ChevronDown size={15} /></button>
     </form>
   </div>;
 };
