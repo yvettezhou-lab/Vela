@@ -1,3 +1,4 @@
+import { getTripPrimaryCurrency } from '../../core/travelSegment';
 import React, { useEffect, useRef, useState } from 'react';
 import { Calendar, X } from 'lucide-react';
 import { useVelaStore } from '../../store/useVelaStore';
@@ -104,7 +105,7 @@ export const QuickEntry: React.FC<QuickEntryProps> = ({ onClose }) => {
     setCategoryId((current) => current && currentTrip.categories.some((category) => category.id === current && category.archived !== true) ? current : currentTrip.categories.find((category) => category.archived !== true)?.id ?? '');
     setAccountId((current) => current && accounts.some((account) => account.id === current) ? current : accounts[0]?.id ?? '');
     setPayerId((current) => current && members.some((member) => member.id === current) ? current : members[0]?.id ?? '');
-    setCurrency(currentTrip.localCurrency);
+    setCurrency(getTripPrimaryCurrency(currentTrip));
     setSelectedParticipants((current) => {
       const validIds = new Set(members.map((member) => member.id));
       const retained = Array.from(current).filter((id) => validIds.has(id));
