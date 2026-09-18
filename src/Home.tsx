@@ -1,3 +1,4 @@
+import { getTripDestinations, getTripEndDate, getTripPrimaryCurrency, getTripStartDate } from './core/travelSegment';
 import React, { useMemo, useState } from 'react';
 import { Calendar, ChevronRight, MapPin, Plus, Database } from 'lucide-react';
 import { calculateFinancialTotals } from './core/calculations';
@@ -7,9 +8,9 @@ import './Home.css';
 
 type HomeProps = { onNavigate: (label: 'Home' | 'Ledger' | 'Balance' | 'Logbook' | 'Atelier') => void; onCreateTrip: () => void; onManageTrips: () => void };
 const DEFAULT_COVER = '/896DCF5B-31E2-44AA-ADEB-1A9E019FC6FC.png';
-const dateLabel = (trip: Trip) => { const start = new Date(trip.startDate), end = new Date(trip.endDate); if (!Number.isFinite(start.getTime()) || !Number.isFinite(end.getTime())) return 'DATES NOT SET'; const fmt = (value: Date) => `${value.getFullYear()}.${String(value.getMonth() + 1).padStart(2, '0')}.${String(value.getDate()).padStart(2, '0')}`; return `${fmt(start)} — ${fmt(end)}`; };
-const dayCount = (trip: Trip) => { const days = Math.round((trip.endDate - trip.startDate) / 86400000) + 1; return days > 0 && days < 1000 ? `${days} DAYS` : ''; };
-const localSummary = (trip: Trip) => { const local = trip.ledger.reduce((sum, entry) => sum + (entry.isRefund ? -entry.originalAmount : entry.originalAmount), 0); const totals = calculateFinancialTotals(trip.ledger); return [dayCount(trip), local ? `${trip.localCurrency} ${Math.round(local).toLocaleString('en-US')}` : '', totals.financialTotal ? `¥${Math.round(totals.financialTotal).toLocaleString('en-US')}` : ''].filter(Boolean).join(' · '); };
+const dateLabel = (trip: Trip) => { const start = new Date(getTripStartDate(trip)), end = new Date(getTripEndDate(trip)); if (!Number.isFinite(start.getTime()) || !Number.isFinite(end.getTime())) return 'DATES NOT SET'; const fmt = (value: Date) => `${value.getFullYear()}.${String(value.getMonth() + 1).padStart(2, '0')}.${String(value.getDate()).padStart(2, '0')}`; return `${fmt(start)} — ${fmt(end)}`; };
+const dayCount = (trip: Trip) => { const days = Math.round((getTripEndDate(trip) - getTripStartDate(trip)) / 86400000) + 1; return days > 0 && days < 1000 ? `${days} DAYS` : ''; };
+const localSummary = (trip: Trip) => { const local = trip.ledger.reduce((sum, entry) => sum + (entry.isRefund ? -entry.originalAmount : entry.originalAmount), 0); const totals = calculateFinancialTotals(trip.ledger); return [dayCount(trip), local ? `${getTripPrimaryCurrency(trip)} ${Math.round(local).toLocaleString('en-US')}` : '', totals.financialTotal ? `¥${Math.round(totals.financialTotal).toLocaleString('en-US')}` : ''].filter(Boolean).join(' · '); };
 const cover = (trip: Trip) => trip.coverImage?.trim() || DEFAULT_COVER;
 
 export default function Home({ onNavigate, onCreateTrip, onManageTrips }: HomeProps) {
@@ -32,7 +33,7 @@ export default function Home({ onNavigate, onCreateTrip, onManageTrips }: HomePr
     <div className="vela-trip-row" key={trip.id}>
       <button className="vela-trip-row-main" type="button" onClick={() => onNavigate('Ledger')}>
         <img src={cover(trip)} alt="" onError={(event) => { event.currentTarget.src = DEFAULT_COVER; }} />
-        <span className="vela-trip-row-copy"><strong>{trip.title}</strong><small>{trip.destination || 'Destination not set'} · {dateLabel(trip)}</small><em>{localSummary(trip) || 'No payments yet'}</em></span>
+        <span className="vela-trip-row-copy"><strong>{trip.title}</strong><small>{getTripDestinations(trip).join(' · ') || 'Destination not set'} · {dateLabel(trip)}</small><em>{localSummary(trip) || 'No payments yet'}</em></span>
         <span className={`vela-status-pill ${trip.status}`}>{trip.status === 'achieve' ? 'ACHIEVE' : 'PLANNING'}</span>
       </button>
       {trip.status === 'planning' && <button className="vela-start-journey" type="button" onClick={() => startJourney(trip.id)}>Start Journey</button>}
@@ -40,7 +41,7 @@ export default function Home({ onNavigate, onCreateTrip, onManageTrips }: HomePr
     </div>
   ) : (
     <button className="vela-current-card" key={trip.id} type="button" onClick={() => onNavigate('Ledger')}>
-      <span className="vela-current-copy"><span className="vela-current-label">CURRENT TRIP <i /></span><span className="vela-current-status">{trip.status}</span><strong>{trip.title}</strong><span className="vela-destination"><MapPin size={12} />{trip.destination || 'Choose a destination'}</span><span className="vela-date"><Calendar size={13} />{dateLabel(trip)}</span><span className="vela-summary">{localSummary(trip) || 'Your travel record starts here.'}</span><span className="vela-current-tether"><Database size={13} /> Quick Entry will be recorded to this trip <ChevronRight size={13} /></span></span>
+      <span className="vela-current-copy"><span className="vela-current-label">CURRENT TRIP <i /></span><span className="vela-current-status">{trip.status}</span><strong>{trip.title}</strong><span className="vela-destination"><MapPin size={12} />{getTripDestinations(trip).join(' · ') || 'Choose a destination'}</span><span className="vela-date"><Calendar size={13} />{dateLabel(trip)}</span><span className="vela-summary">{localSummary(trip) || 'Your travel record starts here.'}</span><span className="vela-current-tether"><Database size={13} /> Quick Entry will be recorded to this trip <ChevronRight size={13} /></span></span>
       <span className="vela-current-image"><img src={cover(trip)} alt="" onError={(event) => { event.currentTarget.src = DEFAULT_COVER; }} /><b>01</b></span>
     </button>
   );
