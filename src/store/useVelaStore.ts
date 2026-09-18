@@ -18,7 +18,8 @@ export type MasterDataItem = Member | Category | Account;
 interface VelaState {
   trips: Trip[];
   addTrip: (rawTrip: unknown) => void;
-  updateTripStatus: (tripId: string, newStatus: unknown) => void;\n  updateTrip: (tripId: string, trip: Trip) => void;
+  updateTripStatus: (tripId: string, newStatus: unknown) => void;
+  updateTrip: (tripId: string, trip: Trip) => void;
   updateTripDates: (tripId: string, startDate: number, endDate: number) => void;
   evaluateAutoStart: (now?: number) => void;
   addLedgerEntry: (tripId: string, rawEntry: unknown) => void;
