@@ -2,7 +2,7 @@ import type { LedgerEntry, TravelSegment } from './domain';
 
 export const findSegmentByDate = (segments: TravelSegment[], date: number): TravelSegment | undefined => {
   if (!Number.isFinite(date)) return undefined;
-  return segments.find((segment) => date >= segment.startDate && date <= segment.endDate);
+  return segments.filter((segment) => date >= segment.startDate && date <= segment.endDate).sort((a, b) => b.startDate - a.startDate)[0];
 };
 
 export const getLedgerEntryDate = (entry: LedgerEntry): number => {
