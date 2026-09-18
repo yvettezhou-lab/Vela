@@ -18,7 +18,7 @@ export type MasterDataItem = Member | Category | Account;
 interface VelaState {
   trips: Trip[];
   addTrip: (rawTrip: unknown) => void;
-  updateTripStatus: (tripId: string, newStatus: unknown) => void;
+  updateTripStatus: (tripId: string, newStatus: unknown) => void;\n  updateTrip: (tripId: string, trip: Trip) => void;
   updateTripDates: (tripId: string, startDate: number, endDate: number) => void;
   evaluateAutoStart: (now?: number) => void;
   addLedgerEntry: (tripId: string, rawEntry: unknown) => void;
@@ -45,6 +45,7 @@ const replaceMasterData = (trip: Trip, type: MasterDataType, id: string | null, 
 export const useVelaStore = create<VelaState>()(persist((set, get) => ({
   trips: [],
   addTrip: (rawTrip) => { const strictTrip = withDefaultAccountsAndMember(withDefaultCategories(DomainValidator.validateEntireTrip(rawTrip, get().trips))); set((state) => ({ trips: [...state.trips, strictTrip] })); get().evaluateAutoStart(); },
+  updateTrip: (tripId, trip) => { const trips = get().trips; if (!trips.some((item) => item.id === tripId)) throw new Error(`Store Error: Trip ${tripId} not found`); const strictTrip = DomainValidator.validateEntireTrip({ ...trip, id: tripId, updatedAt: Date.now() }, trips.filter((item) => item.id !== tripId)); set((state) => ({ trips: state.trips.map((item) => item.id === tripId ? strictTrip : item) })); },
   updateTripStatus: (tripId, newStatus) => { const trips = get().trips; const trip = trips.find((t) => t.id === tripId); if (!trip) throw new Error(`Store Error: Trip ${tripId} not found`); DomainValidator.validateTripStatus(trips, tripId, newStatus, trip.status); if (newStatus !== 'planning' && newStatus !== 'traveling' && newStatus !== 'achieve') throw new Error(`Store Error: Invalid status ${newStatus}`); set({ trips: trips.map((t) => t.id === tripId ? { ...t, status: newStatus as TripStatus, updatedAt: Date.now() } : t) }); },
   updateTripDates: (tripId, startDate, endDate) => { if (!Number.isFinite(startDate) || !Number.isFinite(endDate)) throw new Error('Store Error: Trip dates must be finite numbers'); if (startDate > endDate) throw new Error('Store Error: Start date cannot be after end date'); const trips = get().trips; const trip = trips.find((t) => t.id === tripId); if (!trip) throw new Error(`Store Error: Trip ${tripId} not found`); if (trip.segments.length === 0) throw new Error(`Store Error: Trip ${tripId} has no TravelSegment`); const updatedSegments = trip.segments.map((segment, index) => index === 0 ? { ...segment, startDate, endDate } : segment); const strictTrip = DomainValidator.validateEntireTrip({ ...trip, segments: updatedSegments, updatedAt: Date.now() }, trips.filter((t) => t.id !== tripId)); set((state) => ({ trips: state.trips.map((t) => t.id === tripId ? strictTrip : t) })); get().evaluateAutoStart(); },
   evaluateAutoStart: (now = Date.now()) => { const trips = get().trips; const candidateId = getAutoStartTripId(trips, now); if (!candidateId) return; const candidate = trips.find((trip) => trip.id === candidateId); if (!candidate) return; DomainValidator.validateTripStatus(trips, candidate.id, 'traveling', candidate.status); set((state) => ({ trips: state.trips.map((trip) => trip.id === candidate.id ? { ...trip, status: 'traveling', updatedAt: Date.now() } : trip) })); },
