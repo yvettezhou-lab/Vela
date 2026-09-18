@@ -4,67 +4,15 @@ export type FlightType = 'one_way' | 'round_trip';
 export interface Member { id: string; name: string; archived?: boolean; }
 export interface Account { id: string; name: string; archived?: boolean; }
 export interface Category { id: string; name: string; type: string; archived?: boolean; }
-export interface Allocation {
-memberId: string;
-percentage?: number;
-amount: number;
-}
-export interface BaseLedgerEntry {
-id: string;
-categoryId: string;
-originalAmount: number;
-originalCurrency: string;
-cnyEquivalent: number;
-isRefund: boolean;
-isPending: boolean;
-payerId: string;
-accountId: string;
-allocationMode: AllocationMode;
-allocations: Allocation[];
-createdAt: number;
-updatedAt: number;
-}
-export interface StandardEntry extends BaseLedgerEntry {
-entryType: 'standard';
-paymentDate: number;
-}
-export interface FlightOneWay extends BaseLedgerEntry {
-entryType: 'flight';
-flightType: 'one_way';
-outboundDate: number;
-}
-export interface FlightRoundTrip extends BaseLedgerEntry {
-entryType: 'flight';
-flightType: 'round_trip';
-outboundDate: number;
-returnDate: number;
-}
+export interface Allocation { memberId: string; percentage?: number; amount: number; }
+export interface BaseLedgerEntry { id: string; categoryId: string; originalAmount: number; originalCurrency: string; cnyEquivalent: number; isRefund: boolean; isPending: boolean; payerId: string; accountId: string; allocationMode: AllocationMode; allocations: Allocation[]; createdAt: number; updatedAt: number; }
+export interface StandardEntry extends BaseLedgerEntry { entryType: 'standard'; paymentDate: number; }
+export interface FlightOneWay extends BaseLedgerEntry { entryType: 'flight'; flightType: 'one_way'; outboundDate: number; }
+export interface FlightRoundTrip extends BaseLedgerEntry { entryType: 'flight'; flightType: 'round_trip'; outboundDate: number; returnDate: number; }
 export type FlightEntry = FlightOneWay | FlightRoundTrip;
-export interface PrepaidMultiDayEntry extends BaseLedgerEntry {
-entryType: 'prepaid_multi_day';
-paymentDate: number;
-usageStart: number;
-usageEnd: number;
-}
+export interface PrepaidMultiDayEntry extends BaseLedgerEntry { entryType: 'prepaid_multi_day'; paymentDate: number; usageStart: number; usageEnd: number; }
 export type LedgerEntry = StandardEntry | FlightEntry | PrepaidMultiDayEntry;
-export interface TripFinancialTotals {
-financialTotal: number;
-settledAmount: number;
-pendingAmount: number;
-}
-export interface Trip {
-id: string;
-title: string;
-destination: string;
-startDate: number;
-endDate: number;
-status: TripStatus;
-localCurrency: string;
-coverImage?: string;
-members: Member[];
-accounts: Account[];
-categories: Category[];
-ledger: LedgerEntry[];
-createdAt: number;
-updatedAt: number;
-}
+export interface TripFinancialTotals { financialTotal: number; settledAmount: number; pendingAmount: number; }
+export interface Destination { country: string; city: string; }
+export interface TravelSegment { id: string; destinations: Destination[]; startDate: number; endDate: number; primaryCurrency: string; }
+export interface Trip { id: string; title: string; segments: TravelSegment[]; status: TripStatus; coverImage?: string; members: Member[]; accounts: Account[]; categories: Category[]; ledger: LedgerEntry[]; createdAt: number; updatedAt: number; }

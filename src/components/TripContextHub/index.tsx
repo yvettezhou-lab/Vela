@@ -1,3 +1,4 @@
+import { getTripDestinations, getTripPrimaryCurrency, getTripStartDate } from '../../core/travelSegment';
 import React, { useMemo, useState } from 'react';
 import { TripStatus } from '../../core/domain';
 import { useVelaStore } from '../../store/useVelaStore';
@@ -21,12 +22,12 @@ export const TripContextHub: React.FC = () => {
       </div>
 
       <div style={styles.tripPicker} aria-label="Select trip">
-        {trips.map((trip) => <button key={trip.id} type="button" onClick={() => setSelectedId(trip.id)} style={{ ...styles.tripButton, ...(selectedTrip?.id === trip.id ? styles.tripButtonActive : {}) }}><strong>{trip.title}</strong><span>{trip.destination || '—'} · {dateLabel(trip.startDate)}</span></button>)}
+        {trips.map((trip) => <button key={trip.id} type="button" onClick={() => setSelectedId(trip.id)} style={{ ...styles.tripButton, ...(selectedTrip?.id === trip.id ? styles.tripButtonActive : {}) }}><strong>{trip.title}</strong><span>{getTripDestinations(trip).join(' · ') || '—'} · {dateLabel(getTripStartDate(trip))}</span></button>)}
       </div>
 
       {!selectedTrip || !context ? <div style={styles.empty}>No trips yet.</div> : <>
         <div style={styles.hero}>
-          <div><div style={styles.heroTitle}>{selectedTrip.title}</div><div style={styles.heroSub}>{selectedTrip.destination || 'Destination not set'}</div></div>
+          <div><div style={styles.heroTitle}>{selectedTrip.title}</div><div style={styles.heroSub}>{getTripDestinations(selectedTrip).join(' · ') || 'Destination not set'}</div></div>
           <div style={styles.duration}><strong>{context.durationDays}</strong><span>days</span></div>
         </div>
 
@@ -37,7 +38,7 @@ export const TripContextHub: React.FC = () => {
 
         <section style={styles.card} aria-labelledby="hub-spending"><div style={styles.sectionHead}><h3 id="hub-spending" style={styles.cardTitle}>SPENDING BREAKDOWN</h3><span style={styles.muted}>{context.ledgerCount} ledger entries</span></div>{context.categories.length ? context.categories.map((item) => <div key={item.category} style={styles.categoryRow}><div style={styles.row}><span>{item.category}</span><strong>{money(item.amount)} · {item.share}%</strong></div><div style={styles.bar}><div style={{ ...styles.barFill, width: `${Math.min(100, item.share)}%` }} /></div></div>) : <div style={styles.muted}>No spending recorded yet.</div>}</section>
 
-        <section style={styles.card} aria-labelledby="hub-reflection"><div className="hub-reflection-head" style={styles.sectionHead}><h3 id="hub-reflection" style={styles.cardTitle}>TRIP REFLECTION</h3><span style={styles.muted}>{selectedTrip.localCurrency}</span></div><div style={styles.reflectionGrid}>{Object.entries(context.totalExpenditure).map(([currency, amount]) => <div key={currency}><div style={styles.metricLabel}>TOTAL SPEND</div><strong style={styles.metric}>{money(amount)} {currency}</strong></div>)}{Object.entries(context.averageCostPerDay).map(([currency, amount]) => <div key={`avg-${currency}`}><div style={styles.metricLabel}>AVERAGE / DAY</div><strong style={styles.metric}>{money(amount)} {currency}</strong></div>)}</div></section>
+        <section style={styles.card} aria-labelledby="hub-reflection"><div className="hub-reflection-head" style={styles.sectionHead}><h3 id="hub-reflection" style={styles.cardTitle}>TRIP REFLECTION</h3><span style={styles.muted}>{getTripPrimaryCurrency(selectedTrip)}</span></div><div style={styles.reflectionGrid}>{Object.entries(context.totalExpenditure).map(([currency, amount]) => <div key={currency}><div style={styles.metricLabel}>TOTAL SPEND</div><strong style={styles.metric}>{money(amount)} {currency}</strong></div>)}{Object.entries(context.averageCostPerDay).map(([currency, amount]) => <div key={`avg-${currency}`}><div style={styles.metricLabel}>AVERAGE / DAY</div><strong style={styles.metric}>{money(amount)} {currency}</strong></div>)}</div></section>
 
         <section style={styles.card} aria-labelledby="hub-history"><div style={styles.sectionHead}><h3 id="hub-history" style={styles.cardTitle}>HISTORY</h3><span style={styles.muted}>Ledger timeline</span></div>{context.history.length ? <div style={styles.history}>{context.history.map((entry) => <div key={entry.id} style={styles.historyRow}><div><strong>{entry.category}</strong><div style={styles.historyMeta}>{entry.account} · {dateLabel(entry.createdAt)}</div></div><span style={entry.isRefund ? styles.refund : styles.historyAmount}>{entry.isRefund ? '−' : ''}{money(Math.abs(entry.amount))} {entry.currency}</span></div>)}</div> : <div style={styles.muted}>No history yet.</div>}</section>
       </>}

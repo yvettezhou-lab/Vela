@@ -1,3 +1,4 @@
+import { getSegmentPrimaryCurrency, getTripPrimaryCurrency } from '../../core/travelSegment';
 import React, { useEffect, useRef, useState } from 'react';
 import { Calendar, X } from 'lucide-react';
 import { useVelaStore } from '../../store/useVelaStore';
@@ -61,6 +62,7 @@ const FALLBACK_ACCOUNTS = [
   { id: 'default-account-credit-card', name: 'Credit Card' },
 ];
 const FALLBACK_MEMBERS = [{ id: 'default-member-me', name: 'Me' }];
+const LEDGER_CURRENCIES = ['CNY', 'MYR', 'SGD', 'THB', 'IDR', 'PHP', 'JPY', 'KRW', 'USD', 'EUR', 'GBP', 'AUD', 'HKD'];
 
 export const QuickEntry: React.FC<QuickEntryProps> = ({ onClose }) => {
   const currentTrip = useVelaStore((state) => state.getCurrentTrip());
@@ -104,13 +106,22 @@ export const QuickEntry: React.FC<QuickEntryProps> = ({ onClose }) => {
     setCategoryId((current) => current && currentTrip.categories.some((category) => category.id === current && category.archived !== true) ? current : currentTrip.categories.find((category) => category.archived !== true)?.id ?? '');
     setAccountId((current) => current && accounts.some((account) => account.id === current) ? current : accounts[0]?.id ?? '');
     setPayerId((current) => current && members.some((member) => member.id === current) ? current : members[0]?.id ?? '');
-    setCurrency(currentTrip.localCurrency);
+    setCurrency(getTripPrimaryCurrency(currentTrip));
     setSelectedParticipants((current) => {
       const validIds = new Set(members.map((member) => member.id));
       const retained = Array.from(current).filter((id) => validIds.has(id));
       return new Set(retained.length ? retained : members.map((member) => member.id));
     });
   }, [currentTrip, accounts, members]);
+
+  useEffect(() => {
+    if (!currentTrip) return;
+    const dateValue = entryType === 'flight' ? outboundDate : paymentDate;
+    const date = toDateTimestamp(dateValue);
+    if (!Number.isFinite(date)) return;
+    const resolved = getSegmentPrimaryCurrency(currentTrip.segments, date);
+    if (resolved) setCurrency(resolved);
+  }, [currentTrip, entryType, paymentDate, outboundDate]);
 
   useEffect(() => {
     const normalizedCurrency = currency.trim().toUpperCase();
@@ -306,24 +317,14 @@ export const QuickEntry: React.FC<QuickEntryProps> = ({ onClose }) => {
           <label className="block">
             <span className="mb-2 block text-xs uppercase tracking-[0.14em] text-[#857a6a]">Amount</span>
             <div className="flex rounded-xl bg-[#fbf7ee] shadow-[inset_0_0_0_1px_rgba(80,64,42,.10)]">
-              <input
-                type="text"
+              <select
                 value={currency}
-                onCompositionStart={() => { currencyComposingRef.current = true; }}
-                onCompositionEnd={(event) => {
-                  currencyComposingRef.current = false;
-                  setCurrency(event.currentTarget.value.trim().toUpperCase());
-                }}
-                onChange={(event) => {
-                  const next = event.currentTarget.value;
-                  if (!currencyComposingRef.current) setCurrency(next.toUpperCase());
-                  else setCurrency(next);
-                }}
-                autoCapitalize="characters"
-                spellCheck={false}
+                onChange={(event) => setCurrency(event.currentTarget.value)}
                 aria-label="Currency"
-                className="w-[72px] rounded-l-xl bg-transparent px-3 text-base text-[#17243a] outline-none"
-              />
+                className="w-[86px] appearance-none rounded-l-xl bg-transparent px-3 text-base font-medium text-[#17243a] outline-none"
+              >
+                {LEDGER_CURRENCIES.map((item) => <option key={item} value={item}>{item}</option>)}
+              </select>
               <input
                 type="text"
                 inputMode="decimal"
