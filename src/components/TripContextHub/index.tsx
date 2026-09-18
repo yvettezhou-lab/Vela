@@ -3,6 +3,7 @@ import React, { useMemo, useState } from 'react';
 import { TripStatus } from '../../core/domain';
 import { useVelaStore } from '../../store/useVelaStore';
 import { generateTripContextHub } from '../../utils/tripContextHubEngine';
+import { useTripCover } from '../../hooks/useTripCover';
 
 const statusLabel: Record<TripStatus, string> = { planning: 'Planning', traveling: 'Traveling', achieve: 'Achieve' };
 const money = (amount: number): string => amount.toLocaleString(undefined, { maximumFractionDigits: 2 });
@@ -13,6 +14,7 @@ export const TripContextHub: React.FC = () => {
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const selectedTrip = trips.find((trip) => trip.id === selectedId) ?? trips.find((trip) => trip.status === 'traveling') ?? trips[0] ?? null;
   const context = useMemo(() => selectedTrip ? generateTripContextHub(selectedTrip) : null, [selectedTrip]);
+  const coverSrc = useTripCover(selectedTrip?.coverImage);
 
   return (
     <section style={styles.container} aria-label="Trip Context Hub">
@@ -27,8 +29,8 @@ export const TripContextHub: React.FC = () => {
 
       {!selectedTrip || !context ? <div style={styles.empty}>No trips yet.</div> : <>
         <div style={styles.hero}>
-          <div><div style={styles.heroTitle}>{selectedTrip.title}</div><div style={styles.heroSub}>{getTripDestinations(selectedTrip).join(' · ') || 'Destination not set'}</div></div>
-          <div style={styles.duration}><strong>{context.durationDays}</strong><span>days</span></div>
+          <div style={styles.heroCopy}><div style={styles.heroTitle}>{selectedTrip.title}</div><div style={styles.heroSub}>{getTripDestinations(selectedTrip).join(' · ') || 'Destination not set'}</div></div>
+          <div style={styles.heroImage}><img src={coverSrc || '/896DCF5B-31E2-44AA-ADEB-1A9E019FC6FC.png'} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} /><div style={styles.duration}><strong>{context.durationDays}</strong><span>days</span></div></div>
         </div>
 
         <div style={styles.grid}>
@@ -51,7 +53,7 @@ const styles: Record<string, React.CSSProperties> = {
   header: { display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 12, marginBottom: 16 },
   eyebrow: { fontSize: 10, letterSpacing: '0.16em', opacity: 0.55 }, title: { margin: '3px 0 0', fontSize: 24 }, status: { padding: '4px 8px', borderRadius: 999, background: '#f0eee8', fontSize: 10, letterSpacing: '0.06em' },
   tripPicker: { display: 'flex', gap: 8, overflowX: 'auto', paddingBottom: 10, marginBottom: 6 }, tripButton: { flex: '0 0 auto', minWidth: 150, display: 'grid', gap: 3, textAlign: 'left', border: '1px solid #e2dfd6', borderRadius: 9, padding: '9px 10px', background: '#fffdf8', color: '#172033', cursor: 'pointer' }, tripButtonActive: { borderColor: '#172033', background: '#f7f5ef' },
-  hero: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12, padding: '14px 0 18px' }, heroTitle: { fontSize: 20, fontWeight: 650 }, heroSub: { marginTop: 3, fontSize: 12, opacity: 0.6 }, duration: { display: 'flex', alignItems: 'baseline', gap: 5 },
+  hero: { display: 'flex', justifyContent: 'space-between', alignItems: 'stretch', gap: 12, padding: '14px 0 18px' }, heroCopy: { flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', justifyContent: 'center' }, heroImage: { width: 180, height: 112, position: 'relative', flexShrink: 0, overflow: 'hidden', borderRadius: 12, background: '#334e56' }, heroTitle: { fontSize: 20, fontWeight: 650 }, heroSub: { marginTop: 3, fontSize: 12, opacity: 0.6 }, duration: { display: 'flex', alignItems: 'baseline', gap: 5 },
   grid: { display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0, 1fr))', gap: 8, marginBottom: 8 }, card: { padding: 13, border: '1px solid #e2dfd6', borderRadius: 10, marginBottom: 8 }, cardTitle: { margin: 0, fontSize: 10, letterSpacing: '0.14em', fontWeight: 650 }, people: { display: 'flex', flexWrap: 'wrap', gap: 6, marginTop: 10 }, pill: { padding: '5px 8px', borderRadius: 999, background: '#f0eee8', fontSize: 11 },
   row: { display: 'flex', justifyContent: 'space-between', gap: 10, alignItems: 'center', marginTop: 9, fontSize: 12 }, muted: { fontSize: 10, opacity: 0.52 }, sectionHead: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 8 }, categoryRow: { marginTop: 9 }, bar: { height: 4, marginTop: 5, borderRadius: 999, background: '#ece9e1', overflow: 'hidden' }, barFill: { height: '100%', borderRadius: 999, background: '#172033' }, reflectionGrid: { display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: 12, marginTop: 12 }, metricLabel: { fontSize: 9, letterSpacing: '0.1em', opacity: 0.5 }, metric: { display: 'block', marginTop: 4, fontSize: 16 }, history: { display: 'grid', gap: 0, marginTop: 8 }, historyRow: { display: 'flex', justifyContent: 'space-between', gap: 12, padding: '9px 0', borderTop: '1px solid #eeeae2', fontSize: 12 }, historyMeta: { marginTop: 3, fontSize: 10, opacity: 0.5 }, historyAmount: { whiteSpace: 'nowrap', fontVariantNumeric: 'tabular-nums' }, refund: { whiteSpace: 'nowrap', fontVariantNumeric: 'tabular-nums', opacity: 0.6 }, empty: { padding: 18, textAlign: 'center', color: '#7b7d82', fontSize: 13 },
 };
