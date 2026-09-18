@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { TripStatus } from '../../core/domain';
+import { Trip, TripStatus } from '../../core/domain';
+import { TripCreation } from '../TripCreation';
 import { useVelaStore } from '../../store/useVelaStore';
 import { calculatePlanningContext } from '../../utils/planningEngine';
 import { calculateHistoricalBudgetReference } from '../../utils/budgetForecastEngine';
@@ -15,22 +16,18 @@ const fromDateInput = (value: string): number => {
   const [year, month, day] = value.split('-').map(Number);
   return new Date(year, month - 1, day).getTime();
 };
-function lifecycleError(error: unknown, action: 'start' | 'archive' | 'dates'): string {
+function lifecycleError(error: unknown, action: 'start' | 'archive'): string {
   const message = error instanceof Error ? error.message : String(error);
   if (action === 'start' && message.toLowerCase().includes('traveling')) return '无法开始行程，已有正在进行中的行程';
-  if (action === 'dates') return `无法修改日期：${message}`;
   return action === 'start' ? `无法开始行程：${message}` : `无法结束行程：${message}`;
 }
 
 export const TripManager: React.FC = () => {
   const trips = useVelaStore((state) => state.trips);
   const updateTripStatus = useVelaStore((state) => state.updateTripStatus);
-  const updateTripDates = useVelaStore((state) => state.updateTripDates);
   const [error, setError] = useState<string | null>(null);
   const [endingTripId, setEndingTripId] = useState<string | null>(null);
-  const [editingTripId, setEditingTripId] = useState<string | null>(null);
-  const [draftStart, setDraftStart] = useState('');
-  const [draftEnd, setDraftEnd] = useState('');
+  const [editingTrip, setEditingTrip] = useState<Trip | null>(null);
 
   const grouped: Record<TripStatus, typeof trips> = {
     traveling: trips.filter((trip) => trip.status === 'traveling'),
@@ -39,16 +36,6 @@ export const TripManager: React.FC = () => {
   };
   const achievedTrips = grouped.achieve;
 
-  const startEditingDates = (tripId: string) => {
-    const trip = trips.find((item) => item.id === tripId); if (!trip) return;
-    setError(null); setEditingTripId(tripId); setDraftStart(toDateInput(trip.startDate)); setDraftEnd(toDateInput(trip.endDate));
-  };
-  const saveDates = () => {
-    if (!editingTripId || !draftStart || !draftEnd) return;
-    setError(null);
-    try { updateTripDates(editingTripId, fromDateInput(draftStart), fromDateInput(draftEnd)); setEditingTripId(null); }
-    catch (caught) { setError(lifecycleError(caught, 'dates')); }
-  };
   const startTrip = (tripId: string) => {
     setError(null); try { updateTripStatus(tripId, 'traveling'); }
     catch (caught) { setError(lifecycleError(caught, 'start')); }
@@ -73,19 +60,17 @@ export const TripManager: React.FC = () => {
               {grouped[status].map((trip) => {
                 const planningContext = status === 'planning' ? calculatePlanningContext(trip) : null;
                 const historicalReference = status === 'planning' ? calculateHistoricalBudgetReference(trip, achievedTrips) : null;
-                const isEditing = editingTripId === trip.id;
                 return (
                   <article key={trip.id} style={styles.card}>
                     <div style={styles.cardMain}>
                       <div style={styles.tripTitle}>{trip.title}</div>
-                      <div style={styles.destination}>{trip.destination || '—'}</div>
-                      <div style={styles.meta}>{trip.localCurrency} · {trip.members.length} members</div>
-                      <div style={styles.dates}>{toDateInput(trip.startDate)} → {toDateInput(trip.endDate)}</div>
+                      <div style={styles.destination}>{trip.segments.flatMap((segment) => segment.destinations.map((destination) => destination.city || destination.country)).filter(Boolean).join(' · ') || '—'}</div>
+                      <div style={styles.meta}>{trip.segments.length} {trip.segments.length === 1 ? 'segment' : 'segments'} · {trip.members.length} members</div>
+                      <div style={styles.dates}>{trip.segments.map((segment) => `${toDateInput(segment.startDate)} → ${toDateInput(segment.endDate)} · ${segment.primaryCurrency}`).join('  /  ')}</div>
                       {planningContext && <div style={styles.planningContext} aria-label={`Planning context for ${trip.title}`}><span>{planningContext.durationDays} days</span><span>{planningContext.memberCount} {planningContext.memberCount === 1 ? 'traveler' : 'travelers'}</span><span>{planningContext.currency}</span></div>}
                       {historicalReference && <div style={styles.forecast} aria-label={`Historical budget reference for ${trip.title}`}><div style={styles.forecastLabel}>HISTORICAL REFERENCE</div><div style={styles.forecastRange}>{historicalReference.currency} {historicalReference.estimatedRangeMin.toLocaleString()}–{historicalReference.estimatedRangeMax.toLocaleString()}</div><div style={styles.forecastDetail}>Based on {historicalReference.comparableTripCount} comparable trip{historicalReference.comparableTripCount === 1 ? '' : 's'} · historical daily average {historicalReference.currency} {historicalReference.historicalDailyAverageMin.toLocaleString()}–{historicalReference.historicalDailyAverageMax.toLocaleString()}</div></div>}
-                      {isEditing && <div style={styles.dateEditor}><label style={styles.dateField}><span>Start</span><input type="date" value={draftStart} onChange={(event) => setDraftStart(event.target.value)} /></label><label style={styles.dateField}><span>End</span><input type="date" value={draftEnd} onChange={(event) => setDraftEnd(event.target.value)} /></label><div style={styles.editorActions}><button type="button" onClick={() => setEditingTripId(null)} style={styles.cancelButton}>Cancel</button><button type="button" onClick={saveDates} style={styles.confirmButton}>Save dates</button></div></div>}
                     </div>
-                    <div style={styles.actions}><button type="button" onClick={() => startEditingDates(trip.id)} style={styles.dateButton}>{isEditing ? 'Editing' : 'Edit dates'}</button>{status === 'planning' && <button type="button" onClick={() => startTrip(trip.id)} style={styles.primaryButton}>Start Trip</button>}{status === 'traveling' && <button type="button" onClick={() => requestEndJourney(trip.id)} style={styles.secondaryButton}>End Journey</button>}</div>
+                    <div style={styles.actions}><button type="button" onClick={() => setEditingTrip(trip)} style={styles.dateButton}>Edit journey</button>{status === 'planning' && <button type="button" onClick={() => startTrip(trip.id)} style={styles.primaryButton}>Start Trip</button>}{status === 'traveling' && <button type="button" onClick={() => requestEndJourney(trip.id)} style={styles.secondaryButton}>End Journey</button>}</div>
                   </article>
                 );
               })}
@@ -93,6 +78,7 @@ export const TripManager: React.FC = () => {
           )}
         </section>
       ))}
+      {editingTrip && <div role="presentation" style={styles.backdrop} onMouseDown={(event) => { if (event.target === event.currentTarget) setEditingTrip(null); }}><div className="trip-manager-edit-sheet"><TripCreation trip={editingTrip} onClose={() => setEditingTrip(null)} onUpdated={() => setEditingTrip(null)} /></div></div>}
       {endingTrip && <div role="presentation" style={styles.backdrop} onMouseDown={(event) => { if (event.target === event.currentTarget) setEndingTripId(null); }}><div role="dialog" aria-modal="true" aria-labelledby="end-journey-title" style={styles.dialog}><div style={styles.dialogEyebrow}>END JOURNEY</div><h3 id="end-journey-title" style={styles.dialogTitle}>Finish {endingTrip.title}?</h3><p style={styles.dialogBody}>This will close the active journey and move it to Achieve. Its existing ledger entries remain unchanged and will be reflected in completed journeys.</p><div style={styles.dialogActions}><button type="button" onClick={() => setEndingTripId(null)} style={styles.cancelButton}>Keep traveling</button><button type="button" onClick={confirmEndJourney} style={styles.confirmButton}>End Journey</button></div></div></div>}
     </section>
   );
@@ -110,3 +96,4 @@ const styles: Record<string, React.CSSProperties> = {
 };
 
 export default TripManager;
+
