@@ -3,6 +3,7 @@ import { getTripDestinations, getTripEndDate, getTripStartDate } from '../../cor
 
 import { AnnualReflection, LedgerEntry, Trip, TripInsights } from '../../types/logbook';
 import CrossTripIntelligence from '../CrossTripIntelligence';
+import LogbookAnalytics from './LogbookAnalytics';
 
 interface LogbookViewProps {
   annualReflection: AnnualReflection;
@@ -54,6 +55,8 @@ export const LogbookView = ({ annualReflection, activeTrip, plannedTrips, tripIn
       </header>
 
       <CrossTripIntelligence trips={reflectionTrips.filter((trip) => trip.status === 'achieve')} />
+
+      <LogbookAnalytics trips={[...reflectionTrips, ...plannedTrips.filter((trip) => !reflectionTrips.some((item) => item.id === trip.id))]} />
 
       <section className="logbook-section">
         <div className="logbook-section-heading"><div><span className="logbook-overline">THE YEAR IN MOTION</span><h2>Annual totals</h2></div><span className="logbook-year">{annualReflection.year}</span></div>
