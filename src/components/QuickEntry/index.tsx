@@ -71,12 +71,12 @@ const QuickEntryContent: React.FC<QuickEntryProps> = ({ onClose }) => {
   const [targetTripId, setTargetTripId] = useState('');
   const targetTrip = eligibleTrips.find((trip) => trip.id === targetTripId) ?? null;
   const [entryType, setEntryType] = useState<'standard' | 'flight' | 'prepaid_multi_day'>('standard');
-  const [entryDirection, setEntryDirection] = useState<'expense' | 'income'>('expense');
-  const [amount, setAmount] = useState('');
+    const [amount, setAmount] = useState('');
   const [currency, setCurrency] = useState('CNY');
   const [cnyEquivalent, setCnyEquivalent] = useState('');
   const [deferCny, setDeferCny] = useState(false);
   const [categoryId, setCategoryId] = useState('');
+  const [includeInCost, setIncludeInCost] = useState(true);
   const [accountId, setAccountId] = useState('');
   const [payerId, setPayerId] = useState('');
   const [paymentDate, setPaymentDate] = useState(todayValue);
@@ -122,6 +122,8 @@ const QuickEntryContent: React.FC<QuickEntryProps> = ({ onClose }) => {
   useEffect(() => {
     if (!targetTrip) return;
     setCategoryId((current) => current && categories.some((category) => category.id === current) ? current : categories[0]?.id ?? '');
+    const defaultCategory = categories.find((category) => category.id === (categoryId || categories[0]?.id));
+    setIncludeInCost(defaultCategory?.excludeFromStats !== true);
     setAccountId((current) => current && accounts.some((account) => account.id === current) ? current : accounts[0]?.id ?? '');
     setPayerId((current) => current && members.some((member) => member.id === current) ? current : members[0]?.id ?? '');
     setCurrency(getTripPrimaryCurrency(targetTrip));
@@ -249,7 +251,8 @@ const QuickEntryContent: React.FC<QuickEntryProps> = ({ onClose }) => {
         originalAmount,
         originalCurrency: currency.trim().toUpperCase(),
         cnyEquivalent: cnyTotal,
-        isRefund: entryDirection === 'income',
+        includeInCost,
+        isRefund: false,
         isPending: deferCny,
         payerId,
         accountId,
@@ -336,8 +339,6 @@ const QuickEntryContent: React.FC<QuickEntryProps> = ({ onClose }) => {
           </select>
         </label>
 
-        <div className="mb-3 grid grid-cols-2 gap-2 rounded-xl bg-[#eee5d5] p-1"><button type="button" onClick={() => setEntryDirection('expense')} className={entryDirection==='expense'?'min-h-10 rounded-lg bg-[#17243a] text-white text-sm':'min-h-10 rounded-lg text-[#6f6659] text-sm'}>Expense</button><button type="button" onClick={() => setEntryDirection('income')} className={entryDirection==='income'?'min-h-10 rounded-lg bg-[#17243a] text-white text-sm':'min-h-10 rounded-lg text-[#6f6659] text-sm'}>Income / Refund</button></div>
-
         <div className="grid grid-cols-3 gap-3 rounded-2xl bg-[#eee5d5] p-1.5">
           {([
             ['standard', 'Standard'],
@@ -414,11 +415,15 @@ const QuickEntryContent: React.FC<QuickEntryProps> = ({ onClose }) => {
           {entryType !== 'flight' && (
             <label className="block">
               <span className="mb-2 block text-xs uppercase tracking-[0.14em] text-[#857a6a]">Category</span>
-              <select value={categoryId} onChange={(event) => setCategoryId(event.target.value)} className="w-full appearance-none rounded-xl bg-[#fbf7ee] px-4 text-base text-[#17243a] shadow-[inset_0_0_0_1px_rgba(80,64,42,.10)] outline-none" required>
+              <select value={categoryId} onChange={(event) => { const next = event.target.value; setCategoryId(next); setIncludeInCost(categories.find((category) => category.id === next)?.excludeFromStats !== true); }} className="w-full appearance-none rounded-xl bg-[#fbf7ee] px-4 text-base text-[#17243a] shadow-[inset_0_0_0_1px_rgba(80,64,42,.10)] outline-none" required>
                 {categories.map((category) => <option key={category.id} value={category.id}>{category.name}</option>)}
               </select>
             </label>
           )}
+          {entryType !== 'flight' && <div className="mt-4 col-span-2 flex items-center justify-between rounded-xl bg-[#fbf7ee] px-4 py-3.5 shadow-[inset_0_0_0_1px_rgba(80,64,42,.10)]">
+            <div><span className="block text-sm text-[#17243a]">计入旅行成本</span><span className="mt-1 block text-xs text-[#857a6a]">{includeInCost ? '会计入总支出、日均和回顾统计' : '保留在账本与分摊中，但不计入旅行成本'}</span></div>
+            <button type="button" role="switch" aria-checked={includeInCost} onClick={() => setIncludeInCost((value) => !value)} className={includeInCost ? 'relative h-7 w-12 rounded-full bg-[#17243a]' : 'relative h-7 w-12 rounded-full bg-[#d8cfbf]'}><span className={includeInCost ? 'absolute right-1 top-1 h-5 w-5 rounded-full bg-white shadow' : 'absolute left-1 top-1 h-5 w-5 rounded-full bg-white shadow'} /></button>
+          </div>}
           <div className={entryType === 'flight' ? 'col-span-2' : ''}>
             <span className="mb-2 block text-xs uppercase tracking-[0.14em] text-[#857a6a]">Payment Account</span>
             <div className="grid grid-cols-2 gap-3">
