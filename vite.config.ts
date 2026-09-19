@@ -10,13 +10,11 @@ export default defineConfig({
       strategies: 'injectManifest',
       srcDir: 'src',
       filename: 'sw.ts',
-      // Register manually so we can force Safari to bypass its HTTP cache
-      // when checking for a new service worker.
+      // Register manually so Safari can be forced to refresh the service worker.
       injectRegister: false,
       includeAssets: [
-        'vela-icon-192.png',
-        'vela-icon-512.png',
-        'favicon-32.png',
+        'apple-touch-icon.png',
+        'favicon.svg',
       ],
       manifest: {
         name: 'Vela',
@@ -26,19 +24,13 @@ export default defineConfig({
         scope: '/',
         display: 'standalone',
         background_color: '#efe8da',
-        theme_color: '#efe8da',
+        theme_color: '#172942',
         icons: [
           {
-            src: '/vela-icon-192.png',
-            sizes: '192x192',
+            src: '/apple-touch-icon.png',
+            sizes: '180x180',
             type: 'image/png',
-            purpose: 'any maskable',
-          },
-          {
-            src: '/vela-icon-512.png',
-            sizes: '512x512',
-            type: 'image/png',
-            purpose: 'any maskable',
+            purpose: 'any',
           },
         ],
       },
