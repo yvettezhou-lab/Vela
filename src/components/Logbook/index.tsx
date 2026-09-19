@@ -9,7 +9,7 @@ const num=(v:number)=>new Intl.NumberFormat(undefined,{maximumFractionDigits:0})
 const date=(v:number)=>new Date(v).toLocaleDateString(undefined,{month:'short',day:'numeric',year:'numeric'});
 const entryDate=(e:LedgerEntry)=>e.entryType==='flight'?e.outboundDate:e.paymentDate;
 const signed=(e:LedgerEntry)=>e.isRefund?-e.cnyEquivalent:e.cnyEquivalent;
-const countsInStats=(t:Trip,e:LedgerEntry)=>!e.isPending&&e.entryType!=='cash_exchange'&&t.categories.find(c=>c.id===e.categoryId)?.excludeFromStats!==true;
+const countsInStats=(_t:Trip,e:LedgerEntry)=>e.includeInCost&&!e.isPending;
 const days=(t:Trip)=>Math.max(1,Math.floor((getTripEndDate(t)-getTripStartDate(t))/86400000)+1);
 export const LogbookView=({annualReflection,activeTrip,plannedTrips,tripInsights,reflectionTrips}:Props)=>{
  const defaultTripId=activeTrip?.id??reflectionTrips.find(t=>t.status==='achieve')?.id??reflectionTrips.find(t=>t.status==='planning')?.id??reflectionTrips[0]?.id??null;
