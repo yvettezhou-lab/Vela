@@ -1,0 +1,30 @@
+name: Generate iOS app icon
+
+on:
+  push:
+    branches: [main]
+    paths-ignore:
+      - public/apple-touch-icon.png
+
+permissions:
+  contents: write
+
+jobs:
+  icon:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Render PNG from SVG
+        run: |
+          npm install --no-save sharp
+          node -e "require('sharp')('public/vela-icon.svg').resize(180,180).png({compressionLevel:9}).toFile('public/apple-touch-icon.png')"
+      - name: Commit icon
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add public/apple-touch-icon.png
+          git diff --cached --quiet || git commit -m "chore: regenerate iOS app icon"
+          git push
