@@ -1,0 +1,46 @@
+.settlement-page{width:100%;max-width:480px;min-height:100dvh;margin:0 auto;padding:22px 16px 116px;background:#FAF9F5;color:#0F172A}
+.settlement-header{display:flex;align-items:flex-end;justify-content:space-between;gap:16px;padding:10px 0 18px;border-bottom:1px solid rgba(15,23,42,.1)}
+.settlement-overline{display:block;font:9px/1 ui-sans-serif,system-ui,sans-serif;letter-spacing:.2em;color:rgba(15,23,42,.48)}
+.settlement-header h1{margin:7px 0 3px;font:500 32px/1.05 ui-serif,Georgia,Cambria,'Times New Roman',serif;font-style:italic}
+.settlement-header p{margin:0;color:rgba(15,23,42,.52);font:10px/1.4 ui-sans-serif,system-ui,sans-serif}
+.settlement-trip-select{display:grid;gap:5px;min-width:112px}
+.settlement-trip-select span{font:8px/1 ui-sans-serif,system-ui,sans-serif;letter-spacing:.15em;color:rgba(15,23,42,.45)}
+.settlement-trip-select select{width:100%;height:34px;min-height:34px;padding:0 7px;border:1px solid rgba(15,23,42,.14);border-radius:8px;background:#fffdf8;color:#0F172A;font:10px ui-sans-serif,system-ui,sans-serif}
+.settlement-summary{display:grid;grid-template-columns:repeat(3,1fr);margin:14px 0;border-top:1px solid rgba(15,23,42,.08);border-bottom:1px solid rgba(15,23,42,.08)}
+.settlement-summary div{display:grid;gap:5px;padding:11px 5px;border-right:1px solid rgba(15,23,42,.08);text-align:center}
+.settlement-summary div:last-child{border-right:0}
+.settlement-summary span{font:8px/1 ui-sans-serif,system-ui,sans-serif;letter-spacing:.1em;color:rgba(15,23,42,.45)}
+.settlement-summary strong{font:20px/1 ui-serif,Georgia,serif;font-weight:400}
+.settlement-segments{display:grid;gap:9px}
+.settlement-segment{background:#fbf9f3;border:1px solid rgba(15,23,42,.1);border-radius:14px;overflow:hidden}
+.settlement-segment-head{width:100%;display:grid;grid-template-columns:28px minmax(0,1fr) auto 17px;align-items:center;gap:9px;padding:13px 12px;border:0;background:transparent;color:#0F172A;text-align:left;cursor:pointer}
+.settlement-segment-index{font:9px/1 ui-sans-serif,system-ui,sans-serif;letter-spacing:.08em;color:#b08b51}
+.settlement-segment-title{min-width:0;display:grid;gap:4px}
+.settlement-segment-title strong{font:500 15px/1.15 ui-serif,Georgia,serif;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.settlement-segment-title small{font:9px/1.2 ui-sans-serif,system-ui,sans-serif;color:rgba(15,23,42,.48)}
+.settlement-segment-total{font:500 12px/1 ui-serif,Georgia,serif;white-space:nowrap}
+.settlement-segment-head>svg{color:rgba(15,23,42,.4);transition:transform .16s ease}
+.settlement-segment.is-collapsed .settlement-segment-head>svg{transform:rotate(-90deg)}
+.settlement-segment.is-collapsed .settlement-segment-body{display:none}
+.settlement-segment-body{border-top:1px solid rgba(15,23,42,.07)}
+.settlement-payer{border-bottom:1px solid rgba(15,23,42,.07)}
+.settlement-payer:last-child{border-bottom:0}
+.settlement-payer-head{width:100%;display:grid;grid-template-columns:minmax(0,1fr) auto 16px;align-items:center;gap:10px;padding:12px;border:0;background:transparent;text-align:left;color:#0F172A;cursor:pointer}
+.settlement-payer-copy,.settlement-payer-paid{display:grid;gap:4px}
+.settlement-payer-copy small,.settlement-payer-paid small,.settlement-debt small{font:7px/1 ui-sans-serif,system-ui,sans-serif;letter-spacing:.12em;color:rgba(15,23,42,.42)}
+.settlement-payer-copy strong{font:500 14px/1.1 ui-serif,Georgia,serif}
+.settlement-payer-paid{text-align:right}
+.settlement-payer-paid strong{font:500 13px/1 ui-serif,Georgia,serif}
+.settlement-chevron{color:rgba(15,23,42,.35);transition:transform .16s ease}
+.settlement-chevron.open{transform:rotate(180deg)}
+.settlement-debt-list{padding:0 12px 12px 40px}
+.settlement-original{display:flex;align-items:baseline;justify-content:space-between;gap:12px;padding:7px 0 9px;border-top:1px solid rgba(15,23,42,.05)}
+.settlement-original span{font:9px/1.2 ui-sans-serif,system-ui,sans-serif;color:rgba(15,23,42,.5)}
+.settlement-original strong{font:500 10px/1.2 ui-serif,Georgia,serif;color:#6d5b42}
+.settlement-debt{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:9px 0;border-top:1px solid rgba(15,23,42,.06)}
+.settlement-debt div{display:grid;gap:4px;min-width:0}
+.settlement-debt div strong{font:500 13px/1.1 ui-serif,Georgia,serif}
+.settlement-debt>strong{font:500 13px/1 ui-serif,Georgia,serif;white-space:nowrap}
+.settlement-no-debt,.settlement-segment-empty{padding:12px 0;color:rgba(15,23,42,.45);font:10px/1.4 ui-sans-serif,system-ui,sans-serif}
+.settlement-segment-empty{padding:18px 14px}
+@media(max-width:600px){.settlement-page{padding-left:16px;padding-right:16px}.settlement-header{align-items:flex-start}.settlement-trip-select{min-width:100px}.settlement-segment-head{grid-template-columns:24px minmax(0,1fr) auto 17px;gap:7px}.settlement-segment-total{font-size:11px}}
