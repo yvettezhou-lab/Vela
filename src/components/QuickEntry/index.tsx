@@ -1,5 +1,5 @@
 import { getSegmentPrimaryCurrency, getTripPrimaryCurrency } from '../../core/travelSegment';
-import React, { useEffect, useRef, useState } from 'react';
+import React, { Component, ErrorInfo, ReactNode, useEffect, useRef, useState } from 'react';
 import { Calendar, X } from 'lucide-react';
 import { useVelaStore } from '../../store/useVelaStore';
 import { TRANSPORT_CATEGORY_ID } from '../../core/validation';
@@ -64,10 +64,10 @@ const FALLBACK_ACCOUNTS = [
 const FALLBACK_MEMBERS = [{ id: 'default-member-me', name: 'Me' }];
 const LEDGER_CURRENCIES = ['CNY', 'MYR', 'SGD', 'THB', 'IDR', 'PHP', 'JPY', 'KRW', 'USD', 'EUR', 'GBP', 'AUD', 'HKD'];
 
-export const QuickEntry: React.FC<QuickEntryProps> = ({ onClose }) => {
+const QuickEntryContent: React.FC<QuickEntryProps> = ({ onClose }) => {
   const trips = useVelaStore((state) => state.trips);
   const addLedgerEntry = useVelaStore((state) => state.addLedgerEntry);
-  const eligibleTrips = trips.filter((trip) => trip.status === 'traveling' || trip.status === 'planning');
+  const eligibleTrips = trips.filter((trip) => trip && (trip.status === 'traveling' || trip.status === 'planning'));
   const [targetTripId, setTargetTripId] = useState('');
   const targetTrip = eligibleTrips.find((trip) => trip.id === targetTripId) ?? null;
   const [entryType, setEntryType] = useState<'standard' | 'flight' | 'prepaid_multi_day'>('standard');
@@ -98,18 +98,20 @@ export const QuickEntry: React.FC<QuickEntryProps> = ({ onClose }) => {
   useEffect(() => {
     const activeTrip = trips.find((trip) => trip.status === 'traveling');
     const planningTrips = trips.filter((trip) => trip.status === 'planning').sort((a, b) => {
-      const aStart = Math.min(...a.segments.map((segment) => segment.startDate));
-      const bStart = Math.min(...b.segments.map((segment) => segment.startDate));
+      const aStart = Math.min(...(a.segments ?? []).map((segment) => segment.startDate));
+      const bStart = Math.min(...(b.segments ?? []).map((segment) => segment.startDate));
       return aStart - bStart;
     });
     const defaultTripId = activeTrip?.id ?? planningTrips[0]?.id ?? '';
     setTargetTripId((current) => current && eligibleTrips.some((trip) => trip.id === current) ? current : defaultTripId);
   }, [trips]);
 
-  const activeAccounts = targetTrip?.accounts.filter((account) => account.archived !== true) ?? [];
+  const activeAccounts = targetTrip?.accounts?.filter((account) => account.archived !== true) ?? [];
   const accounts = activeAccounts.length ? activeAccounts : FALLBACK_ACCOUNTS;
-  const activeMembers = targetTrip?.members.filter((member) => member.archived !== true) ?? [];
+  const activeMembers = targetTrip?.members?.filter((member) => member.archived !== true) ?? [];
   const members = activeMembers.length ? activeMembers : FALLBACK_MEMBERS;
+  const categories = targetTrip?.categories?.filter((category) => category.archived !== true) ?? [];
+  const segments = targetTrip?.segments ?? [];
 
   useEffect(() => () => {
     if (successTimerRef.current) clearTimeout(successTimerRef.current);
@@ -117,7 +119,7 @@ export const QuickEntry: React.FC<QuickEntryProps> = ({ onClose }) => {
 
   useEffect(() => {
     if (!targetTrip) return;
-    setCategoryId((current) => current && targetTrip.categories.some((category) => category.id === current && category.archived !== true) ? current : targetTrip.categories.find((category) => category.archived !== true)?.id ?? '');
+    setCategoryId((current) => current && categories.some((category) => category.id === current) ? current : categories[0]?.id ?? '');
     setAccountId((current) => current && accounts.some((account) => account.id === current) ? current : accounts[0]?.id ?? '');
     setPayerId((current) => current && members.some((member) => member.id === current) ? current : members[0]?.id ?? '');
     setCurrency(getTripPrimaryCurrency(targetTrip));
@@ -141,9 +143,9 @@ export const QuickEntry: React.FC<QuickEntryProps> = ({ onClose }) => {
     const dateValue = entryType === 'flight' ? outboundDate : paymentDate;
     const date = toDateTimestamp(dateValue);
     if (!Number.isFinite(date)) return;
-    const resolved = getSegmentPrimaryCurrency(targetTrip.segments, date);
+    const resolved = getSegmentPrimaryCurrency(segments, date);
     if (resolved) setCurrency(resolved);
-  }, [targetTrip, entryType, paymentDate, outboundDate]);
+  }, [targetTrip, segments, entryType, paymentDate, outboundDate]);
 
   useEffect(() => {
     const normalizedCurrency = currency.trim().toUpperCase();
@@ -406,7 +408,7 @@ export const QuickEntry: React.FC<QuickEntryProps> = ({ onClose }) => {
             <label className="block">
               <span className="mb-2 block text-xs uppercase tracking-[0.14em] text-[#857a6a]">Category</span>
               <select value={categoryId} onChange={(event) => setCategoryId(event.target.value)} className="w-full appearance-none rounded-xl bg-[#fbf7ee] px-4 text-base text-[#17243a] shadow-[inset_0_0_0_1px_rgba(80,64,42,.10)] outline-none" required>
-                {targetTrip.categories.filter((category) => category.archived !== true).map((category) => <option key={category.id} value={category.id}>{category.name}</option>)}
+                {categories.map((category) => <option key={category.id} value={category.id}>{category.name}</option>)}
               </select>
             </label>
           )}
@@ -486,5 +488,38 @@ export const QuickEntry: React.FC<QuickEntryProps> = ({ onClose }) => {
     </section>
   );
 };
+
+class QuickEntryErrorBoundary extends Component<{ children: ReactNode }, { hasError: boolean }> {
+  state = { hasError: false };
+
+  static getDerivedStateFromError(): { hasError: boolean } {
+    return { hasError: true };
+  }
+
+  componentDidCatch(error: Error, info: ErrorInfo) {
+    console.error('Quick Entry render error', error, info);
+  }
+
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div className="flex min-h-[100dvh] items-center justify-center bg-[#f7efdf] p-6 text-[#17243a]">
+          <div className="w-full max-w-xl rounded-2xl bg-[#fbf7ee] p-6 shadow-sm ring-1 ring-black/5">
+            <h2 className="text-2xl font-normal">Quick Entry</h2>
+            <p className="mt-5 text-[#766957]">Quick Entry could not be opened safely. Please return to Ledger and try again.</p>
+            <button type="button" onClick={() => this.setState({ hasError: false })} className="mt-5 rounded-xl bg-[#17243a] px-4 py-3 text-sm text-white">Retry</button>
+          </div>
+        </div>
+      );
+    }
+    return this.props.children;
+  }
+}
+
+export const QuickEntry: React.FC<QuickEntryProps> = (props) => (
+  <QuickEntryErrorBoundary>
+    <QuickEntryContent {...props} />
+  </QuickEntryErrorBoundary>
+);
 
 export default QuickEntry;
