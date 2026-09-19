@@ -341,3 +341,42 @@
   .logbook-header{max-width:370px}
   .logbook-analytics,.logbook-note{max-width:370px}
 }
+
+
+/* V1.3 Journey Reflection */
+.logbook-page{background:#f2e9d8;color:#1f2d42}
+.logbook-header{max-width:370px;margin-bottom:16px}
+.logbook-journey-card,.logbook-glance,.logbook-analytics,.logbook-expenses,.logbook-settlement-link,.logbook-number-grid,.logbook-reflection-facts,.logbook-planning{width:100%;max-width:370px;margin-left:auto;margin-right:auto}
+.logbook-journey-card{display:grid;grid-template-columns:54px 1fr auto;gap:10px;align-items:center;padding:10px;border:1px solid #d8cbb5;background:#fbf6eb;margin-bottom:12px}
+.logbook-journey-cover{width:54px;height:54px;border-radius:4px;overflow:hidden;background:#172942;display:grid;place-items:center;color:#b9965b}
+.logbook-journey-cover img{width:100%;height:100%;object-fit:cover}
+.logbook-journey-card h2{margin:4px 0 2px;font:400 19px/1 Georgia,"Times New Roman",serif}
+.logbook-journey-card p{margin:0 0 3px;font-size:9px;color:#687872}
+.logbook-journey-card small{font-size:8px;color:#8b9189}
+.logbook-journey-card select{max-width:86px;border:0;background:#e9e9ea;color:#263246;border-radius:12px;padding:5px 4px;font-size:8px}
+.logbook-glance-grid{display:grid;grid-template-columns:1fr 1fr;gap:7px}
+.logbook-glance-grid article{padding:11px 12px;border:1px solid #d8cbb5;background:#fbf6eb}
+.logbook-glance-grid span{display:block;font-size:7px;letter-spacing:.18em;color:#827f77}
+.logbook-glance-grid strong{display:block;margin-top:6px;font:400 21px/1 Georgia,"Times New Roman",serif}
+.logbook-facts{margin-top:7px;text-align:center;font-size:7px;letter-spacing:.18em;color:#857e72}
+.logbook-analytics{margin-top:14px}
+.logbook-analytics-heading{margin-bottom:8px}
+.logbook-analytics-heading h2{margin:4px 0 0;font:400 21px/1 Georgia,"Times New Roman",serif}
+.logbook-view-toggle{margin:0 0 9px;grid-template-columns:repeat(4,1fr)}
+.logbook-view-toggle button{height:20px;font-size:8px}
+.logbook-visual-card{margin-top:0}
+.logbook-expenses{border:1px solid #d8cbb5;background:#fbf6eb}
+.logbook-expenses div{display:grid;grid-template-columns:22px 1fr auto;gap:7px;padding:10px 11px;border-bottom:1px solid #e8e0d3;align-items:center}
+.logbook-expenses div:last-child{border-bottom:0}
+.logbook-expenses b{font:400 9px Georgia,serif;color:#a07e43}
+.logbook-expenses span{font-size:10px;color:#243148}
+.logbook-expenses strong{font:600 10px Georgia,serif}
+.logbook-settlement-link{display:block;padding:13px 14px;border:1px solid #b9965b;background:#172942;color:#f6f1e7;text-align:left;font:400 13px Georgia,serif}
+.logbook-number-grid{display:grid;grid-template-columns:repeat(4,1fr);border:1px solid #d8cbb5;background:#fbf6eb}
+.logbook-number-grid article{padding:12px 6px;text-align:center;border-right:1px solid #e8e0d3}
+.logbook-number-grid article:last-child{border-right:0}
+.logbook-number-grid strong{display:block;font:400 24px/1 Georgia,serif}
+.logbook-number-grid span{display:block;margin-top:5px;font-size:6px;letter-spacing:.16em;color:#827f77}
+.logbook-reflection-facts{display:flex;flex-direction:column;gap:5px;margin-top:8px}
+.logbook-reflection-facts span{padding:8px 10px;background:#eee7da;font-size:8px;color:#596964}
+@media(max-width:650px){.logbook-page{padding-left:10px;padding-right:10px}.logbook-journey-card,.logbook-glance,.logbook-analytics,.logbook-expenses,.logbook-settlement-link,.logbook-number-grid,.logbook-reflection-facts,.logbook-planning{max-width:370px}.logbook-journey-card{grid-template-columns:50px 1fr auto}.logbook-journey-cover{width:50px;height:50px}.logbook-journey-card h2{font-size:17px}.logbook-journey-card select{max-width:72px}.logbook-number-grid strong{font-size:21px}}
