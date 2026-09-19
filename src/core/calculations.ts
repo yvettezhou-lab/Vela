@@ -4,10 +4,9 @@ export interface SettlementTransaction { fromMemberId: string; toMemberId: strin
 const countsAsExpense = (entry: LedgerEntry) => entry.includeInCost && !entry.isPending;
 export const calculateFinancialTotals = (ledger: LedgerEntry[]): TripFinancialTotals =>
   ledger.reduce((totals, entry) => {
-    if (!countsAsExpense(entry)) return totals;
+    if (!entry.includeInCost) return totals;
     const impact = entry.isRefund ? -entry.cnyEquivalent : entry.cnyEquivalent;
-    totals.financialTotal += impact;
-    if (entry.isPending) totals.pendingAmount += impact; else totals.settledAmount += impact;
+    if (entry.isPending) totals.pendingAmount += impact; else totals.financialTotal += impact;
     return totals;
   }, { financialTotal: 0, settledAmount: 0, pendingAmount: 0 });
 export const calculateGroupBalance = (trip: Trip): MemberBalance[] => {
