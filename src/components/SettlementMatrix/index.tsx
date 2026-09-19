@@ -1,7 +1,8 @@
 import React, { useMemo, useState } from 'react';
-import { ChevronDown, Scale } from 'lucide-react';
+import { ChevronDown, Download, Scale } from 'lucide-react';
 import { useVelaStore } from '../../store/useVelaStore';
 import { calculateSegmentSettlements, settlementMemberName, type SettlementSegment } from '../../core/settlement';
+import { exportSettlementCollection, exportSettlementRaw } from '../../core/settlementExport';
 
 const money = (value: number) => `¥${value.toFixed(2)}`;
 const originalMoney = (values: Record<string, number>) => Object.entries(values).filter(([, value]) => Math.abs(value) >= 0.01).map(([currency, value]) => `${currency} ${Math.abs(value).toFixed(2)}${value < 0 ? ' refund' : ''}`).join(' · ');
@@ -33,10 +34,24 @@ const SegmentRow: React.FC<{ segment: SettlementSegment; index: number; members:
       <span className="settlement-segment-total">{hasActivity ? money(segment.payers.reduce((sum, payer) => sum + payer.paidCny, 0)) : '—'}</span>
       <ChevronDown size={17} aria-hidden="true" />
     </button>
-    <div className="settlement-segment-body">
-      {hasActivity ? segment.payers.map((payer) => <PayerRow key={payer.payerId} segment={segment} payerId={payer.payerId} members={members} />) : <div className="settlement-segment-empty">No settled expenses in this segment.</div>}
-    </div>
+    <div className="settlement-segment-body">{hasActivity ? segment.payers.map((payer) => <PayerRow key={payer.payerId} segment={segment} payerId={payer.payerId} members={members} />) : <div className="settlement-segment-empty">No settled expenses in this segment.</div>}</div>
   </article>;
+};
+
+const ExportPanel: React.FC<{ trip: ReturnType<typeof useVelaStore.getState>['trips'][number] }> = ({ trip }) => {
+  const activeMembers = trip.members.filter((member) => member.archived !== true);
+  const [memberId, setMemberId] = useState(activeMembers[0]?.id ?? '');
+  const selectedMember = activeMembers.find((member) => member.id === memberId);
+  return <section className="settlement-export">
+    <div className="settlement-export-heading"><span>EXPORT / PHASE 2</span><strong>Settlement files</strong><small>Generated locally on this device. No data is uploaded.</small></div>
+    <div className="settlement-export-actions">
+      <button type="button" className="settlement-export-button" onClick={() => exportSettlementRaw(trip)}><span><Download size={15} />Raw Data Dump</span><small>Complete audit workbook</small></button>
+      <div className="settlement-collection">
+        <label><span>MEMBER</span><select aria-label="Collection member" value={memberId} onChange={(event) => setMemberId(event.target.value)}>{activeMembers.map((member) => <option key={member.id} value={member.id}>{member.name}</option>)}</select></label>
+        <button type="button" className="settlement-export-button" disabled={!selectedMember} onClick={() => selectedMember && exportSettlementCollection(trip, selectedMember.id)}><span><Download size={15} />Collection Summary</span><small>{selectedMember ? `Only ${selectedMember.name}'s balances` : 'No member available'}</small></button>
+      </div>
+    </div>
+  </section>;
 };
 
 export const SettlementMatrix: React.FC = () => {
@@ -52,6 +67,7 @@ export const SettlementMatrix: React.FC = () => {
     <header className="settlement-header"><div><span className="settlement-overline">SETTLEMENT / {selectedTrip.status.toUpperCase()}</span><h1>Settlement</h1><p>{selectedTrip.title || 'Selected journey'}</p></div>{trips.length > 1 && <label className="settlement-trip-select"><span>TRIP</span><select aria-label="Settlement trip" value={selectedTrip.id} onChange={(event) => setSelectedTripId(event.target.value)}>{trips.map((trip) => <option key={trip.id} value={trip.id}>{trip.title || 'Untitled journey'}</option>)}</select></label>}</header>
     <section className="settlement-summary"><div><span>SEGMENTS</span><strong>{segments.length}</strong></div><div><span>PAYERS</span><strong>{segments.reduce((sum, segment) => sum + segment.payers.length, 0)}</strong></div><div><span>LEDGER</span><strong>{selectedTrip.ledger.filter((entry) => !entry.isPending).length}</strong></div></section>
     <section className="settlement-segments" aria-label="Settlement by segment">{segments.map((segment, index) => <SegmentRow key={segment.segmentId} segment={segment} index={index} members={selectedTrip.members} />)}</section>
+    <ExportPanel trip={selectedTrip} />
   </main>;
 };
 
