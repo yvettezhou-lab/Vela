@@ -13,6 +13,7 @@ export default defineConfig({
       // Register manually so Safari can be forced to refresh the service worker.
       injectRegister: false,
       includeAssets: [
+        'vela-icon-1024.png',
         'apple-touch-icon.png',
         'favicon.svg',
       ],
@@ -27,10 +28,10 @@ export default defineConfig({
         theme_color: '#172942',
         icons: [
           {
-            src: '/apple-touch-icon.png',
-            sizes: '180x180',
+            src: '/vela-icon-1024.png',
+            sizes: '1024x1024',
             type: 'image/png',
-            purpose: 'any',
+            purpose: 'maskable',
           },
         ],
       },
