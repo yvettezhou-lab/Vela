@@ -24,6 +24,24 @@ const COUNTRY_CURRENCIES: Record<string, string> = {
   japan: 'JPY', 'south korea': 'KRW', korea: 'KRW', 'united states': 'USD', usa: 'USD', 'united kingdom': 'GBP',
   australia: 'AUD', 'hong kong': 'HKD',
 };
+const COUNTRIES = [
+  ['Afghanistan','阿富汗','AF'], ['Albania','阿尔巴尼亚','AL'], ['Algeria','阿尔及利亚','DZ'], ['Argentina','阿根廷','AR'],
+  ['Australia','澳大利亚','AU'], ['Austria','奥地利','AT'], ['Belgium','比利时','BE'], ['Brazil','巴西','BR'],
+  ['Cambodia','柬埔寨','KH'], ['Canada','加拿大','CA'], ['China','中国','CN'], ['Croatia','克罗地亚','HR'],
+  ['Czechia','捷克','CZ'], ['Denmark','丹麦','DK'], ['Egypt','埃及','EG'], ['Finland','芬兰','FI'],
+  ['France','法国','FR'], ['Germany','德国','DE'], ['Greece','希腊','GR'], ['Hong Kong','中国香港','HK'],
+  ['Hungary','匈牙利','HU'], ['Iceland','冰岛','IS'], ['India','印度','IN'], ['Indonesia','印度尼西亚','ID'],
+  ['Ireland','爱尔兰','IE'], ['Israel','以色列','IL'], ['Italy','意大利','IT'], ['Japan','日本','JP'],
+  ['Jordan','约旦','JO'], ['Kazakhstan','哈萨克斯坦','KZ'], ['Laos','老挝','LA'], ['Malaysia','马来西亚','MY'],
+  ['Maldives','马尔代夫','MV'], ['Mexico','墨西哥','MX'], ['Mongolia','蒙古','MN'], ['Morocco','摩洛哥','MA'],
+  ['Myanmar','缅甸','MM'], ['Nepal','尼泊尔','NP'], ['Netherlands','荷兰','NL'], ['New Zealand','新西兰','NZ'],
+  ['Norway','挪威','NO'], ['Philippines','菲律宾','PH'], ['Poland','波兰','PL'], ['Portugal','葡萄牙','PT'],
+  ['Russia','俄罗斯','RU'], ['Saudi Arabia','沙特阿拉伯','SA'], ['Singapore','新加坡','SG'], ['South Africa','南非','ZA'],
+  ['South Korea','韩国','KR'], ['Spain','西班牙','ES'], ['Sri Lanka','斯里兰卡','LK'], ['Sweden','瑞典','SE'],
+  ['Switzerland','瑞士','CH'], ['Taiwan','中国台湾','TW'], ['Thailand','泰国','TH'], ['Turkey','土耳其','TR'],
+  ['United Arab Emirates','阿联酋','AE'], ['United Kingdom','英国','GB'], ['United States','美国','US'],
+  ['Vietnam','越南','VN'], ['Other','其他','']
+] as const;
 
 const toDateInput = (timestamp: number) => {
   const date = new Date(timestamp);
@@ -100,6 +118,12 @@ export const TripCreation: React.FC<Props> = ({ onClose, onCreated, onUpdated, t
 
   const updateSegment = (index: number, patch: Partial<DraftSegment>) =>
     setSegments((current) => current.map((segment, i) => i === index ? { ...segment, ...patch } : segment));
+  const countryMatches = (value: string) => {
+    const q = value.trim().toLowerCase();
+    if (!q) return COUNTRIES.slice(0, 12);
+    return COUNTRIES.filter(([en, zh, code]) => en.toLowerCase().includes(q) || zh.includes(q) || code.toLowerCase() === q || code.toLowerCase().includes(q)).slice(0, 12);
+  };
+
   const updateDestination = (segmentIndex: number, destinationIndex: number, patch: Partial<DraftDestination>) =>
     setSegments((current) => current.map((segment, i) => i !== segmentIndex ? segment : {
       ...segment,
@@ -195,7 +219,7 @@ export const TripCreation: React.FC<Props> = ({ onClose, onCreated, onUpdated, t
             <div className="trip-destination-section">
               <span className="trip-field-label">DESTINATIONS</span>
               {segment.destinations.map((destination, destinationIndex) => <div className="trip-destination-row" key={destinationIndex}>
-                <input aria-label={`Segment ${segmentIndex + 1} country ${destinationIndex + 1}`} value={destination.country} onChange={(e) => updateCountry(segmentIndex, destinationIndex, e.target.value)} placeholder="Country" />
+                <div className="trip-country-autocomplete"><input aria-label={`Segment ${segmentIndex + 1} country ${destinationIndex + 1}`} value={destination.country} onChange={(e) => updateCountry(segmentIndex, destinationIndex, e.target.value)} placeholder="Country" list={`vela-country-${segment.id}-${destinationIndex}`} /><datalist id={`vela-country-${segment.id}-${destinationIndex}`}>{countryMatches(destination.country).map(([en, zh, code]) => <option key={code || en} value={en}>{zh}{code ? ` · ${code}` : ""}</option>)}</datalist></div>
                 <input aria-label={`Segment ${segmentIndex + 1} city ${destinationIndex + 1}`} value={destination.city} onChange={(e) => updateDestination(segmentIndex, destinationIndex, { city: e.target.value })} placeholder="City" />
                 {destinationIndex === segment.destinations.length - 1 ? <button type="button" className="trip-inline-add" onClick={() => addDestination(segmentIndex)} aria-label="Add destination"><Plus size={15} /></button> : <button type="button" className="trip-icon-button trip-destination-remove" onClick={() => removeDestination(segmentIndex, destinationIndex)} aria-label="Remove destination"><X size={13} /></button>}
               </div>)}
