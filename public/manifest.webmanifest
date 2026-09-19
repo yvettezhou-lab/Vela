@@ -1,0 +1,12 @@
+{
+  "name":"Vela",
+  "short_name":"Vela",
+  "start_url":"/",
+  "display":"standalone",
+  "background_color":"#efe8da",
+  "theme_color":"#172942",
+  "icons":[
+    {"src":"/vela-icon.svg","sizes":"192x192","type":"image/svg+xml","purpose":"any maskable"},
+    {"src":"/vela-icon.svg","sizes":"512x512","type":"image/svg+xml","purpose":"any maskable"}
+  ]
+}
