@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useState } from 'react';
 import { Trash2 } from 'lucide-react';
 import { LedgerEntry } from '../../core/domain';
 import { useVelaStore } from '../../store/useVelaStore';
@@ -9,7 +9,7 @@ const formatDate=(timestamp:number)=>{const date=new Date(timestamp);return Numb
 export const LedgerView:React.FC=()=>{
  const currentTrip=useVelaStore(s=>s.getCurrentTrip()); const ledger=useVelaStore(s=>s.getCurrentTrip()?.ledger); const deleteLedgerEntry=useVelaStore(s=>s.deleteLedgerEntry); const [filter,setFilter]=useState<'all'|'pending'>('all');
  if(!currentTrip)return <section className="max-w-2xl mx-auto p-6 bg-white shadow rounded-lg mt-8"><h2 className="text-2xl font-bold">Ledger</h2><p className="mt-6 text-gray-500">No active trip found.</p></section>;
- const membersById=new Map(currentTrip.members.map(m=>[m.id,m.name])); const entries=[...(ledger??[])].sort((a,b)=>b.createdAt-a.createdAt); const filtered=useMemo(()=>filter==='pending'?entries.filter(e=>e.isPending):entries,[entries,filter]); const pendingCount=entries.filter(e=>e.isPending).length;
+ const membersById=new Map(currentTrip.members.map(m=>[m.id,m.name])); const entries=[...(ledger??[])].sort((a,b)=>b.createdAt-a.createdAt); const filtered=filter==='pending'?entries.filter(e=>e.isPending):entries; const pendingCount=entries.filter(e=>e.isPending).length;
  return <section className="max-w-2xl mx-auto p-6 bg-white shadow rounded-lg mt-8">
   <header className="mb-5"><h2 className="text-2xl font-bold">Ledger</h2><p className="mt-1 text-sm text-gray-500">{currentTrip.title}</p></header>
   <div className="mb-5 flex gap-2" role="group" aria-label="Ledger filters"><button type="button" onClick={()=>setFilter('all')} className={filter==='all'?'rounded-full bg-slate-900 px-3 py-1.5 text-xs text-white':'rounded-full bg-gray-100 px-3 py-1.5 text-xs text-gray-600'}>All</button><button type="button" onClick={()=>setFilter('pending')} className={filter==='pending'?'rounded-full bg-slate-900 px-3 py-1.5 text-xs text-white':'rounded-full bg-gray-100 px-3 py-1.5 text-xs text-gray-600'}>待补 CNY{pendingCount?' · '+pendingCount:''}</button></div>
