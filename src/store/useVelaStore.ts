@@ -8,7 +8,19 @@ import { getAutoStartTripId } from '../utils/tripLifecycle';
 import { resolveLedgerEntryCurrency } from '../core/travelSegment';
 
 const LEGACY_STORAGE_KEY = 'vela.plan.v1';
-const withDefaultCategories = (trip: Trip): Trip => { const defaults = getDefaultCategories(); const existing = new Set(trip.categories.map((category) => category.id)); const missing = defaults.filter((category) => !existing.has(category.id)); return missing.length ? { ...trip, categories: [...trip.categories, ...missing] } : trip; };
+const withDefaultCategories = (trip: Trip): Trip => {
+  const defaults = getDefaultCategories();
+  const defaultById = new Map(defaults.map((category) => [category.id, category]));
+  const categories = trip.categories.map((category) => category.id === 'cat_cash_exchange' ? { ...category, excludeFromStats: true } : category);
+  const existing = new Set(categories.map((category) => category.id));
+  const missing = defaults.filter((category) => !existing.has(category.id));
+  const mergedCategories = missing.length ? [...categories, ...missing] : categories;
+  const categoryById = new Map(mergedCategories.map((category) => [category.id, category]));
+  const ledger = trip.ledger.map((entry) => entry.includeInCost === undefined
+    ? { ...entry, includeInCost: categoryById.get(entry.categoryId)?.excludeFromStats !== true }
+    : entry);
+  return { ...trip, categories: mergedCategories, ledger }; 
+};
 const withDefaultAccountsAndMember = (trip: Trip): Trip => ({ ...trip, accounts: trip.accounts.length > 0 ? trip.accounts : [{ id: 'default-account-cash', name: 'Cash' }, { id: 'default-account-credit-card', name: 'Credit Card' }], members: trip.members.length > 0 ? trip.members : [{ id: 'default-member-me', name: 'Me' }] });
 const normalizeTrips = (trips: Trip[]): Trip[] => trips.map((trip) => withDefaultAccountsAndMember(withDefaultCategories(trip)));
 
