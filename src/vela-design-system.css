@@ -1,0 +1,62 @@
+/* Vela Design System v1.0 — unified visual layer. */
+:root{
+  --vela-bg:#f6f7f5;
+  --vela-surface:#ffffff;
+  --vela-surface-soft:#f7f8f7;
+  --vela-ink:#17212b;
+  --vela-muted:#6f7880;
+  --vela-faint:#9aa1a7;
+  --vela-line:#e4e7e8;
+  --vela-accent:#9a7741;
+  --vela-primary:#17212b;
+  --vela-radius-sm:10px;
+  --vela-radius-md:16px;
+  --vela-radius-lg:22px;
+  --vela-shadow:0 6px 24px rgba(23,33,43,.055);
+}
+html,body,#root{background:var(--vela-bg);color:var(--vela-ink)}
+body:before{display:none!important}
+button,input,select,textarea{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","PingFang SC",system-ui,sans-serif}
+.vela-app-root{background:var(--vela-bg);min-height:100dvh;color:var(--vela-ink)}
+.vela-app-root > .page,
+.vela-app-root > main.page{
+  width:100%!important;max-width:720px!important;min-height:100dvh!important;margin:0 auto!important;
+  padding:24px 18px calc(112px + env(safe-area-inset-bottom))!important;
+  background:var(--vela-bg)!important;color:var(--vela-ink)!important;box-shadow:none!important;
+}
+.vela-app-root > .page .topbar{padding:0 0 16px!important;margin:0 0 24px!important;border-bottom:1px solid var(--vela-line)!important}
+.vela-app-root > .page .topbar:after{display:none!important}
+.vela-app-root > .page .topbar h1{font-family:ui-serif,Georgia,serif!important;font-size:30px!important;font-style:normal!important;font-weight:500!important;letter-spacing:-.02em!important;color:var(--vela-ink)!important}
+.vela-app-root > .page .eyebrow{font:700 9px/1.2 -apple-system,BlinkMacSystemFont,"SF Pro Text",sans-serif!important;letter-spacing:.16em!important;color:var(--vela-muted)!important}
+.vela-app-root > .page .section{margin:0 0 28px!important;padding:0!important;border:0!important;border-radius:0!important;background:transparent!important;box-shadow:none!important}
+.vela-app-root > .page .section + .section{margin-top:0!important}
+.vela-app-root > .page .section-head{padding:0 0 10px!important;border-bottom:1px solid var(--vela-line)!important}
+.vela-app-root > .page .section h3,.vela-app-root > .page .section-head h3{font:500 19px/1.25 ui-serif,Georgia,serif!important;font-style:normal!important;color:var(--vela-ink)!important}
+.vela-app-root > .page .balance-row,.vela-app-root > .page .transfer,.vela-app-root > .page .ledger-row,.vela-app-root > .page .ledger-card{min-height:56px!important;padding:15px 0!important;border-bottom:1px solid #eceeef!important;background:transparent!important;box-shadow:none!important}
+.vela-app-root > .page .balance-row strong,.vela-app-root > .page .balance-row b,.vela-app-root > .page .transfer strong,.vela-app-root > .page .transfer b,.vela-app-root > .page .ledger-row strong,.vela-app-root > .page .ledger-card strong,.vela-app-root > .page .ledger-right b{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","PingFang SC",sans-serif!important;color:var(--vela-ink)!important;font-weight:600!important}
+.vela-app-root > .page .ledger-row small,.vela-app-root > .page .ledger-card small,.vela-app-root > .page .balance-row small,.vela-app-root > .page .transfer small{font:11px/1.35 -apple-system,BlinkMacSystemFont,"SF Pro Text",sans-serif!important;color:var(--vela-muted)!important}
+.vela-app-root > .page .positive{color:#34704b!important}.vela-app-root > .page .negative{color:#925b53!important}
+.vela-app-root > .page .stats-grid{background:var(--vela-surface)!important;border:1px solid var(--vela-line)!important;border-radius:var(--vela-md,16px)!important;overflow:hidden!important}
+.vela-app-root > .page .stats-grid div{padding:14px 10px!important;border-right:1px solid var(--vela-line)!important}.vela-app-root > .page .stats-grid b{font:500 20px -apple-system,BlinkMacSystemFont,"SF Pro Text",sans-serif!important}
+.vela-app-root > .page .settings-list{margin:0!important;background:var(--vela-surface)!important;border:1px solid var(--vela-line)!important;border-radius:var(--vela-radius-md)!important;overflow:hidden!important;box-shadow:none!important}
+.vela-app-root > .page .settings-list button{min-height:56px!important;padding:16px!important;background:transparent!important;border-bottom:1px solid var(--vela-line)!important;border-radius:0!important;font:500 15px -apple-system,BlinkMacSystemFont,"SF Pro Text",sans-serif!important;color:var(--vela-ink)!important}
+.vela-app-root > .page .reflection-total{margin:0 0 24px!important;padding:22px 20px 25px!important;background:var(--vela-surface)!important;border:1px solid var(--vela-line)!important;border-radius:var(--vela-radius-lg)!important;box-shadow:none!important}
+.vela-app-root > .page .reflection-total strong{font:500 40px/1.05 ui-serif,Georgia,serif!important;color:var(--vela-ink)!important}
+.vela-app-root > .page .day-heading strong{font:500 27px/1 ui-serif,Georgia,serif!important;color:var(--vela-ink)!important}
+.vela-app-root > .page .category-tabs{gap:22px!important;height:42px!important;margin:0 0 24px!important;border-bottom:1px solid var(--vela-line)!important;background:transparent!important;box-shadow:none!important}
+.vela-app-root > .page .category-tab,.vela-app-root > .page .category-tab:hover,.vela-app-root > .page .category-tab.active{width:auto!important;min-width:max-content!important;height:auto!important;margin:0!important;padding:5px 0 9px!important;border:0!important;border-radius:0!important;background:transparent!important;box-shadow:none!important;transform:none!important;color:var(--vela-ink)!important;font:500 13px/1 ui-serif,Georgia,serif!important;opacity:.42!important}
+.vela-app-root > .page .category-tab.active{opacity:1!important}.vela-app-root > .page .category-tab svg,.vela-app-root > .page .category-tab-letter{display:none!important}
+.vela-app-root > .page .category-tab.active:after{height:1px!important;background:var(--vela-ink)!important}
+.vela-global-nav{background:rgba(255,255,255,.94)!important;border-top:1px solid var(--vela-line)!important;box-shadow:0 -4px 18px rgba(23,33,43,.04)!important;backdrop-filter:blur(18px)!important}
+.vela-global-nav button{color:#9aa1a7!important}.vela-global-nav button.active{color:var(--vela-ink)!important}.vela-global-nav button.active svg{color:var(--vela-accent)!important}
+.vela-global-quick{background:var(--vela-primary)!important;box-shadow:0 8px 24px rgba(23,33,43,.16)!important}
+.vela-entry-route{background:var(--vela-bg)!important;min-height:100dvh!important}
+.vela-entry-route .vela-quick-fullscreen{background:var(--vela-bg)!important;color:var(--vela-ink)!important}
+.vela-quick-fullscreen input:not([type=radio]):not([type=checkbox]),.vela-quick-fullscreen select,.vela-quick-fullscreen textarea{border:1px solid var(--vela-line)!important;border-radius:var(--vela-radius-sm)!important;background:var(--vela-surface)!important;color:var(--vela-ink)!important}
+.vela-quick-fullscreen button{border-radius:var(--vela-radius-sm)!important}
+.vela-quick-fullscreen .primary{background:var(--vela-primary)!important;color:#fff!important}.vela-quick-fullscreen .secondary{background:#eef0f1!important;color:var(--vela-ink)!important}
+.vela-quick-backdrop{background:rgba(23,33,43,.24)!important;backdrop-filter:blur(3px)!important}
+.vela-quick-sheet{background:var(--vela-surface)!important;border:1px solid var(--vela-line)!important;border-radius:var(--vela-radius-lg) var(--vela-radius-lg) 0 0!important;box-shadow:0 -12px 40px rgba(23,33,43,.12)!important}
+.vela-settings-header h1{font-family:ui-serif,Georgia,serif!important;font-weight:500!important;color:var(--vela-ink)!important}
+.vela-settings-header p{color:var(--vela-muted)!important}
+@media(max-width:600px){.vela-app-root > .page,.vela-app-root > main.page{padding:20px 16px calc(108px + env(safe-area-inset-bottom))!important}.vela-app-root > .page .topbar h1{font-size:29px!important}.vela-app-root > .page .section{margin-bottom:26px!important}.vela-app-root > .page .category-tabs{gap:18px!important}}
