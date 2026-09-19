@@ -1,13 +1,14 @@
 /// <reference lib="webworker" />
 
 import { clientsClaim } from 'workbox-core';
-import { cleanupOutdatedCaches, createHandlerBoundToURL, matchPrecache, precacheAndRoute } from 'workbox-precaching';
+import { cleanupOutdatedCaches, matchPrecache, precacheAndRoute } from 'workbox-precaching';
+import { NetworkFirst } from 'workbox-strategies';
 import { NavigationRoute, registerRoute, setCatchHandler } from 'workbox-routing';
 
 const sw = self as unknown as ServiceWorkerGlobalScope;
 
 // Bump this when the offline shell logic changes so a new SW is generated.
-const OFFLINE_SHELL_VERSION = '2026-09-17.3';
+const OFFLINE_SHELL_VERSION = '2026-09-19.1';
 void OFFLINE_SHELL_VERSION;
 
 self.skipWaiting();
@@ -15,7 +16,12 @@ clientsClaim();
 cleanupOutdatedCaches();
 precacheAndRoute(self.__WB_MANIFEST);
 
-const navigationHandler = createHandlerBoundToURL('/index.html');
+// Keep online navigations on the current Vercel HTML instead of serving an
+// older precached shell first. Fall back to the cached shell when offline.
+const navigationHandler = new NetworkFirst({
+  cacheName: 'vela-navigation',
+  networkTimeoutSeconds: 4,
+});
 registerRoute(
   new NavigationRoute(navigationHandler, {
     denylist: [/^\/api\//],
