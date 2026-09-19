@@ -12,6 +12,26 @@ const withDefaultCategories = (trip: Trip): Trip => trip.categories.length > 0 ?
 const withDefaultAccountsAndMember = (trip: Trip): Trip => ({ ...trip, accounts: trip.accounts.length > 0 ? trip.accounts : [{ id: 'default-account-cash', name: 'Cash' }, { id: 'default-account-credit-card', name: 'Credit Card' }], members: trip.members.length > 0 ? trip.members : [{ id: 'default-member-me', name: 'Me' }] });
 const normalizeTrips = (trips: Trip[]): Trip[] => trips.map((trip) => withDefaultAccountsAndMember(withDefaultCategories(trip)));
 
+const migratePersistedTrip = (rawTrip: unknown): Trip => {
+  if (!isRecord(rawTrip)) throw new Error('Persisted Trip is not an object');
+  if (Array.isArray(rawTrip.segments)) return rawTrip as unknown as Trip;
+  // V1.0 persisted trips used the flat date/currency/destination shape.
+  // Convert that shape before it reaches React so derived segment-based views
+  // never render against an incompatible historical object.
+  return migrateLegacyPlanToTrip({
+    ...rawTrip,
+    entries: Array.isArray(rawTrip.ledger) ? rawTrip.ledger : [],
+    currency: rawTrip.localCurrency,
+    destination: rawTrip.destination,
+  });
+};
+
+const migratePersistedState = (persistedState: unknown): unknown => {
+  if (!isRecord(persistedState) || !Array.isArray(persistedState.trips)) return persistedState;
+  const trips = persistedState.trips.map(migratePersistedTrip);
+  return { ...persistedState, trips };
+};
+
 export type MasterDataType = 'members' | 'categories' | 'accounts';
 export type MasterDataItem = Member | Category | Account;
 
@@ -56,4 +76,4 @@ export const useVelaStore = create<VelaState>()(persist((set, get) => ({
   updateMasterData: (tripId, type, id, item) => { const trips = get().trips; const trip = trips.find((t) => t.id === tripId); if (!trip) throw new Error(`Store Error: Trip ${tripId} not found`); if (id && !trip[type].some((entry) => entry.id === id)) throw new Error(`Master Data Error: ${type} ${id} not found`); if (!item.name.trim()) throw new Error('Master Data Error: Name is required'); if (id && item.id !== id) throw new Error('Master Data Error: ID cannot change'); if (!id && trip[type].some((entry) => entry.name.trim().toLowerCase() === item.name.trim().toLowerCase() && !entry.archived)) throw new Error('Master Data Error: An active item with this name already exists'); set({ trips: trips.map((t) => t.id === tripId ? replaceMasterData(t, type, id, { ...item, name: item.name.trim() }) : t) }); },
   archiveMasterData: (tripId, type, id) => { const trips = get().trips; const trip = trips.find((t) => t.id === tripId); if (!trip) throw new Error(`Trip ${tripId} not found`); const entry = trip[type].find((item) => item.id === id); if (!entry) throw new Error(`Master Data Error: ${type} ${id} not found`); set({ trips: trips.map((t) => t.id === tripId ? { ...t, [type]: t[type].map((item) => item.id === id ? { ...item, archived: true } : item), updatedAt: Date.now() } : t) }); },
   getCurrentTrip: () => { const trips = get().trips; const traveling = trips.find((t) => t.status === 'traveling'); if (traveling) return traveling; return trips.filter((t) => t.status === 'planning').sort((a, b) => b.updatedAt - a.updatedAt)[0] ?? null; },
-}), { name: 'vela-core-v2', onRehydrateStorage: () => (state, error) => { if (error || !state) return; const migratedTrips = migrateLegacyStorageIfNeeded(state.trips); const normalizedTrips = normalizeTrips(migratedTrips); if (normalizedTrips !== state.trips) useVelaStore.setState({ trips: normalizedTrips }); useVelaStore.getState().evaluateAutoStart(); } }));
+}), { name: 'vela-core-v2', version: 1, migrate: (persistedState, _version) => migratePersistedState(persistedState), onRehydrateStorage: () => (state, error) => { if (error || !state) return; const migratedTrips = migrateLegacyStorageIfNeeded(state.trips); const normalizedTrips = normalizeTrips(migratedTrips); if (normalizedTrips !== state.trips) useVelaStore.setState({ trips: normalizedTrips }); useVelaStore.getState().evaluateAutoStart(); } }));
