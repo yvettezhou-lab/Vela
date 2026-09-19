@@ -61,7 +61,6 @@ export const LogbookView = ({ annualReflection, activeTrip, plannedTrips, tripIn
       <section className="logbook-note" aria-label="Reflection note">
         <div className="logbook-note-kicker">A small note</div>
         <div className="logbook-note-copy">A journey in balance is worth remembering.</div>
-        <div className="logbook-feather" aria-hidden="true"><img src="/vela-icon-192.png" alt="" /></div>
       </section>
 
       <section className="logbook-section">
