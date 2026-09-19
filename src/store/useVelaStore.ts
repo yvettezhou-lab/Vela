@@ -10,7 +10,6 @@ import { resolveLedgerEntryCurrency } from '../core/travelSegment';
 const LEGACY_STORAGE_KEY = 'vela.plan.v1';
 const withDefaultCategories = (trip: Trip): Trip => {
   const defaults = getDefaultCategories();
-  const defaultById = new Map(defaults.map((category) => [category.id, category]));
   const categories = trip.categories.map((category) => category.id === 'cat_cash_exchange' ? { ...category, excludeFromStats: true } : category);
   const existing = new Set(categories.map((category) => category.id));
   const missing = defaults.filter((category) => !existing.has(category.id));
