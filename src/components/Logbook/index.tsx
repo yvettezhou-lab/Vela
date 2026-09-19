@@ -58,6 +58,12 @@ export const LogbookView = ({ annualReflection, activeTrip, plannedTrips, tripIn
 
       <LogbookAnalytics trips={[...reflectionTrips, ...plannedTrips.filter((trip) => !reflectionTrips.some((item) => item.id === trip.id))]} />
 
+      <section className="logbook-note" aria-label="Reflection note">
+        <div className="logbook-note-kicker">A small note</div>
+        <div className="logbook-note-copy">A {new Date().toLocaleString(undefined, { month: 'long' }).toLowerCase()} in balance is worth remembering.</div>
+        <div className="logbook-feather" aria-hidden="true"><img src="/vela-icon-192.png" alt="" /></div>
+      </section>
+
       <section className="logbook-section">
         <div className="logbook-section-heading"><div><span className="logbook-overline">THE YEAR IN MOTION</span><h2>Annual totals</h2></div><span className="logbook-year">{annualReflection.year}</span></div>
         <div className="logbook-stat-grid">
