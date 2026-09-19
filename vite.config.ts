@@ -10,10 +10,9 @@ export default defineConfig({
       strategies: 'injectManifest',
       srcDir: 'src',
       filename: 'sw.ts',
-      // Register the service worker inline so registration does not depend on
-      // a separately fetched registerSW.js document. This is more reliable
-      // for Safari/PWA offline startup and refresh.
-      injectRegister: 'inline',
+      // Register manually so we can force Safari to bypass its HTTP cache
+      // when checking for a new service worker.
+      injectRegister: false,
       includeAssets: [
         '10D69AAA-D679-43CD-B511-947B2737ADE2.png',
         '896DCF5B-31E2-44AA-ADEB-1A9E019FC6FC.png',

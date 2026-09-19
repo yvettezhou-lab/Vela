@@ -15,6 +15,22 @@ const App: React.FC = () => {
   const trips = useVelaStore((state) => state.trips); const currentTrip = useVelaStore((state) => state.getCurrentTrip()); const currentYear = new Date().getFullYear();
   const achieveTrips = useMemo(() => trips.filter((trip) => trip.status === 'achieve'), [trips]); const activeTrip = useMemo(() => trips.find((trip) => trip.status === 'traveling') ?? null, [trips]); const planningTrips = useMemo(() => trips.filter((trip) => trip.status === 'planning'), [trips]);
   const annualReflection = useMemo(() => calculateAnnualTotals(achieveTrips, activeTrip, planningTrips, currentYear), [achieveTrips, activeTrip, planningTrips, currentYear]); const reflectionTrips = useMemo(() => activeTrip ? [...achieveTrips, activeTrip] : achieveTrips, [achieveTrips, activeTrip]); const tripInsights = useMemo(() => reflectionTrips.map(generateTripInsights), [reflectionTrips]); const hasActiveJourney = Boolean(currentTrip && currentTrip.status === 'traveling');
+  useEffect(() => {
+    if (!('serviceWorker' in navigator)) return;
+    const hadController = Boolean(navigator.serviceWorker.controller);
+    let reloaded = false;
+    const onControllerChange = () => {
+      if (hadController && !reloaded) {
+        reloaded = true;
+        window.location.reload();
+      }
+    };
+    navigator.serviceWorker.addEventListener('controllerchange', onControllerChange);
+    navigator.serviceWorker.register('/sw.js', { scope: '/', updateViaCache: 'none' })
+      .then((registration) => registration.update())
+      .catch(() => undefined);
+    return () => navigator.serviceWorker.removeEventListener('controllerchange', onControllerChange);
+  }, []);
   useEffect(() => { const onPopState = () => setRoute(window.location.pathname); window.addEventListener('popstate', onPopState); return () => window.removeEventListener('popstate', onPopState); }, []);
   const openQuickEntry = () => { window.history.pushState({}, '', '/entry/new'); setRoute('/entry/new'); }; const closeQuickEntry = () => { window.history.pushState({}, '', '/'); setRoute('/'); }; const openTripManager = () => { window.history.pushState({}, '', '/trips'); setRoute('/trips'); setCreationOpen(false); window.scrollTo({ top: 0 }); }; const closeTripManager = () => { window.history.pushState({}, '', '/'); setRoute('/'); setActiveNav('Home'); window.scrollTo({ top: 0 }); }; const handleNavigate = (next: Tab) => { if (window.location.pathname !== '/') window.history.pushState({}, '', '/'); setRoute('/'); setCreationOpen(false); setActiveNav(next); window.scrollTo({ top: 0 }); }; const handleCreated = () => { setActiveNav('Home'); setCreationOpen(false); };
   if (route === '/entry/new') return <div className="vela-entry-route"><QuickEntry onClose={closeQuickEntry} /><GlobalNav activeNav={activeNav} onNavigate={handleNavigate} /></div>;
