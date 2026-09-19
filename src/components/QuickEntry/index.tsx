@@ -121,9 +121,13 @@ const QuickEntryContent: React.FC<QuickEntryProps> = ({ onClose }) => {
 
   useEffect(() => {
     if (!targetTrip) return;
-    setCategoryId((current) => current && categories.some((category) => category.id === current) ? current : categories[0]?.id ?? '');
-    const defaultCategory = categories.find((category) => category.id === (categoryId || categories[0]?.id));
-    setIncludeInCost(defaultCategory?.excludeFromStats !== true);
+    setCategoryId((current) => {
+      if (current && categories.some((category) => category.id === current)) return current;
+      const nextCategoryId = categories[0]?.id ?? '';
+      const defaultCategory = categories.find((category) => category.id === nextCategoryId);
+      setIncludeInCost(defaultCategory?.excludeFromStats !== true);
+      return nextCategoryId;
+    });
     setAccountId((current) => current && accounts.some((account) => account.id === current) ? current : accounts[0]?.id ?? '');
     setPayerId((current) => current && members.some((member) => member.id === current) ? current : members[0]?.id ?? '');
     setCurrency(getTripPrimaryCurrency(targetTrip));
