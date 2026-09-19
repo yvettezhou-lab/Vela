@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { BarChart3, Grid2X2, PieChart, TrendingUp } from 'lucide-react';
+import { BarChart3, LayoutGrid, PieChart, TrendingUp } from 'lucide-react';
 import { LedgerEntry, Trip } from '../../core/domain';
 
 type Period = 'month' | 'year';
