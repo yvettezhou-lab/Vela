@@ -14,7 +14,7 @@ const addAmount = (target: Record<string, number>, key: string, amount: number):
   target[key] = (target[key] ?? 0) + amount;
 };
 
-const countsInStats = (trip: Trip, entry: LedgerEntry): boolean => !entry.isPending && entry.entryType !== 'cash_exchange' && trip.categories.find((category) => category.id === entry.categoryId)?.excludeFromStats !== true;
+const countsInStats = (_trip: Trip, entry: LedgerEntry): boolean => entry.includeInCost && !entry.isPending;
 
 const getCategoryName = (trip: Trip, entry: LedgerEntry): string =>
   trip.categories.find((category) => category.id === entry.categoryId)?.name ?? entry.categoryId;
