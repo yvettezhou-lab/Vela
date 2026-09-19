@@ -1,7 +1,6 @@
 import { Trip, LedgerEntry, TripFinancialTotals } from './domain';
 export interface MemberBalance { memberId: string; paid: number; owed: number; net: number; }
 export interface SettlementTransaction { fromMemberId: string; toMemberId: string; amount: number; }
-const countsAsExpense = (entry: LedgerEntry) => entry.includeInCost && !entry.isPending;
 export const calculateFinancialTotals = (ledger: LedgerEntry[]): TripFinancialTotals =>
   ledger.reduce((totals, entry) => {
     if (!entry.includeInCost) return totals;
