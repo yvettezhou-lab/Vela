@@ -71,6 +71,7 @@ const QuickEntryContent: React.FC<QuickEntryProps> = ({ onClose }) => {
   const [targetTripId, setTargetTripId] = useState('');
   const targetTrip = eligibleTrips.find((trip) => trip.id === targetTripId) ?? null;
   const [entryType, setEntryType] = useState<'standard' | 'flight' | 'prepaid_multi_day'>('standard');
+  const [entryDirection, setEntryDirection] = useState<'expense' | 'income'>('expense');
   const [amount, setAmount] = useState('');
   const [currency, setCurrency] = useState('CNY');
   const [cnyEquivalent, setCnyEquivalent] = useState('');
@@ -248,7 +249,7 @@ const QuickEntryContent: React.FC<QuickEntryProps> = ({ onClose }) => {
         originalAmount,
         originalCurrency: currency.trim().toUpperCase(),
         cnyEquivalent: cnyTotal,
-        isRefund: false,
+        isRefund: entryDirection === 'income',
         isPending: deferCny,
         payerId,
         accountId,
@@ -334,6 +335,8 @@ const QuickEntryContent: React.FC<QuickEntryProps> = ({ onClose }) => {
             {eligibleTrips.map((trip) => <option key={trip.id} value={trip.id}>{trip.title}{trip.status === 'traveling' ? ' · Active' : ' · Planning'}</option>)}
           </select>
         </label>
+
+        <div className="mb-3 grid grid-cols-2 gap-2 rounded-xl bg-[#eee5d5] p-1"><button type="button" onClick={() => setEntryDirection('expense')} className={entryDirection==='expense'?'min-h-10 rounded-lg bg-[#17243a] text-white text-sm':'min-h-10 rounded-lg text-[#6f6659] text-sm'}>Expense</button><button type="button" onClick={() => setEntryDirection('income')} className={entryDirection==='income'?'min-h-10 rounded-lg bg-[#17243a] text-white text-sm':'min-h-10 rounded-lg text-[#6f6659] text-sm'}>Income / Refund</button></div>
 
         <div className="grid grid-cols-3 gap-3 rounded-2xl bg-[#eee5d5] p-1.5">
           {([
