@@ -1,123 +1,39 @@
 import { useMemo, useState } from 'react';
 import { getTripDestinations, getTripEndDate, getTripStartDate } from '../../core/travelSegment';
-
 import { AnnualReflection, LedgerEntry, Trip, TripInsights } from '../../types/logbook';
 import CrossTripIntelligence from '../CrossTripIntelligence';
 import LogbookAnalytics from './LogbookAnalytics';
-
-interface LogbookViewProps {
-  annualReflection: AnnualReflection;
-  activeTrip: Trip | null;
-  plannedTrips: Trip[];
-  tripInsights: TripInsights[];
-  reflectionTrips: Trip[];
-}
-
-const number = (value: number) => new Intl.NumberFormat(undefined, { maximumFractionDigits: 2 }).format(value);
-const entries = (values: Record<string, number>) => Object.entries(values).sort(([, a], [, b]) => b - a);
-const date = (value: number) => new Date(value).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' });
-
-const ledgerDate = (entry: LedgerEntry) => {
-  if (entry.entryType === 'standard' || entry.entryType === 'prepaid_multi_day') return entry.paymentDate;
-  return entry.outboundDate;
+interface Props { annualReflection: AnnualReflection; activeTrip: Trip|null; plannedTrips: Trip[]; tripInsights: TripInsights[]; reflectionTrips: Trip[]; }
+const num=(v:number)=>new Intl.NumberFormat(undefined,{maximumFractionDigits:0}).format(v);
+const date=(v:number)=>new Date(v).toLocaleDateString(undefined,{month:'short',day:'numeric',year:'numeric'});
+const entryDate=(e:LedgerEntry)=>e.entryType==='flight'?e.outboundDate:e.paymentDate;
+const signed=(e:LedgerEntry)=>e.isRefund?-e.cnyEquivalent:e.cnyEquivalent;
+const days=(t:Trip)=>Math.max(1,Math.floor((getTripEndDate(t)-getTripStartDate(t))/86400000)+1);
+export const LogbookView=({annualReflection,activeTrip,plannedTrips,tripInsights,reflectionTrips}:Props)=>{
+ const [selectedTripId,setSelectedTripId]=useState<string|null>(activeTrip?.id??reflectionTrips.find(t=>t.status==='achieve')?.id??reflectionTrips[0]?.id??null);
+ const [selectedEntryId,setSelectedEntryId]=useState<string|null>(null);
+ const selectedTrip=useMemo(()=>reflectionTrips.find(t=>t.id===selectedTripId)??null,[reflectionTrips,selectedTripId]);
+ const insight=selectedTrip?tripInsights.find(i=>i.tripId===selectedTrip.id)??null:null;
+ const total=selectedTrip?selectedTrip.ledger.filter(e=>!e.isPending).reduce((s,e)=>s+signed(e),0):0;
+ const people=selectedTrip?.members.filter(m=>m.archived!==true).length??0;
+ const segmentCount=selectedTrip?.segments.length??0;
+ const topExpense=selectedTrip?[...selectedTrip.ledger].filter(e=>!e.isPending).sort((a,b)=>Math.abs(b.cnyEquivalent)-Math.abs(a.cnyEquivalent))[0]:null;
+ const topCategory=useMemo(()=>{if(!selectedTrip)return null;const m=new Map<string,number>();selectedTrip.ledger.filter(e=>!e.isPending).forEach(e=>{const n=selectedTrip.categories.find(c=>c.id===e.categoryId)?.name??'Uncategorized';m.set(n,(m.get(n)??0)+signed(e));});return [...m].filter(([,v])=>v>0).sort((a,b)=>b[1]-a[1])[0]??null;},[selectedTrip]);
+ const selectedEntry=selectedTrip?.ledger.find(e=>e.id===selectedEntryId)??null;
+ const openTrip=(t:Trip)=>{setSelectedTripId(t.id);setSelectedEntryId(null)};
+ return <main className="logbook-page">
+  <header className="logbook-header"><div><p className="logbook-kicker">LOGBOOK / {annualReflection.year}</p><h1>Logbook</h1><p className="logbook-subtitle">A financial record of where the journey took you.</p></div></header>
+  <section className="logbook-journey-card"><div className="logbook-journey-cover">{selectedTrip?.coverImage?<img src={selectedTrip.coverImage} alt="" />:<span>✦</span>}</div><div><span className="logbook-overline">THIS JOURNEY</span><h2>{selectedTrip?.title||'Choose a journey'}</h2><p>{selectedTrip?getTripDestinations(selectedTrip).join(' · ')||'Destination not set':'No journey selected'}</p>{selectedTrip&&<small>{date(getTripStartDate(selectedTrip))} — {date(getTripEndDate(selectedTrip))} · {days(selectedTrip)} days · {people} travelers</small>}</div><select aria-label="Select journey" value={selectedTrip?.id??''} onChange={e=>setSelectedTripId(e.target.value)}>{reflectionTrips.map(t=><option key={t.id} value={t.id}>{t.title||getTripDestinations(t).join(' · ')||'Untitled journey'}</option>)}</select></section>
+  {selectedTrip&&<section className="logbook-section logbook-glance"><div className="logbook-section-heading"><div><span className="logbook-overline">THE JOURNEY AT A GLANCE</span><h2>One trip, clearly seen.</h2></div></div><div className="logbook-glance-grid"><article><span>TOTAL EXPENSE</span><strong>¥{num(total)}</strong></article><article><span>DAILY AVG</span><strong>¥{num(total/days(selectedTrip))}</strong></article><article><span>PER PERSON</span><strong>¥{num(total/Math.max(1,people))}</strong></article><article><span>ENTRIES</span><strong>{selectedTrip.ledger.filter(e=>!e.isPending).length}</strong></article></div><div className="logbook-facts">{days(selectedTrip)} DAYS · {segmentCount} SEGMENTS · {people} PEOPLE</div></section>}
+  <LogbookAnalytics trip={selectedTrip}/>
+  {selectedTrip&&<section className="logbook-section"><div className="logbook-section-heading"><div><span className="logbook-overline">LARGEST EXPENSES</span><h2>The big ones.</h2></div></div><div className="logbook-expenses">{selectedTrip.ledger.filter(e=>!e.isPending).sort((a,b)=>Math.abs(b.cnyEquivalent)-Math.abs(a.cnyEquivalent)).slice(0,5).map((e,i)=><div key={e.id}><b>{String(i+1).padStart(2,'0')}</b><span>{selectedTrip.categories.find(c=>c.id===e.categoryId)?.name??'Uncategorized'}</span><strong>{e.isRefund?'−':''}¥{num(e.cnyEquivalent)}</strong></div>)}</div></section>}
+  {selectedTrip&&<section className="logbook-section"><div className="logbook-section-heading"><div><span className="logbook-overline">SETTLEMENT</span><h2>Who owes whom.</h2></div></div><button type="button" className="logbook-settlement-link" onClick={()=>window.location.hash='Settlement'}>Open Settlement →</button></section>}
+  {selectedTrip&&<section className="logbook-section"><div className="logbook-section-heading"><div><span className="logbook-overline">JOURNEY IN NUMBERS</span><h2>What this journey leaves behind.</h2></div></div><div className="logbook-number-grid"><article><strong>{days(selectedTrip)}</strong><span>DAYS</span></article><article><strong>{segmentCount}</strong><span>SEGMENTS</span></article><article><strong>{people}</strong><span>PEOPLE</span></article><article><strong>{selectedTrip.categories.length}</strong><span>CATEGORIES</span></article></div><div className="logbook-reflection-facts">{topExpense&&<span>Largest expense · {selectedTrip.categories.find(c=>c.id===topExpense.categoryId)?.name??'Expense'} · ¥{num(Math.abs(topExpense.cnyEquivalent))}</span>}{topCategory&&<span>Top category · {topCategory[0]} · {total?Math.round(topCategory[1]/Math.max(1,total)*100):0}%</span>}{insight?.expenseStructure?.[0]&&<span>Leading category · {insight.expenseStructure[0].category}</span>}</div></section>}
+  <section className="logbook-section"><div className="logbook-section-heading"><div><span className="logbook-overline">JOURNEY HISTORY</span><h2>Journeys worth revisiting.</h2></div><span className="logbook-count">{tripInsights.length}</span></div><div className="logbook-trip-list">{tripInsights.map(i=>{const t=reflectionTrips.find(x=>x.id===i.tripId);if(!t)return null;return <button key={t.id} className="logbook-trip-card logbook-trip-button" type="button" onClick={()=>openTrip(t)}><div className="logbook-trip-top"><span>{t.title||getTripDestinations(t).join(' · ')||'Untitled journey'}</span><strong>{i.totalDays} DAYS</strong></div><div className="logbook-trip-body"><div><small>SPEND</small>{Object.entries(i.totalExpenditure).map(([c,a])=><strong key={c}>{num(a)} <em>{c}</em></strong>)}</div><div><small>PER DAY</small>{Object.entries(i.averageCostPerDay).map(([c,a])=><strong key={c}>{num(a)} <em>{c}</em></strong>)}</div></div><span className="logbook-drill-hint">View journey →</span></button>})}</div></section>
+  <CrossTripIntelligence trips={reflectionTrips.filter(t=>t.status==='achieve')}/>
+  <section className="logbook-note"><div className="logbook-note-kicker">A note from this journey</div><div className="logbook-note-copy">{selectedTrip?days(selectedTrip)+' days across '+segmentCount+' segments, with '+selectedTrip.ledger.filter(e=>!e.isPending).length+' recorded expenses.':'Complete a journey to begin your reflection.'}</div></section>
+  {plannedTrips.length>0&&<section className="logbook-section logbook-planning"><div className="logbook-section-heading"><div><span className="logbook-overline">ON THE HORIZON</span><h2>Planning next</h2></div></div><div className="logbook-planned-list">{plannedTrips.map(t=><div className="logbook-planned-card" key={t.id}><strong>{t.title||'Untitled journey'}</strong><span>{getTripDestinations(t).join(' · ')||'Destination not set'}</span><small>{date(getTripStartDate(t))} — {date(getTripEndDate(t))}</small></div>)}</div></section>}
+  {selectedEntry&&selectedTrip&&<div className="logbook-entry-detail"><div className="logbook-entry-detail-header"><div><span className="logbook-overline">LEDGER DETAIL</span><h3>{selectedTrip.categories.find(c=>c.id===selectedEntry.categoryId)?.name||'Uncategorized'}</h3></div><button className="logbook-close-button" type="button" onClick={()=>setSelectedEntryId(null)}>×</button></div><div className="logbook-entry-amount">{selectedEntry.isRefund?'−':''}¥{num(selectedEntry.cnyEquivalent)}</div><dl><div><dt>Date</dt><dd>{date(entryDate(selectedEntry))}</dd></div><div><dt>Payer</dt><dd>{selectedTrip.members.find(m=>m.id===selectedEntry.payerId)?.name||'Unknown'}</dd></div><div><dt>Account</dt><dd>{selectedTrip.accounts.find(a=>a.id===selectedEntry.accountId)?.name||'Unknown'}</dd></div></dl></div>}
+ </main>;
 };
-
-export const LogbookView = ({ annualReflection, activeTrip, plannedTrips, tripInsights, reflectionTrips }: LogbookViewProps) => {
-  const [selectedTripId, setSelectedTripId] = useState<string | null>(null);
-  const [annualDrilldown, setAnnualDrilldown] = useState(false);
-  const [selectedEntryId, setSelectedEntryId] = useState<string | null>(null);
-  const currencies = entries(annualReflection.annualExpenditure);
-  const categories = entries(annualReflection.topCategories).filter(([, amount]) => amount > 0).slice(0, 6);
-  const maxCategory = categories[0]?.[1] || 1;
-  const activeInsight = activeTrip ? tripInsights.find((insight) => insight.tripId === activeTrip.id) ?? null : null;
-  const completedInsights = tripInsights.filter((insight) => insight.tripId !== activeTrip?.id);
-  const selectedTrip = useMemo(() => reflectionTrips.find((trip) => trip.id === selectedTripId) ?? null, [reflectionTrips, selectedTripId]);
-  const selectedInsight = selectedTrip ? tripInsights.find((insight) => insight.tripId === selectedTrip.id) ?? null : null;
-  const selectedEntry = selectedTrip?.ledger.find((entry) => entry.id === selectedEntryId) ?? null;
-
-  const openTrip = (trip: Trip) => {
-    setAnnualDrilldown(false);
-    setSelectedEntryId(null);
-    setSelectedTripId(trip.id);
-  };
-
-  const closeDrilldown = () => {
-    setSelectedTripId(null);
-    setSelectedEntryId(null);
-    setAnnualDrilldown(false);
-  };
-
-  return (
-    <main className="logbook-page">
-      <header className="logbook-header">
-        <div><p className="logbook-kicker">REFLECTION / {annualReflection.year}</p><h1>Logbook</h1><p className="logbook-subtitle">A quiet record of where the year has taken you.</p></div>
-        <span className="logbook-mark">✦</span>
-      </header>
-
-      <CrossTripIntelligence trips={reflectionTrips.filter((trip) => trip.status === 'achieve')} />
-
-      <LogbookAnalytics trips={reflectionTrips} activeTrip={activeTrip} />
-
-      <section className="logbook-note" aria-label="Reflection note">
-        <div className="logbook-note-kicker">A small note</div>
-        <div className="logbook-note-copy">A journey in balance is worth remembering.</div>
-      </section>
-
-      <section className="logbook-section">
-        <div className="logbook-section-heading"><div><span className="logbook-overline">THE YEAR IN MOTION</span><h2>Annual totals</h2></div><span className="logbook-year">{annualReflection.year}</span></div>
-        <div className="logbook-stat-grid">
-          <button type="button" className="logbook-stat logbook-stat-button" onClick={() => setAnnualDrilldown(true)} aria-label="Explore journeys for the year"><span>TRIPS</span><strong>{annualReflection.totalTripsCompleted}</strong><small>{annualReflection.activeTripCount > 0 ? 'completed journeys + 1 journey in progress' : 'completed journeys'} · tap to explore</small></button>
-          <article className="logbook-stat"><span>DAYS</span><strong>{annualReflection.totalDaysTraveled}</strong><small>{annualReflection.activeTripCount > 0 ? 'days on the road includes current journey' : 'days on the road'}</small></article>
-          <article className="logbook-stat logbook-stat-wide"><span>EXPENDITURE</span><div className="logbook-money-list">{currencies.length ? currencies.map(([currency, amount]) => <div key={currency}><strong>{number(amount)}</strong><small>{currency}</small></div>) : <small>No recorded expenditure yet.</small>}</div>{annualReflection.activeTripCount > 0 && <small className="logbook-live-note">live spend included</small>}</article>
-        </div>
-      </section>
-
-      <section className="logbook-section">
-        <div className="logbook-section-heading"><div><span className="logbook-overline">TRAVEL RHYTHM</span><h2>Frequency</h2></div></div>
-        <div className="logbook-stat-grid">
-          <article className="logbook-stat"><span>TRIPS / YEAR</span><strong>{annualReflection.travelFrequency.tripsPerYear}</strong><small>journeys reflected</small></article>
-          <article className="logbook-stat"><span>AVG. LENGTH</span><strong>{number(annualReflection.travelFrequency.averageTripLength)}</strong><small>days per journey</small></article>
-          <article className="logbook-stat"><span>TRAVEL DAYS</span><strong>{annualReflection.travelFrequency.travelDaysPerYear}</strong><small>{annualReflection.travelFrequency.monthsWithTravel} months with travel</small></article>
-          <article className="logbook-stat"><span>AVG. GAP</span><strong>{annualReflection.travelFrequency.averageGapBetweenTrips == null ? '—' : number(annualReflection.travelFrequency.averageGapBetweenTrips)}</strong><small>days between journeys</small></article>
-        </div>
-      </section>
-
-      {activeInsight && activeTrip && <section className="logbook-section logbook-live-section"><div className="logbook-section-heading"><div><span className="logbook-overline">IN MOTION NOW</span><h2>{activeTrip.title || getTripDestinations(activeTrip).join(' · ') || 'Current journey'}</h2></div><span className="logbook-live-badge">LIVE</span></div><button type="button" className="logbook-trip-card logbook-trip-button" onClick={() => openTrip(activeTrip)}><div className="logbook-trip-top"><span>{getTripDestinations(activeTrip).join(' · ') || 'Current journey'}</span><strong>{activeInsight.totalDays} DAYS</strong></div><div className="logbook-trip-body"><div><small>SPEND SO FAR</small>{Object.entries(activeInsight.totalExpenditure).map(([currency, amount]) => <strong key={currency}>{number(amount)} <em>{currency}</em></strong>)}</div><div><small>PER DAY</small>{Object.entries(activeInsight.averageCostPerDay).map(([currency, amount]) => <strong key={currency}>{number(amount)} <em>{currency}</em></strong>)}</div><div><small>ENTRIES</small><strong>{activeTrip.ledger.length}</strong></div></div><span className="logbook-drill-hint">View journey →</span></button></section>}
-
-      {categories.length > 0 && <section className="logbook-section"><div className="logbook-section-heading"><div><span className="logbook-overline">HOW IT WAS SPENT</span><h2>Category rhythm</h2></div></div><div className="logbook-category-list">{categories.map(([name, amount]) => <div className="logbook-category" key={name}><div className="logbook-category-label"><span>{name}</span><strong>{number(amount)}</strong></div><div className="logbook-bar"><span style={{ width: `${Math.max(4, amount / maxCategory * 100)}%` }} /></div></div>)}</div></section>}
-
-      <section className="logbook-section">
-        <div className="logbook-section-heading"><div><span className="logbook-overline">JOURNEY NOTES</span><h2>Completed journeys</h2></div><span className="logbook-count">{completedInsights.length}</span></div>
-        {completedInsights.length ? <div className="logbook-trip-list">{completedInsights.map((insight) => { const trip = reflectionTrips.find((item) => item.id === insight.tripId); return <button type="button" className="logbook-trip-card logbook-trip-button" key={insight.tripId} onClick={() => trip && openTrip(trip)}><div className="logbook-trip-top"><span>{trip?.title || trip?.destination || insight.tripId}</span><strong>{insight.totalDays} DAYS</strong></div><div className="logbook-trip-body"><div><small>SPEND</small>{Object.entries(insight.totalExpenditure).map(([currency, amount]) => <strong key={currency}>{number(amount)} <em>{currency}</em></strong>)}</div><div><small>PER DAY</small>{Object.entries(insight.averageCostPerDay).map(([currency, amount]) => <strong key={currency}>{number(amount)} <em>{currency}</em></strong>)}</div><div><small>LARGEST EXPENSE</small><strong>{insight.largestExpense ? number(insight.largestExpense.originalAmount) : '—'}</strong></div></div><div className="logbook-trip-structure">{insight.expenseStructure.slice(0, 4).map((item) => <span key={item.category}>{item.category} {item.share}%</span>)}</div><span className="logbook-drill-hint">View journey →</span></button>; })}</div> : <div className="logbook-empty">Complete a journey to begin your reflection.</div>}
-      </section>
-
-      <section className="logbook-section logbook-planning"><div className="logbook-section-heading"><div><span className="logbook-overline">ON THE HORIZON</span><h2>Planning next</h2></div><span className="logbook-count">{annualReflection.plannedTripCount}</span></div>{plannedTrips.length ? <div className="logbook-planned-list">{plannedTrips.map((trip) => <div className="logbook-planned-card" key={trip.id}><strong>{trip.title || 'Untitled journey'}</strong><span>{getTripDestinations(trip).join(' · ') || 'Destination not set'}</span><small>{new Date(getTripStartDate(trip)).toLocaleDateString()} — {new Date(getTripEndDate(trip)).toLocaleDateString()} · {Math.max(1, Math.floor((getTripEndDate(trip) - getTripStartDate(trip)) / 86400000) + 1)} days</small></div>)}</div> : <div className="logbook-empty">Your next journey awaits.</div>}</section>
-
-      {(annualDrilldown || selectedTrip) && <div className="logbook-drill-overlay" role="dialog" aria-modal="true" aria-label={selectedTrip ? 'Journey details' : 'Annual journey list'}>
-        <div className="logbook-drill-sheet">
-          <div className="logbook-drill-header">
-            <button type="button" className="logbook-back-button" onClick={selectedTrip ? closeDrilldown : () => setAnnualDrilldown(false)}>{selectedTrip ? '← All journeys' : 'Close'}</button>
-            <span className="logbook-overline">{selectedTrip ? 'JOURNEY DETAIL' : `YEAR / ${annualReflection.year}`}</span>
-            <button type="button" className="logbook-close-button" onClick={closeDrilldown} aria-label="Close">×</button>
-          </div>
-
-          {!selectedTrip && <>
-            <h2 className="logbook-drill-title">Journeys in {annualReflection.year}</h2>
-            <div className="logbook-drill-list">{reflectionTrips.map((trip) => { const insight = tripInsights.find((item) => item.tripId === trip.id); return <button type="button" className="logbook-drill-trip" key={trip.id} onClick={() => openTrip(trip)}><div><strong>{trip.title || getTripDestinations(trip).join(' · ') || 'Untitled journey'}</strong><span>{getTripDestinations(trip).join(' · ') || 'Destination not set'}</span></div><div><strong>{insight?.totalDays ?? '—'} d</strong><span>{trip.status === 'traveling' ? 'LIVE' : 'ACHIEVED'}</span></div><span className="logbook-chevron">›</span></button>; })}</div>
-          </>}
-
-          {selectedTrip && selectedInsight && <>
-            <div className="logbook-drill-trip-heading"><div><span className="logbook-overline">{selectedTrip.status.toUpperCase()}</span><h2 className="logbook-drill-title">{selectedTrip.title || getTripDestinations(selectedTrip).join(' · ') || 'Untitled journey'}</h2><p>{getTripDestinations(selectedTrip).join(' · ') || 'Destination not set'} · {date(getTripStartDate(selectedTrip))} — {date(getTripEndDate(selectedTrip))}</p></div><span className="logbook-drill-days">{selectedInsight.totalDays}<small>DAYS</small></span></div>
-            <div className="logbook-drill-metrics"><div><span>SPEND</span>{Object.entries(selectedInsight.totalExpenditure).map(([currency, amount]) => <strong key={currency}>{number(amount)} {currency}</strong>)}</div><div><span>ENTRIES</span><strong>{selectedTrip.ledger.length}</strong></div><div><span>PER DAY</span>{Object.entries(selectedInsight.averageCostPerDay).map(([currency, amount]) => <strong key={currency}>{number(amount)} {currency}</strong>)}</div></div>
-            <div className="logbook-drill-section-title"><span>LEDGER</span><strong>{selectedTrip.ledger.length} entries</strong></div>
-            <div className="logbook-ledger-list">{selectedTrip.ledger.length ? selectedTrip.ledger.map((entry) => { const category = selectedTrip.categories.find((item) => item.id === entry.categoryId)?.name || 'Uncategorized'; const payer = selectedTrip.members.find((item) => item.id === entry.payerId)?.name || 'Unknown payer'; return <button type="button" className="logbook-ledger-row" key={entry.id} onClick={() => setSelectedEntryId(entry.id)}><div><strong>{category}</strong><span>{date(ledgerDate(entry))} · {payer}</span></div><div><strong>{entry.isRefund ? '−' : ''}{number(entry.originalAmount)}</strong><span>{entry.originalCurrency}</span></div><span className="logbook-chevron">›</span></button>; }) : <div className="logbook-empty">No ledger entries recorded.</div>}</div>
-          </>}
-
-          {selectedEntry && selectedTrip && <div className="logbook-entry-detail"><div className="logbook-entry-detail-header"><div><span className="logbook-overline">LEDGER DETAIL</span><h3>{selectedTrip.categories.find((item) => item.id === selectedEntry.categoryId)?.name || 'Uncategorized'}</h3></div><button type="button" className="logbook-close-button" onClick={() => setSelectedEntryId(null)} aria-label="Close entry">×</button></div><div className="logbook-entry-amount">{selectedEntry.isRefund ? '−' : ''}{number(selectedEntry.originalAmount)} <small>{selectedEntry.originalCurrency}</small></div><dl><div><dt>Date</dt><dd>{date(ledgerDate(selectedEntry))}</dd></div><div><dt>CNY equivalent</dt><dd>¥{number(selectedEntry.cnyEquivalent)}</dd></div><div><dt>Payer</dt><dd>{selectedTrip.members.find((item) => item.id === selectedEntry.payerId)?.name || 'Unknown'}</dd></div><div><dt>Account</dt><dd>{selectedTrip.accounts.find((item) => item.id === selectedEntry.accountId)?.name || 'Unknown'}</dd></div><div><dt>Status</dt><dd>{selectedEntry.isPending ? 'Pending' : 'Settled'}</dd></div><div><dt>Type</dt><dd>{selectedEntry.entryType.replaceAll('_', ' ')}</dd></div></dl></div>}
-        </div>
-      </div>}
-    </main>
-  );
-};
-
 export default LogbookView;
