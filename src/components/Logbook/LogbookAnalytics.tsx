@@ -7,7 +7,7 @@ const COLORS = ['#a9874b','#718a72','#5f6f82','#ad8250','#8e8476','#6f665a','#a7
 const money = (n:number) => '¥' + new Intl.NumberFormat(undefined,{maximumFractionDigits:0}).format(Math.abs(n));
 const dateOf = (e:LedgerEntry) => e.entryType === 'flight' ? e.outboundDate : e.paymentDate;
 const spend = (e:LedgerEntry) => e.isRefund ? -e.cnyEquivalent : e.cnyEquivalent;
-const countsInStats = (trip:Trip, e:LedgerEntry) => !e.isPending && e.entryType !== 'cash_exchange' && trip.categories.find(c=>c.id===e.categoryId)?.excludeFromStats !== true;
+const countsInStats=(_t:Trip,e:LedgerEntry)=>e.includeInCost&&!e.isPending;
 const Donut = ({items}:{items:{label:string;value:number;color:string}[]}) => {
  const total=items.reduce((s,i)=>s+i.value,0), r=43, c=2*Math.PI*r; let o=0;
  return <div className="logbook-donut-layout"><div className="logbook-donut-wrap"><svg className="logbook-donut" viewBox="0 0 108 108" role="img" aria-label="Spending by category"><circle cx="54" cy="54" r={r} fill="none" stroke="#e8dfce" strokeWidth="17"/>{items.map(i=>{const l=total?i.value/total*c:0;const el=<circle key={i.label} cx="54" cy="54" r={r} fill="none" stroke={i.color} strokeWidth="17" strokeDasharray={l+" "+(c-l)} strokeDashoffset={-o} transform="rotate(-90 54 54)"/>;o+=l;return el;})}<text x="54" y="50" textAnchor="middle" className="logbook-donut-total">{money(total)}</text><text x="54" y="63" textAnchor="middle" className="logbook-donut-label">TOTAL</text></svg></div><div className="logbook-legend">{items.length?items.map(i=><div key={i.label}><i style={{background:i.color}}/><span>{i.label}</span><strong>{money(i.value)}</strong></div>):<p className="logbook-empty-inline">No recorded spending.</p>}</div></div>;
