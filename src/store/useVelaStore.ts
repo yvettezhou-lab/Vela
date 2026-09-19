@@ -8,7 +8,7 @@ import { getAutoStartTripId } from '../utils/tripLifecycle';
 import { resolveLedgerEntryCurrency } from '../core/travelSegment';
 
 const LEGACY_STORAGE_KEY = 'vela.plan.v1';
-const withDefaultCategories = (trip: Trip): Trip => trip.categories.length > 0 ? trip : { ...trip, categories: getDefaultCategories() };
+const withDefaultCategories = (trip: Trip): Trip => { const defaults = getDefaultCategories(); const existing = new Set(trip.categories.map((category) => category.id)); const missing = defaults.filter((category) => !existing.has(category.id)); return missing.length ? { ...trip, categories: [...trip.categories, ...missing] } : trip; };
 const withDefaultAccountsAndMember = (trip: Trip): Trip => ({ ...trip, accounts: trip.accounts.length > 0 ? trip.accounts : [{ id: 'default-account-cash', name: 'Cash' }, { id: 'default-account-credit-card', name: 'Credit Card' }], members: trip.members.length > 0 ? trip.members : [{ id: 'default-member-me', name: 'Me' }] });
 const normalizeTrips = (trips: Trip[]): Trip[] => trips.map((trip) => withDefaultAccountsAndMember(withDefaultCategories(trip)));
 
