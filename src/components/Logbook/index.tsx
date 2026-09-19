@@ -56,11 +56,11 @@ export const LogbookView = ({ annualReflection, activeTrip, plannedTrips, tripIn
 
       <CrossTripIntelligence trips={reflectionTrips.filter((trip) => trip.status === 'achieve')} />
 
-      <LogbookAnalytics trips={[...reflectionTrips, ...plannedTrips.filter((trip) => !reflectionTrips.some((item) => item.id === trip.id))]} />
+      <LogbookAnalytics trips={reflectionTrips} activeTrip={activeTrip} />
 
       <section className="logbook-note" aria-label="Reflection note">
         <div className="logbook-note-kicker">A small note</div>
-        <div className="logbook-note-copy">A {new Date().toLocaleString(undefined, { month: 'long' }).toLowerCase()} in balance is worth remembering.</div>
+        <div className="logbook-note-copy">A journey in balance is worth remembering.</div>
         <div className="logbook-feather" aria-hidden="true"><img src="/vela-icon-192.png" alt="" /></div>
       </section>
 
