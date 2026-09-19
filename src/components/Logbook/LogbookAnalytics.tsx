@@ -56,7 +56,7 @@ const Bars = ({ items }: { items: { label: string; value: number }[] }) => {
   </div>) : <p className="logbook-empty-inline">No recorded spending for this period.</p>}</div>;
 };
 
-const YoYBars = ({ items }: { items: { label: string; current: number; previous: number; difference: number }[] }) => {
+const YoYBars = ({ items, currentYear }: { items: { label: string; current: number; previous: number; difference: number }[]; currentYear: number }) => {
   const max = Math.max(1, ...items.flatMap((item) => [item.current, item.previous]));
   return <div className="logbook-bars">{items.length ? items.map((item) => <div className="logbook-analysis-row" key={item.label}>
     <div className="logbook-analysis-row-head">
@@ -268,7 +268,7 @@ export default function LogbookAnalytics({ trips, activeTrip }: { trips: Trip[];
         {view === 'category' && chartMode === 'donut'
           ? <div className="logbook-donut-layout"><Donut items={category} /><div className="logbook-legend">{category.length ? category.map((item) => <div key={item.label}><i style={{ background: item.color }} /><span>{item.label}</span><strong>{money(item.value)}</strong></div>) : <p className="logbook-empty-inline">No recorded spending for this period.</p>}</div></div>
           : view === 'person' && scope === 'all'
-            ? <YoYBars items={yoyPerson} />
+            ? <YoYBars items={yoyPerson} currentYear={selectedYear} />
             : view === 'compare' && scope === 'all'
               ? <CompareBars items={compare} sort={compareSort} onSortChange={setCompareSort} />
               : view === 'type'
