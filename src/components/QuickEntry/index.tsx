@@ -157,6 +157,7 @@ const QuickEntryContent: React.FC<QuickEntryProps> = ({ onClose }) => {
       return;
     }
     if (normalizedCurrency === 'CNY') {
+      setDeferCny(false);
       setFxRate(1);
       return;
     }
