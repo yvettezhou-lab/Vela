@@ -1,14 +1,10 @@
 import { Trip, LedgerEntry, TripFinancialTotals } from './domain';
 export interface MemberBalance { memberId: string; paid: number; owed: number; net: number; }
 export interface SettlementTransaction { fromMemberId: string; toMemberId: string; amount: number; }
-const countsAsExpense = (entry: LedgerEntry, categories?: Trip['categories']) => {
-  if (entry.entryType === 'cash_exchange') return false;
-  if (categories) return categories.find((category) => category.id === entry.categoryId)?.excludeFromStats !== true;
-  return true;
-};
-export const calculateFinancialTotals = (ledger: LedgerEntry[], categories?: Trip['categories']): TripFinancialTotals =>
+const countsAsExpense = (entry: LedgerEntry) => entry.includeInCost && !entry.isPending;
+export const calculateFinancialTotals = (ledger: LedgerEntry[]): TripFinancialTotals =>
   ledger.reduce((totals, entry) => {
-    if (!countsAsExpense(entry, categories)) return totals;
+    if (!countsAsExpense(entry)) return totals;
     const impact = entry.isRefund ? -entry.cnyEquivalent : entry.cnyEquivalent;
     totals.financialTotal += impact;
     if (entry.isPending) totals.pendingAmount += impact; else totals.settledAmount += impact;
@@ -18,7 +14,7 @@ export const calculateGroupBalance = (trip: Trip): MemberBalance[] => {
   const balances: Record<string, MemberBalance> = {};
   trip.members.forEach(m => { balances[m.id] = { memberId: m.id, paid: 0, owed: 0, net: 0 }; });
   trip.ledger.forEach(entry => {
-    if (entry.isPending || entry.entryType === 'cash_exchange') return;
+    if (entry.isPending) return;
     const impactMultiplier = entry.isRefund ? -1 : 1;
     if (balances[entry.payerId]) balances[entry.payerId].paid += entry.cnyEquivalent * impactMultiplier;
     entry.allocations.forEach(alloc => { if (balances[alloc.memberId]) balances[alloc.memberId].owed += alloc.amount * impactMultiplier; });
