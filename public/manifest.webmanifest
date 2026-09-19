@@ -7,10 +7,10 @@
   "theme_color": "#172942",
   "icons": [
     {
-      "src": "/apple-touch-icon.png",
-      "sizes": "180x180",
+      "src": "/vela-icon-1024.png",
+      "sizes": "1024x1024",
       "type": "image/png",
-      "purpose": "any"
+      "purpose": "maskable"
     }
   ]
 }
