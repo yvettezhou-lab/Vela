@@ -65,8 +65,11 @@ const FALLBACK_MEMBERS = [{ id: 'default-member-me', name: 'Me' }];
 const LEDGER_CURRENCIES = ['CNY', 'MYR', 'SGD', 'THB', 'IDR', 'PHP', 'JPY', 'KRW', 'USD', 'EUR', 'GBP', 'AUD', 'HKD'];
 
 export const QuickEntry: React.FC<QuickEntryProps> = ({ onClose }) => {
-  const currentTrip = useVelaStore((state) => state.getCurrentTrip());
+  const trips = useVelaStore((state) => state.trips);
   const addLedgerEntry = useVelaStore((state) => state.addLedgerEntry);
+  const eligibleTrips = trips.filter((trip) => trip.status === 'traveling' || trip.status === 'planning');
+  const [targetTripId, setTargetTripId] = useState('');
+  const targetTrip = eligibleTrips.find((trip) => trip.id === targetTripId) ?? null;
   const [entryType, setEntryType] = useState<'standard' | 'flight' | 'prepaid_multi_day'>('standard');
   const [amount, setAmount] = useState('');
   const [currency, setCurrency] = useState('CNY');
@@ -92,9 +95,20 @@ export const QuickEntry: React.FC<QuickEntryProps> = ({ onClose }) => {
   const cnyManualRef = useRef(false);
   const successTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  const activeAccounts = currentTrip?.accounts.filter((account) => account.archived !== true) ?? [];
+  useEffect(() => {
+    const activeTrip = trips.find((trip) => trip.status === 'traveling');
+    const planningTrips = trips.filter((trip) => trip.status === 'planning').sort((a, b) => {
+      const aStart = Math.min(...a.segments.map((segment) => segment.startDate));
+      const bStart = Math.min(...b.segments.map((segment) => segment.startDate));
+      return aStart - bStart;
+    });
+    const defaultTripId = activeTrip?.id ?? planningTrips[0]?.id ?? '';
+    setTargetTripId((current) => current && eligibleTrips.some((trip) => trip.id === current) ? current : defaultTripId);
+  }, [trips]);
+
+  const activeAccounts = targetTrip?.accounts.filter((account) => account.archived !== true) ?? [];
   const accounts = activeAccounts.length ? activeAccounts : FALLBACK_ACCOUNTS;
-  const activeMembers = currentTrip?.members.filter((member) => member.archived !== true) ?? [];
+  const activeMembers = targetTrip?.members.filter((member) => member.archived !== true) ?? [];
   const members = activeMembers.length ? activeMembers : FALLBACK_MEMBERS;
 
   useEffect(() => () => {
@@ -102,12 +116,12 @@ export const QuickEntry: React.FC<QuickEntryProps> = ({ onClose }) => {
   }, []);
 
   useEffect(() => {
-    if (!currentTrip) return;
-    setCategoryId((current) => current && currentTrip.categories.some((category) => category.id === current && category.archived !== true) ? current : currentTrip.categories.find((category) => category.archived !== true)?.id ?? '');
+    if (!targetTrip) return;
+    setCategoryId((current) => current && targetTrip.categories.some((category) => category.id === current && category.archived !== true) ? current : targetTrip.categories.find((category) => category.archived !== true)?.id ?? '');
     setAccountId((current) => current && accounts.some((account) => account.id === current) ? current : accounts[0]?.id ?? '');
     setPayerId((current) => current && members.some((member) => member.id === current) ? current : members[0]?.id ?? '');
-    setCurrency(getTripPrimaryCurrency(currentTrip));
-    const savedRule = currentTrip.allocationRules;
+    setCurrency(getTripPrimaryCurrency(targetTrip));
+    const savedRule = targetTrip.allocationRules;
     if (savedRule) {
       setAllocationMode(savedRule.allocationMode);
       setCustomPercentages(savedRule.percentages ? { ...savedRule.percentages } : {});
@@ -120,16 +134,16 @@ export const QuickEntry: React.FC<QuickEntryProps> = ({ onClose }) => {
         return new Set(retained.length ? retained : members.map((member) => member.id));
       });
     }
-  }, [currentTrip, accounts, members]);
+  }, [targetTrip, accounts, members]);
 
   useEffect(() => {
-    if (!currentTrip) return;
+    if (!targetTrip) return;
     const dateValue = entryType === 'flight' ? outboundDate : paymentDate;
     const date = toDateTimestamp(dateValue);
     if (!Number.isFinite(date)) return;
-    const resolved = getSegmentPrimaryCurrency(currentTrip.segments, date);
+    const resolved = getSegmentPrimaryCurrency(targetTrip.segments, date);
     if (resolved) setCurrency(resolved);
-  }, [currentTrip, entryType, paymentDate, outboundDate]);
+  }, [targetTrip, entryType, paymentDate, outboundDate]);
 
   useEffect(() => {
     const normalizedCurrency = currency.trim().toUpperCase();
@@ -265,8 +279,8 @@ export const QuickEntry: React.FC<QuickEntryProps> = ({ onClose }) => {
         finalEntry = { ...baseData, entryType: 'prepaid_multi_day', paymentDate: payment, usageStart: start, usageEnd: end };
       }
 
-      if (!currentTrip) throw new Error('No active trip found.');
-      addLedgerEntry(currentTrip.id, finalEntry);
+      if (!targetTrip) throw new Error('Journey is required.');
+      addLedgerEntry(targetTrip.id, finalEntry);
 
       setAmount('');
       setCnyEquivalent('');
@@ -280,15 +294,15 @@ export const QuickEntry: React.FC<QuickEntryProps> = ({ onClose }) => {
     }
   };
 
-  if (!currentTrip) {
+  if (!eligibleTrips.length) {
     return (
       <div className="flex min-h-[100dvh] items-center justify-center bg-[#f7efdf] p-6 text-[#17243a]">
         <div className="w-full max-w-xl rounded-2xl bg-[#fbf7ee] p-6 shadow-sm ring-1 ring-black/5">
           <div className="flex items-center justify-between">
             <h2 className="text-2xl font-normal">Quick Entry</h2>
-            {onClose && <button type="button" onClick={onClose} aria-label="Close Quick Entry" className="grid min-h-12 min-w-12 place-items-center rounded-full"><X size={22} /></button>}
+            {onClose && <button type="button" onClick={onClose} aria-label="Close Quick Entry" className="grid min-h-12 min-w-12 items-center justify-center rounded-full"><X size={22} /></button>}
           </div>
-          <p className="mt-5 text-[#766957]">No active trip found. Please create or select a planning or traveling trip first.</p>
+          <p className="mt-5 text-[#766957]">Create a planning or active journey first.</p>
         </div>
       </div>
     );
@@ -308,6 +322,13 @@ export const QuickEntry: React.FC<QuickEntryProps> = ({ onClose }) => {
 
       <form onSubmit={handleSubmit} className="flex-1 overflow-y-auto px-5 pb-[calc(120px+env(safe-area-inset-bottom))] pt-2">
         {error && <div role="alert" className="mb-4 rounded-xl bg-[#f5d8d2] px-4 py-3 text-sm text-[#7c3e35]">{error}</div>}
+
+        <label className="mb-5 block">
+          <span className="mb-2 block text-xs uppercase tracking-[0.14em] text-[#857a6a]">Journey</span>
+          <select value={targetTripId} onChange={(event) => setTargetTripId(event.currentTarget.value)} className="w-full appearance-none rounded-xl bg-[#fbf7ee] px-4 py-3.5 text-base text-[#17243a] shadow-[inset_0_0_0_1px_rgba(80,64,42,.10)] outline-none" required>
+            {eligibleTrips.map((trip) => <option key={trip.id} value={trip.id}>{trip.title}{trip.status === 'traveling' ? ' · Active' : ' · Planning'}</option>)}
+          </select>
+        </label>
 
         <div className="grid grid-cols-3 gap-3 rounded-2xl bg-[#eee5d5] p-1.5">
           {([
@@ -385,7 +406,7 @@ export const QuickEntry: React.FC<QuickEntryProps> = ({ onClose }) => {
             <label className="block">
               <span className="mb-2 block text-xs uppercase tracking-[0.14em] text-[#857a6a]">Category</span>
               <select value={categoryId} onChange={(event) => setCategoryId(event.target.value)} className="w-full appearance-none rounded-xl bg-[#fbf7ee] px-4 text-base text-[#17243a] shadow-[inset_0_0_0_1px_rgba(80,64,42,.10)] outline-none" required>
-                {currentTrip.categories.filter((category) => category.archived !== true).map((category) => <option key={category.id} value={category.id}>{category.name}</option>)}
+                {targetTrip.categories.filter((category) => category.archived !== true).map((category) => <option key={category.id} value={category.id}>{category.name}</option>)}
               </select>
             </label>
           )}
