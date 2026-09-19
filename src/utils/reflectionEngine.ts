@@ -14,6 +14,8 @@ const addAmount = (target: Record<string, number>, key: string, amount: number):
   target[key] = (target[key] ?? 0) + amount;
 };
 
+const countsInStats = (trip: Trip, entry: LedgerEntry): boolean => !entry.isPending && entry.entryType !== 'cash_exchange' && trip.categories.find((category) => category.id === entry.categoryId)?.excludeFromStats !== true;
+
 const getCategoryName = (trip: Trip, entry: LedgerEntry): string =>
   trip.categories.find((category) => category.id === entry.categoryId)?.name ?? entry.categoryId;
 
@@ -36,7 +38,7 @@ export const generateTripInsights = (trip: Trip): TripInsights => {
   let largestExpense: LedgerEntry | null = null;
   let largestExpenseAmount = 0;
 
-  trip.ledger.forEach((entry) => {
+  trip.ledger.filter((entry) => countsInStats(trip, entry)).forEach((entry) => {
     const signedAmount = getSignedAmount(entry);
     addAmount(totalExpenditure, entry.originalCurrency, signedAmount);
     addAmount(categoryBreakdown, getCategoryName(trip, entry), signedAmount);
@@ -107,7 +109,7 @@ export const calculateAnnualTotals = (
   const frequencyTrips = reflectedTrips;
 
   reflectedTrips.forEach((trip) => {
-    trip.ledger.forEach((entry) => {
+    trip.ledger.filter((entry) => countsInStats(trip, entry)).forEach((entry) => {
       const signedAmount = getSignedAmount(entry);
       addAmount(annualExpenditure, entry.originalCurrency, signedAmount);
       addAmount(topCategories, getCategoryName(trip, entry), signedAmount);
