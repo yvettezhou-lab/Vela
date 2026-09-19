@@ -2,7 +2,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { BookOpen, Compass, Home as HomeIcon, Scale, Settings } from 'lucide-react';
 import { createRoot } from 'react-dom/client';
 import './styles.css'; import './vela-polish.css'; import './vela-secondary-polish.css'; import './vela-secondary-finish.css'; import './vela-home-shell.css'; import './global-ux.css'; import './logbook.css'; import './components/SettlementMatrix/styles.css';
-import HomePage from './Home'; import TripManager from './components/TripManager'; import DataManagement from './components/DataManagement'; import MasterData from './components/MasterData'; import { TripCreation } from './components/TripCreation'; import { QuickEntry } from './components/QuickEntry'; import { SettlementMatrix } from './components/SettlementMatrix'; import LogbookView from './components/Logbook';
+import HomePage from './Home'; import TripManager from './components/TripManager'; import DataManagement from './components/DataManagement'; import MasterData from './components/MasterData'; import { TripCreation } from './components/TripCreation'; import { QuickEntry } from './components/QuickEntry'; import { LedgerView } from './components/LedgerView'; import { SettlementMatrix } from './components/SettlementMatrix'; import LogbookView from './components/Logbook';
 import { calculateAnnualTotals, generateTripInsights } from './utils/reflectionEngine'; import { useVelaStore } from './store/useVelaStore';
 
 type Tab = 'Home' | 'Ledger' | 'Balance' | 'Logbook' | 'Atelier';
@@ -12,7 +12,7 @@ const GlobalNav: React.FC<{ activeNav: Tab; onNavigate: (next: Tab) => void }> =
 
 const App: React.FC = () => {
   const [activeNav, setActiveNav] = useState<Tab>('Home'); const [route, setRoute] = useState(() => window.location.pathname); const [creationOpen, setCreationOpen] = useState(false);
-  const trips = useVelaStore((state) => state.trips); const currentTrip = useVelaStore((state) => state.getCurrentTrip()); const currentYear = new Date().getFullYear();
+  const trips = useVelaStore((state) => state.trips); const currentYear = new Date().getFullYear();
   const achieveTrips = useMemo(() => trips.filter((trip) => trip.status === 'achieve'), [trips]); const activeTrip = useMemo(() => trips.find((trip) => trip.status === 'traveling') ?? null, [trips]); const planningTrips = useMemo(() => trips.filter((trip) => trip.status === 'planning'), [trips]);
   const annualReflection = useMemo(() => calculateAnnualTotals(achieveTrips, activeTrip, planningTrips, currentYear), [achieveTrips, activeTrip, planningTrips, currentYear]); const reflectionTrips = useMemo(() => activeTrip ? [...achieveTrips, activeTrip] : achieveTrips, [achieveTrips, activeTrip]); const tripInsights = useMemo(() => reflectionTrips.map(generateTripInsights), [reflectionTrips]); const canQuickEntry = trips.some((trip) => trip.status === 'traveling' || trip.status === 'planning');
   useEffect(() => {
