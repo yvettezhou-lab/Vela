@@ -1,7 +1,7 @@
 import * as XLSX from 'xlsx';
 import type { LedgerEntry, Member, Trip } from './domain';
 import { getSegmentForLedgerEntry } from './travelSegment';
-import { calculateSegmentSettlements, settlementMemberName } from './settlement';
+import { settlementMemberName } from './settlement';
 
 const entryDate = (entry: LedgerEntry) => entry.entryType === 'flight' ? entry.outboundDate : entry.paymentDate;
 const entryTypeLabel = (entry: LedgerEntry) => {
