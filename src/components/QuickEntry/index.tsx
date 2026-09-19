@@ -74,6 +74,7 @@ const QuickEntryContent: React.FC<QuickEntryProps> = ({ onClose }) => {
   const [amount, setAmount] = useState('');
   const [currency, setCurrency] = useState('CNY');
   const [cnyEquivalent, setCnyEquivalent] = useState('');
+  const [deferCny, setDeferCny] = useState(false);
   const [categoryId, setCategoryId] = useState('');
   const [accountId, setAccountId] = useState('');
   const [payerId, setPayerId] = useState('');
@@ -180,6 +181,7 @@ const QuickEntryContent: React.FC<QuickEntryProps> = ({ onClose }) => {
   }, [currency]);
 
   useEffect(() => {
+    if (deferCny) return;
     if (cnyManualRef.current) return;
     const numericAmount = Number(amount);
     if (!Number.isFinite(numericAmount) || numericAmount <= 0 || !fxRate) {
@@ -187,7 +189,7 @@ const QuickEntryContent: React.FC<QuickEntryProps> = ({ onClose }) => {
       return;
     }
     setCnyEquivalent(formatCny(numericAmount * fxRate));
-  }, [amount, fxRate]);
+  }, [amount, fxRate, deferCny]);
 
   const toggleParticipant = (id: string) => {
     setSelectedParticipants((current) => {
@@ -230,9 +232,9 @@ const QuickEntryContent: React.FC<QuickEntryProps> = ({ onClose }) => {
     setError(null);
     try {
       const originalAmount = Number(amount);
-      const cnyTotal = cnyEquivalent === '' ? originalAmount : Number(cnyEquivalent);
+      const cnyTotal = deferCny ? 0 : (cnyEquivalent === '' ? originalAmount : Number(cnyEquivalent));
       if (!Number.isFinite(originalAmount) || originalAmount <= 0) throw new Error('Amount must be greater than 0.');
-      if (!Number.isFinite(cnyTotal) || cnyTotal <= 0) throw new Error('CNY Equivalent must be greater than 0.');
+      if (!deferCny && (!Number.isFinite(cnyTotal) || cnyTotal <= 0)) throw new Error('CNY Equivalent must be greater than 0.');
       if (!payerId) throw new Error('Payer is required.');
       if (!accountId) throw new Error('Payment account is required.');
       if (entryType !== 'flight' && !categoryId) throw new Error('Category is required.');
@@ -246,7 +248,7 @@ const QuickEntryContent: React.FC<QuickEntryProps> = ({ onClose }) => {
         originalCurrency: currency.trim().toUpperCase(),
         cnyEquivalent: cnyTotal,
         isRefund: false,
-        isPending: false,
+        isPending: deferCny,
         payerId,
         accountId,
         allocationMode,
@@ -397,9 +399,10 @@ const QuickEntryContent: React.FC<QuickEntryProps> = ({ onClose }) => {
                 }
               }}
               className="w-full rounded-xl bg-[#fbf7ee] px-4 text-base text-[#17243a] shadow-[inset_0_0_0_1px_rgba(80,64,42,.10)] outline-none read-only:text-[#857a6a]"
-              placeholder={fxRate ? 'Auto' : 'Enter manually'}
+              placeholder={deferCny ? 'Later' : (fxRate ? 'Auto' : 'Enter manually')}
               aria-label="CNY Equivalent"
             />
+            {currency.trim().toUpperCase() !== 'CNY' && <button type="button" onClick={() => { setDeferCny(v => !v); if (!deferCny) setCnyEquivalent(''); }} className={`mt-2 text-xs ${deferCny ? 'text-[#17243a] font-semibold' : 'text-[#857a6a]'}`}>{deferCny ? '✓ 稍后填写人民币金额' : '稍后填写人民币金额'}</button>}
           </label>
         </div>
 
