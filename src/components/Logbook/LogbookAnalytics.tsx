@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react';
 import { LedgerEntry, Trip } from '../../core/domain';
-import { getSegmentByDate, getTripEndDate, getTripStartDate } from '../../core/travelSegment';
+import { findSegmentByDate, getTripEndDate, getTripStartDate } from '../../core/travelSegment';
 
 type Breakdown = 'category' | 'segment' | 'account' | 'person';
 const COLORS = ['#a9874b','#718a72','#5f6f82','#ad8250','#8e8476','#6f665a','#a79a87','#9c7b48'];
@@ -16,7 +16,7 @@ export default function LogbookAnalytics({trip}:{trip:Trip|null}){
  const [view,setView]=useState<Breakdown>('category');
  const rows=useMemo(()=>trip?trip.ledger.filter(e=>!e.isPending):[],[trip]);
  const category=useMemo(()=>{const m=new Map<string,number>();rows.forEach(e=>{const n=trip?.categories.find(c=>c.id===e.categoryId)?.name??'Uncategorized';m.set(n,(m.get(n)??0)+spend(e));});return [...m].filter(([,v])=>v>0).sort((a,b)=>b[1]-a[1]).slice(0,7).map(([label,value],i)=>({label,value,color:COLORS[i%COLORS.length]}));},[rows,trip]);
- const segment=useMemo(()=>{const m=new Map<string,number>();rows.forEach(e=>{const s=trip?getSegmentByDate(trip.segments,dateOf(e)):undefined;const label=s?.destinations.map(d=>d.city||d.country).filter(Boolean).join(' · ')||s?.primaryCurrency||'Unassigned';m.set(label,(m.get(label)??0)+spend(e));});return [...m].filter(([,v])=>v>0).sort((a,b)=>b[1]-a[1]).map(([label,value])=>({label,value}));},[rows,trip]);
+ const segment=useMemo(()=>{const m=new Map<string,number>();rows.forEach(e=>{const s=trip?findSegmentByDate(trip.segments,dateOf(e)):undefined;const label=s?.destinations.map(d=>d.city||d.country).filter(Boolean).join(' · ')||s?.primaryCurrency||'Unassigned';m.set(label,(m.get(label)??0)+spend(e));});return [...m].filter(([,v])=>v>0).sort((a,b)=>b[1]-a[1]).map(([label,value])=>({label,value}));},[rows,trip]);
  const account=useMemo(()=>{const m=new Map<string,number>();rows.forEach(e=>{const n=trip?.accounts.find(a=>a.id===e.accountId)?.name??'Unknown account';m.set(n,(m.get(n)??0)+spend(e));});return [...m].filter(([,v])=>v>0).sort((a,b)=>b[1]-a[1]).slice(0,7).map(([label,value])=>({label,value}));},[rows,trip]);
  const person=useMemo(()=>{const m=new Map<string,number>();rows.forEach(e=>{const allocations=e.allocations.length?e.allocations:[{memberId:e.payerId,amount:spend(e)}];allocations.forEach(x=>{const n=trip?.members.find(p=>p.id===x.memberId)?.name??'Unknown';m.set(n,(m.get(n)??0)+(e.isRefund?-x.amount:x.amount));});});return [...m].filter(([,v])=>v>0).sort((a,b)=>b[1]-a[1]).map(([label,value])=>({label,value}));},[rows,trip]);
  const items=view==='category'?category:view==='segment'?segment:view==='account'?account:person;
