@@ -144,7 +144,7 @@ const QuickEntryContent: React.FC<QuickEntryProps> = ({ onClose }) => {
         return new Set(retained.length ? retained : members.map((member) => member.id));
       });
     }
-  }, [targetTrip, accounts, members]);
+  }, [targetTrip]);
 
   useEffect(() => {
     if (!targetTrip) return;
