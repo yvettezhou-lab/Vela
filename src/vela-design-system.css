@@ -60,3 +60,67 @@ button,input,select,textarea{font-family:-apple-system,BlinkMacSystemFont,"SF Pr
 .vela-settings-header h1{font-family:ui-serif,Georgia,serif!important;font-weight:500!important;color:var(--vela-ink)!important}
 .vela-settings-header p{color:var(--vela-muted)!important}
 @media(max-width:600px){.vela-app-root > .page,.vela-app-root > main.page{padding:20px 16px calc(108px + env(safe-area-inset-bottom))!important}.vela-app-root > .page .topbar h1{font-size:29px!important}.vela-app-root > .page .section{margin-bottom:26px!important}.vela-app-root > .page .category-tabs{gap:18px!important}}
+
+/* Mobile finishing pass — interaction safety, not a visual redesign. */
+*,*::before,*::after{box-sizing:border-box}
+html,body,#root{width:100%;min-width:0;overflow-x:hidden}
+.vela-app-root{width:100%;min-width:0;overflow-x:hidden}
+.vela-app-root > .page,
+.vela-app-root > main.page{box-sizing:border-box;overflow-x:hidden}
+.vela-global-nav{
+  box-sizing:border-box!important;
+  height:calc(72px + env(safe-area-inset-bottom))!important;
+  padding-bottom:env(safe-area-inset-bottom)!important;
+}
+.vela-global-nav button{min-height:48px!important;touch-action:manipulation;-webkit-tap-highlight-color:transparent}
+.vela-global-quick{
+  box-sizing:border-box!important;
+  bottom:calc(82px + env(safe-area-inset-bottom))!important;
+  width:58px!important;height:58px!important;
+  min-width:58px!important;min-height:58px!important;
+  touch-action:manipulation;-webkit-tap-highlight-color:transparent;
+}
+@media(max-width:600px){
+  .vela-app-root > .page,
+  .vela-app-root > main.page{
+    width:100%!important;
+    max-width:480px!important;
+    padding-left:16px!important;
+    padding-right:16px!important;
+    padding-bottom:calc(124px + env(safe-area-inset-bottom))!important;
+  }
+  .vela-app-root > .page .section,
+  .vela-app-root > .page .section-head,
+  .vela-app-root > .page .balance-row,
+  .vela-app-root > .page .transfer,
+  .vela-app-root > .page .ledger-row,
+  .vela-app-root > .page .ledger-card{min-width:0!important}
+  .vela-app-root > .page .ledger-row > *,
+  .vela-app-root > .page .ledger-card > *,
+  .vela-app-root > .page .balance-row > *,
+  .vela-app-root > .page .transfer > *{min-width:0!important}
+  .vela-app-root > .page .ledger-right{
+    max-width:46%!important;
+    overflow:hidden!important;
+  }
+  .vela-app-root > .page .ledger-right b{
+    display:block!important;
+    overflow:hidden!important;
+    text-overflow:ellipsis!important;
+    white-space:nowrap!important;
+  }
+  .vela-app-root > .page .category-tabs{
+    padding-left:1px!important;
+    padding-right:1px!important;
+    -webkit-overflow-scrolling:touch;
+    overscroll-behavior-x:contain;
+  }
+  .vela-entry-route{width:100%!important;max-width:none!important;overflow-x:hidden!important}
+  .vela-entry-route .vela-quick-fullscreen{
+    width:100%!important;max-width:none!important;overflow-x:hidden!important;
+  }
+  .vela-entry-route .vela-quick-fullscreen form{
+    padding-bottom:calc(128px + env(safe-area-inset-bottom))!important;
+  }
+}
+
