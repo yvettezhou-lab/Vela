@@ -41,10 +41,11 @@ export const generateTripInsights = (trip: Trip): TripInsights => {
   trip.ledger.filter((entry) => countsInStats(trip, entry)).forEach((entry) => {
     const signedAmount = getSignedAmount(entry);
     addAmount(totalExpenditure, entry.originalCurrency, signedAmount);
-    addAmount(categoryBreakdown, getCategoryName(trip, entry), signedAmount);
-    if (!entry.isRefund && signedAmount > largestExpenseAmount) {
+    const cnySignedAmount = entry.isRefund ? -entry.cnyEquivalent : entry.cnyEquivalent;
+    addAmount(categoryBreakdown, getCategoryName(trip, entry), cnySignedAmount);
+    if (!entry.isRefund && cnySignedAmount > largestExpenseAmount) {
       largestExpense = entry;
-      largestExpenseAmount = signedAmount;
+      largestExpenseAmount = cnySignedAmount;
     }
   });
 
@@ -112,7 +113,7 @@ export const calculateAnnualTotals = (
     trip.ledger.filter((entry) => countsInStats(trip, entry)).forEach((entry) => {
       const signedAmount = getSignedAmount(entry);
       addAmount(annualExpenditure, entry.originalCurrency, signedAmount);
-      addAmount(topCategories, getCategoryName(trip, entry), signedAmount);
+      addAmount(topCategories, getCategoryName(trip, entry), entry.isRefund ? -entry.cnyEquivalent : entry.cnyEquivalent);
     });
   });
 
