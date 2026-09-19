@@ -15,14 +15,27 @@ const normalizeTrips = (trips: Trip[]): Trip[] => trips.map((trip) => withDefaul
 const migratePersistedTrip = (rawTrip: unknown): Trip => {
   if (!isRecord(rawTrip)) throw new Error('Persisted Trip is not an object');
   if (Array.isArray(rawTrip.segments)) return rawTrip as unknown as Trip;
-  // V1.0 persisted trips used the flat date/currency/destination shape.
-  // Convert that shape before it reaches React so derived segment-based views
-  // never render against an incompatible historical object.
-  return migrateLegacyPlanToTrip({
+
+  // V1.0 persisted trips used flat dates/currency/destination fields.
+  // Wrap those fields into the first TravelSegment while preserving the
+  // already-normalized ledger/member/account/category data byte-for-byte.
+  const startDate = Number(rawTrip.startDate);
+  const endDate = Number(rawTrip.endDate);
+  const currency = typeof rawTrip.localCurrency === 'string' ? rawTrip.localCurrency.trim() : '';
+  const destination = typeof rawTrip.destination === 'string' ? rawTrip.destination.trim() : '';
+  if (!Number.isFinite(startDate) || !Number.isFinite(endDate) || startDate > endDate || !currency) {
+    throw new Error('Persisted Trip has invalid legacy segment fields');
+  }
+
+  return DomainValidator.validateEntireTrip({
     ...rawTrip,
-    entries: Array.isArray(rawTrip.ledger) ? rawTrip.ledger : [],
-    currency: rawTrip.localCurrency,
-    destination: rawTrip.destination,
+    segments: [{
+      id: `${String(rawTrip.id)}-segment-1`,
+      destinations: destination ? [{ country: '', city: destination }] : [],
+      startDate,
+      endDate,
+      primaryCurrency: currency,
+    }],
   });
 };
 
