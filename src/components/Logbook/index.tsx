@@ -1,8 +1,8 @@
 import { useMemo, useState } from 'react';
-import { BarChart3, ChevronRight, Grid2X2, PieChart, TrendingUp } from 'lucide-react';
+import { BarChart3, Grid2X2, PieChart, TrendingUp } from 'lucide-react';
 import { getTripDestinations, getTripEndDate, getTripStartDate } from '../../core/travelSegment';
 import { LedgerEntry, Trip } from '../../core/domain';
-import { AnnualReflection, TripInsights, TravelFrequency } from '../../types/logbook';
+import { AnnualReflection, TripInsights } from '../../types/logbook';
 import CrossTripIntelligence from '../CrossTripIntelligence';
 
 interface LogbookViewProps {
@@ -28,27 +28,6 @@ const signed = (entry: LedgerEntry) => entry.isRefund ? -entry.cnyEquivalent : e
 const tripLabel = (trip: Trip) => trip.title || getTripDestinations(trip).join(' · ') || 'Untitled journey';
 
 const COLORS = ['#365a5b', '#9b7a4c', '#718783', '#c3a77a', '#526b6d', '#a8b0a5', '#7e6750', '#b6a28a'];
-
-const getTravelFrequency = (trips: Trip[], year: number): TravelFrequency => {
-  const selected = trips.filter((trip) => new Date(getTripStartDate(trip)).getFullYear() === year);
-  const days = selected.reduce((sum, trip) => sum + Math.max(1, Math.floor((getTripEndDate(trip) - getTripStartDate(trip)) / 86400000) + 1), 0);
-  return {
-    tripsPerYear: selected.length,
-    travelDaysPerYear: days,
-    averageTripLength: selected.length ? Math.round((days / selected.length) * 100) / 100 : 0,
-    monthsWithTravel: new Set(selected.flatMap((trip) => {
-      const months: number[] = [];
-      const cursor = new Date(getTripStartDate(trip));
-      const end = new Date(getTripEndDate(trip));
-      while (cursor <= end) {
-        if (cursor.getFullYear() === year) months.push(cursor.getMonth());
-        cursor.setDate(cursor.getDate() + 1);
-      }
-      return months;
-    })).size,
-    averageGapBetweenTrips: null,
-  };
-};
 
 const Donut = ({ values }: { values: { label: string; value: number; color: string }[] }) => {
   const total = values.reduce((sum, item) => sum + item.value, 0);
