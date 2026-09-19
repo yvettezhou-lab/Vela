@@ -14,9 +14,9 @@ export default defineConfig({
       // when checking for a new service worker.
       injectRegister: false,
       includeAssets: [
-        '10D69AAA-D679-43CD-B511-947B2737ADE2.png',
-        '896DCF5B-31E2-44AA-ADEB-1A9E019FC6FC.png',
-        'E338C85B-A1F5-4DB3-9C3C-E03DC47C6380.png',
+        'vela-icon-192.png',
+        'vela-icon-512.png',
+        'favicon-32.png',
       ],
       manifest: {
         name: 'Vela',
@@ -29,13 +29,13 @@ export default defineConfig({
         theme_color: '#efe8da',
         icons: [
           {
-            src: '/896DCF5B-31E2-44AA-ADEB-1A9E019FC6FC.png',
+            src: '/vela-icon-192.png',
             sizes: '192x192',
             type: 'image/png',
             purpose: 'any maskable',
           },
           {
-            src: '/896DCF5B-31E2-44AA-ADEB-1A9E019FC6FC.png',
+            src: '/vela-icon-512.png',
             sizes: '512x512',
             type: 'image/png',
             purpose: 'any maskable',
