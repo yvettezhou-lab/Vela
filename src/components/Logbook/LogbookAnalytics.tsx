@@ -1,9 +1,8 @@
-import { useMemo, useState } from 'react';
-import { BarChart3, PieChart } from 'lucide-react';
+import { useEffect, useMemo, useState } from 'react';
 import { LedgerEntry, Trip } from '../../core/domain';
 import { getTripEndDate, getTripStartDate } from '../../core/travelSegment';
 
-type Scope = 'current' | 'all';
+type Scope = 'trip' | 'all';
 type View = 'category' | 'account' | 'person' | 'type' | 'compare';
 type ChartMode = 'donut' | 'bars';
 type CompareSort = 'total' | 'daily' | 'person';
@@ -28,12 +27,12 @@ const isTripInYear = (trip: Trip, year: number) => {
 };
 const inYear = (entry: LedgerEntry, year: number) => new Date(entryDate(entry)).getFullYear() === year;
 
-const Donut = ({ items }: { items: { label: string; value: number; color: string }[] }) => {
+const Donut = ({ items, onClick }: { items: { label: string; value: number; color: string }[]; onClick?: () => void }) => {
   const total = items.reduce((sum, item) => sum + item.value, 0);
   const radius = 43;
   const circumference = 2 * Math.PI * radius;
   let offset = 0;
-  return <div className="logbook-donut-wrap">
+  return <div className="logbook-donut-wrap" onClick={onClick} onKeyDown={(event) => { if (event.key === "Enter" || event.key === " ") onClick?.(); }} role={onClick ? "button" : undefined} tabIndex={onClick ? 0 : undefined} style={onClick ? { cursor: "pointer" } : undefined}>
     <svg className="logbook-donut" viewBox="0 0 108 108" role="img" aria-label="Spending distribution">
       <circle cx="54" cy="54" r={radius} fill="none" stroke="#e8dfce" strokeWidth="17" />
       {items.map((item) => {
@@ -48,9 +47,9 @@ const Donut = ({ items }: { items: { label: string; value: number; color: string
   </div>;
 };
 
-const Bars = ({ items }: { items: { label: string; value: number }[] }) => {
+const Bars = ({ items, onClick }: { items: { label: string; value: number }[]; onClick?: () => void }) => {
   const max = Math.max(1, ...items.map((item) => item.value));
-  return <div className="logbook-bars">{items.length ? items.map((item) => <div className="logbook-analysis-row" key={item.label}>
+  return <div className="logbook-bars" onClick={onClick} onKeyDown={(event) => { if (event.key === "Enter" || event.key === " ") onClick?.(); }} role={onClick ? "button" : undefined} tabIndex={onClick ? 0 : undefined} style={onClick ? { cursor: "pointer" } : undefined}>{items.length ? items.map((item) => <div className="logbook-analysis-row" key={item.label}>
     <div className="logbook-analysis-row-head"><span>{item.label}</span><strong>{money(item.value)}</strong></div>
     <div className="logbook-analysis-track"><span style={{ width: `${Math.max(3, item.value / max * 100)}%` }} /></div>
   </div>) : <p className="logbook-empty-inline">No recorded spending for this period.</p>}</div>;
@@ -112,11 +111,26 @@ const CompareBars = ({ items, sort, onSortChange }: {
 };
 
 export default function LogbookAnalytics({ trips, activeTrip }: { trips: Trip[]; activeTrip: Trip | null }) {
-  const [scope, setScope] = useState<Scope>('current');
+  const [scope, setScope] = useState<Scope>('trip');
   const [selectedYear, setSelectedYear] = useState(() => new Date().getFullYear());
   const [view, setView] = useState<View>('category');
   const [chartMode, setChartMode] = useState<ChartMode>('donut');
   const [compareSort, setCompareSort] = useState<CompareSort>('total');
+
+  const defaultTrip = useMemo(() => {
+    if (activeTrip) return activeTrip;
+    const planned = trips.filter((trip) => trip.status === 'planning').sort((a, b) => getTripStartDate(a) - getTripStartDate(b));
+    if (planned[0]) return planned[0];
+    return [...trips].sort((a, b) => getTripStartDate(b) - getTripStartDate(a))[0] ?? null;
+  }, [trips, activeTrip]);
+  const [selectedTripId, setSelectedTripId] = useState(() => activeTrip?.id ?? '');
+  const selectedTrip = trips.find((trip) => trip.id === selectedTripId) ?? defaultTrip;
+
+  useEffect(() => {
+    if (!selectedTripId || !trips.some((trip) => trip.id === selectedTripId)) {
+      setSelectedTripId(defaultTrip?.id ?? '');
+    }
+  }, [selectedTripId, trips, defaultTrip]);
 
   const availableYears = useMemo(() => {
     const years = new Set<number>([new Date().getFullYear()]);
@@ -130,17 +144,17 @@ export default function LogbookAnalytics({ trips, activeTrip }: { trips: Trip[];
   }, [trips]);
 
   const allYearTrips = useMemo(() => trips.filter((trip) => isTripInYear(trip, selectedYear)), [trips, selectedYear]);
-  const currentRows = useMemo(() => activeTrip ? activeTrip.ledger.map((entry) => ({ trip: activeTrip, entry })) : [], [activeTrip]);
+  const tripRows = useMemo(() => selectedTrip ? selectedTrip.ledger.map((entry) => ({ trip: selectedTrip, entry })) : [], [selectedTrip]);
   const allRows = useMemo(() => trips.flatMap((trip) => trip.ledger.filter((entry) => inYear(entry, selectedYear)).map((entry) => ({ trip, entry }))), [trips, selectedYear]);
   const previousRows = useMemo(() => trips.flatMap((trip) => trip.ledger.filter((entry) => inYear(entry, selectedYear - 1)).map((entry) => ({ trip, entry }))), [trips, selectedYear]);
 
-  const rows = scope === 'current' ? currentRows : allRows;
+  const rows = scope === 'trip' ? tripRows : allRows;
 
   const metrics = useMemo(() => {
     const total = rows.reduce((sum, { entry }) => sum + spend(entry), 0);
-    if (scope === 'current') {
-      const days = activeTrip ? tripDays(activeTrip) : 1;
-      const people = activeTrip ? Math.max(1, activeMembers(activeTrip).length) : 1;
+    if (scope === 'trip') {
+      const days = selectedTrip ? tripDays(selectedTrip) : 1;
+      const people = selectedTrip ? Math.max(1, activeMembers(selectedTrip).length) : 1;
       return {
         first: total,
         firstLabel: 'TOTAL EXPENSE',
@@ -159,7 +173,7 @@ export default function LogbookAnalytics({ trips, activeTrip }: { trips: Trip[];
       third: tripsTaken ? total / tripsTaken : 0,
       thirdLabel: 'TRIP AVG',
     };
-  }, [rows, scope, activeTrip, allYearTrips, selectedYear]);
+  }, [rows, scope, selectedTrip, allYearTrips, selectedYear]);
 
   const category = useMemo(() => {
     const map = new Map<string, number>();
@@ -234,14 +248,17 @@ export default function LogbookAnalytics({ trips, activeTrip }: { trips: Trip[];
   }), [allYearTrips, selectedYear]);
 
   const active = view === 'category' ? category : view === 'account' ? account : person;
-  const labels: View[] = scope === 'current' ? ['category', 'account', 'person', 'type'] : ['category', 'account', 'person', 'compare'];
+  const labels: View[] = scope === 'trip' ? ['category', 'account', 'person', 'type'] : ['category', 'account', 'person', 'compare'];
   const labelForView = (item: View) => item[0].toUpperCase() + item.slice(1);
 
   return <section className="logbook-analytics">
     <div style={{ display: 'flex', alignItems: 'center', gap: 4, marginBottom: 12 }}>
       <div className="logbook-time-toggle" role="group" aria-label="Journey scope" style={{ flex: 1, marginBottom: 0 }}>
-        {(['current', 'all'] as Scope[]).map((item) => <button key={item} type="button" className={scope === item ? 'active' : ''} onClick={() => setScope(item)}>{item === 'current' ? 'Current Trip' : 'All Trips'}</button>)}
+        {(['trip', 'all'] as Scope[]).map((item) => <button key={item} type="button" className={scope === item ? 'active' : ''} onClick={() => setScope(item)}>{item === 'trip' ? 'Trip' : 'All Trips'}</button>)}
       </div>
+      {scope === 'trip' && <select aria-label="Trip" value={selectedTrip?.id ?? ''} onChange={(event) => setSelectedTripId(event.target.value)} style={{ width: 54, height: 25, border: 0, borderRadius: 13, background: '#e9e9ea', color: '#1d2a40', fontSize: 9, textAlign: 'center', padding: 0 }}>
+        {trips.map((trip) => <option key={trip.id} value={trip.id}>{trip.title}</option>)}
+      </select>}
       {scope === 'all' && <select aria-label="Year" value={selectedYear} onChange={(event) => setSelectedYear(Number(event.target.value))} style={{ width: 54, height: 25, border: 0, borderRadius: 13, background: '#e9e9ea', color: '#1d2a40', fontSize: 9, textAlign: 'center', padding: 0 }}>
         {availableYears.map((year) => <option key={year} value={year}>{year}</option>)}
       </select>}
@@ -262,18 +279,18 @@ export default function LogbookAnalytics({ trips, activeTrip }: { trips: Trip[];
             <span className="logbook-overline">WHERE THE JOURNEY WENT</span>
             <h3>{view === 'category' ? 'Spending by category' : view === 'account' ? 'Spending by account' : view === 'person' ? 'Spending by person' : view === 'type' ? 'Spending by type' : 'Compare journeys'}</h3>
           </div>
-          {view === 'category' && <button type="button" className="logbook-chart-toggle" onClick={() => setChartMode(chartMode === 'donut' ? 'bars' : 'donut')} aria-label="Toggle category chart">{chartMode === 'donut' ? <BarChart3 size={15} /> : <PieChart size={15} />}</button>}
+          
         </div>
 
         {view === 'category' && chartMode === 'donut'
-          ? <div className="logbook-donut-layout"><Donut items={category} /><div className="logbook-legend">{category.length ? category.map((item) => <div key={item.label}><i style={{ background: item.color }} /><span>{item.label}</span><strong>{money(item.value)}</strong></div>) : <p className="logbook-empty-inline">No recorded spending for this period.</p>}</div></div>
+          ? <div className="logbook-donut-layout"><Donut items={category} onClick={() => setChartMode('bars')} /><div className="logbook-legend">{category.length ? category.map((item) => <div key={item.label}><i style={{ background: item.color }} /><span>{item.label}</span><strong>{money(item.value)}</strong></div>) : <p className="logbook-empty-inline">No recorded spending for this period.</p>}</div></div>
           : view === 'person' && scope === 'all'
             ? <YoYBars items={yoyPerson} currentYear={selectedYear} />
             : view === 'compare' && scope === 'all'
               ? <CompareBars items={compare} sort={compareSort} onSortChange={setCompareSort} />
               : view === 'type'
                 ? <TypeBars items={type} />
-                : <Bars items={active} />}
+                : <Bars items={active} onClick={view === 'category' ? () => setChartMode('donut') : undefined} />}
       </div>
     </div>
   </section>;
