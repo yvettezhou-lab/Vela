@@ -343,7 +343,7 @@ export const TripCreation: React.FC<Props> = ({ onClose, onCreated, onUpdated, t
 
       {!editing && <button type="button" className="trip-creation-submit trip-next-button" onClick={goToRules}>Next <ChevronDown size={15} /></button>}
       </>}
-      {(!editing && step === 2) && <>
+      {(editing || step === 2) && <>
         <section className="trip-allocation-rules">
         <span className="trip-field-label">PEOPLE &amp; ALLOCATION</span>
         <small className="trip-allocation-hint">设置这次 Trip 的参与人员和默认分摊比例。Quick Entry 可直接选择“按设定比例”。</small>
