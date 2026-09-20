@@ -50,3 +50,15 @@
 @media(max-width:600px){
   .trip-date-popover{width:min(300px, calc(100vw - 32px))!important}
 }
+
+
+/* Segment destination hierarchy: one segment owns multiple cities. */
+.trip-destination-section{margin-top:13px}
+.trip-destination-section>.trip-field-label{display:block;margin-bottom:2px}
+.trip-destination-row{grid-template-columns:1fr 1fr 28px}
+.trip-destination-row .trip-country-autocomplete{min-width:0}
+.trip-destination-row .trip-region-input{grid-column:1 / 3;grid-row:2}
+.trip-destination-row>.trip-destination-remove{grid-column:3;grid-row:1;align-self:center}
+.trip-add-city{display:inline-flex;align-items:center;gap:5px;margin-top:8px;padding:0;border:0;background:transparent;color:#687b74;font-size:10px;font-weight:600;letter-spacing:.04em;cursor:pointer}
+.trip-add-city:hover{text-decoration:underline}
+.trip-add-segment{margin-top:2px;padding-top:10px;border-top:1px solid rgba(67,76,70,.10);width:100%;text-align:left}
