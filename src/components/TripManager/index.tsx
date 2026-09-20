@@ -36,7 +36,7 @@ export const TripManager: React.FC = () => {
     const searchable = [
       trip.title,
       ...trip.segments.flatMap((segment) => [
-        ...segment.destinations.flatMap((destination) => [destination.country, destination.city]),
+        ...segment.destinations.flatMap((destination) => [destination.country, destination.region ?? '', destination.city]),
         segment.primaryCurrency,
       ]),
     ].filter(Boolean).join(' ').toLocaleLowerCase();
