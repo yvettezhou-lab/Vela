@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Archive, Pencil, Plus, Trash2, X } from 'lucide-react';
+import { Pencil, Plus, Trash2, X } from 'lucide-react';
 import { useVelaStore } from '../../store/useVelaStore';
 import './masterData.css';
 
@@ -11,7 +11,7 @@ export const MasterData: React.FC = () => {
   const deleteMember = useVelaStore((state) => state.deleteCommonMember);
   const addAccount = useVelaStore((state) => state.addCommonAccount);
   const renameAccount = useVelaStore((state) => state.renameCommonAccount);
-  const archiveAccount = useVelaStore((state) => state.archiveCommonAccount);
+  const deleteAccount = useVelaStore((state) => state.deleteCommonAccount);
   const [memberName, setMemberName] = useState('');
   const [accountName, setAccountName] = useState('');
   const [adding, setAdding] = useState<'member' | 'account' | null>(null);
@@ -47,13 +47,13 @@ export const MasterData: React.FC = () => {
   };
 
   const archive = (kind: 'member' | 'account', id: string, name: string) => {
-    if (kind === 'member') {
-      if (!window.confirm(`Delete ${name}? Existing trips keep their own copy.`)) return;
-      deleteMember(id);
-      return;
+    if (!window.confirm(`Delete ${name}? Existing trips keep their own copy.`)) return;
+    try {
+      kind === 'member' ? deleteMember(id) : deleteAccount(id);
+      setError('');
+    } catch (caught) {
+      setError(caught instanceof Error ? caught.message : 'Unable to delete.');
     }
-    if (!window.confirm(`Archive ${name}? Existing trips keep their own copy.`)) return;
-    archiveAccount(id);
   };
 
   const list = (kind: 'member' | 'account') => {
@@ -63,7 +63,7 @@ export const MasterData: React.FC = () => {
         <strong>{item.name}</strong>
         <div className="master-data-actions">
           <button type="button" aria-label={`Edit ${item.name}`} onClick={() => edit(kind, item.id, item.name)}><Pencil size={14} /></button>
-          <button type="button" aria-label={`${kind === 'member' ? 'Delete' : 'Archive'} ${item.name}`} onClick={() => archive(kind, item.id, item.name)}>{kind === 'member' ? <Trash2 size={14} /> : <Archive size={14} />}</button>
+          <button type="button" aria-label={`Delete ${item.name}`} onClick={() => archive(kind, item.id, item.name)}><Trash2 size={14} /></button>
         </div>
       </div>
     ));
