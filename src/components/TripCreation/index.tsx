@@ -72,7 +72,8 @@ export const TripCreation: React.FC<Props> = ({ onClose, onCreated, onUpdated, t
   const [coverFile, setCoverFile] = useState<File | null>(null);
   const [coverPreview, setCoverPreview] = useState<string | null>(null);
   const [isSaving, setIsSaving] = useState(false);
-  const [allocationRules, setAllocationRules] = useState<AllocationRule | undefined>(() => trip?.allocationRules ? { allocationMode: trip.allocationRules.allocationMode, percentages: trip.allocationRules.percentages ? { ...trip.allocationRules.percentages } : undefined } : undefined);
+  const [allocationRules, setAllocationRules] = useState<AllocationRule | undefined>(() => trip?.allocationRules?.percentages ? { allocationMode: 'preset_percentage', percentages: { ...trip.allocationRules.percentages } } : undefined);
+  const [presetPercentages, setPresetPercentages] = useState<Record<string, number>>(() => trip?.allocationRules?.percentages ? { ...trip.allocationRules.percentages } : {});
   const persistedCover = useTripCover(trip?.coverImage);
   const availableSourceTrips = useVelaStore((state) => state.trips).filter((source) => source.status === 'achieve' && source.id !== trip?.id).sort((a, b) => b.updatedAt - a.updatedAt);
 
@@ -91,9 +92,10 @@ export const TripCreation: React.FC<Props> = ({ onClose, onCreated, onUpdated, t
     setMembers(clonedMembers);
     setAccounts(source.accounts.map((account) => ({ ...account, id: crypto.randomUUID() })));
     setCategories(source.categories.map((category) => ({ ...category })));
-    if (source.allocationRules) {
+    if (source.allocationRules?.percentages) {
       const percentages = Object.fromEntries(Object.entries(source.allocationRules.percentages ?? {}).map(([memberId, percentage]) => [memberIdMap.get(memberId) ?? '', percentage]).filter(([memberId]) => Boolean(memberId)));
       setAllocationRules({ allocationMode: 'preset_percentage', percentages });
+      setPresetPercentages(percentages);
     } else {
       const customEntry = [...source.ledger].reverse().find((entry) => entry.allocationMode === 'custom_percentage');
       if (customEntry) {
@@ -166,13 +168,18 @@ export const TripCreation: React.FC<Props> = ({ onClose, onCreated, onUpdated, t
       normalizedSegments.push({ id: draft.id, startDate: start, endDate: end, destinations, primaryCurrency: draft.primaryCurrency.trim().toUpperCase() });
     }
 
+    const activeMemberIds = new Set(members.filter((member) => member.archived !== true).map((member) => member.id));
+    const normalizedPreset = Object.fromEntries(Object.entries(presetPercentages).filter(([memberId, percentage]) => activeMemberIds.has(memberId) && Number.isFinite(Number(percentage)) && Number(percentage) > 0).map(([memberId, percentage]) => [memberId, Number(percentage)]));
+    const presetTotal = Object.values(normalizedPreset).reduce((sum, percentage) => sum + percentage, 0);
+    if (Object.keys(normalizedPreset).length > 0 && Math.abs(presetTotal - 100) > 0.001) return setError('Preset allocation percentages must total 100%. Current: ' + presetTotal.toFixed(2) + '%.');
+    const normalizedAllocationRules = Object.keys(normalizedPreset).length ? { allocationMode: 'preset_percentage' as const, percentages: normalizedPreset } : undefined;
     const now = Date.now();
     let storedCoverKey: string | undefined;
     try {
       setIsSaving(true);
       if (coverFile) storedCoverKey = await putTripCover(coverFile);
       const payload: Trip = {
-        id: trip?.id ?? crypto.randomUUID(), title: cleanTitle, segments: normalizedSegments, status: trip?.status ?? 'planning', allocationRules,
+        id: trip?.id ?? crypto.randomUUID(), title: cleanTitle, segments: normalizedSegments, status: trip?.status ?? 'planning', allocationRules: normalizedAllocationRules,
         coverImage: storedCoverKey ?? trip?.coverImage, members: editing ? members : (members.length ? members : [{ id: crypto.randomUUID(), name: 'Me' }]),
         accounts, categories, ledger: trip?.ledger ?? [], createdAt: trip?.createdAt ?? now, updatedAt: now,
       };
@@ -231,6 +238,19 @@ export const TripCreation: React.FC<Props> = ({ onClose, onCreated, onUpdated, t
       </div>
 
       <div className="trip-creation-member"><span>DEFAULT MEMBER</span><strong>Me</strong><small>Added automatically</small></div>
+      <section className="trip-allocation-rules">
+        <span className="trip-field-label">PRESET ALLOCATION</span>
+        <small className="trip-allocation-hint">设置后，Quick Entry 可直接选择“按设定比例”。留空则不启用预设分摊。</small>
+        <div className="trip-allocation-list">
+          {members.filter((member) => member.archived !== true).map((member) => (
+            <label key={member.id} className="trip-allocation-row">
+              <strong>{member.name}</strong>
+              <span><input type="number" min="0" max="100" step="0.01" value={presetPercentages[member.id] ?? ""} onChange={(e) => setPresetPercentages((current) => ({ ...current, [member.id]: e.target.value === "" ? 0 : Number(e.target.value) }))} aria-label={member.name + " preset percentage"} /> %</span>
+            </label>
+          ))}
+        </div>
+        <div className="trip-allocation-total">合计 {Object.values(presetPercentages).reduce((sum, value) => sum + (Number(value) || 0), 0).toFixed(2)}%</div>
+      </section>
       {error && <p className="trip-creation-error" role="alert">{error}</p>}
       <button className="trip-creation-submit" type="submit" disabled={isSaving}>{isSaving ? 'Saving…' : editing ? 'Save Journey' : 'Create Journey'} <ChevronDown size={15} /></button>
     </form>
