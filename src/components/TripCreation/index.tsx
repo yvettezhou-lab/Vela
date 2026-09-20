@@ -4,6 +4,7 @@ import { AllocationRule, Destination, TravelSegment, Trip } from '../../core/dom
 import { useVelaStore } from '../../store/useVelaStore';
 import { deleteTripCover, isIndexedDbCoverKey, putTripCover } from '../../core/coverImageStore';
 import { useTripCover } from '../../hooks/useTripCover';
+import { buildAutoTripTitle } from '../../utils/tripTitle';
 import './styles.css';
 
 type Props = { onClose: () => void; onCreated?: () => void; onUpdated?: () => void; trip?: Trip | null };
@@ -119,7 +120,7 @@ const makeDraftSegment = (segment?: TravelSegment): DraftSegment => ({
   id: segment?.id ?? crypto.randomUUID(),
   startDate: segment ? toDateInput(segment.startDate) : '',
   endDate: segment ? toDateInput(segment.endDate) : '',
-  destinations: segment?.destinations?.length ? segment.destinations.map((destination) => ({ ...destination })) : [{ country: '', city: '' }],
+  destinations: segment?.destinations?.length ? segment.destinations.map((destination) => ({ ...destination })) : [{ country: '', region: '', city: '' }],
   primaryCurrency: segment?.primaryCurrency ?? 'CNY',
   currencyManuallySet: Boolean(segment),
 });
@@ -130,31 +131,31 @@ export const TripCreation: React.FC<Props> = ({ onClose, onCreated, onUpdated, t
   const editing = Boolean(trip);
   const [title, setTitle] = useState(trip?.title ?? '');
   const [step, setStep] = useState(1);
-  const [titleEdited, setTitleEdited] = useState(Boolean(trip));
+  const [titleEdited, setTitleEdited] = useState(Boolean(trip?.titleEdited));
   const [segments, setSegments] = useState<DraftSegment[]>(() => trip?.segments.map(makeDraftSegment) ?? [makeDraftSegment()]);
 
   const generatedTitle = useMemo(() => {
-    const valid = segments
-      .map((segment) => ({
-        segment,
-        start: toTimestamp(segment.startDate),
-        end: toTimestamp(segment.endDate),
-        cities: [...new Set(segment.destinations.map((destination) => destination.city.trim()).filter(Boolean))],
-      }))
-      .filter(({ start, end, cities }) => Number.isFinite(start) && Number.isFinite(end) && end >= start && cities.length)
-      .sort((a, b) => (b.end - b.start) - (a.end - a.start));
-
-    if (!valid.length) return '';
-    const longestDuration = valid[0].end - valid[0].start;
-    const longest = valid.filter((item) => item.end - item.start === longestDuration);
-    const tripStart = Math.min(...valid.map((item) => item.start));
-    const startDate = new Date(tripStart);
-    const cities = [...new Set(longest.flatMap((item) => item.cities))];
-    return cities.length
-      ? `${startDate.getFullYear()}.${String(startDate.getMonth() + 1).padStart(2, '0')} · ${cities.join(' · ')}`
-      : '';
-  }, [segments]);
-
+    const draftTrip = {
+      id: trip?.id ?? '__draft__',
+      title: '',
+      titleEdited: false,
+      segments: segments.map((segment) => ({
+        id: segment.id,
+        startDate: toTimestamp(segment.startDate),
+        endDate: toTimestamp(segment.endDate),
+        destinations: segment.destinations.map((destination) => ({ ...destination })),
+        primaryCurrency: segment.primaryCurrency,
+      })),
+      status: trip?.status ?? 'planning',
+      members: [],
+      accounts: [],
+      categories: [],
+      ledger: [],
+      createdAt: trip?.createdAt ?? Date.now(),
+      updatedAt: Date.now(),
+    } as Trip;
+    return buildAutoTripTitle(draftTrip, useVelaStore.getState().trips);
+  }, [segments, trip?.id, trip?.status, trip?.createdAt]);
   useEffect(() => {
     if (!titleEdited && generatedTitle) setTitle(generatedTitle);
   }, [generatedTitle, titleEdited]);
@@ -276,7 +277,7 @@ export const TripCreation: React.FC<Props> = ({ onClose, onCreated, onUpdated, t
       const start = toTimestamp(draft.startDate), end = toTimestamp(draft.endDate);
       if (!Number.isFinite(start) || !Number.isFinite(end)) return setError(`Please choose both dates for Segment ${i + 1}.`);
       if (end < start) return setError(`End date cannot be before start date in Segment ${i + 1}.`);
-      const destinations = draft.destinations.map((destination) => ({ country: destination.country.trim(), city: destination.city.trim() }));
+      const destinations = draft.destinations.map((destination) => ({ country: destination.country.trim(), region: destination.region?.trim() || undefined, city: destination.city.trim() }));
       if (destinations.some((destination) => !destination.country && !destination.city)) return setError(`Please complete the destination in Segment ${i + 1}.`);
       if (!draft.primaryCurrency.trim()) return setError(`Please choose a primary currency for Segment ${i + 1}.`);
       normalizedSegments.push({ id: draft.id, startDate: start, endDate: end, destinations, primaryCurrency: draft.primaryCurrency.trim().toUpperCase() });
@@ -293,7 +294,7 @@ export const TripCreation: React.FC<Props> = ({ onClose, onCreated, onUpdated, t
       setIsSaving(true);
       if (coverFile) storedCoverKey = await putTripCover(coverFile);
       const payload: Trip = {
-        id: trip?.id ?? crypto.randomUUID(), title: cleanTitle, segments: normalizedSegments, status: trip?.status ?? 'planning', allocationRules: normalizedAllocationRules,
+        id: trip?.id ?? crypto.randomUUID(), title: cleanTitle, titleEdited, segments: normalizedSegments, status: trip?.status ?? 'planning', allocationRules: normalizedAllocationRules,
         coverImage: storedCoverKey ?? trip?.coverImage, members: editing ? members : (members.length ? members : [{ id: crypto.randomUUID(), name: 'Me' }]),
         accounts, categories, ledger: trip?.ledger ?? [], createdAt: trip?.createdAt ?? now, updatedAt: now,
       };
@@ -334,6 +335,7 @@ export const TripCreation: React.FC<Props> = ({ onClose, onCreated, onUpdated, t
               <span className="trip-field-label">DESTINATIONS</span>
               {segment.destinations.map((destination, destinationIndex) => <div className="trip-destination-row" key={destinationIndex}>
                 <div className="trip-country-autocomplete"><input aria-label={`Segment ${segmentIndex + 1} country ${destinationIndex + 1}`} value={destination.country} onChange={(e) => updateCountry(segmentIndex, destinationIndex, e.target.value)} placeholder="Country" list={`vela-country-${segment.id}-${destinationIndex}`} /><datalist id={`vela-country-${segment.id}-${destinationIndex}`}>{countryMatches(destination.country).map(([en, zh, code]) => <option key={code || en} value={en}>{zh}{code ? ` · ${code}` : ""}</option>)}</datalist></div>
+                {/^(china|中国)$/i.test(destination.country.trim()) && <input aria-label={`Segment ${segmentIndex + 1} region ${destinationIndex + 1}`} value={destination.region ?? ''} onChange={(e) => updateDestination(segmentIndex, destinationIndex, { region: e.target.value })} placeholder="Province / Region" />}
                 <input aria-label={`Segment ${segmentIndex + 1} city ${destinationIndex + 1}`} value={destination.city} onChange={(e) => updateDestination(segmentIndex, destinationIndex, { city: e.target.value })} placeholder="City" />
                 {destinationIndex === segment.destinations.length - 1 ? <button type="button" className="trip-inline-add" onClick={() => addDestination(segmentIndex)} aria-label="Add destination"><Plus size={15} /></button> : <button type="button" className="trip-icon-button trip-destination-remove" onClick={() => removeDestination(segmentIndex, destinationIndex)} aria-label="Remove destination"><X size={13} /></button>}
               </div>)}
