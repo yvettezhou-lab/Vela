@@ -173,6 +173,7 @@ export const TripCreation: React.FC<Props> = ({ onClose, onCreated, onUpdated, t
   const [presetPercentages, setPresetPercentages] = useState<Record<string, number>>(() => trip?.allocationRules?.percentages ? { ...trip.allocationRules.percentages } : {});
   const persistedCover = useTripCover(trip?.coverImage);
   const [newMemberName, setNewMemberName] = useState('');
+  const [newAccountName, setNewAccountName] = useState('');
   const availableSourceTrips = useVelaStore((state) => state.trips).filter((source) => source.status === 'achieve' && source.id !== trip?.id).sort((a, b) => b.updatedAt - a.updatedAt);
 
   const overlapPairs = useMemo(() => {
@@ -404,6 +405,42 @@ export const TripCreation: React.FC<Props> = ({ onClose, onCreated, onUpdated, t
           ))}
         </div>
         <div className="trip-allocation-total">Total {Object.values(presetPercentages).reduce((sum, value) => sum + (Number(value) || 0), 0).toFixed(2)}%</div>
+        </section>
+        <section className="trip-account-rules">
+          <span className="trip-field-label">ACCOUNTS</span>
+          <small className="trip-allocation-hint">记录这次旅行实际会用到的支付账户。默认账户已提前准备好。</small>
+          <div className="trip-member-add-row">
+            <input
+              value={newAccountName}
+              onChange={(e) => setNewAccountName(e.target.value)}
+              placeholder="Add account to this trip"
+              onKeyDown={(e) => {
+                if (e.key !== 'Enter') return;
+                const name = newAccountName.trim();
+                if (!name || accounts.some((account) => !account.archived && account.name.toLowerCase() === name.toLowerCase())) return;
+                setAccounts((current) => [...current, { id: crypto.randomUUID(), name }]);
+                setNewAccountName('');
+              }}
+            />
+            <button type="button" onClick={() => {
+              const name = newAccountName.trim();
+              if (!name || accounts.some((account) => !account.archived && account.name.toLowerCase() === name.toLowerCase())) return;
+              setAccounts((current) => [...current, { id: crypto.randomUUID(), name }]);
+              setNewAccountName('');
+            }}>+ Add</button>
+          </div>
+          <div className="trip-account-list">
+            {accounts.filter((account) => account.archived !== true).map((account) => (
+              <div className="trip-account-row" key={account.id}>
+                <strong>{account.name}</strong>
+                {accounts.filter((item) => item.archived !== true).length > 1 && (
+                  <button type="button" className="trip-icon-button" onClick={() => setAccounts((current) => current.map((item) => item.id === account.id ? { ...item, archived: true } : item))} aria-label={"Remove " + account.name}>
+                    <X size={13} />
+                  </button>
+                )}
+              </div>
+            ))}
+          </div>
         </section>
       </>}
       {!editing && <div className="trip-creation-step-actions"><button type="button" className="trip-secondary-action" onClick={() => { setError(''); setStep(1); }}>Back</button><button className="trip-creation-submit" type="submit" disabled={isSaving}>{isSaving ? 'Saving…' : 'Create Journey'} <ChevronDown size={15} /></button></div>}
