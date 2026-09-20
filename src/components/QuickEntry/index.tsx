@@ -450,10 +450,10 @@ const QuickEntryContent: React.FC<QuickEntryProps> = ({ onClose }) => {
         <div className="mt-4 rounded-xl bg-[#fbf7ee] px-4 py-3.5 shadow-[inset_0_0_0_1px_rgba(80,64,42,.10)]">
           <div className="flex items-center justify-between gap-4">
             <div>
-              <span className="block text-sm font-medium text-[#17243a]">是否计入统计</span>
-              <span className="mt-1 block text-xs text-[#857a6a]">{includeInCost ? '计入旅行总支出、日均和回顾统计' : '保留在账本与分摊中，但不计入旅行成本统计'}</span>
+              <span className="block text-sm font-medium text-[#17243a]">Include in Statistics</span>
+              <span className="mt-1 block text-xs text-[#857a6a]">{includeInCost ? 'Included in trip total, daily average, and Reflection' : 'Kept in Ledger and Allocation, but excluded from trip cost statistics'}</span>
             </div>
-            <button type="button" role="switch" aria-checked={includeInCost} onClick={() => setIncludeInCost((value) => !value)} className={includeInCost ? 'relative h-8 w-14 shrink-0 rounded-full bg-[#17243a]' : 'relative h-8 w-14 shrink-0 rounded-full bg-[#d8cfbf]'} aria-label={includeInCost ? '计入统计，点击取消' : '不计入统计，点击开启'}>
+            <button type="button" role="switch" aria-checked={includeInCost} onClick={() => setIncludeInCost((value) => !value)} className={includeInCost ? 'relative h-8 w-14 shrink-0 rounded-full bg-[#17243a]' : 'relative h-8 w-14 shrink-0 rounded-full bg-[#d8cfbf]'} aria-label={includeInCost ? 'Included in statistics, tap to exclude' : 'Excluded from statistics, tap to include'}>
               <span className={includeInCost ? 'absolute right-1 top-1 h-6 w-6 rounded-full bg-white shadow' : 'absolute left-1 top-1 h-6 w-6 rounded-full bg-white shadow'} />
             </button>
           </div>
