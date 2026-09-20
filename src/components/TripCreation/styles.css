@@ -62,3 +62,14 @@
 .trip-add-city{display:inline-flex;align-items:center;gap:5px;margin-top:8px;padding:0;border:0;background:transparent;color:#687b74;font-size:10px;font-weight:600;letter-spacing:.04em;cursor:pointer}
 .trip-add-city:hover{text-decoration:underline}
 .trip-add-segment{margin-top:2px;padding-top:10px;border-top:1px solid rgba(67,76,70,.10);width:100%;text-align:left}
+
+/* Segment hierarchy: country is a segment-level boundary; destinations are places within it. */
+.trip-segment-country{display:grid;grid-template-columns:1fr auto;gap:5px 10px;margin:13px 0 12px;padding-bottom:10px;border-bottom:1px solid rgba(67,76,70,.10)}
+.trip-segment-country .trip-field-label{grid-column:1/-1;margin-bottom:0}
+.trip-segment-country .trip-country-autocomplete{min-width:0}
+.trip-segment-country small{align-self:end;padding-bottom:8px;font-size:9px;color:rgba(67,76,70,.48);white-space:nowrap}
+.trip-destination-section>.trip-field-label{display:block;margin-bottom:5px}
+.trip-destination-row{grid-template-columns:1fr 28px;align-items:center}
+.trip-destination-row .trip-region-input{grid-column:1;grid-row:1}
+.trip-destination-row>.trip-destination-remove{grid-column:2;grid-row:1;align-self:center}
+@media(max-width:420px){.trip-segment-country{grid-template-columns:1fr}.trip-segment-country small{padding-bottom:0}}
