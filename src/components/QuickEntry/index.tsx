@@ -1,6 +1,6 @@
 import { getSegmentPrimaryCurrency, getTripPrimaryCurrency } from '../../core/travelSegment';
 import React, { Component, ErrorInfo, ReactNode, useEffect, useRef, useState } from 'react';
-import { Calendar, X } from 'lucide-react';
+import { Calendar, ChevronLeft, ChevronRight, X } from 'lucide-react';
 import { useVelaStore } from '../../store/useVelaStore';
 import { TRANSPORT_CATEGORY_ID } from '../../core/validation';
 import { Allocation, AllocationMode, FlightType, LedgerEntry } from '../../core/domain';
@@ -23,35 +23,138 @@ const toDateValue = (date: Date) => {
 };
 
 const todayValue = () => toDateValue(new Date());
-const formatCny = (value: number) => (Number.isFinite(value) ? value.toFixed(2).replace(/\.00$/, '') : '');
-
-interface DatePickerProps {
+const formatCny = (value: number) => (Number.isFinite(value) ? value.toFixed(2).reinterface DatePickerProps {
   value: string;
   onChange: (value: string) => void;
   label: string;
   required?: boolean;
 }
 
-/**
- * Intentionally bare native date control.
- * No custom calendar, no open state, no blur(), no click/focus handlers,
- * and no React-controlled dismissal. iOS owns the date picker lifecycle.
- */
-const DatePicker: React.FC<DatePickerProps> = ({ value, onChange, label, required }) => (
-  <label className="block">
-    <span className="mb-2 block text-xs uppercase tracking-[0.14em] text-[#857a6a]">{label}</span>
-    <div className="relative">
-      <Calendar className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-[#9a7440]" size={19} strokeWidth={1.8} />
-      <input
-        type="date"
-        value={value}
-        required={required}
-        onChange={(event) => onChange(event.currentTarget.value)}
-        className="w-full rounded-xl bg-[#fbf7ee] px-12 py-3.5 text-base text-[#17243a] shadow-[inset_0_0_0_1px_rgba(80,64,42,.10)] outline-none"
-      />
+const parseDateValue = (value: string) => {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(value)) return null;
+  const [year, month, day] = value.split('-').map(Number);
+  const date = new Date(year, month - 1, day);
+  return date.getFullYear() === year && date.getMonth() === month - 1 && date.getDate() === day ? date : null;
+};
+
+const formatPickerDate = (value: string) => {
+  const date = parseDateValue(value);
+  return date ? `${date.getFullYear()}年${date.getMonth() + 1}月${date.getDate()}日` : 'Select date';
+};
+
+const getMonthCells = (month: Date) => {
+  const firstDay = new Date(month.getFullYear(), month.getMonth(), 1);
+  const startOffset = firstDay.getDay();
+  const daysInMonth = new Date(month.getFullYear(), month.getMonth() + 1, 0).getDate();
+  return Array.from({ length: Math.ceil((startOffset + daysInMonth) / 7) * 7 }, (_, index) => {
+    const day = index - startOffset + 1;
+    return day >= 1 && day <= daysInMonth ? new Date(month.getFullYear(), month.getMonth(), day) : null;
+  });
+};
+
+const DatePicker: React.FC<DatePickerProps> = ({ value, onChange, label, required }) => {
+  const selectedDate = parseDateValue(value);
+  const [open, setOpen] = useState(false);
+  const [viewMonth, setViewMonth] = useState(() => {
+    const base = selectedDate ?? new Date();
+    return new Date(base.getFullYear(), base.getMonth(), 1);
+  });
+
+  const monthCells = getMonthCells(viewMonth);
+  const today = toDateValue(new Date());
+  const selectedValue = selectedDate ? toDateValue(selectedDate) : '';
+
+  const openPicker = () => {
+    const base = parseDateValue(value) ?? new Date();
+    setViewMonth(new Date(base.getFullYear(), base.getMonth(), 1));
+    setOpen(true);
+  };
+
+  const chooseDate = (date: Date) => {
+    onChange(toDateValue(date));
+    setOpen(false);
+  };
+
+  return (
+    <div className="vela-date-picker">
+      <span className="mb-2 block text-xs uppercase tracking-[0.14em] text-[#857a6a]">{label}</span>
+      <button
+        type="button"
+        onClick={openPicker}
+        aria-expanded={open}
+        aria-haspopup="dialog"
+        className={`flex min-h-14 w-full items-center justify-between rounded-2xl bg-[#fbf7ee] px-4 text-left shadow-[inset_0_0_0_1px_rgba(80,64,42,.10)] transition active:scale-[0.99] ${open ? 'rounded-b-none shadow-none' : ''}`}
+      >
+        <span className="flex min-w-0 items-center gap-3">
+          <Calendar className="shrink-0 text-[#9a7440]" size={19} strokeWidth={1.8} />
+          <span className={selectedDate ? 'text-base text-[#17243a]' : 'text-base text-[#9a8f80]'}>
+            {formatPickerDate(value)}
+          </span>
+        </span>
+        <span className="text-xs text-[#9a7440]">{open ? 'Done' : 'Change'}</span>
+      </button>
+
+      {open && (
+        <div className="rounded-b-2xl bg-[#fbf7ee] px-3 pb-4 shadow-[inset_0_0_0_1px_rgba(80,64,42,.10)]" role="dialog" aria-label={`${label} calendar`}>
+          <div className="flex items-center justify-between border-t border-black/5 px-1 py-3">
+            <button
+              type="button"
+              onClick={() => setViewMonth(new Date(viewMonth.getFullYear(), viewMonth.getMonth() - 1, 1))}
+              aria-label="Previous month"
+              className="grid min-h-10 min-w-10 place-items-center rounded-full text-[#17243a] active:bg-[#eee5d5]"
+            >
+              <ChevronLeft size={19} />
+            </button>
+            <span className="text-sm font-medium text-[#17243a]">
+              {viewMonth.getFullYear()}年{viewMonth.getMonth() + 1}月
+            </span>
+            <button
+              type="button"
+              onClick={() => setViewMonth(new Date(viewMonth.getFullYear(), viewMonth.getMonth() + 1, 1))}
+              aria-label="Next month"
+              className="grid min-h-10 min-w-10 place-items-center rounded-full text-[#17243a] active:bg-[#eee5d5]"
+            >
+              <ChevronRight size={19} />
+            </button>
+          </div>
+
+          <div className="grid grid-cols-7 text-center text-[11px] text-[#9a8f80]">
+            {['日', '一', '二', '三', '四', '五', '六'].map((day) => <span key={day} className="py-1">{day}</span>)}
+          </div>
+
+          <div className="grid grid-cols-7 gap-y-1 text-center">
+            {monthCells.map((date, index) => {
+              if (!date) return <span key={`empty-${index}`} className="min-h-11" />;
+              const dateValue = toDateValue(date);
+              const selected = dateValue === selectedValue;
+              const isToday = dateValue === today;
+              return (
+                <button
+                  key={dateValue}
+                  type="button"
+                  onClick={() => chooseDate(date)}
+                  aria-label={dateValue}
+                  aria-pressed={selected}
+                  className={`mx-auto grid min-h-11 w-11 place-items-center rounded-full text-sm transition active:scale-95 ${
+                    selected
+                      ? 'bg-[#17243a] font-medium text-white'
+                      : isToday
+                        ? 'bg-[#eee5d5] font-medium text-[#17243a]'
+                        : 'text-[#17243a] hover:bg-[#eee5d5]'
+                  }`}
+                >
+                  {date.getDate()}
+                </button>
+              );
+            })}
+          </div>
+
+          {required && !value && <p className="pt-2 text-center text-xs text-[#9a8f80]">Select a date</p>}
+        </div>
+      )}
     </div>
-  </label>
-);
+  );
+};
 
 export interface QuickEntryProps {
   onClose?: () => void;
