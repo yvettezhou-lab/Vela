@@ -1,5 +1,5 @@
 import React, { FormEvent, useMemo, useState } from 'react';
-import { CalendarDays, ChevronDown, Plus, Trash2, X } from 'lucide-react';
+import { CalendarDays, ChevronDown, ChevronLeft, ChevronRight, Plus, Trash2, X } from 'lucide-react';
 import { AllocationRule, Destination, TravelSegment, Trip } from '../../core/domain';
 import { useVelaStore } from '../../store/useVelaStore';
 import { deleteTripCover, isIndexedDbCoverKey, putTripCover } from '../../core/coverImageStore';
@@ -52,6 +52,58 @@ const toTimestamp = (value: string) => {
   return Number.isFinite(timestamp) ? timestamp : NaN;
 };
 const countryCurrency = (country: string) => COUNTRY_CURRENCIES[country.trim().toLowerCase()] ?? '';
+const parseDateValue = (value: string) => {
+  if (!/^\\d{4}-\\d{2}-\\d{2}$/.test(value)) return null;
+  const [year, month, day] = value.split('-').map(Number);
+  const date = new Date(year, month - 1, day);
+  return date.getFullYear() === year && date.getMonth() === month - 1 && date.getDate() === day ? date : null;
+};
+const formatTripDate = (value: string) => {
+  const date = parseDateValue(value);
+  return date ? `${date.getFullYear()}年${date.getMonth() + 1}月${date.getDate()}日` : 'Select date';
+};
+const monthCells = (month: Date) => {
+  const first = new Date(month.getFullYear(), month.getMonth(), 1);
+  const offset = first.getDay();
+  const days = new Date(month.getFullYear(), month.getMonth() + 1, 0).getDate();
+  return Array.from({ length: Math.ceil((offset + days) / 7) * 7 }, (_, i) => {
+    const day = i - offset + 1;
+    return day >= 1 && day <= days ? new Date(month.getFullYear(), month.getMonth(), day) : null;
+  });
+};
+const CompactTripDatePicker: React.FC<{ value: string; onChange: (value: string) => void; label: string }> = ({ value, onChange, label }) => {
+  const selected = parseDateValue(value);
+  const [open, setOpen] = useState(false);
+  const [month, setMonth] = useState(() => {
+    const base = selected ?? new Date();
+    return new Date(base.getFullYear(), base.getMonth(), 1);
+  });
+  const today = toDateInput(Date.now());
+  const select = (date: Date) => { onChange(toDateInput(date.getTime())); setOpen(false); };
+  return <div className="trip-date-picker">
+    <span>{label}</span>
+    <button type="button" className={`trip-date-trigger${open ? ' is-open' : ''}`} onClick={() => { const base = parseDateValue(value) ?? new Date(); setMonth(new Date(base.getFullYear(), base.getMonth(), 1)); setOpen(true); }} aria-expanded={open}>
+      <CalendarDays size={14} />
+      <strong>{formatTripDate(value)}</strong>
+      <span className="trip-date-action">{open ? 'Done' : 'Change'}</span>
+    </button>
+    {open && <div className="trip-date-popover">
+      <div className="trip-date-month">
+        <button type="button" onClick={() => setMonth(new Date(month.getFullYear(), month.getMonth() - 1, 1))} aria-label="Previous month"><ChevronLeft size={18}/></button>
+        <strong>{month.getFullYear()}年{month.getMonth() + 1}月</strong>
+        <button type="button" onClick={() => setMonth(new Date(month.getFullYear(), month.getMonth() + 1, 1))} aria-label="Next month"><ChevronRight size={18}/></button>
+      </div>
+      <div className="trip-date-week">{['日','一','二','三','四','五','六'].map(d => <span key={d}>{d}</span>)}</div>
+      <div className="trip-date-grid">{monthCells(month).map((date, i) => {
+        if (!date) return <span key={`empty-${i}`} />;
+        const v = toDateInput(date.getTime());
+        const isSelected = v === value;
+        const isToday = v === today;
+        return <button type="button" key={v} className={isSelected ? 'selected' : isToday ? 'today' : ''} onClick={() => select(date)}>{date.getDate()}</button>;
+      })}</div>
+    </div>}
+  </div>;
+};
 const makeDraftSegment = (segment?: TravelSegment): DraftSegment => ({
   id: segment?.id ?? crypto.randomUUID(),
   startDate: segment ? toDateInput(segment.startDate) : '',
@@ -222,8 +274,8 @@ export const TripCreation: React.FC<Props> = ({ onClose, onCreated, onUpdated, t
           return <div className={`trip-segment ${overlaps ? 'is-overlapping' : ''}`} key={segment.id}>
             <div className="trip-segment-head"><strong>SEGMENT {segmentIndex + 1}</strong>{segments.length > 1 && <button type="button" className="trip-icon-button" onClick={() => removeSegment(segmentIndex)} aria-label={`Remove segment ${segmentIndex + 1}`}><Trash2 size={14} /></button>}</div>
             <div className="trip-creation-dates">
-              <label><span>START</span><div><CalendarDays size={14} /><input type="date" value={segment.startDate} onChange={(e) => updateSegment(segmentIndex, { startDate: e.target.value })} /></div></label>
-              <label><span>END</span><div><CalendarDays size={14} /><input type="date" value={segment.endDate} onChange={(e) => updateSegment(segmentIndex, { endDate: e.target.value })} /></div></label>
+              <CompactTripDatePicker label="START" value={segment.startDate} onChange={(value) => updateSegment(segmentIndex, { startDate: value })} />
+              <CompactTripDatePicker label="END" value={segment.endDate} onChange={(value) => updateSegment(segmentIndex, { endDate: value })} />
             </div>
             {overlaps && <p className="trip-segment-inline-error" role="alert">This date range overlaps another segment. Segments must not overlap.</p>}
             <div className="trip-destination-section">
