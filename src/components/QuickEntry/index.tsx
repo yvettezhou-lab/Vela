@@ -439,15 +439,23 @@ const QuickEntryContent: React.FC<QuickEntryProps> = ({ onClose }) => {
               </select>
             </label>
           )}
-          <div className="mt-4 col-span-2 flex items-center justify-between rounded-xl bg-[#fbf7ee] px-4 py-3.5 shadow-[inset_0_0_0_1px_rgba(80,64,42,.10)]">
-            <div><span className="block text-sm text-[#17243a]">计入旅行成本</span><span className="mt-1 block text-xs text-[#857a6a]">{includeInCost ? '会计入总支出、日均和回顾统计' : '保留在账本与分摊中，但不计入旅行成本'}</span></div>
-            <button type="button" role="switch" aria-checked={includeInCost} onClick={() => setIncludeInCost((value) => !value)} className={includeInCost ? 'relative h-7 w-12 rounded-full bg-[#17243a]' : 'relative h-7 w-12 rounded-full bg-[#d8cfbf]'}><span className={includeInCost ? 'absolute right-1 top-1 h-5 w-5 rounded-full bg-white shadow' : 'absolute left-1 top-1 h-5 w-5 rounded-full bg-white shadow'} /></button>
-          </div>
           <div className={entryType === 'flight' ? 'col-span-2' : ''}>
             <span className="mb-2 block text-xs uppercase tracking-[0.14em] text-[#857a6a]">Payment Account</span>
             <div className="grid grid-cols-2 gap-3">
               {accounts.map((account) => <button key={account.id} type="button" onClick={() => setAccountId(account.id)} aria-pressed={accountId === account.id} className={`min-h-12 rounded-xl border px-3 text-sm font-medium transition ${accountId === account.id ? 'border-[#17243a] bg-[#17243a] text-[#fffdf8] shadow-md' : 'border-black/5 bg-[#fbf7ee] text-[#17243a] shadow-sm hover:bg-white'}`}>{account.name}</button>)}
             </div>
+          </div>
+        </div>
+
+        <div className="mt-4 rounded-xl bg-[#fbf7ee] px-4 py-3.5 shadow-[inset_0_0_0_1px_rgba(80,64,42,.10)]">
+          <div className="flex items-center justify-between gap-4">
+            <div>
+              <span className="block text-sm font-medium text-[#17243a]">是否计入统计</span>
+              <span className="mt-1 block text-xs text-[#857a6a]">{includeInCost ? '计入旅行总支出、日均和回顾统计' : '保留在账本与分摊中，但不计入旅行成本统计'}</span>
+            </div>
+            <button type="button" role="switch" aria-checked={includeInCost} onClick={() => setIncludeInCost((value) => !value)} className={includeInCost ? 'relative h-8 w-14 shrink-0 rounded-full bg-[#17243a]' : 'relative h-8 w-14 shrink-0 rounded-full bg-[#d8cfbf]'} aria-label={includeInCost ? '计入统计，点击取消' : '不计入统计，点击开启'}>
+              <span className={includeInCost ? 'absolute right-1 top-1 h-6 w-6 rounded-full bg-white shadow' : 'absolute left-1 top-1 h-6 w-6 rounded-full bg-white shadow'} />
+            </button>
           </div>
         </div>
 
