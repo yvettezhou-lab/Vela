@@ -8,7 +8,7 @@ import { NavigationRoute, registerRoute, setCatchHandler } from 'workbox-routing
 const sw = self as unknown as ServiceWorkerGlobalScope;
 
 // Bump this when the offline shell logic changes so a new SW is generated.
-const OFFLINE_SHELL_VERSION = '2026-09-19.1';
+const OFFLINE_SHELL_VERSION = '2026-09-21.1';
 void OFFLINE_SHELL_VERSION;
 
 self.skipWaiting();
