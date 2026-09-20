@@ -124,3 +124,27 @@ html,body,#root{width:100%;min-width:0;overflow-x:hidden}
   }
 }
 
+
+/* Quick Entry — cost statistics control must remain visible on narrow iPhones. */
+.vela-cost-toggle{
+  display:grid!important;
+  grid-template-columns:minmax(0,1fr) 56px!important;
+  grid-template-areas:"copy switch" "state switch";
+  column-gap:12px!important;
+  row-gap:4px!important;
+  align-items:center!important;
+  margin-top:16px!important;
+  padding:12px 14px!important;
+  border:1px solid var(--vela-line)!important;
+  border-radius:var(--vela-radius-md)!important;
+  background:var(--vela-surface)!important;
+  min-width:0!important;
+}
+.vela-cost-toggle-copy{grid-area:copy;min-width:0!important}
+.vela-cost-toggle-title{display:block!important;margin:0!important;font:600 14px/1.25 -apple-system,BlinkMacSystemFont,"SF Pro Text","PingFang SC",sans-serif!important;color:var(--vela-ink)!important;white-space:normal!important}
+.vela-cost-toggle-help{display:block!important;margin-top:4px!important;font:11px/1.4 -apple-system,BlinkMacSystemFont,"SF Pro Text","PingFang SC",sans-serif!important;color:var(--vela-muted)!important;white-space:normal!important}
+.vela-cost-switch{grid-area:switch;align-self:center!important;justify-self:end!important;width:52px!important;height:30px!important;min-width:52px!important;padding:0!important;border:0!important;border-radius:999px!important;background:#d8cfbf!important;position:relative!important;display:block!important;box-shadow:none!important}
+.vela-cost-switch.is-on{background:var(--vela-primary)!important}
+.vela-cost-switch-knob{position:absolute!important;top:3px!important;left:3px!important;width:24px!important;height:24px!important;border-radius:50%!important;background:#fff!important;box-shadow:0 1px 4px rgba(23,33,43,.18)!important;transition:left .16s ease!important}
+.vela-cost-switch.is-on .vela-cost-switch-knob{left:25px!important}
+.vela-cost-switch-state{grid-area:state;display:block!important;font:600 10px/1 -apple-system,BlinkMacSystemFont,"SF Pro Text","PingFang SC",sans-serif!important;letter-spacing:.04em!important;color:var(--vela-accent)!important}
