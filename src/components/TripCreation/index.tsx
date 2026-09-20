@@ -184,6 +184,20 @@ export const TripCreation: React.FC<Props> = ({ onClose, onCreated, onUpdated, t
   const [newAccountName, setNewAccountName] = useState('');
   const availableSourceTrips = useVelaStore((state) => state.trips).filter((source) => source.status === 'achieve' && source.id !== trip?.id).sort((a, b) => b.updatedAt - a.updatedAt);
 
+  const buildEqualPreset = (memberIds: string[]) => {
+    if (!memberIds.length) return {};
+    const base = Math.floor((100 / memberIds.length) * 100) / 100;
+    return Object.fromEntries(memberIds.map((id, index) => [
+      id,
+      index === memberIds.length - 1 ? Number((100 - base * (memberIds.length - 1)).toFixed(2)) : base,
+    ]));
+  };
+  const isEqualPreset = (memberIds: string[], percentages: Record<string, number>) => {
+    if (!memberIds.length) return true;
+    const expected = buildEqualPreset(memberIds);
+    return memberIds.every((id) => Math.abs((Number(percentages[id]) || 0) - (expected[id] || 0)) < 0.001);
+  };
+
   const overlapPairs = useMemo(() => {
     const ranges = segments.map((segment, index) => ({ index, start: toTimestamp(segment.startDate), end: toTimestamp(segment.endDate) }))
       .filter((range) => Number.isFinite(range.start) && Number.isFinite(range.end) && range.start <= range.end);
@@ -411,7 +425,20 @@ export const TripCreation: React.FC<Props> = ({ onClose, onCreated, onUpdated, t
         <section className="trip-allocation-rules">
         <span className="trip-field-label">PEOPLE &amp; ALLOCATION</span>
         <small className="trip-allocation-hint">设置这次 Trip 的参与人员和默认分摊比例。Quick Entry 可直接选择“按设定比例”。</small>
-        <div className="trip-member-add-row"><input value={newMemberName} onChange={(e) => setNewMemberName(e.target.value)} placeholder="Add person to this trip" onKeyDown={(e) => { if (e.key === 'Enter') { const name = newMemberName.trim(); if (name && !members.some((member) => !member.archived && member.name.toLowerCase() === name.toLowerCase())) { const id = crypto.randomUUID(); setMembers((current) => [...current, { id, name }]); setPresetPercentages((current) => ({ ...current, [id]: 0 })); setNewMemberName(''); } } }} /><button type="button" onClick={() => { const name = newMemberName.trim(); if (!name || members.some((member) => !member.archived && member.name.toLowerCase() === name.toLowerCase())) return; const id = crypto.randomUUID(); setMembers((current) => [...current, { id, name }]); setPresetPercentages((current) => ({ ...current, [id]: 0 })); setNewMemberName(''); }}>+ Add</button></div>
+        <div className="trip-member-add-row"><input value={newMemberName} onChange={(e) => setNewMemberName(e.target.value)} placeholder="Add person to this trip" onKeyDown={(e) => { if (e.key === 'Enter') { const name = newMemberName.trim(); if (name && !members.some((member) => !member.archived && member.name.toLowerCase() === name.toLowerCase())) {
+              const id = crypto.randomUUID();
+              const activeIds = members.filter((member) => member.archived !== true).map((member) => member.id);
+              const shouldRebalance = isEqualPreset(activeIds, presetPercentages);
+              setMembers((current) => [...current, { id, name }]);
+              setPresetPercentages((current) => shouldRebalance ? buildEqualPreset([...activeIds, id]) : ({ ...current, [id]: 0 }));
+              setNewMemberName('');
+            } } }} /><button type="button" onClick={() => { const name = newMemberName.trim(); if (!name || members.some((member) => !member.archived && member.name.toLowerCase() === name.toLowerCase())) return; const id = crypto.randomUUID();
+              const activeIds = members.filter((member) => member.archived !== true).map((member) => member.id);
+              const shouldRebalance = isEqualPreset(activeIds, presetPercentages);
+              setMembers((current) => [...current, { id, name }]);
+              setPresetPercentages((current) => shouldRebalance ? buildEqualPreset([...activeIds, id]) : ({ ...current, [id]: 0 }));
+              setNewMemberName('');
+            }}>+ Add</button></div>
         <div className="trip-allocation-list">
           {members.filter((member) => member.archived !== true).map((member) => (
             <label key={member.id} className="trip-allocation-row">
