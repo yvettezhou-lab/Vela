@@ -13,7 +13,7 @@ export interface PrepaidMultiDayEntry extends BaseLedgerEntry { entryType: 'prep
 export type FlightEntry = FlightOneWay | FlightRoundTrip;
 export type LedgerEntry = StandardEntry | FlightEntry | PrepaidMultiDayEntry;
 export interface TripFinancialTotals { financialTotal: number; settledAmount: number; pendingAmount: number; }
-export interface Destination { country: string; city: string; }
+export interface Destination { country: string; region?: string; city: string; }
 export interface TravelSegment { id: string; destinations: Destination[]; startDate: number; endDate: number; primaryCurrency: string; }
 export interface AllocationRule { allocationMode: 'preset_percentage'; percentages: Record<string, number>; }
-export interface Trip { id: string; title: string; segments: TravelSegment[]; status: TripStatus; allocationRules?: AllocationRule; coverImage?: string; members: Member[]; accounts: Account[]; categories: Category[]; ledger: LedgerEntry[]; createdAt: number; updatedAt: number; }
+export interface Trip { id: string; title: string; titleEdited?: boolean; segments: TravelSegment[]; status: TripStatus; allocationRules?: AllocationRule; coverImage?: string; members: Member[]; accounts: Account[]; categories: Category[]; ledger: LedgerEntry[]; createdAt: number; updatedAt: number; }
