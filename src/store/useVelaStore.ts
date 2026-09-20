@@ -127,4 +127,8 @@ export const useVelaStore = create<VelaState>()(persist((set, get) => ({
       const accountMap = new Map<string, Account>();
       for (const account of [...existingAccounts, ...trips.flatMap((trip) => trip.accounts)]) if (!accountMap.has(account.name.trim().toLowerCase())) accountMap.set(account.name.trim().toLowerCase(), { id: crypto.randomUUID(), name: account.name.trim() });
       return { ...migrated, commonMembers: [...memberMap.values()].filter((item) => item.name), commonAccounts: [...accountMap.values()].filter((item) => item.name) };
-    }, onRehydrateStorage: () => (state, error) => { if (error || !state) return; const migratedTrips = migrateLegacyStorageIfNeeded(state.trips); const normalizedTrips = normalizeTrips(migratedTrips); if (normalizedTrips !== state.trips) useVelaStore.setState({ trips: normalizedTrips }); useVelaStore.getState().evaluateAutoStart(); } }));
+    }, onRehydrateStorage: () => (state, error) => { if (error || !state) return; const migratedTrips = migrateLegacyStorageIfNeeded(state.trips); const normalizedTrips = normalizeTrips(migratedTrips);
+      const members = state.commonMembers?.length ? state.commonMembers : Array.from(new Map(normalizedTrips.flatMap((trip) => trip.members).map((member) => [member.name.trim().toLowerCase(), { id: crypto.randomUUID(), name: member.name.trim() }])).values());
+      const accounts = state.commonAccounts?.length ? state.commonAccounts : Array.from(new Map(normalizedTrips.flatMap((trip) => trip.accounts).map((account) => [account.name.trim().toLowerCase(), { id: crypto.randomUUID(), name: account.name.trim() }])).values());
+      useVelaStore.setState({ trips: normalizedTrips, commonMembers: members, commonAccounts: accounts });
+      useVelaStore.getState().evaluateAutoStart(); } }));
