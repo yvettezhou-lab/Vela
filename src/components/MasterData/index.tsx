@@ -38,12 +38,12 @@ export const MasterData: React.FC = () => {
     <p className="master-data-global-hint">These are Vela-wide defaults. A Trip copies the people and accounts it needs; changing them here does not alter existing trips.</p>
     {error && <p className="master-data-preset-message">{error}</p>}
     <section className="master-data-group">
-      <div className="master-data-group-head"><div><span className="master-data-kicker">COMMON PEOPLE</span><strong className="master-data-section-title">常用人员</strong></div></div>
+      <div className="master-data-group-head"><div><span className="master-data-kicker">COMMON PEOPLE</span><strong className="master-data-section-title">People</strong></div></div>
       <div className="master-data-editor"><input value={memberName} onChange={(e) => setMemberName(e.target.value)} placeholder="Person name" onKeyDown={(e) => { if (e.key === 'Enter') add('member'); }} /><button type="button" onClick={() => add('member')}><Plus size={14}/> Add</button></div>
       <div className="master-data-list">{list('member')}</div>
     </section>
     <section className="master-data-group">
-      <div className="master-data-group-head"><div><span className="master-data-kicker">COMMON ACCOUNTS</span><strong className="master-data-section-title">账户</strong></div></div>
+      <div className="master-data-group-head"><div><span className="master-data-kicker">COMMON ACCOUNTS</span><strong className="master-data-section-title">Accounts</strong></div></div>
       <div className="master-data-editor"><input value={accountName} onChange={(e) => setAccountName(e.target.value)} placeholder="Account name" onKeyDown={(e) => { if (e.key === 'Enter') add('account'); }} /><button type="button" onClick={() => add('account')}><Plus size={14}/> Add</button></div>
       <div className="master-data-list">{list('account')}</div>
     </section>
