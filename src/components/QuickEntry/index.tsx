@@ -23,7 +23,9 @@ const toDateValue = (date: Date) => {
 };
 
 const todayValue = () => toDateValue(new Date());
-const formatCny = (value: number) => (Number.isFinite(value) ? value.toFixed(2).reinterface DatePickerProps {
+const formatCny = (value: number) => (Number.isFinite(value) ? value.toFixed(2).replace(/\.00$/, '') : '');
+
+interface DatePickerProps {
   value: string;
   onChange: (value: string) => void;
   label: string;
@@ -97,23 +99,11 @@ const DatePicker: React.FC<DatePickerProps> = ({ value, onChange, label, require
       {open && (
         <div className="rounded-b-2xl bg-[#fbf7ee] px-3 pb-4 shadow-[inset_0_0_0_1px_rgba(80,64,42,.10)]" role="dialog" aria-label={`${label} calendar`}>
           <div className="flex items-center justify-between border-t border-black/5 px-1 py-3">
-            <button
-              type="button"
-              onClick={() => setViewMonth(new Date(viewMonth.getFullYear(), viewMonth.getMonth() - 1, 1))}
-              aria-label="Previous month"
-              className="grid min-h-10 min-w-10 place-items-center rounded-full text-[#17243a] active:bg-[#eee5d5]"
-            >
+            <button type="button" onClick={() => setViewMonth(new Date(viewMonth.getFullYear(), viewMonth.getMonth() - 1, 1))} aria-label="Previous month" className="grid min-h-10 min-w-10 place-items-center rounded-full text-[#17243a] active:bg-[#eee5d5]">
               <ChevronLeft size={19} />
             </button>
-            <span className="text-sm font-medium text-[#17243a]">
-              {viewMonth.getFullYear()}年{viewMonth.getMonth() + 1}月
-            </span>
-            <button
-              type="button"
-              onClick={() => setViewMonth(new Date(viewMonth.getFullYear(), viewMonth.getMonth() + 1, 1))}
-              aria-label="Next month"
-              className="grid min-h-10 min-w-10 place-items-center rounded-full text-[#17243a] active:bg-[#eee5d5]"
-            >
+            <span className="text-sm font-medium text-[#17243a]">{viewMonth.getFullYear()}年{viewMonth.getMonth() + 1}月</span>
+            <button type="button" onClick={() => setViewMonth(new Date(viewMonth.getFullYear(), viewMonth.getMonth() + 1, 1))} aria-label="Next month" className="grid min-h-10 min-w-10 place-items-center rounded-full text-[#17243a] active:bg-[#eee5d5]">
               <ChevronRight size={19} />
             </button>
           </div>
