@@ -73,3 +73,13 @@
 .trip-destination-row .trip-region-input{grid-column:1;grid-row:1}
 .trip-destination-row>.trip-destination-remove{grid-column:2;grid-row:1;align-self:center}
 @media(max-width:420px){.trip-segment-country{grid-template-columns:1fr}.trip-segment-country small{padding-bottom:0}}
+
+
+/* Linked segment dates: make the continuous travel chain visible without adding another card. */
+.trip-creation-dates.is-linked{align-items:start}
+.trip-linked-start{min-width:0;display:grid;gap:4px}
+.trip-linked-start .trip-date-picker{min-width:0}
+.trip-linked-start>span{font-size:8px;line-height:1.25;color:#829087;padding-left:2px;white-space:nowrap}
+.trip-linked-start>button{justify-self:start;padding:0 2px;border:0;background:transparent;color:#687b74;font:600 8px/1.2 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;cursor:pointer}
+.trip-linked-start>button:hover{text-decoration:underline}
+.trip-creation-dates.is-linked .trip-date-trigger{border-color:rgba(41,75,74,.24);background:rgba(41,75,74,.045)}
