@@ -237,16 +237,15 @@ export const TripCreation: React.FC<Props> = ({ onClose, onCreated, onUpdated, t
       ...segment,
       destinations: segment.destinations.map((destination, j) => j === destinationIndex ? { ...destination, ...patch } : destination),
     }));
-  const updateCountry = (segmentIndex: number, destinationIndex: number, country: string) => {
+  const updateCountry = (segmentIndex: number, country: string) => {
     setSegments((current) => current.map((segment, i) => {
       if (i !== segmentIndex) return segment;
-      const destinations = segment.destinations.map((destination, j) => j === destinationIndex ? { ...destination, country } : destination);
-      const firstCountry = destinations[0]?.country ?? '';
-      const suggestedCurrency = countryCurrency(firstCountry);
+      const destinations = segment.destinations.map((destination) => ({ ...destination, country }));
+      const suggestedCurrency = countryCurrency(country);
       return { ...segment, destinations, ...(suggestedCurrency && !segment.currencyManuallySet ? { primaryCurrency: suggestedCurrency } : {}) };
     }));
   };
-  const addDestination = (segmentIndex: number) => setSegments((current) => current.map((segment, i) => i === segmentIndex ? { ...segment, destinations: [...segment.destinations, { country: '', region: '', city: '' }] } : segment));
+  const addDestination = (segmentIndex: number) => setSegments((current) => current.map((segment, i) => i === segmentIndex ? { ...segment, destinations: [...segment.destinations, { country: segment.destinations[0]?.country ?? '', region: '', city: '' }] } : segment));
   const removeDestination = (segmentIndex: number, destinationIndex: number) => setSegments((current) => current.map((segment, i) => {
     if (i !== segmentIndex || segment.destinations.length <= 1) return segment;
     return { ...segment, destinations: segment.destinations.filter((_, j) => j !== destinationIndex) };
@@ -348,12 +347,16 @@ export const TripCreation: React.FC<Props> = ({ onClose, onCreated, onUpdated, t
             </div>
             {overlaps && <p className="trip-segment-inline-error" role="alert">This date range overlaps another segment. Segments must not overlap.</p>}
             <div className="trip-destination-section">
-              <span className="trip-field-label">DESTINATIONS IN THIS SEGMENT</span>
+              <div className="trip-segment-country">
+                <span className="trip-field-label">COUNTRY</span>
+                <div className="trip-country-autocomplete"><input aria-label={"Segment " + (segmentIndex + 1) + " country"} value={segment.destinations[0]?.country ?? ""} onChange={(e) => updateCountry(segmentIndex, e.target.value)} placeholder="Country" list={"vela-country-" + segment.id} /><datalist id={"vela-country-" + segment.id}>{countryMatches(segment.destinations[0]?.country ?? "").map(([en, zh, code]) => <option key={code || en} value={en}>{zh}{code ? " · " + code : ""}</option>)}</datalist></div>
+                <small>One country per segment</small>
+              </div>
+              <span className="trip-field-label">DESTINATIONS</span>
               {segment.destinations.map((destination, destinationIndex) => <div className="trip-destination-row" key={destinationIndex}>
-                <div className="trip-country-autocomplete"><input aria-label={`Segment ${segmentIndex + 1} country ${destinationIndex + 1}`} value={destination.country} onChange={(e) => updateCountry(segmentIndex, destinationIndex, e.target.value)} placeholder="Country" list={`vela-country-${segment.id}-${destinationIndex}`} /><datalist id={`vela-country-${segment.id}-${destinationIndex}`}>{countryMatches(destination.country).map(([en, zh, code]) => <option key={code || en} value={en}>{zh}{code ? ` · ${code}` : ""}</option>)}</datalist></div>
-                {/^(china|中国)$/i.test(destination.country.trim()) && <input aria-label={`Segment ${segmentIndex + 1} region ${destinationIndex + 1}`} value={destination.region ?? ''} onChange={(e) => updateDestination(segmentIndex, destinationIndex, { region: e.target.value })} placeholder="Province / Region" className="trip-region-input" />}
-                <input aria-label={`Segment ${segmentIndex + 1} city ${destinationIndex + 1}`} value={destination.city} onChange={(e) => updateDestination(segmentIndex, destinationIndex, { city: e.target.value })} placeholder="City" />
-                {destinationIndex < segment.destinations.length - 1 ? <button type="button" className="trip-icon-button trip-destination-remove" onClick={() => removeDestination(segmentIndex, destinationIndex)} aria-label="Remove city"><X size={13} /></button> : null}
+                {/^(china|中国)$/i.test(destination.country.trim()) && <input aria-label={"Segment " + (segmentIndex + 1) + " region " + (destinationIndex + 1)} value={destination.region ?? ""} onChange={(e) => updateDestination(segmentIndex, destinationIndex, { region: e.target.value })} placeholder="Province / Region" className="trip-region-input" />}
+                <input aria-label={"Segment " + (segmentIndex + 1) + " city " + (destinationIndex + 1)} value={destination.city} onChange={(e) => updateDestination(segmentIndex, destinationIndex, { city: e.target.value })} placeholder={/^(china|中国)$/i.test(destination.country.trim()) ? "City" : "City / place"} />
+                {destinationIndex < segment.destinations.length - 1 ? <button type="button" className="trip-icon-button trip-destination-remove" onClick={() => removeDestination(segmentIndex, destinationIndex)} aria-label="Remove destination"><X size={13} /></button> : null}
               </div>)}
               <button type="button" className="trip-add-city" onClick={() => addDestination(segmentIndex)}><Plus size={14} /> Add destination</button>
             </div>
