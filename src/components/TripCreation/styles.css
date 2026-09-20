@@ -83,3 +83,12 @@
 .trip-linked-start>button{justify-self:start;padding:0 2px;border:0;background:transparent;color:#687b74;font:600 8px/1.2 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;cursor:pointer}
 .trip-linked-start>button:hover{text-decoration:underline}
 .trip-creation-dates.is-linked .trip-date-trigger{border-color:rgba(41,75,74,.24);background:rgba(41,75,74,.045)}
+
+
+/* Accounts belong to trip setup, but stay lightweight like the people section. */
+.trip-account-rules{padding-top:2px;border-top:1px solid rgba(67,76,70,.10)}
+.trip-account-rules>.trip-field-label{display:block;margin-top:14px}
+.trip-account-list{display:grid;margin-top:5px}
+.trip-account-row{min-height:40px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid rgba(67,76,70,.09)}
+.trip-account-row:last-child{border-bottom:0}
+.trip-account-row strong{font-size:12px;font-weight:500;color:#344b4d}
