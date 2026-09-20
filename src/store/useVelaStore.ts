@@ -79,7 +79,7 @@ interface VelaState {
   deleteCommonMember: (id: string) => void;
   addCommonAccount: (name: string) => void;
   renameCommonAccount: (id: string, name: string) => void;
-  archiveCommonAccount: (id: string) => void;
+  deleteCommonAccount: (id: string) => void;
   getCurrentTrip: () => Trip | null;
 }
 
@@ -115,7 +115,17 @@ export const useVelaStore = create<VelaState>()(persist((set, get) => ({
   deleteCommonMember: (id) => set({ commonMembers: get().commonMembers.filter((item) => item.id !== id) }),
   addCommonAccount: (name) => { const clean = name.trim(); if (!clean) throw new Error('Account name is required'); const current = get().commonAccounts; if (current.some((item) => !item.archived && item.name.toLowerCase() === clean.toLowerCase())) throw new Error('An account with this name already exists'); set({ commonAccounts: [...current, { id: crypto.randomUUID(), name: clean }] }); },
   renameCommonAccount: (id, name) => { const clean = name.trim(); if (!clean) throw new Error('Account name is required'); set({ commonAccounts: get().commonAccounts.map((item) => item.id === id ? { ...item, name: clean } : item) }); },
-  archiveCommonAccount: (id) => set({ commonAccounts: get().commonAccounts.map((item) => item.id === id ? { ...item, archived: true } : item) }),
+  deleteCommonAccount: (id) => {
+    const account = get().commonAccounts.find((item) => item.id === id);
+    if (!account) throw new Error(`Common account ${id} not found`);
+    const cleanName = account.name.trim().toLowerCase();
+    const inActiveTrip = get().trips.some((trip) =>
+      (trip.status === 'planning' || trip.status === 'traveling') &&
+      trip.accounts.some((item) => item.name.trim().toLowerCase() === cleanName && !item.archived)
+    );
+    if (inActiveTrip) throw new Error(`Cannot delete ${account.name}: it is used by a planning or current trip.`);
+    set({ commonAccounts: get().commonAccounts.filter((item) => item.id !== id) });
+  },
   getCurrentTrip: () => { const trips = get().trips; const traveling = trips.find((t) => t.status === 'traveling'); if (traveling) return traveling; return trips.filter((t) => t.status === 'planning').sort((a, b) => b.updatedAt - a.updatedAt)[0] ?? null; },
 }), { name: 'vela-core-v2', version: 1, migrate: (persistedState, _version) => {
       const migrated = migratePersistedState(persistedState);
