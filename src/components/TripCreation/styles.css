@@ -56,9 +56,7 @@
 .trip-destination-section{margin-top:13px}
 .trip-destination-section>.trip-field-label{display:block;margin-bottom:2px}
 .trip-destination-row{grid-template-columns:minmax(0,1fr)}
-.trip-destination-row.is-china{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}
 .trip-destination-row.has-remove{grid-template-columns:minmax(0,1fr) 28px}
-.trip-destination-row.is-china.has-remove{grid-template-columns:minmax(0,1fr) minmax(0,1fr) 28px}
 .trip-destination-row .trip-country-autocomplete{min-width:0}
 .trip-destination-row .trip-region-input{grid-column:auto;grid-row:auto}
 .trip-destination-row>.trip-destination-remove{grid-column:auto;grid-row:auto;align-self:center}
