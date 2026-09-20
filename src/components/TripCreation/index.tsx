@@ -398,7 +398,7 @@ export const TripCreation: React.FC<Props> = ({ onClose, onCreated, onUpdated, t
                 <small>One country per segment</small>
               </div>
               <span className="trip-field-label">DESTINATIONS</span>
-              {segment.destinations.map((destination, destinationIndex) => <div className="trip-destination-row" key={destinationIndex}>
+              {segment.destinations.map((destination, destinationIndex) => <div className={`trip-destination-row${/^(china|中国)$/i.test(destination.country.trim()) ? ' is-china' : ''}${segment.destinations.length > 1 ? ' has-remove' : ''}`} key={destinationIndex}>
                 {/^(china|中国)$/i.test(destination.country.trim()) && <input aria-label={"Segment " + (segmentIndex + 1) + " region " + (destinationIndex + 1)} value={destination.region ?? ""} onChange={(e) => updateDestination(segmentIndex, destinationIndex, { region: e.target.value })} placeholder="Province / Region" className="trip-region-input" />}
                 <input aria-label={"Segment " + (segmentIndex + 1) + " city " + (destinationIndex + 1)} value={destination.city} onChange={(e) => updateDestination(segmentIndex, destinationIndex, { city: e.target.value })} placeholder={/^(china|中国)$/i.test(destination.country.trim()) ? "City" : "City / place"} />
                 {destinationIndex < segment.destinations.length - 1 ? <button type="button" className="trip-icon-button trip-destination-remove" onClick={() => removeDestination(segmentIndex, destinationIndex)} aria-label="Remove destination"><X size={13} /></button> : null}
