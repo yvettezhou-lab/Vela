@@ -20,11 +20,14 @@ type DraftSegment = {
 
 const CURRENCIES = ['CNY', 'MYR', 'SGD', 'THB', 'IDR', 'PHP', 'JPY', 'KRW', 'USD', 'EUR', 'GBP', 'AUD', 'HKD'];
 const COUNTRY_CURRENCIES: Record<string, string> = {
-  china: 'CNY', malaysia: 'MYR', singapore: 'SGD', thailand: 'THB', indonesia: 'IDR', philippines: 'PHP',
-  japan: 'JPY', 'south korea': 'KRW', korea: 'KRW', 'united states': 'USD', usa: 'USD', 'united kingdom': 'GBP',
-  australia: 'AUD', 'hong kong': 'HKD',
-  austria: 'EUR', france: 'EUR', germany: 'EUR', italy: 'EUR', spain: 'EUR', netherlands: 'EUR',
-  portugal: 'EUR', belgium: 'EUR', greece: 'EUR', finland: 'EUR', ireland: 'EUR',
+  af: 'AFN', al: 'ALL', dz: 'DZD', ar: 'ARS', au: 'AUD', at: 'EUR', be: 'EUR', br: 'BRL',
+  kh: 'KHR', ca: 'CAD', cn: 'CNY', hr: 'EUR', cz: 'CZK', dk: 'DKK', eg: 'EGP', fi: 'EUR',
+  fr: 'EUR', de: 'EUR', gr: 'EUR', hk: 'HKD', hu: 'HUF', is: 'ISK', in: 'INR', id: 'IDR',
+  ie: 'EUR', il: 'ILS', it: 'EUR', jp: 'JPY', jo: 'JOD', kz: 'KZT', la: 'LAK', my: 'MYR',
+  mv: 'MVR', mx: 'MXN', mn: 'MNT', ma: 'MAD', mm: 'MMK', np: 'NPR', nl: 'EUR', nz: 'NZD',
+  no: 'NOK', ph: 'PHP', pl: 'PLN', pt: 'EUR', ru: 'RUB', sa: 'SAR', sg: 'SGD', za: 'ZAR',
+  kr: 'KRW', es: 'EUR', lk: 'LKR', se: 'SEK', ch: 'CHF', tw: 'TWD', th: 'THB', tr: 'TRY',
+  ae: 'AED', gb: 'GBP', us: 'USD', vn: 'VND',
 };
 const COUNTRIES = [
   ['Afghanistan','阿富汗','AF'], ['Albania','阿尔巴尼亚','AL'], ['Algeria','阿尔及利亚','DZ'], ['Argentina','阿根廷','AR'],
@@ -53,7 +56,13 @@ const toTimestamp = (value: string) => {
   const timestamp = new Date(`${value}T12:00:00`).getTime();
   return Number.isFinite(timestamp) ? timestamp : NaN;
 };
-const countryCurrency = (country: string) => COUNTRY_CURRENCIES[country.trim().toLowerCase()] ?? '';
+const countryCurrency = (country: string) => {
+  const value = country.trim().toLowerCase();
+  const match = COUNTRIES.find(([en, zh, code]) =>
+    en.toLowerCase() === value || zh.toLowerCase() === value || code.toLowerCase() === value
+  );
+  return match ? COUNTRY_CURRENCIES[match[2].toLowerCase()] ?? '' : '';
+};
 const parseDateValue = (value: string) => {
   if (!/^\d{4}-\d{2}-\d{2}$/.test(value)) return null;
   const [year, month, day] = value.split('-').map(Number);
