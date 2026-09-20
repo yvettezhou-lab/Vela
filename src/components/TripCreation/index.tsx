@@ -62,6 +62,8 @@ const makeDraftSegment = (segment?: TravelSegment): DraftSegment => ({
 });
 
 export const TripCreation: React.FC<Props> = ({ onClose, onCreated, onUpdated, trip }) => {
+  const commonMembers = useVelaStore((state) => state.commonMembers);
+  const commonAccounts = useVelaStore((state) => state.commonAccounts);
   const editing = Boolean(trip);
   const [title, setTitle] = useState(trip?.title ?? '');
   const [segments, setSegments] = useState<DraftSegment[]>(() => trip?.segments.map(makeDraftSegment) ?? [makeDraftSegment()]);
