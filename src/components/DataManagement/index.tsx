@@ -2,7 +2,7 @@ import { useRef, useState, type ChangeEvent } from 'react';
 import { DomainValidator } from '../../core/validation';
 import { getDefaultCategories } from '../../core/defaults';
 import { useVelaStore } from '../../store/useVelaStore';
-import type { Trip } from '../../core/domain';
+import type { Account, Member, Trip } from '../../core/domain';
 import './dataManagement.css';
 
 const EXPORT_VERSION = 1;
@@ -11,7 +11,7 @@ type ExportPayload = {
   format: 'vela-data-export';
   version: number;
   exportedAt: string;
-  state: { trips: Trip[] };
+  state: { trips: Trip[]; commonMembers: Member[]; commonAccounts: Account[] };
 };
 
 const isRecord = (value: unknown): value is Record<string, unknown> =>
@@ -49,13 +49,15 @@ export const DataManagement = () => {
   const [status, setStatus] = useState<string>('');
   const [busy, setBusy] = useState(false);
   const trips = useVelaStore((state) => state.trips);
+  const commonMembers = useVelaStore((state) => state.commonMembers);
+  const commonAccounts = useVelaStore((state) => state.commonAccounts);
 
   const exportData = () => {
     const payload: ExportPayload = {
       format: 'vela-data-export',
       version: EXPORT_VERSION,
       exportedAt: new Date().toISOString(),
-      state: { trips },
+      state: { trips, commonMembers, commonAccounts },
     };
     const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
@@ -79,7 +81,12 @@ export const DataManagement = () => {
         `Import ${parsed.length} ${parsed.length === 1 ? 'journey' : 'journeys'} and replace the current local data? This cannot be undone.`,
       );
       if (!confirmed) return;
-      useVelaStore.setState({ trips: parsed });
+      const importedState = (JSON.parse(text) as { state?: { commonMembers?: Member[]; commonAccounts?: Account[] } }).state;
+      useVelaStore.setState({
+        trips: parsed,
+        commonMembers: importedState?.commonMembers?.length ? importedState.commonMembers : [{ id: 'common-member-me', name: 'Me' }],
+        commonAccounts: importedState?.commonAccounts?.length ? importedState.commonAccounts : [{ id: 'common-account-cash', name: 'Cash' }, { id: 'common-account-credit-card', name: 'Credit Card' }],
+      });
       setStatus(`Imported ${parsed.length} ${parsed.length === 1 ? 'journey' : 'journeys'}.`);
     } catch (error) {
       setStatus(error instanceof Error ? error.message : 'Import failed. The current data was not changed.');
