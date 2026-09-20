@@ -163,7 +163,7 @@ export const TripCreation: React.FC<Props> = ({ onClose, onCreated, onUpdated, t
     if (!titleEdited && generatedTitle) setTitle(generatedTitle);
   }, [generatedTitle, titleEdited]);
   const [error, setError] = useState('');
-  const [members, setMembers] = useState(() => trip?.members.map((member) => ({ ...member })) ?? commonMembers.filter((member) => member.archived !== true).map((member) => ({ ...member })) ?? []);
+  const [members, setMembers] = useState(() => trip?.members.map((member) => ({ ...member })) ?? []);
   const [accounts, setAccounts] = useState(() => trip?.accounts.map((account) => ({ ...account })) ?? commonAccounts.filter((account) => account.archived !== true).map((account) => ({ ...account })) ?? []);
   const [categories, setCategories] = useState(() => trip?.categories.map((category) => ({ ...category })) ?? []);
   const [coverFile, setCoverFile] = useState<File | null>(null);
@@ -172,7 +172,7 @@ export const TripCreation: React.FC<Props> = ({ onClose, onCreated, onUpdated, t
   const [allocationRules, setAllocationRules] = useState<AllocationRule | undefined>(() => trip?.allocationRules?.percentages ? { allocationMode: 'preset_percentage', percentages: { ...trip.allocationRules.percentages } } : undefined);
   const [presetPercentages, setPresetPercentages] = useState<Record<string, number>>(() => {
     if (trip?.allocationRules?.percentages) return { ...trip.allocationRules.percentages };
-    const initialMembers = trip?.members?.length ? trip.members : commonMembers.filter((member) => member.archived !== true);
+    const initialMembers = trip?.members?.length ? trip.members : [];
     const activeIds = initialMembers.map((member) => member.id);
     if (!activeIds.length) return {};
     const base = Math.floor((100 / activeIds.length) * 100) / 100;
@@ -344,6 +344,7 @@ export const TripCreation: React.FC<Props> = ({ onClose, onCreated, onUpdated, t
     const presetTotal = Object.values(normalizedPreset).reduce((sum, percentage) => sum + percentage, 0);
     if (Object.keys(normalizedPreset).length > 0 && Math.abs(presetTotal - 100) > 0.001) return setError('Preset allocation percentages must total 100%. Current: ' + presetTotal.toFixed(2) + '%.');
     const normalizedAllocationRules = Object.keys(normalizedPreset).length ? { allocationMode: 'preset_percentage' as const, percentages: normalizedPreset } : undefined;
+    if (!members.some((member) => member.archived !== true)) return setError('Add at least one person to this trip.');
     const now = Date.now();
     let storedCoverKey: string | undefined;
     try {
@@ -351,7 +352,7 @@ export const TripCreation: React.FC<Props> = ({ onClose, onCreated, onUpdated, t
       if (coverFile) storedCoverKey = await putTripCover(coverFile);
       const payload: Trip = {
         id: trip?.id ?? crypto.randomUUID(), title: cleanTitle, titleEdited, segments: normalizedSegments, status: trip?.status ?? 'planning', allocationRules: normalizedAllocationRules,
-        coverImage: storedCoverKey ?? trip?.coverImage, members: editing ? members : (members.length ? members : [{ id: crypto.randomUUID(), name: 'Me' }]),
+        coverImage: storedCoverKey ?? trip?.coverImage, members: members.filter((member) => member.archived !== true),
         accounts, categories, ledger: trip?.ledger ?? [], createdAt: trip?.createdAt ?? now, updatedAt: now,
       };
       if (editing && trip) {
@@ -424,27 +425,60 @@ export const TripCreation: React.FC<Props> = ({ onClose, onCreated, onUpdated, t
         <section className="trip-allocation-rules">
         <span className="trip-field-label">PEOPLE &amp; ALLOCATION</span>
         <small className="trip-allocation-hint">设置这次 Trip 的参与人员和默认分摊比例。Quick Entry 可直接选择“按设定比例”。</small>
-        <div className="trip-member-add-row"><input value={newMemberName} onChange={(e) => setNewMemberName(e.target.value)} placeholder="Add person to this trip" onKeyDown={(e) => { if (e.key === 'Enter') { const name = newMemberName.trim(); if (name && !members.some((member) => !member.archived && member.name.toLowerCase() === name.toLowerCase())) {
-              const id = crypto.randomUUID();
-              const activeIds = members.filter((member) => member.archived !== true).map((member) => member.id);
-              const shouldRebalance = isEqualPreset(activeIds, presetPercentages);
-              setMembers((current) => [...current, { id, name }]);
-              setPresetPercentages((current) => shouldRebalance ? buildEqualPreset([...activeIds, id]) : ({ ...current, [id]: 0 }));
-              setNewMemberName('');
-            } } }} /><button type="button" onClick={() => { const name = newMemberName.trim(); if (!name || members.some((member) => !member.archived && member.name.toLowerCase() === name.toLowerCase())) return; const id = crypto.randomUUID();
-              const activeIds = members.filter((member) => member.archived !== true).map((member) => member.id);
-              const shouldRebalance = isEqualPreset(activeIds, presetPercentages);
-              setMembers((current) => [...current, { id, name }]);
-              setPresetPercentages((current) => shouldRebalance ? buildEqualPreset([...activeIds, id]) : ({ ...current, [id]: 0 }));
-              setNewMemberName('');
-            }}>+ Add</button></div>
+        <div className="trip-common-people">
+          <span className="trip-field-label">COMMON PEOPLE</span>
+          <div className="trip-common-people-list">
+            {commonMembers.filter((member) => member.archived !== true && !members.some((selected) => selected.name.trim().toLowerCase() === member.name.trim().toLowerCase())).map((member) => (
+              <button type="button" key={member.id} className="trip-common-person" onClick={() => {
+                const id = crypto.randomUUID();
+                const activeIds = members.filter((item) => item.archived !== true).map((item) => item.id);
+                const shouldRebalance = isEqualPreset(activeIds, presetPercentages);
+                setMembers((current) => [...current, { id, name: member.name }]);
+                setPresetPercentages((current) => shouldRebalance ? buildEqualPreset([...activeIds, id]) : ({ ...current, [id]: 0 }));
+              }}>+ {member.name}</button>
+            ))}
+            {!commonMembers.some((member) => member.archived !== true && !members.some((selected) => selected.name.trim().toLowerCase() === member.name.trim().toLowerCase())) && (
+              <small className="trip-common-people-empty">No unused common people.</small>
+            )}
+          </div>
+        </div>
+        <div className="trip-member-add-row"><input value={newMemberName} onChange={(e) => setNewMemberName(e.target.value)} placeholder="Add person to this trip" onKeyDown={(e) => {
+          if (e.key !== 'Enter') return;
+          const name = newMemberName.trim();
+          if (!name || members.some((member) => !member.archived && member.name.toLowerCase() === name.toLowerCase())) return;
+          const id = crypto.randomUUID();
+          const activeIds = members.filter((member) => member.archived !== true).map((member) => member.id);
+          const shouldRebalance = isEqualPreset(activeIds, presetPercentages);
+          setMembers((current) => [...current, { id, name }]);
+          setPresetPercentages((current) => shouldRebalance ? buildEqualPreset([...activeIds, id]) : ({ ...current, [id]: 0 }));
+          setNewMemberName('');
+        }} /><button type="button" onClick={() => {
+          const name = newMemberName.trim();
+          if (!name || members.some((member) => !member.archived && member.name.toLowerCase() === name.toLowerCase())) return;
+          const id = crypto.randomUUID();
+          const activeIds = members.filter((member) => member.archived !== true).map((member) => member.id);
+          const shouldRebalance = isEqualPreset(activeIds, presetPercentages);
+          setMembers((current) => [...current, { id, name }]);
+          setPresetPercentages((current) => shouldRebalance ? buildEqualPreset([...activeIds, id]) : ({ ...current, [id]: 0 }));
+          setNewMemberName('');
+        }}>+ Add</button></div>
         <div className="trip-allocation-list">
           {members.filter((member) => member.archived !== true).map((member) => (
             <label key={member.id} className="trip-allocation-row">
               <strong>{member.name}</strong>
-              <span><input type="number" min="0" max="100" step="0.01" value={presetPercentages[member.id] ?? ""} onChange={(e) => setPresetPercentages((current) => ({ ...current, [member.id]: e.target.value === "" ? 0 : Number(e.target.value) }))} aria-label={member.name + " preset percentage"} /> %</span>
+              <span>
+                <input type="number" min="0" max="100" step="0.01" value={presetPercentages[member.id] ?? ""} onChange={(e) => setPresetPercentages((current) => ({ ...current, [member.id]: e.target.value === "" ? 0 : Number(e.target.value) }))} aria-label={member.name + " preset percentage"} />
+                %
+              </span>
+              <button type="button" className="trip-member-remove" onClick={() => {
+                const activeIds = members.filter((item) => item.archived !== true && item.id !== member.id).map((item) => item.id);
+                const shouldRebalance = isEqualPreset(members.filter((item) => item.archived !== true).map((item) => item.id), presetPercentages);
+                setMembers((current) => current.map((item) => item.id === member.id ? { ...item, archived: true } : item));
+                setPresetPercentages((current) => shouldRebalance ? buildEqualPreset(activeIds) : Object.fromEntries(Object.entries(presetPercentages).filter(([id]) => id !== member.id)));
+              }} aria-label={"Remove " + member.name}><X size={13} /></button>
             </label>
           ))}
+          {!members.some((member) => member.archived !== true) && <small className="trip-allocation-empty">No people selected for this trip.</small>}
         </div>
         <div className="trip-allocation-total">Total {Object.values(presetPercentages).reduce((sum, value) => sum + (Number(value) || 0), 0).toFixed(2)}%</div>
         </section>
