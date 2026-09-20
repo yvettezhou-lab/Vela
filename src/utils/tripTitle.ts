@@ -14,7 +14,7 @@ const destinationData = (trip: Trip) => {
   const countries = unique(destinations.map((destination) => destination.country));
   const isChina = countries.some((country) => /^(china|中国)$/i.test(country));
   const regions = unique(destinations.map((destination) => destination.region ?? ''));
-  const base = isChina && regions.length ? regions[0] : (countries[0] ?? '');
+  const base = isChina && countries.length === 1 && regions.length === 1 ? regions[0] : (countries[0] ?? '');
   const cities = unique(destinations.map((destination) => destination.city));
   return { countries, base, cities };
 };
