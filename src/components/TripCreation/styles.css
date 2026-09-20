@@ -23,3 +23,30 @@
   .trip-cover-field-compact{margin-top:10px}
   .trip-creation-step-actions{margin-top:12px}
 }
+
+/* Date picker popover: keep the calendar inside the modal/viewport instead of inheriting the full date-column width. */
+.trip-date-picker{position:relative;min-width:0}
+.trip-date-popover{
+  position:absolute!important;
+  top:calc(100% + 6px)!important;
+  left:0!important;
+  right:auto!important;
+  width:min(300px, calc(100vw - 32px))!important;
+  box-sizing:border-box!important;
+  margin:0!important;
+  padding:10px 8px 12px!important;
+  border:1px solid rgba(67,76,70,.16)!important;
+  border-radius:12px!important;
+  background:#fbf8f0!important;
+  box-shadow:0 14px 34px rgba(31,37,35,.16)!important;
+  z-index:30!important;
+}
+.trip-creation-dates .trip-date-picker:nth-child(2) .trip-date-popover{
+  left:auto!important;
+  right:0!important;
+}
+.trip-date-month{grid-template-columns:36px 1fr 36px}
+.trip-date-grid button,.trip-date-grid>span{width:34px;height:34px}
+@media(max-width:600px){
+  .trip-date-popover{width:min(300px, calc(100vw - 32px))!important}
+}
