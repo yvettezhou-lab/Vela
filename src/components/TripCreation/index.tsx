@@ -358,6 +358,7 @@ export const TripCreation: React.FC<Props> = ({ onClose, onCreated, onUpdated, t
         </div>
         <div className="trip-allocation-total">Total {Object.values(presetPercentages).reduce((sum, value) => sum + (Number(value) || 0), 0).toFixed(2)}%</div>
         </section>
+      </>}
       {!editing && <div className="trip-creation-step-actions"><button type="button" className="trip-secondary-action" onClick={() => { setError(''); setStep(1); }}>Back</button><button className="trip-creation-submit" type="submit" disabled={isSaving}>{isSaving ? 'Saving…' : 'Create Journey'} <ChevronDown size={15} /></button></div>}
       {editing && <button className="trip-creation-submit" type="submit" disabled={isSaving}>{isSaving ? 'Saving…' : 'Save Journey'} <ChevronDown size={15} /></button>}
       {error && <p className="trip-creation-error" role="alert">{error}</p>}
