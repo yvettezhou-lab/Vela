@@ -1,13 +1,15 @@
-.data-management{margin-top:8px;padding:12px 14px;border:1px solid rgba(20,28,36,.12);border-radius:14px;background:rgba(250,249,245,.72)}
+.data-management{margin-top:10px;padding:10px 0 6px;border-top:1px solid rgba(80,64,42,.10)}
 .data-management-heading{display:flex;align-items:flex-start;justify-content:space-between;gap:10px}
-.data-management-heading span{display:block;font-size:9px;letter-spacing:.14em;opacity:.58}
-.data-management-heading h2{margin:3px 0 0;font-size:17px;font-weight:500}
-.data-management-heading small{font-size:10px;opacity:.55}
-.data-management-copy{max-width:620px;margin:7px 0 9px;font-size:11px;line-height:1.4;opacity:.7}
-.data-management-actions{display:flex;gap:6px;flex-wrap:wrap}
-.data-management-actions button{border:1px solid rgba(20,28,36,.14);border-radius:7px;padding:5px 9px;background:transparent;color:#536064;font:inherit;font-size:10px;line-height:1.2;cursor:pointer}
-.data-management-actions button:first-child{background:transparent;color:#536064;border-color:rgba(20,28,36,.14)}
+.data-management-title{display:flex;align-items:flex-start;gap:9px;color:#23383d}
+.data-management-title>svg{flex:none;margin-top:1px;color:#8b806d}
+.data-management-title span{display:block;color:#8b806d;font:700 8px/1 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;letter-spacing:.18em}
+.data-management-title h2{margin:4px 0 0;color:#23383d;font:500 16px Georgia,"Times New Roman",serif}
+.data-management-title small{display:block;margin-top:3px;color:#7b817d;font:11px/1.35 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
+.data-management-actions{display:flex;gap:9px;flex-wrap:wrap;margin-top:10px}
+.data-management-actions button{display:inline-flex;align-items:center;justify-content:center;gap:7px;min-height:38px;padding:0 13px;border:1px solid rgba(80,64,42,.12);border-radius:8px;background:#fffdf8;color:#536064;font:600 11px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;cursor:pointer}
+.data-management-actions button:hover{background:#f4eee3}
 .data-management-actions button:disabled{opacity:.45;cursor:default}
-.data-management-count{display:block;margin-top:7px;font-size:10px;opacity:.52}
-.data-management-status{margin:7px 0 0;font-size:10px;line-height:1.35}
-@media(max-width:560px){.data-management{padding:10px 12px}.data-management-actions button{flex:0 0 auto;min-width:0}}
+.data-management-actions button svg{flex:none;color:#8b806d}
+.data-management-count{display:block;margin-top:8px;color:#8a8174;font:9px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
+.data-management-status{margin:7px 0 0;color:#6f6659;font:10px/1.35 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
+@media(max-width:560px){.data-management-actions{gap:10px}.data-management-actions button{min-height:40px;padding:0 14px}}
