@@ -133,9 +133,8 @@ const QuickEntryContent: React.FC<QuickEntryProps> = ({ onClose }) => {
     setCurrency(getTripPrimaryCurrency(targetTrip));
     const savedRule = targetTrip.allocationRules;
     if (savedRule) {
-      setAllocationMode(savedRule.allocationMode);
-      setCustomPercentages(savedRule.percentages ? { ...savedRule.percentages } : {});
-      const ruleMemberIds = savedRule.percentages ? Object.keys(savedRule.percentages) : [];
+      setCustomPercentages({ ...savedRule.percentages });
+      const ruleMemberIds = Object.keys(savedRule.percentages);
       setSelectedParticipants(new Set(ruleMemberIds.filter((id) => members.some((member) => member.id === id))));
     } else {
       setSelectedParticipants((current) => {
@@ -209,20 +208,36 @@ const QuickEntryContent: React.FC<QuickEntryProps> = ({ onClose }) => {
   };
 
   const buildAllocations = (cnyTotal: number): Allocation[] => {
-    const participantIds = Array.from(selectedParticipants);
-    if (!participantIds.length) throw new Error('Please select at least one participant.');
+    let participantIds: string[];
+    let percentages: Record<string, number> | null = null;
+
+    if (allocationMode === 'preset_percentage') {
+      if (!targetTrip?.allocationRules?.percentages) throw new Error('This journey has no preset allocation rule yet.');
+      percentages = { ...targetTrip.allocationRules.percentages };
+      participantIds = Object.keys(percentages).filter((id) => members.some((member) => member.id === id) && Number(percentages[id]) > 0);
+      if (!participantIds.length) throw new Error('Preset allocation has no valid participants.');
+      const total = participantIds.reduce((sum, id) => sum + Number(percentages![id] ?? 0), 0);
+      if (Math.abs(total - 100) > 0.01) throw new Error('Preset allocation percentages must equal 100%.');
+    } else {
+      participantIds = Array.from(selectedParticipants);
+      if (!participantIds.length) throw new Error('Please select at least one participant.');
+      if (allocationMode === 'custom_percentage') {
+        percentages = Object.fromEntries(participantIds.map((id) => [id, customPercentages[id] ?? 0]));
+        const total = participantIds.reduce((sum, id) => sum + Number(percentages![id] ?? 0), 0);
+        if (Math.abs(total - 100) > 0.01) throw new Error('Custom percentages must equal 100%.');
+      }
+    }
+
     const allocations: Allocation[] = participantIds.map((memberId) => ({
       memberId,
       amount: 0,
-      ...(allocationMode === 'custom_percentage' ? { percentage: customPercentages[memberId] ?? 0 } : {}),
+      ...(percentages ? { percentage: Number(percentages[memberId] ?? 0) } : {}),
     }));
 
     if (allocationMode === 'equal') {
       const baseCents = Math.floor((cnyTotal * 100) / participantIds.length);
       allocations.forEach((allocation) => { allocation.amount = baseCents / 100; });
     } else {
-      const percentageTotal = allocations.reduce((sum, allocation) => sum + (allocation.percentage ?? 0), 0);
-      if (Math.abs(percentageTotal - 100) > 0.01) throw new Error('Custom percentages must equal 100%.');
       allocations.forEach((allocation) => {
         const percentage = allocation.percentage ?? 0;
         allocation.amount = Math.floor(cnyTotal * percentage) / 100;
@@ -231,7 +246,7 @@ const QuickEntryContent: React.FC<QuickEntryProps> = ({ onClose }) => {
 
     const allocatedCents = allocations.reduce((sum, allocation) => sum + Math.round(allocation.amount * 100), 0);
     const targetCents = Math.round(cnyTotal * 100);
-    allocations[0].amount = Math.round((allocations[0].amount * 100 + targetCents - allocatedCents)) / 100;
+    allocations[allocations.length - 1].amount = Math.round((allocations[allocations.length - 1].amount * 100 + targetCents - allocatedCents)) / 100;
     return allocations;
   };
 
@@ -478,10 +493,25 @@ const QuickEntryContent: React.FC<QuickEntryProps> = ({ onClose }) => {
           <div className="mb-3 flex items-center justify-between gap-3">
             <span className="text-xs uppercase tracking-[0.14em] text-[#857a6a]">Participants</span>
             <div className="flex gap-1.5 rounded-xl bg-[#eee5d5] p-1">
-              {([['equal', 'Equal'], ['custom_percentage', 'Custom %']] as const).map(([value, label]) => <button key={value} type="button" onClick={() => setAllocationMode(value)} aria-pressed={allocationMode === value} className={`min-h-10 rounded-lg border px-3 text-xs font-medium transition ${allocationMode === value ? 'border-[#17243a] bg-[#fffdf8] text-[#17243a] shadow-sm' : 'border-transparent text-[#746b5e] hover:bg-[#fbf7ee]'}`}>{label}</button>)}
+              {([
+                ['equal', '按人头平分'],
+                ['preset_percentage', '按设定比例'],
+                ['custom_percentage', '临时决定'],
+              ] as const).map(([value, label]) => {
+                const disabled = value === 'preset_percentage' && !targetTrip?.allocationRules?.percentages;
+                return <button key={value} type="button" disabled={disabled} onClick={() => setAllocationMode(value)} aria-pressed={allocationMode === value} className={`min-h-10 rounded-lg border px-3 text-xs font-medium transition ${allocationMode === value ? 'border-[#17243a] bg-[#fffdf8] text-[#17243a] shadow-sm' : 'border-transparent text-[#746b5e] hover:bg-[#fbf7ee]'} ${disabled ? 'cursor-not-allowed opacity-40' : ''}`}>{label}</button>;
+              })}
             </div>
           </div>
-          <div className="flex flex-wrap gap-3">
+          {allocationMode === 'preset_percentage' && targetTrip?.allocationRules?.percentages && (
+            <div className="mb-3 rounded-xl bg-[#fbf7ee] px-4 py-3 text-xs text-[#6f6659]">
+              使用本次旅程预设分摊：{Object.entries(targetTrip.allocationRules.percentages)
+                .filter(([id, percentage]) => members.some((member) => member.id === id) && Number(percentage) > 0)
+                .map(([id, percentage]) => `${members.find((member) => member.id === id)?.name ?? id} ${percentage}%`)
+                .join(' · ')}
+            </div>
+          )}
+          {allocationMode !== 'preset_percentage' && <div className="flex flex-wrap gap-3">
             {members.map((member) => {
               const selected = selectedParticipants.has(member.id);
               return (
@@ -491,7 +521,7 @@ const QuickEntryContent: React.FC<QuickEntryProps> = ({ onClose }) => {
                 </button>
               );
             })}
-          </div>
+          </div>}
           {allocationMode === 'custom_percentage' && (
             <div className="mt-4 grid grid-cols-2 gap-3">
               {members.filter((member) => selectedParticipants.has(member.id)).map((member) => <label key={member.id} className="flex min-h-12 items-center justify-between rounded-xl bg-[#fbf7ee] px-4 shadow-[inset_0_0_0_1px_rgba(80,64,42,.10)]"><span className="text-sm">{member.name}</span><span className="flex items-center gap-1"><input type="text" inputMode="decimal" value={customPercentages[member.id] ?? ''} onChange={(event) => setCustomPercentages((previous) => ({ ...previous, [member.id]: event.target.value === '' ? 0 : Number(event.target.value) }))} className="w-16 bg-transparent text-right text-base outline-none" aria-label={`${member.name} percentage`} /><span className="text-sm text-[#857a6a]">%</span></span></label>)}
