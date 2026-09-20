@@ -1,6 +1,6 @@
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { Archive, Pencil, Plus } from 'lucide-react';
-import { Category } from '../../core/domain';
+import { Category, Trip } from '../../core/domain';
 import { MasterDataItem, MasterDataType, useVelaStore } from '../../store/useVelaStore';
 import './masterData.css';
 
@@ -24,9 +24,49 @@ const MasterDataSection: React.FC<{ tripId: string; config: Config; items: Maste
   </div>;
 };
 
+const PresetAllocation: React.FC<{ trip: Trip }> = ({ trip }) => {
+  const updateTrip = useVelaStore((state) => state.updateTrip);
+  const activeMembers = trip.members.filter((member) => member.archived !== true);
+  const [percentages, setPercentages] = useState<Record<string, number>>({});
+  const [message, setMessage] = useState('');
+
+  useEffect(() => {
+    const existing = trip.allocationRules?.percentages ?? {};
+    setPercentages(Object.fromEntries(activeMembers.map((member) => [member.id, Number(existing[member.id] ?? 0)])));
+    setMessage('');
+  }, [trip.id, trip.updatedAt]);
+
+  const total = activeMembers.reduce((sum, member) => sum + (Number(percentages[member.id]) || 0), 0);
+  const configured = total > 0;
+  const save = () => {
+    if (!configured) {
+      updateTrip(trip.id, { ...trip, allocationRules: undefined });
+      setMessage('Preset disabled.');
+      return;
+    }
+    if (Math.abs(total - 100) > 0.001) {
+      setMessage(`Must total 100%. Current: ${total.toFixed(2)}%.`);
+      return;
+    }
+    updateTrip(trip.id, { ...trip, allocationRules: { allocationMode: 'preset_percentage', percentages: Object.fromEntries(activeMembers.filter((member) => (Number(percentages[member.id]) || 0) > 0).map((member) => [member.id, Number(percentages[member.id])])) } });
+    setMessage('Preset saved. Quick Entry can now use “按设定比例”.');
+  };
+
+  return <section className="master-data-preset">
+    <div className="master-data-group-head"><div><span className="master-data-kicker">PRESET ALLOCATION</span><strong className="master-data-preset-title">按设定比例</strong></div><span className={Math.abs(total - 100) < 0.001 && configured ? 'master-data-preset-total is-valid' : 'master-data-preset-total'}>{total.toFixed(2)}%</span></div>
+    <p className="master-data-preset-hint">设置这次旅程的固定分摊比例。保存后，Quick Entry → Participants → 按设定比例即可直接使用。</p>
+    <div className="master-data-preset-list">
+      {activeMembers.map((member) => <label key={member.id}><span>{member.name}</span><span><input type="number" min="0" max="100" step="0.01" inputMode="decimal" value={percentages[member.id] ?? 0} onChange={(event) => setPercentages((current) => ({ ...current, [member.id]: event.target.value === '' ? 0 : Number(event.target.value) }))} />%</span></label>)}
+    </div>
+    <div className="master-data-preset-actions"><button type="button" onClick={save}>Save preset</button>{configured && <button type="button" className="ghost" onClick={() => { setPercentages(Object.fromEntries(activeMembers.map((member) => [member.id, 0]))); setMessage('Clear the fields and save to disable the preset.'); }}>Clear</button>}</div>
+    {message && <p className="master-data-preset-message">{message}</p>}
+  </section>;
+};
+
 export const MasterData: React.FC = () => {
   const trips = useVelaStore((state) => state.trips); const currentTrip = useVelaStore((state) => state.getCurrentTrip()); const update = useVelaStore((state) => state.updateMasterData); const archive = useVelaStore((state) => state.archiveMasterData); const [tripId, setTripId] = useState(currentTrip?.id ?? trips[0]?.id ?? ''); const trip = trips.find((item) => item.id === tripId) ?? currentTrip;
+  useEffect(() => { if (currentTrip && !trips.some((item) => item.id === tripId)) setTripId(currentTrip.id); }, [currentTrip, trips, tripId]);
   if (!trip) return <section className="master-data-empty-panel"><h2>Master Data</h2><p>Create a trip first. Persons, Categories and Accounts belong to each trip so the ledger remains self-contained.</p></section>;
-  return <div className="master-data"><div className="master-data-trip"><div><span className="master-data-kicker">TRIP CONTEXT</span><strong>{trip.title}</strong></div>{trips.length > 1 && <select value={trip.id} onChange={(e) => setTripId(e.target.value)}>{trips.map((item) => <option key={item.id} value={item.id}>{item.title}</option>)}</select>}</div><section className="master-data-card"><div className="master-data-card-head"><div><span className="master-data-kicker">MASTER DATA</span><h2>Master Data</h2></div></div>{CONFIGS.map((config) => <MasterDataSection key={config.type} tripId={trip.id} config={config} items={trip[config.type]} update={update} archive={(id) => archive(trip.id, config.type, id)} />)}</section></div>;
+  return <div className="master-data"><div className="master-data-trip"><div><span className="master-data-kicker">TRIP CONTEXT</span><strong>{trip.title}</strong></div>{trips.length > 1 && <select value={trip.id} onChange={(e) => setTripId(e.target.value)}>{trips.map((item) => <option key={item.id} value={item.id}>{item.title}</option>)}</select>}</div><section className="master-data-card"><PresetAllocation trip={trip} /><div className="master-data-card-head"><div><span className="master-data-kicker">MASTER DATA</span><h2>Master Data</h2></div></div>{CONFIGS.map((config) => <MasterDataSection key={config.type} tripId={trip.id} config={config} items={trip[config.type]} update={update} archive={(id) => archive(trip.id, config.type, id)} />)}</section></div>;
 };
 export default MasterData;
