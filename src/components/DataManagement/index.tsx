@@ -1,4 +1,5 @@
 import { useRef, useState, type ChangeEvent } from 'react';
+import { Database, Download, Upload } from 'lucide-react';
 import { DomainValidator } from '../../core/validation';
 import { getDefaultCategories } from '../../core/defaults';
 import { useVelaStore } from '../../store/useVelaStore';
@@ -104,15 +105,28 @@ export const DataManagement = () => {
   return (
     <section className="data-management" aria-labelledby="data-management-title">
       <div className="data-management-heading">
-        <div><span>DATA SOVEREIGNTY</span><h2 id="data-management-title">Data Management</h2></div>
-        <small>Local-first backup</small>
+        <div className="data-management-title">
+          <Database size={17} />
+          <div>
+            <span>ARCHIVE</span>
+            <h2 id="data-management-title">Data backup</h2>
+            <small>Keep a safe copy of Vela</small>
+          </div>
+        </div>
       </div>
-      <p className="data-management-copy">Export a complete JSON backup of your Vela data, or restore a compatible backup on this device.</p>
+
       <div className="data-management-actions">
-        <button type="button" onClick={exportData} disabled={busy}>Export JSON</button>
-        <button type="button" onClick={() => fileInputRef.current?.click()} disabled={busy}>Import JSON</button>
+        <button type="button" onClick={exportData} disabled={busy}>
+          <Download size={16} />
+          <span>Export backup</span>
+        </button>
+        <button type="button" onClick={() => fileInputRef.current?.click()} disabled={busy}>
+          <Upload size={16} />
+          <span>Restore backup</span>
+        </button>
         <input ref={fileInputRef} type="file" accept="application/json,.json" onChange={onFileChange} hidden />
       </div>
+
       <small className="data-management-count">Current local data: {trips.length} {trips.length === 1 ? 'journey' : 'journeys'}</small>
       {status && <p className="data-management-status" role="status">{status}</p>}
     </section>
