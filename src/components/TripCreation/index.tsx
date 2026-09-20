@@ -305,7 +305,7 @@ export const TripCreation: React.FC<Props> = ({ onClose, onCreated, onUpdated, t
     </div>
     <form onSubmit={submit}>
       {editing && <label><span>TRIP TITLE</span><input autoFocus value={title} onChange={(e) => { setTitleEdited(true); setTitle(e.target.value); }} placeholder={generatedTitle || 'Trip title'} /><small className="trip-title-hint">{titleEdited ? 'Custom title' : 'Auto-generated from dates & main destination'}</small></label>}
-      {step === 1 && <>
+      {(step === 1 || editing) && <>
         {!editing && availableSourceTrips.length > 0 && <label className="trip-clone-settings"><span>PAST JOURNEY</span><div className="trip-select-wrap"><select defaultValue="" onChange={(e) => { const source = availableSourceTrips.find((item) => item.id === e.target.value); if (source) cloneSettingsFrom(source); }}><option value="">Optional · clone people & rules…</option>{availableSourceTrips.map((source) => <option key={source.id} value={source.id}>{source.title}</option>)}</select><ChevronDown size={14} /></div></label>}
 
         <div className="trip-segments">
@@ -343,7 +343,8 @@ export const TripCreation: React.FC<Props> = ({ onClose, onCreated, onUpdated, t
 
       {!editing && <button type="button" className="trip-creation-submit trip-next-button" onClick={goToRules}>Next <ChevronDown size={15} /></button>}
       </>}
-      {step === 2 && <>
+      {(!editing && step === 2) && <>
+        <section className="trip-allocation-rules">
         <span className="trip-field-label">PEOPLE &amp; ALLOCATION</span>
         <small className="trip-allocation-hint">设置这次 Trip 的参与人员和默认分摊比例。Quick Entry 可直接选择“按设定比例”。</small>
         <div className="trip-member-add-row"><input value={newMemberName} onChange={(e) => setNewMemberName(e.target.value)} placeholder="Add person to this trip" onKeyDown={(e) => { if (e.key === 'Enter') { const name = newMemberName.trim(); if (name && !members.some((member) => !member.archived && member.name.toLowerCase() === name.toLowerCase())) { const id = crypto.randomUUID(); setMembers((current) => [...current, { id, name }]); setPresetPercentages((current) => ({ ...current, [id]: 0 })); setNewMemberName(''); } } }} /><button type="button" onClick={() => { const name = newMemberName.trim(); if (!name || members.some((member) => !member.archived && member.name.toLowerCase() === name.toLowerCase())) return; const id = crypto.randomUUID(); setMembers((current) => [...current, { id, name }]); setPresetPercentages((current) => ({ ...current, [id]: 0 })); setNewMemberName(''); }}>+ Add</button></div>
@@ -356,10 +357,10 @@ export const TripCreation: React.FC<Props> = ({ onClose, onCreated, onUpdated, t
           ))}
         </div>
         <div className="trip-allocation-total">Total {Object.values(presetPercentages).reduce((sum, value) => sum + (Number(value) || 0), 0).toFixed(2)}%</div>
-      </section>
+        </section>
       {!editing && <div className="trip-creation-step-actions"><button type="button" className="trip-secondary-action" onClick={() => { setError(''); setStep(1); }}>Back</button><button className="trip-creation-submit" type="submit" disabled={isSaving}>{isSaving ? 'Saving…' : 'Create Journey'} <ChevronDown size={15} /></button></div>}
-      {error && <p className="trip-creation-error" role="alert">{error}</p>}
       {editing && <button className="trip-creation-submit" type="submit" disabled={isSaving}>{isSaving ? 'Saving…' : 'Save Journey'} <ChevronDown size={15} /></button>}
+      {error && <p className="trip-creation-error" role="alert">{error}</p>}
     </form>
   </div>;
 };
