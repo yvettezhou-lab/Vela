@@ -5,9 +5,9 @@
 .data-management-heading small{font-size:10px;opacity:.55}
 .data-management-copy{max-width:620px;margin:7px 0 9px;font-size:11px;line-height:1.4;opacity:.7}
 .data-management-actions{display:flex;gap:6px;flex-wrap:wrap}
-.data-management-actions button{border:1px solid rgba(20,28,36,.18);border-radius:8px;padding:7px 10px;background:transparent;font:inherit;font-size:11px;cursor:pointer}
-.data-management-actions button:first-child{background:#1e2933;color:#fff;border-color:#1e2933}
+.data-management-actions button{border:1px solid rgba(20,28,36,.14);border-radius:7px;padding:5px 9px;background:transparent;color:#536064;font:inherit;font-size:10px;line-height:1.2;cursor:pointer}
+.data-management-actions button:first-child{background:transparent;color:#536064;border-color:rgba(20,28,36,.14)}
 .data-management-actions button:disabled{opacity:.45;cursor:default}
 .data-management-count{display:block;margin-top:7px;font-size:10px;opacity:.52}
 .data-management-status{margin:7px 0 0;font-size:10px;line-height:1.35}
-@media(max-width:560px){.data-management{padding:10px 12px}.data-management-actions button{flex:1;min-width:110px}}
+@media(max-width:560px){.data-management{padding:10px 12px}.data-management-actions button{flex:0 0 auto;min-width:0}}
