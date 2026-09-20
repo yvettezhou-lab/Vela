@@ -1,4 +1,4 @@
-import React, { FormEvent, useMemo, useState } from 'react';
+import React, { FormEvent, useMemo, useState, useEffect } from 'react';
 import { CalendarDays, ChevronDown, ChevronLeft, ChevronRight, Plus, Trash2, X } from 'lucide-react';
 import { AllocationRule, Destination, TravelSegment, Trip } from '../../core/domain';
 import { useVelaStore } from '../../store/useVelaStore';
@@ -118,7 +118,34 @@ export const TripCreation: React.FC<Props> = ({ onClose, onCreated, onUpdated, t
   const commonAccounts = useVelaStore((state) => state.commonAccounts);
   const editing = Boolean(trip);
   const [title, setTitle] = useState(trip?.title ?? '');
+  const [titleEdited, setTitleEdited] = useState(Boolean(trip));
   const [segments, setSegments] = useState<DraftSegment[]>(() => trip?.segments.map(makeDraftSegment) ?? [makeDraftSegment()]);
+
+  const generatedTitle = useMemo(() => {
+    const valid = segments
+      .map((segment) => ({
+        segment,
+        start: toTimestamp(segment.startDate),
+        end: toTimestamp(segment.endDate),
+        cities: [...new Set(segment.destinations.map((destination) => destination.city.trim()).filter(Boolean))],
+      }))
+      .filter(({ start, end, cities }) => Number.isFinite(start) && Number.isFinite(end) && end >= start && cities.length)
+      .sort((a, b) => (b.end - b.start) - (a.end - a.start));
+
+    if (!valid.length) return '';
+    const longestDuration = valid[0].end - valid[0].start;
+    const longest = valid.filter((item) => item.end - item.start === longestDuration);
+    const tripStart = Math.min(...valid.map((item) => item.start));
+    const startDate = new Date(tripStart);
+    const cities = [...new Set(longest.flatMap((item) => item.cities))];
+    return cities.length
+      ? `${startDate.getFullYear()}.${String(startDate.getMonth() + 1).padStart(2, '0')} · ${cities.join(' · ')}`
+      : '';
+  }, [segments]);
+
+  useEffect(() => {
+    if (!titleEdited && generatedTitle) setTitle(generatedTitle);
+  }, [generatedTitle, titleEdited]);
   const [error, setError] = useState('');
   const [members, setMembers] = useState(() => trip?.members.map((member) => ({ ...member })) ?? commonMembers.filter((member) => member.archived !== true).map((member) => ({ ...member })) ?? []);
   const [accounts, setAccounts] = useState(() => trip?.accounts.map((account) => ({ ...account })) ?? commonAccounts.filter((account) => account.archived !== true).map((account) => ({ ...account })) ?? []);
@@ -256,7 +283,7 @@ export const TripCreation: React.FC<Props> = ({ onClose, onCreated, onUpdated, t
       <button type="button" onClick={onClose} aria-label="Close"><X size={19} /></button>
     </div>
     <form onSubmit={submit}>
-      <label><span>TRIP TITLE</span><input autoFocus value={title} onChange={(e) => setTitle(e.target.value)} placeholder="e.g. Penang" /></label>
+      <label><span>TRIP TITLE</span><input autoFocus value={title} onChange={(e) => { setTitleEdited(true); setTitle(e.target.value); }} placeholder={generatedTitle || 'Auto-generated from dates & destinations'} /><small className="trip-title-hint">{titleEdited ? 'Custom title' : 'Auto-generated from dates & main destination'}</small></label>
       {!editing && availableSourceTrips.length > 0 && <label className="trip-clone-settings"><span>SETTINGS</span><div className="trip-select-wrap"><select defaultValue="" onChange={(e) => { const source = availableSourceTrips.find((item) => item.id === e.target.value); if (source) cloneSettingsFrom(source); }}><option value="">Clone settings from a past journey…</option>{availableSourceTrips.map((source) => <option key={source.id} value={source.id}>{source.title}</option>)}</select><ChevronDown size={14} /></div><small>Copies people, categories, accounts and saved allocation rules. Historical data is never copied.</small></label>}
 
       <div className="trip-cover-field">
