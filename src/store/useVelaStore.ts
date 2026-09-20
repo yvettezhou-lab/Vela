@@ -61,6 +61,8 @@ export type MasterDataItem = Member | Category | Account;
 
 interface VelaState {
   trips: Trip[];
+  commonMembers: Member[];
+  commonAccounts: Account[];
   addTrip: (rawTrip: unknown) => void;
   updateTripStatus: (tripId: string, newStatus: unknown) => void;
   updateTrip: (tripId: string, trip: Trip) => void;
@@ -71,6 +73,12 @@ interface VelaState {
   deleteLedgerEntry: (tripId: string, entryId: string) => void;
   updateMasterData: (tripId: string, type: MasterDataType, id: string | null, item: MasterDataItem) => void;
   archiveMasterData: (tripId: string, type: MasterDataType, id: string) => void;
+  addCommonMember: (name: string) => void;
+  renameCommonMember: (id: string, name: string) => void;
+  archiveCommonMember: (id: string) => void;
+  addCommonAccount: (name: string) => void;
+  renameCommonAccount: (id: string, name: string) => void;
+  archiveCommonAccount: (id: string) => void;
   getCurrentTrip: () => Trip | null;
 }
 
@@ -89,6 +97,8 @@ const replaceMasterData = (trip: Trip, type: MasterDataType, id: string | null, 
 
 export const useVelaStore = create<VelaState>()(persist((set, get) => ({
   trips: [],
+  commonMembers: [{ id: 'common-member-me', name: 'Me' }],
+  commonAccounts: [{ id: 'common-account-cash', name: 'Cash' }, { id: 'common-account-credit-card', name: 'Credit Card' }],
   addTrip: (rawTrip) => { const strictTrip = withDefaultAccountsAndMember(withDefaultCategories(DomainValidator.validateEntireTrip(rawTrip, get().trips))); set((state) => ({ trips: [...state.trips, strictTrip] })); get().evaluateAutoStart(); },
   updateTrip: (tripId, trip) => { const trips = get().trips; if (!trips.some((item) => item.id === tripId)) throw new Error(`Store Error: Trip ${tripId} not found`); const strictTrip = DomainValidator.validateEntireTrip({ ...trip, id: tripId, updatedAt: Date.now() }, trips.filter((item) => item.id !== tripId)); set((state) => ({ trips: state.trips.map((item) => item.id === tripId ? strictTrip : item) })); },
   updateTripStatus: (tripId, newStatus) => { const trips = get().trips; const trip = trips.find((t) => t.id === tripId); if (!trip) throw new Error(`Store Error: Trip ${tripId} not found`); DomainValidator.validateTripStatus(trips, tripId, newStatus, trip.status); if (newStatus !== 'planning' && newStatus !== 'traveling' && newStatus !== 'achieve') throw new Error(`Store Error: Invalid status ${newStatus}`); set({ trips: trips.map((t) => t.id === tripId ? { ...t, status: newStatus as TripStatus, updatedAt: Date.now() } : t) }); },
@@ -99,5 +109,22 @@ export const useVelaStore = create<VelaState>()(persist((set, get) => ({
   deleteLedgerEntry: (tripId, entryId) => { const trips = get().trips; const trip = trips.find((t) => t.id === tripId); if (!trip) throw new Error(`Store Error: Trip ${tripId} not found`); if (!trip.ledger.some((e) => e.id === entryId)) throw new Error(`Store Error: Cannot delete nonexistent Entry ${entryId}`); set((state) => ({ trips: state.trips.map((t) => t.id === tripId ? { ...t, ledger: t.ledger.filter((e) => e.id !== entryId), updatedAt: Date.now() } : t) })); },
   updateMasterData: (tripId, type, id, item) => { const trips = get().trips; const trip = trips.find((t) => t.id === tripId); if (!trip) throw new Error(`Store Error: Trip ${tripId} not found`); if (id && !trip[type].some((entry) => entry.id === id)) throw new Error(`Master Data Error: ${type} ${id} not found`); if (!item.name.trim()) throw new Error('Master Data Error: Name is required'); if (id && item.id !== id) throw new Error('Master Data Error: ID cannot change'); if (!id && trip[type].some((entry) => entry.name.trim().toLowerCase() === item.name.trim().toLowerCase() && !entry.archived)) throw new Error('Master Data Error: An active item with this name already exists'); set({ trips: trips.map((t) => t.id === tripId ? replaceMasterData(t, type, id, { ...item, name: item.name.trim() }) : t) }); },
   archiveMasterData: (tripId, type, id) => { const trips = get().trips; const trip = trips.find((t) => t.id === tripId); if (!trip) throw new Error(`Trip ${tripId} not found`); const entry = trip[type].find((item) => item.id === id); if (!entry) throw new Error(`Master Data Error: ${type} ${id} not found`); set({ trips: trips.map((t) => t.id === tripId ? { ...t, [type]: t[type].map((item) => item.id === id ? { ...item, archived: true } : item), updatedAt: Date.now() } : t) }); },
+  addCommonMember: (name) => { const clean = name.trim(); if (!clean) throw new Error('Common person name is required'); const current = get().commonMembers; if (current.some((item) => !item.archived && item.name.toLowerCase() === clean.toLowerCase())) throw new Error('A common person with this name already exists'); set({ commonMembers: [...current, { id: crypto.randomUUID(), name: clean }] }); },
+  renameCommonMember: (id, name) => { const clean = name.trim(); if (!clean) throw new Error('Common person name is required'); set({ commonMembers: get().commonMembers.map((item) => item.id === id ? { ...item, name: clean } : item) }); },
+  archiveCommonMember: (id) => set({ commonMembers: get().commonMembers.map((item) => item.id === id ? { ...item, archived: true } : item) }),
+  addCommonAccount: (name) => { const clean = name.trim(); if (!clean) throw new Error('Account name is required'); const current = get().commonAccounts; if (current.some((item) => !item.archived && item.name.toLowerCase() === clean.toLowerCase())) throw new Error('An account with this name already exists'); set({ commonAccounts: [...current, { id: crypto.randomUUID(), name: clean }] }); },
+  renameCommonAccount: (id, name) => { const clean = name.trim(); if (!clean) throw new Error('Account name is required'); set({ commonAccounts: get().commonAccounts.map((item) => item.id === id ? { ...item, name: clean } : item) }); },
+  archiveCommonAccount: (id) => set({ commonAccounts: get().commonAccounts.map((item) => item.id === id ? { ...item, archived: true } : item) }),
   getCurrentTrip: () => { const trips = get().trips; const traveling = trips.find((t) => t.status === 'traveling'); if (traveling) return traveling; return trips.filter((t) => t.status === 'planning').sort((a, b) => b.updatedAt - a.updatedAt)[0] ?? null; },
-}), { name: 'vela-core-v2', version: 1, migrate: (persistedState, _version) => migratePersistedState(persistedState), onRehydrateStorage: () => (state, error) => { if (error || !state) return; const migratedTrips = migrateLegacyStorageIfNeeded(state.trips); const normalizedTrips = normalizeTrips(migratedTrips); if (normalizedTrips !== state.trips) useVelaStore.setState({ trips: normalizedTrips }); useVelaStore.getState().evaluateAutoStart(); } }));
+}), { name: 'vela-core-v2', version: 1, migrate: (persistedState, _version) => {
+      const migrated = migratePersistedState(persistedState);
+      if (!isRecord(migrated)) return migrated;
+      const trips = Array.isArray(migrated.trips) ? migrated.trips as Trip[] : [];
+      const existingMembers = isRecord(migrated) && Array.isArray(migrated.commonMembers) ? migrated.commonMembers as Member[] : [];
+      const existingAccounts = isRecord(migrated) && Array.isArray(migrated.commonAccounts) ? migrated.commonAccounts as Account[] : [];
+      const memberMap = new Map<string, Member>();
+      for (const member of [...existingMembers, ...trips.flatMap((trip) => trip.members)]) if (!memberMap.has(member.name.trim().toLowerCase())) memberMap.set(member.name.trim().toLowerCase(), { id: crypto.randomUUID(), name: member.name.trim() });
+      const accountMap = new Map<string, Account>();
+      for (const account of [...existingAccounts, ...trips.flatMap((trip) => trip.accounts)]) if (!accountMap.has(account.name.trim().toLowerCase())) accountMap.set(account.name.trim().toLowerCase(), { id: crypto.randomUUID(), name: account.name.trim() });
+      return { ...migrated, commonMembers: [...memberMap.values()].filter((item) => item.name), commonAccounts: [...accountMap.values()].filter((item) => item.name) };
+    }, onRehydrateStorage: () => (state, error) => { if (error || !state) return; const migratedTrips = migrateLegacyStorageIfNeeded(state.trips); const normalizedTrips = normalizeTrips(migratedTrips); if (normalizedTrips !== state.trips) useVelaStore.setState({ trips: normalizedTrips }); useVelaStore.getState().evaluateAutoStart(); } }));
