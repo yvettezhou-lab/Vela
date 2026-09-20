@@ -106,3 +106,23 @@
   .vela-app-root > .page:has(.settings-list) .settings-list{border-radius:22px!important}
   .vela-quick-fullscreen{width:100%!important}
 }
+
+
+/* Cross-page cohesion pass: Journey Manager / New Trip use the same quiet editorial language. */
+.vela-trip-manager-route{min-height:100dvh;background:#FAF9F5;color:#0F172A;padding-bottom:calc(104px + env(safe-area-inset-bottom))}
+.vela-trip-manager-main{width:100%;max-width:480px;margin:0 auto;padding:20px 16px 24px;box-sizing:border-box}
+.vela-trip-manager-main>button:first-child{display:inline-flex!important;align-items:center;min-height:40px;padding:0 0 10px!important;color:rgba(15,23,42,.52)!important;font:500 11px/1 ui-sans-serif,system-ui,sans-serif!important;letter-spacing:.02em}
+.vela-trip-manager-main .trip-manager-edit-sheet{width:min(100%,620px)!important;max-height:calc(100dvh - 28px)!important;overflow:auto!important;border-radius:18px!important;background:#FAF9F5!important}
+.vela-trip-manager-main section[aria-label="Trip Manager"]{padding:0!important;border:0!important;border-radius:0!important;background:transparent!important;color:#0F172A!important}
+.vela-trip-manager-main section[aria-label="Trip Manager"]>div:first-child{padding:8px 0 16px!important;margin-bottom:22px!important;border-bottom:1px solid rgba(15,23,42,.10)!important}
+.vela-trip-manager-main section[aria-label="Trip Manager"] h2{margin:5px 0 0!important;font:500 32px/1.08 ui-serif,Georgia,Cambria,"Times New Roman",serif!important;font-style:italic!important;letter-spacing:-.025em!important}
+.vela-trip-manager-main section[aria-label="Trip Manager"] [style*="borderRadius: 14px"]{border-radius:0!important}
+/* New Trip modal: keep form controls tactile, but remove the heavier SaaS-card feel. */
+.vela-quick-sheet .trip-creation-modal{max-width:620px!important;border-radius:18px!important;background:#FAF9F5!important;border:1px solid rgba(15,23,42,.10)!important;box-shadow:0 18px 48px rgba(15,23,42,.14)!important}
+.vela-quick-sheet .trip-creation-modal input,.vela-quick-sheet .trip-select-wrap select,.vela-quick-sheet .trip-date-trigger{background:#fffdf8!important;border-color:rgba(15,23,42,.14)!important;color:#0F172A!important;border-radius:9px!important}
+.vela-quick-sheet .trip-creation-submit{background:#0F172A!important;border-radius:10px!important}
+.vela-settings-header{display:block!important}
+.vela-settings-eyebrow{display:block;font:700 9px/1 ui-sans-serif,system-ui,sans-serif;letter-spacing:.20em;color:rgba(15,23,42,.48)}
+.vela-settings-header>h1{margin:7px 0 4px!important;font:500 34px/1.08 ui-serif,Georgia,Cambria,"Times New Roman",serif!important;font-style:italic!important;letter-spacing:-.025em!important}
+.vela-settings-header>p{margin:0 0 24px!important;font:10px/1.4 ui-sans-serif,system-ui,sans-serif!important;color:rgba(15,23,42,.50)!important}
+@media(max-width:600px){.vela-trip-manager-main{padding-left:16px;padding-right:16px}.vela-trip-manager-main .trip-manager-edit-sheet{max-height:calc(100dvh - 18px)!important;border-radius:16px!important}}
