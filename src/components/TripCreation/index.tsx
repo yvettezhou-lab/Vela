@@ -17,6 +17,7 @@ type DraftSegment = {
   destinations: DraftDestination[];
   primaryCurrency: string;
   currencyManuallySet: boolean;
+  startDateManuallySet: boolean;
 };
 
 const CURRENCIES = ['CNY', 'MYR', 'SGD', 'THB', 'IDR', 'PHP', 'JPY', 'KRW', 'USD', 'EUR', 'GBP', 'AUD', 'HKD'];
@@ -123,6 +124,8 @@ const makeDraftSegment = (segment?: TravelSegment): DraftSegment => ({
   destinations: segment?.destinations?.length ? segment.destinations.map((destination) => ({ ...destination })) : [{ country: '', region: '', city: '' }],
   primaryCurrency: segment?.primaryCurrency ?? 'CNY',
   currencyManuallySet: Boolean(segment),
+  // Existing segments are treated as intentional; newly linked segments can follow the previous end date.
+  startDateManuallySet: Boolean(segment),
 });
 
 export const TripCreation: React.FC<Props> = ({ onClose, onCreated, onUpdated, trip }) => {
@@ -213,8 +216,16 @@ export const TripCreation: React.FC<Props> = ({ onClose, onCreated, onUpdated, t
     setCoverPreview((current) => { if (current) URL.revokeObjectURL(current); return null; });
   };
 
-  const updateSegment = (index: number, patch: Partial<DraftSegment>) =>
-    setSegments((current) => current.map((segment, i) => i === index ? { ...segment, ...patch } : segment));
+  const updateSegment = (index: number, patch: Partial<DraftSegment>) => setSegments((current) => {
+    const next = current.map((segment, i) => i === index ? { ...segment, ...patch } : segment);
+    if (Object.prototype.hasOwnProperty.call(patch, 'endDate')) {
+      for (let i = index + 1; i < next.length; i++) {
+        if (next[i].startDateManuallySet) break;
+        next[i] = { ...next[i], startDate: next[i - 1].endDate };
+      }
+    }
+    return next;
+  });
   const countryMatches = (value: string) => {
     const q = value.trim().toLowerCase();
     if (!q) return COUNTRIES.slice(0, 12);
@@ -244,6 +255,7 @@ export const TripCreation: React.FC<Props> = ({ onClose, onCreated, onUpdated, t
     const previous = current[current.length - 1];
     const next = makeDraftSegment();
     if (previous?.endDate) next.startDate = previous.endDate;
+    next.startDateManuallySet = false;
     return [...current, next];
   });
   const removeSegment = (index: number) => setSegments((current) => current.length <= 1 ? current : current.filter((_, i) => i !== index));
@@ -257,6 +269,8 @@ export const TripCreation: React.FC<Props> = ({ onClose, onCreated, onUpdated, t
       if (!Number.isFinite(start) || !Number.isFinite(end)) return setError(`Please choose both dates for Segment ${i + 1}.`);
       if (end < start) return setError(`End date cannot be before start date in Segment ${i + 1}.`);
       if (draft.destinations.some((destination) => !destination.country.trim() && !destination.city.trim())) return setError(`Please complete the destination in Segment ${i + 1}.`);
+      const segmentCountries = [...new Set(draft.destinations.map((destination) => destination.country.trim().toLowerCase()).filter(Boolean))];
+      if (segmentCountries.length > 1) return setError(`Segment ${i + 1} can contain destinations in one country only. Add a new segment for the next country.`);
       if (!draft.primaryCurrency.trim()) return setError(`Please choose a primary currency for Segment ${i + 1}.`);
     }
     if (overlapPairs.length) return setError(`Segment ${overlapPairs[0][0] + 1} overlaps Segment ${overlapPairs[0][1] + 1}. Adjust the date ranges before saving.`);
@@ -279,6 +293,8 @@ export const TripCreation: React.FC<Props> = ({ onClose, onCreated, onUpdated, t
       if (end < start) return setError(`End date cannot be before start date in Segment ${i + 1}.`);
       const destinations = draft.destinations.map((destination) => ({ country: destination.country.trim(), region: destination.region?.trim() || undefined, city: destination.city.trim() }));
       if (destinations.some((destination) => !destination.country && !destination.city)) return setError(`Please complete the destination in Segment ${i + 1}.`);
+      const segmentCountries = [...new Set(destinations.map((destination) => destination.country.toLowerCase()).filter(Boolean))];
+      if (segmentCountries.length > 1) return setError(`Segment ${i + 1} can contain destinations in one country only. Add a new segment for the next country.`);
       if (!draft.primaryCurrency.trim()) return setError(`Please choose a primary currency for Segment ${i + 1}.`);
       normalizedSegments.push({ id: draft.id, startDate: start, endDate: end, destinations, primaryCurrency: draft.primaryCurrency.trim().toUpperCase() });
     }
@@ -327,19 +343,19 @@ export const TripCreation: React.FC<Props> = ({ onClose, onCreated, onUpdated, t
           return <div className={`trip-segment ${overlaps ? 'is-overlapping' : ''}`} key={segment.id}>
             <div className="trip-segment-head"><strong>SEGMENT {segmentIndex + 1}</strong>{segments.length > 1 && <button type="button" className="trip-icon-button" onClick={() => removeSegment(segmentIndex)} aria-label={`Remove segment ${segmentIndex + 1}`}><Trash2 size={14} /></button>}</div>
             <div className="trip-creation-dates">
-              <CompactTripDatePicker label="START" value={segment.startDate} onChange={(value) => updateSegment(segmentIndex, { startDate: value })} />
+              <CompactTripDatePicker label="START" value={segment.startDate} onChange={(value) => updateSegment(segmentIndex, { startDate: value, startDateManuallySet: true })} />
               <CompactTripDatePicker label="END" value={segment.endDate} onChange={(value) => updateSegment(segmentIndex, { endDate: value })} />
             </div>
             {overlaps && <p className="trip-segment-inline-error" role="alert">This date range overlaps another segment. Segments must not overlap.</p>}
             <div className="trip-destination-section">
-              <span className="trip-field-label">CITIES IN THIS SEGMENT</span>
+              <span className="trip-field-label">DESTINATIONS IN THIS SEGMENT</span>
               {segment.destinations.map((destination, destinationIndex) => <div className="trip-destination-row" key={destinationIndex}>
                 <div className="trip-country-autocomplete"><input aria-label={`Segment ${segmentIndex + 1} country ${destinationIndex + 1}`} value={destination.country} onChange={(e) => updateCountry(segmentIndex, destinationIndex, e.target.value)} placeholder="Country" list={`vela-country-${segment.id}-${destinationIndex}`} /><datalist id={`vela-country-${segment.id}-${destinationIndex}`}>{countryMatches(destination.country).map(([en, zh, code]) => <option key={code || en} value={en}>{zh}{code ? ` · ${code}` : ""}</option>)}</datalist></div>
                 {/^(china|中国)$/i.test(destination.country.trim()) && <input aria-label={`Segment ${segmentIndex + 1} region ${destinationIndex + 1}`} value={destination.region ?? ''} onChange={(e) => updateDestination(segmentIndex, destinationIndex, { region: e.target.value })} placeholder="Province / Region" className="trip-region-input" />}
                 <input aria-label={`Segment ${segmentIndex + 1} city ${destinationIndex + 1}`} value={destination.city} onChange={(e) => updateDestination(segmentIndex, destinationIndex, { city: e.target.value })} placeholder="City" />
                 {destinationIndex < segment.destinations.length - 1 ? <button type="button" className="trip-icon-button trip-destination-remove" onClick={() => removeDestination(segmentIndex, destinationIndex)} aria-label="Remove city"><X size={13} /></button> : null}
               </div>)}
-              <button type="button" className="trip-add-city" onClick={() => addDestination(segmentIndex)}><Plus size={14} /> Add city</button>
+              <button type="button" className="trip-add-city" onClick={() => addDestination(segmentIndex)}><Plus size={14} /> Add destination</button>
             </div>
             <label><span>PRIMARY CURRENCY</span><div className="trip-select-wrap"><select value={segment.primaryCurrency} onChange={(e) => updateSegment(segmentIndex, { primaryCurrency: e.target.value, currencyManuallySet: true })}>{CURRENCIES.map((currency) => <option key={currency} value={currency}>{currency}</option>)}</select><ChevronDown size={14} /></div></label>
           </div>;
