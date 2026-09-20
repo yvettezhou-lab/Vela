@@ -118,6 +118,7 @@ export const TripCreation: React.FC<Props> = ({ onClose, onCreated, onUpdated, t
   const commonAccounts = useVelaStore((state) => state.commonAccounts);
   const editing = Boolean(trip);
   const [title, setTitle] = useState(trip?.title ?? '');
+  const [step, setStep] = useState(1);
   const [titleEdited, setTitleEdited] = useState(Boolean(trip));
   const [segments, setSegments] = useState<DraftSegment[]>(() => trip?.segments.map(makeDraftSegment) ?? [makeDraftSegment()]);
 
@@ -227,14 +228,34 @@ export const TripCreation: React.FC<Props> = ({ onClose, onCreated, onUpdated, t
     if (i !== segmentIndex || segment.destinations.length <= 1) return segment;
     return { ...segment, destinations: segment.destinations.filter((_, j) => j !== destinationIndex) };
   }));
-  const addSegment = () => setSegments((current) => [...current, makeDraftSegment()]);
+  const addSegment = () => setSegments((current) => {
+    const previous = current[current.length - 1];
+    const next = makeDraftSegment();
+    if (previous?.endDate) next.startDate = previous.endDate;
+    return [...current, next];
+  });
   const removeSegment = (index: number) => setSegments((current) => current.length <= 1 ? current : current.filter((_, i) => i !== index));
+
+  const goToRules = () => {
+    setError('');
+    if (!segments.length) return setError('Please add at least one segment.');
+    for (let i = 0; i < segments.length; i++) {
+      const draft = segments[i];
+      const start = toTimestamp(draft.startDate), end = toTimestamp(draft.endDate);
+      if (!Number.isFinite(start) || !Number.isFinite(end)) return setError(`Please choose both dates for Segment ${i + 1}.`);
+      if (end < start) return setError(`End date cannot be before start date in Segment ${i + 1}.`);
+      if (draft.destinations.some((destination) => !destination.country.trim() && !destination.city.trim())) return setError(`Please complete the destination in Segment ${i + 1}.`);
+      if (!draft.primaryCurrency.trim()) return setError(`Please choose a primary currency for Segment ${i + 1}.`);
+    }
+    if (overlapPairs.length) return setError(`Segment ${overlapPairs[0][0] + 1} overlaps Segment ${overlapPairs[0][1] + 1}. Adjust the date ranges before saving.`);
+    setStep(2);
+  };
 
   const submit = async (event: FormEvent) => {
     event.preventDefault();
     setError('');
-    const cleanTitle = title.trim();
-    if (!cleanTitle) return setError('Please enter a trip title.');
+    const cleanTitle = title.trim() || generatedTitle;
+    if (!cleanTitle) return setError('Add enough trip details to generate a title.');
     if (!segments.length) return setError('Please add at least one segment.');
     if (overlapPairs.length) return setError(`Segment ${overlapPairs[0][0] + 1} overlaps Segment ${overlapPairs[0][1] + 1}. Adjust the date ranges before saving.`);
 
@@ -283,18 +304,11 @@ export const TripCreation: React.FC<Props> = ({ onClose, onCreated, onUpdated, t
       <button type="button" onClick={onClose} aria-label="Close"><X size={19} /></button>
     </div>
     <form onSubmit={submit}>
-      <label><span>TRIP TITLE</span><input autoFocus value={title} onChange={(e) => { setTitleEdited(true); setTitle(e.target.value); }} placeholder={generatedTitle || 'Auto-generated from dates & destinations'} /><small className="trip-title-hint">{titleEdited ? 'Custom title' : 'Auto-generated from dates & main destination'}</small></label>
-      {!editing && availableSourceTrips.length > 0 && <label className="trip-clone-settings"><span>SETTINGS</span><div className="trip-select-wrap"><select defaultValue="" onChange={(e) => { const source = availableSourceTrips.find((item) => item.id === e.target.value); if (source) cloneSettingsFrom(source); }}><option value="">Clone settings from a past journey…</option>{availableSourceTrips.map((source) => <option key={source.id} value={source.id}>{source.title}</option>)}</select><ChevronDown size={14} /></div><small>Copies people, categories, accounts and saved allocation rules. Historical data is never copied.</small></label>}
+      {editing && <label><span>TRIP TITLE</span><input autoFocus value={title} onChange={(e) => { setTitleEdited(true); setTitle(e.target.value); }} placeholder={generatedTitle || 'Trip title'} /><small className="trip-title-hint">{titleEdited ? 'Custom title' : 'Auto-generated from dates & main destination'}</small></label>}
+      {step === 1 && <>
+        {!editing && availableSourceTrips.length > 0 && <label className="trip-clone-settings"><span>PAST JOURNEY</span><div className="trip-select-wrap"><select defaultValue="" onChange={(e) => { const source = availableSourceTrips.find((item) => item.id === e.target.value); if (source) cloneSettingsFrom(source); }}><option value="">Optional · clone people & rules…</option>{availableSourceTrips.map((source) => <option key={source.id} value={source.id}>{source.title}</option>)}</select><ChevronDown size={14} /></div></label>}
 
-      <div className="trip-cover-field">
-        <span className="trip-field-label">COVER IMAGE</span>
-        <div className="trip-cover-picker">
-          <div className="trip-cover-preview"><img src={coverPreview || persistedCover || '/896DCF5B-31E2-44AA-ADEB-1A9E019FC6FC.png'} alt="" /></div>
-          <div className="trip-cover-actions"><label className="trip-cover-upload">Choose image<input type="file" accept="image/*" onChange={(e) => selectCover(e.target.files?.[0])} /></label>{coverPreview && <button type="button" className="trip-cover-clear" onClick={clearSelectedCover}>Remove selection</button>}<small>Stored locally in IndexedDB · max 8 MB</small></div>
-        </div>
-      </div>
-
-      <div className="trip-segments">
+        <div className="trip-segments">
         <div className="trip-segments-heading"><span>TRAVEL SEGMENTS</span><small>{segments.length} {segments.length === 1 ? 'segment' : 'segments'}</small></div>
         {segments.map((segment, segmentIndex) => {
           const overlaps = overlapPairs.some(([a, b]) => a === segmentIndex || b === segmentIndex);
@@ -319,7 +333,17 @@ export const TripCreation: React.FC<Props> = ({ onClose, onCreated, onUpdated, t
         <button type="button" className="trip-add-segment" onClick={addSegment}>+ Add segment</button>
       </div>
 
-      <section className="trip-allocation-rules">
+      <div className="trip-cover-field trip-cover-field-compact">
+        <span className="trip-field-label">COVER</span>
+        <div className="trip-cover-compact-row">
+          <label className="trip-cover-compact-action">{coverFile || persistedCover ? 'Change cover' : 'Add cover'}<input type="file" accept="image/*" onChange={(e) => selectCover(e.target.files?.[0])} /></label>
+          {(coverFile || persistedCover) && <button type="button" className="trip-cover-clear" onClick={clearSelectedCover}>Remove</button>}
+        </div>
+      </div>
+
+      {!editing && <button type="button" className="trip-creation-submit trip-next-button" onClick={goToRules}>Next <ChevronDown size={15} /></button>}
+      </>}
+      {step === 2 && <>
         <span className="trip-field-label">PEOPLE &amp; ALLOCATION</span>
         <small className="trip-allocation-hint">设置这次 Trip 的参与人员和默认分摊比例。Quick Entry 可直接选择“按设定比例”。</small>
         <div className="trip-member-add-row"><input value={newMemberName} onChange={(e) => setNewMemberName(e.target.value)} placeholder="Add person to this trip" onKeyDown={(e) => { if (e.key === 'Enter') { const name = newMemberName.trim(); if (name && !members.some((member) => !member.archived && member.name.toLowerCase() === name.toLowerCase())) { const id = crypto.randomUUID(); setMembers((current) => [...current, { id, name }]); setPresetPercentages((current) => ({ ...current, [id]: 0 })); setNewMemberName(''); } } }} /><button type="button" onClick={() => { const name = newMemberName.trim(); if (!name || members.some((member) => !member.archived && member.name.toLowerCase() === name.toLowerCase())) return; const id = crypto.randomUUID(); setMembers((current) => [...current, { id, name }]); setPresetPercentages((current) => ({ ...current, [id]: 0 })); setNewMemberName(''); }}>+ Add</button></div>
@@ -333,8 +357,9 @@ export const TripCreation: React.FC<Props> = ({ onClose, onCreated, onUpdated, t
         </div>
         <div className="trip-allocation-total">Total {Object.values(presetPercentages).reduce((sum, value) => sum + (Number(value) || 0), 0).toFixed(2)}%</div>
       </section>
+      {!editing && <div className="trip-creation-step-actions"><button type="button" className="trip-secondary-action" onClick={() => { setError(''); setStep(1); }}>Back</button><button className="trip-creation-submit" type="submit" disabled={isSaving}>{isSaving ? 'Saving…' : 'Create Journey'} <ChevronDown size={15} /></button></div>}
       {error && <p className="trip-creation-error" role="alert">{error}</p>}
-      <button className="trip-creation-submit" type="submit" disabled={isSaving}>{isSaving ? 'Saving…' : editing ? 'Save Journey' : 'Create Journey'} <ChevronDown size={15} /></button>
+      {editing && <button className="trip-creation-submit" type="submit" disabled={isSaving}>{isSaving ? 'Saving…' : 'Save Journey'} <ChevronDown size={15} /></button>}
     </form>
   </div>;
 };
