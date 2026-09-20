@@ -92,12 +92,12 @@ export const TripCreation: React.FC<Props> = ({ onClose, onCreated, onUpdated, t
     setAccounts(source.accounts.map((account) => ({ ...account, id: crypto.randomUUID() })));
     setCategories(source.categories.map((category) => ({ ...category })));
     if (source.allocationRules) {
-      const percentages = source.allocationRules.percentages ? Object.fromEntries(Object.entries(source.allocationRules.percentages).map(([memberId, percentage]) => [memberIdMap.get(memberId) ?? crypto.randomUUID(), percentage])) : undefined;
-      setAllocationRules({ allocationMode: source.allocationRules.allocationMode, percentages });
+      const percentages = Object.fromEntries(Object.entries(source.allocationRules.percentages ?? {}).map(([memberId, percentage]) => [memberIdMap.get(memberId) ?? '', percentage]).filter(([memberId]) => Boolean(memberId)));
+      setAllocationRules({ allocationMode: 'preset_percentage', percentages });
     } else {
       const customEntry = [...source.ledger].reverse().find((entry) => entry.allocationMode === 'custom_percentage');
       if (customEntry) {
-        setAllocationRules({ allocationMode: 'custom_percentage', percentages: Object.fromEntries(customEntry.allocations.map((allocation) => [memberIdMap.get(allocation.memberId) ?? '', allocation.percentage ?? 0]).filter(([memberId]) => Boolean(memberId))) });
+        setAllocationRules({ allocationMode: 'preset_percentage', percentages: Object.fromEntries(customEntry.allocations.map((allocation) => [memberIdMap.get(allocation.memberId) ?? '', allocation.percentage ?? 0]).filter(([memberId]) => Boolean(memberId))) });
       } else setAllocationRules(undefined);
     }
   };
