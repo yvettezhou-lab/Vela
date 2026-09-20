@@ -170,7 +170,15 @@ export const TripCreation: React.FC<Props> = ({ onClose, onCreated, onUpdated, t
   const [coverPreview, setCoverPreview] = useState<string | null>(null);
   const [isSaving, setIsSaving] = useState(false);
   const [allocationRules, setAllocationRules] = useState<AllocationRule | undefined>(() => trip?.allocationRules?.percentages ? { allocationMode: 'preset_percentage', percentages: { ...trip.allocationRules.percentages } } : undefined);
-  const [presetPercentages, setPresetPercentages] = useState<Record<string, number>>(() => trip?.allocationRules?.percentages ? { ...trip.allocationRules.percentages } : {});
+  const [presetPercentages, setPresetPercentages] = useState<Record<string, number>>(() => {
+    if (trip?.allocationRules?.percentages) return { ...trip.allocationRules.percentages };
+    const initialMembers = trip?.members?.length ? trip.members : commonMembers.filter((member) => member.archived !== true);
+    const activeIds = initialMembers.map((member) => member.id);
+    if (!activeIds.length) return {};
+    const base = Math.floor((100 / activeIds.length) * 100) / 100;
+    const percentages = Object.fromEntries(activeIds.map((id, index) => [id, index === activeIds.length - 1 ? Number((100 - base * (activeIds.length - 1)).toFixed(2)) : base]));
+    return percentages;
+  });
   const persistedCover = useTripCover(trip?.coverImage);
   const [newMemberName, setNewMemberName] = useState('');
   const [newAccountName, setNewAccountName] = useState('');
@@ -198,8 +206,16 @@ export const TripCreation: React.FC<Props> = ({ onClose, onCreated, onUpdated, t
     } else {
       const customEntry = [...source.ledger].reverse().find((entry) => entry.allocationMode === 'custom_percentage');
       if (customEntry) {
-        setAllocationRules({ allocationMode: 'preset_percentage', percentages: Object.fromEntries(customEntry.allocations.map((allocation) => [memberIdMap.get(allocation.memberId) ?? '', allocation.percentage ?? 0]).filter(([memberId]) => Boolean(memberId))) });
-      } else setAllocationRules(undefined);
+        const percentages = Object.fromEntries(customEntry.allocations.map((allocation) => [memberIdMap.get(allocation.memberId) ?? '', allocation.percentage ?? 0]).filter(([memberId]) => Boolean(memberId)));
+        setAllocationRules({ allocationMode: 'preset_percentage', percentages });
+        setPresetPercentages(percentages);
+      } else {
+        setAllocationRules(undefined);
+        const activeIds = clonedMembers.map((member) => member.id);
+        const base = activeIds.length ? Math.floor((100 / activeIds.length) * 100) / 100 : 0;
+        const percentages = Object.fromEntries(activeIds.map((id, index) => [id, index === activeIds.length - 1 ? Number((100 - base * (activeIds.length - 1)).toFixed(2)) : base]));
+        setPresetPercentages(percentages);
+      }
     }
   };
 
