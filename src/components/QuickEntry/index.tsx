@@ -447,16 +447,15 @@ const QuickEntryContent: React.FC<QuickEntryProps> = ({ onClose }) => {
           </div>
         </div>
 
-        <div className="mt-4 rounded-xl bg-[#fbf7ee] px-4 py-3.5 shadow-[inset_0_0_0_1px_rgba(80,64,42,.10)]">
-          <div className="flex items-center justify-between gap-4">
-            <div>
-              <span className="block text-sm font-medium text-[#17243a]">Include in Statistics</span>
-              <span className="mt-1 block text-xs text-[#857a6a]">{includeInCost ? 'Included in trip total, daily average, and Reflection' : 'Kept in Ledger and Allocation, but excluded from trip cost statistics'}</span>
-            </div>
-            <button type="button" role="switch" aria-checked={includeInCost} onClick={() => setIncludeInCost((value) => !value)} className={includeInCost ? 'relative h-8 w-14 shrink-0 rounded-full bg-[#17243a]' : 'relative h-8 w-14 shrink-0 rounded-full bg-[#d8cfbf]'} aria-label={includeInCost ? 'Included in statistics, tap to exclude' : 'Excluded from statistics, tap to include'}>
-              <span className={includeInCost ? 'absolute right-1 top-1 h-6 w-6 rounded-full bg-white shadow' : 'absolute left-1 top-1 h-6 w-6 rounded-full bg-white shadow'} />
-            </button>
+        <div className="vela-cost-toggle">
+          <div className="vela-cost-toggle-copy">
+            <span className="vela-cost-toggle-title">Include in Statistics</span>
+            <span className="vela-cost-toggle-help">{includeInCost ? 'Included in trip total, daily average, and Reflection.' : 'Excluded from trip cost statistics; kept in Ledger, Allocation, and Settlement.'}</span>
           </div>
+          <button type="button" role="switch" aria-checked={includeInCost} onClick={() => setIncludeInCost((value) => !value)} className={`vela-cost-switch ${includeInCost ? 'is-on' : ''}`} aria-label={includeInCost ? 'Included in statistics, tap to exclude' : 'Excluded from statistics, tap to include'}>
+            <span className="vela-cost-switch-knob" />
+          </button>
+          <span className="vela-cost-switch-state">{includeInCost ? 'Included' : 'Excluded'}</span>
         </div>
 
         {entryType === 'standard' && (
