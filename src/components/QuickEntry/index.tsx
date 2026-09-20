@@ -133,7 +133,7 @@ const QuickEntryContent: React.FC<QuickEntryProps> = ({ onClose }) => {
     setCurrency(getTripPrimaryCurrency(targetTrip));
     const savedRule = targetTrip.allocationRules;
     if (savedRule) {
-      setCustomPercentages({ ...savedRule.percentages });
+      setCustomPercentages({});
       const ruleMemberIds = Object.keys(savedRule.percentages);
       setSelectedParticipants(new Set(ruleMemberIds.filter((id) => members.some((member) => member.id === id))));
     } else {
