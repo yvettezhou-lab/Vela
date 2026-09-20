@@ -257,7 +257,17 @@ export const TripCreation: React.FC<Props> = ({ onClose, onCreated, onUpdated, t
     next.startDateManuallySet = false;
     return [...current, next];
   });
-  const removeSegment = (index: number) => setSegments((current) => current.length <= 1 ? current : current.filter((_, i) => i !== index));
+  const removeSegment = (index: number) => setSegments((current) => {
+    if (current.length <= 1) return current;
+    const next = current.filter((_, i) => i !== index);
+    // If a linked segment becomes the first segment, keep its existing start.
+    // Otherwise preserve the deliberate "previous end → next start" chain.
+    for (let i = Math.max(1, index); i < next.length; i++) {
+      if (!next[i].startDateManuallySet) next[i] = { ...next[i], startDate: next[i - 1].endDate };
+      else break;
+    }
+    return next;
+  });
 
   const goToRules = () => {
     setError('');
@@ -341,8 +351,12 @@ export const TripCreation: React.FC<Props> = ({ onClose, onCreated, onUpdated, t
           const overlaps = overlapPairs.some(([a, b]) => a === segmentIndex || b === segmentIndex);
           return <div className={`trip-segment ${overlaps ? 'is-overlapping' : ''}`} key={segment.id}>
             <div className="trip-segment-head"><strong>SEGMENT {segmentIndex + 1}</strong>{segments.length > 1 && <button type="button" className="trip-icon-button" onClick={() => removeSegment(segmentIndex)} aria-label={`Remove segment ${segmentIndex + 1}`}><Trash2 size={14} /></button>}</div>
-            <div className="trip-creation-dates">
-              <CompactTripDatePicker label="START" value={segment.startDate} onChange={(value) => updateSegment(segmentIndex, { startDate: value, startDateManuallySet: true })} />
+            <div className={`trip-creation-dates${segmentIndex > 0 && !segment.startDateManuallySet ? ' is-linked' : ''}`}>
+              <div className="trip-linked-start">
+                <CompactTripDatePicker label={segmentIndex > 0 && !segment.startDateManuallySet ? 'START · FOLLOWS PREVIOUS END' : 'START'} value={segment.startDate} onChange={(value) => updateSegment(segmentIndex, { startDate: value, startDateManuallySet: true })} />
+                {segmentIndex > 0 && !segment.startDateManuallySet && <span>Linked to Segment {segmentIndex} end</span>}
+                {segmentIndex > 0 && segment.startDateManuallySet && <button type="button" onClick={() => updateSegment(segmentIndex, { startDate: segments[segmentIndex - 1].endDate, startDateManuallySet: false })}>Use previous end</button>}
+              </div>
               <CompactTripDatePicker label="END" value={segment.endDate} onChange={(value) => updateSegment(segmentIndex, { endDate: value })} />
             </div>
             {overlaps && <p className="trip-segment-inline-error" role="alert">This date range overlaps another segment. Segments must not overlap.</p>}
