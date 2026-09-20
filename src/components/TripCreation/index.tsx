@@ -66,8 +66,8 @@ export const TripCreation: React.FC<Props> = ({ onClose, onCreated, onUpdated, t
   const [title, setTitle] = useState(trip?.title ?? '');
   const [segments, setSegments] = useState<DraftSegment[]>(() => trip?.segments.map(makeDraftSegment) ?? [makeDraftSegment()]);
   const [error, setError] = useState('');
-  const [members, setMembers] = useState(() => trip?.members.map((member) => ({ ...member })) ?? []);
-  const [accounts, setAccounts] = useState(() => trip?.accounts.map((account) => ({ ...account })) ?? []);
+  const [members, setMembers] = useState(() => trip?.members.map((member) => ({ ...member })) ?? commonMembers.filter((member) => member.archived !== true).map((member) => ({ ...member })) ?? []);
+  const [accounts, setAccounts] = useState(() => trip?.accounts.map((account) => ({ ...account })) ?? commonAccounts.filter((account) => account.archived !== true).map((account) => ({ ...account })) ?? []);
   const [categories, setCategories] = useState(() => trip?.categories.map((category) => ({ ...category })) ?? []);
   const [coverFile, setCoverFile] = useState<File | null>(null);
   const [coverPreview, setCoverPreview] = useState<string | null>(null);
@@ -75,6 +75,7 @@ export const TripCreation: React.FC<Props> = ({ onClose, onCreated, onUpdated, t
   const [allocationRules, setAllocationRules] = useState<AllocationRule | undefined>(() => trip?.allocationRules?.percentages ? { allocationMode: 'preset_percentage', percentages: { ...trip.allocationRules.percentages } } : undefined);
   const [presetPercentages, setPresetPercentages] = useState<Record<string, number>>(() => trip?.allocationRules?.percentages ? { ...trip.allocationRules.percentages } : {});
   const persistedCover = useTripCover(trip?.coverImage);
+  const [newMemberName, setNewMemberName] = useState('');
   const availableSourceTrips = useVelaStore((state) => state.trips).filter((source) => source.status === 'achieve' && source.id !== trip?.id).sort((a, b) => b.updatedAt - a.updatedAt);
 
   const overlapPairs = useMemo(() => {
@@ -237,10 +238,10 @@ export const TripCreation: React.FC<Props> = ({ onClose, onCreated, onUpdated, t
         <button type="button" className="trip-add-segment" onClick={addSegment}>+ Add segment</button>
       </div>
 
-      <div className="trip-creation-member"><span>DEFAULT MEMBER</span><strong>Me</strong><small>Added automatically</small></div>
       <section className="trip-allocation-rules">
-        <span className="trip-field-label">PRESET ALLOCATION</span>
-        <small className="trip-allocation-hint">设置后，Quick Entry 可直接选择“按设定比例”。留空则不启用预设分摊。</small>
+        <span className="trip-field-label">PEOPLE &amp; ALLOCATION</span>
+        <small className="trip-allocation-hint">设置这次 Trip 的参与人员和默认分摊比例。Quick Entry 可直接选择“按设定比例”。</small>
+        <div className="trip-member-add-row"><input value={newMemberName} onChange={(e) => setNewMemberName(e.target.value)} placeholder="Add person to this trip" onKeyDown={(e) => { if (e.key === 'Enter') { const name = newMemberName.trim(); if (name && !members.some((member) => !member.archived && member.name.toLowerCase() === name.toLowerCase())) { const id = crypto.randomUUID(); setMembers((current) => [...current, { id, name }]); setPresetPercentages((current) => ({ ...current, [id]: 0 })); setNewMemberName(''); } } }} /><button type="button" onClick={() => { const name = newMemberName.trim(); if (!name || members.some((member) => !member.archived && member.name.toLowerCase() === name.toLowerCase())) return; const id = crypto.randomUUID(); setMembers((current) => [...current, { id, name }]); setPresetPercentages((current) => ({ ...current, [id]: 0 })); setNewMemberName(''); }}>+ Add</button></div>
         <div className="trip-allocation-list">
           {members.filter((member) => member.archived !== true).map((member) => (
             <label key={member.id} className="trip-allocation-row">
@@ -249,7 +250,7 @@ export const TripCreation: React.FC<Props> = ({ onClose, onCreated, onUpdated, t
             </label>
           ))}
         </div>
-        <div className="trip-allocation-total">合计 {Object.values(presetPercentages).reduce((sum, value) => sum + (Number(value) || 0), 0).toFixed(2)}%</div>
+        <div className="trip-allocation-total">Total {Object.values(presetPercentages).reduce((sum, value) => sum + (Number(value) || 0), 0).toFixed(2)}%</div>
       </section>
       {error && <p className="trip-creation-error" role="alert">{error}</p>}
       <button className="trip-creation-submit" type="submit" disabled={isSaving}>{isSaving ? 'Saving…' : editing ? 'Save Journey' : 'Create Journey'} <ChevronDown size={15} /></button>
