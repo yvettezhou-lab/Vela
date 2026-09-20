@@ -12,3 +12,18 @@
 .master-data-preset-actions button{min-height:34px;padding:0 12px;border:0;border-radius:8px;background:#23383d;color:#fff;font:600 11px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
 .master-data-preset-actions button.ghost{background:transparent;color:#6f6659;border:1px solid rgba(80,64,42,.12)}
 .master-data-preset-message{margin:7px 0 0;color:#6f6659;font:10px/1.35 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
+
+.master-data-list-header{padding:2px 2px 7px}.master-data-list-header h2{margin:3px 0 1px;color:#23383d;font:500 21px Georgia,"Times New Roman",serif}.master-data-list-header p{margin:0;color:#7b817d;font:11px/1.4 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
+.master-data-trip-panel{background:#fbf7ee;border:1px solid rgba(80,64,42,.10);border-radius:14px;overflow:hidden}
+.master-data-trip-panel.is-open{box-shadow:0 4px 16px rgba(80,64,42,.045)}
+.master-data-trip-toggle{width:100%;display:flex;align-items:center;justify-content:space-between;gap:10px;padding:13px 14px;border:0;background:transparent;color:#23383d;text-align:left;cursor:pointer}
+.master-data-trip-toggle>span{min-width:0}.master-data-trip-toggle strong{display:block;margin-top:4px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font:500 16px Georgia,"Times New Roman",serif}.master-data-trip-toggle svg{flex:none;color:#8b806d;transition:transform .18s ease}.master-data-trip-panel.is-open .master-data-trip-toggle svg{transform:rotate(180deg)}
+.master-data-trip-content{padding:0 12px 12px;border-top:1px solid rgba(80,64,42,.08)}
+.master-data-subcard{margin-top:10px!important;background:#fffdf8!important}
+.master-data-people{border-top:0;padding-top:10px}
+.master-data-section-title{display:block;margin-top:4px;color:#23383d;font:500 15px Georgia,"Times New Roman",serif}
+.master-data-person-preset{display:grid;grid-template-columns:minmax(0,1fr) auto auto;align-items:center;gap:8px;min-height:42px;padding:5px 8px;border-bottom:1px solid rgba(80,64,42,.08)}
+.master-data-person-preset:last-child{border-bottom:0}.master-data-person-name{min-width:0}.master-data-person-name strong{display:block;color:#29383b;font:500 13px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.master-data-person-percent{display:flex;align-items:center;gap:3px;color:#6f6659;font-size:12px}.master-data-person-percent input{width:58px;height:30px;border:1px solid rgba(80,64,42,.14);border-radius:7px;background:#fffdf8;color:#23383d;text-align:right;padding:0 7px;font:500 12px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
+.master-data-person-actions{display:flex;gap:4px}.master-data-person-actions button{display:grid;place-items:center;width:28px;height:28px;border:1px solid rgba(80,64,42,.10);border-radius:7px;background:#fffdf8;color:#536064;cursor:pointer}
+.master-data-preset-footer{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:9px}.master-data-preset-footer button{min-height:34px;padding:0 13px;border:0;border-radius:8px;background:#23383d;color:#fff;font:600 11px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}.master-data-preset-footer .master-data-preset-total{font-size:12px}
