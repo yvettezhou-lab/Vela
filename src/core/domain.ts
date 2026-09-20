@@ -1,5 +1,5 @@
 export type TripStatus = 'planning' | 'traveling' | 'achieve';
-export type AllocationMode = 'equal' | 'custom_percentage';
+export type AllocationMode = 'equal' | 'preset_percentage' | 'custom_percentage';
 export type FlightType = 'one_way' | 'round_trip';
 export interface Member { id: string; name: string; archived?: boolean; }
 export interface Account { id: string; name: string; archived?: boolean; }
@@ -15,5 +15,5 @@ export type LedgerEntry = StandardEntry | FlightEntry | PrepaidMultiDayEntry;
 export interface TripFinancialTotals { financialTotal: number; settledAmount: number; pendingAmount: number; }
 export interface Destination { country: string; city: string; }
 export interface TravelSegment { id: string; destinations: Destination[]; startDate: number; endDate: number; primaryCurrency: string; }
-export interface AllocationRule { allocationMode: AllocationMode; percentages?: Record<string, number>; }
+export interface AllocationRule { allocationMode: 'preset_percentage'; percentages: Record<string, number>; }
 export interface Trip { id: string; title: string; segments: TravelSegment[]; status: TripStatus; allocationRules?: AllocationRule; coverImage?: string; members: Member[]; accounts: Account[]; categories: Category[]; ledger: LedgerEntry[]; createdAt: number; updatedAt: number; }
