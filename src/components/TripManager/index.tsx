@@ -28,11 +28,24 @@ export const TripManager: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [endingTripId, setEndingTripId] = useState<string | null>(null);
   const [editingTrip, setEditingTrip] = useState<Trip | null>(null);
+  const [searchQuery, setSearchQuery] = useState('');
 
+  const normalizedSearch = searchQuery.trim().toLocaleLowerCase();
+  const matchesSearch = (trip: Trip) => {
+    if (!normalizedSearch) return true;
+    const searchable = [
+      trip.title,
+      ...trip.segments.flatMap((segment) => [
+        ...segment.destinations.flatMap((destination) => [destination.country, destination.city]),
+        segment.primaryCurrency,
+      ]),
+    ].filter(Boolean).join(' ').toLocaleLowerCase();
+    return searchable.includes(normalizedSearch);
+  };
   const grouped: Record<TripStatus, typeof trips> = {
-    traveling: trips.filter((trip) => trip.status === 'traveling'),
-    planning: trips.filter((trip) => trip.status === 'planning').sort((a, b) => b.updatedAt - a.updatedAt),
-    achieve: trips.filter((trip) => trip.status === 'achieve'),
+    traveling: trips.filter((trip) => trip.status === 'traveling' && matchesSearch(trip)),
+    planning: trips.filter((trip) => trip.status === 'planning' && matchesSearch(trip)).sort((a, b) => b.updatedAt - a.updatedAt),
+    achieve: trips.filter((trip) => trip.status === 'achieve' && matchesSearch(trip)),
   };
   const achievedTrips = grouped.achieve;
 
@@ -50,7 +63,20 @@ export const TripManager: React.FC = () => {
 
   return (
     <section style={styles.container} aria-label="Trip Manager">
-      <div style={styles.header}><div><div style={styles.eyebrow}>TRIP MANAGER</div><h2 style={styles.title}>Your Journeys</h2></div><div style={styles.count}>{trips.length} trips</div></div>
+      <div style={styles.header}><div><div style={styles.eyebrow}>TRIP MANAGER</div><h2 style={styles.title}>Your Journeys</h2></div><div style={styles.count}>{normalizedSearch ? Object.values(grouped).reduce((sum, list) => sum + list.length, 0) : trips.length} trips</div></div>
+      <label style={styles.searchField}>
+        <span style={styles.searchIcon}>⌕</span>
+        <input
+          type="search"
+          value={searchQuery}
+          onChange={(event) => setSearchQuery(event.target.value)}
+          placeholder="Search trips, countries, cities…"
+          aria-label="Search trips, countries, and cities"
+          style={styles.searchFieldInput}
+        />
+        {searchQuery && <button type="button" onClick={() => setSearchQuery('')} style={styles.clearSearch} aria-label="Clear search">×</button>}
+      </label>
+      {normalizedSearch && Object.values(grouped).every((list) => list.length === 0) && <div style={styles.searchEmpty}>No journeys match “{searchQuery.trim()}”.</div>}
       {error && <div role="alert" style={styles.error}>{error}<button type="button" onClick={() => setError(null)} style={styles.dismiss}>×</button></div>}
       {STATUS_ORDER.map((status) => (
         <section key={status} style={styles.group} aria-labelledby={`trip-status-${status}`}>
@@ -86,7 +112,13 @@ export const TripManager: React.FC = () => {
 
 const styles: Record<string, React.CSSProperties> = {
   container: { padding: 20, border: '1px solid #d7d4ca', borderRadius: 14, background: '#fff', color: '#172033', boxSizing: 'border-box' },
+  searchField: { display: 'flex', alignItems: 'center', gap: 8, minHeight: 40, marginBottom: 20, padding: '0 10px', borderBottom: '1px solid #d7d4ca', boxSizing: 'border-box' },
+  searchIcon: { fontSize: 18, lineHeight: 1, opacity: 0.48 },
+  searchFieldInput: {},
+  clearSearch: { border: 0, background: 'transparent', padding: '4px 2px', color: '#62656b', cursor: 'pointer', fontSize: 18, lineHeight: 1 },
+  searchEmpty: { padding: '8px 0 18px', color: '#7b7d82', fontSize: 13 },
   header: { display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 12, marginBottom: 18 }, eyebrow: { fontSize: 10, letterSpacing: '0.16em', opacity: 0.55 }, title: { margin: '3px 0 0', fontSize: 24 }, count: { fontSize: 12, opacity: 0.6 },
+  searchFieldInput: { flex: 1, minWidth: 0, border: 0, outline: 0, background: 'transparent', color: '#172033', fontSize: 13 },
   error: { display: 'flex', justifyContent: 'space-between', gap: 12, alignItems: 'center', marginBottom: 14, padding: '10px 12px', border: '1px solid #d7a5a5', borderRadius: 8, background: '#fff5f5', color: '#8a2020', fontSize: 13 }, dismiss: { border: 0, background: 'transparent', fontSize: 18, cursor: 'pointer', color: 'inherit' }, group: { marginTop: 18 }, groupHeader: { display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }, groupTitle: { margin: 0, fontSize: 14, letterSpacing: '0.04em' }, groupCount: { minWidth: 20, padding: '2px 6px', borderRadius: 999, background: '#f0eee8', fontSize: 11, textAlign: 'center' }, empty: { padding: '12px 0', color: '#7b7d82', fontSize: 13 }, list: { display: 'grid', gap: 8 },
   card: { display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 14, padding: 13, border: '1px solid #e2dfd6', borderRadius: 10 }, cardMain: { minWidth: 0, flex: 1 }, tripTitle: { fontWeight: 650, fontSize: 15, overflow: 'hidden', textOverflow: 'ellipsis' }, destination: { marginTop: 2, fontSize: 13, opacity: 0.72 }, meta: { marginTop: 5, fontSize: 11, opacity: 0.5 }, dates: { marginTop: 6, fontSize: 11, opacity: 0.65, fontVariantNumeric: 'tabular-nums' }, planningContext: { display: 'flex', flexWrap: 'wrap', gap: 7, marginTop: 8, fontSize: 11, color: '#62656b' },
   forecast: { marginTop: 10, padding: 10, borderRadius: 8, background: '#f7f5ef', border: '1px solid #e3dfd4' }, forecastLabel: { fontSize: 9, letterSpacing: '0.14em', opacity: 0.55 }, forecastRange: { marginTop: 4, fontSize: 16, fontWeight: 650, letterSpacing: '0.01em' }, forecastDetail: { marginTop: 4, fontSize: 10, lineHeight: 1.45, color: '#62656b' },
