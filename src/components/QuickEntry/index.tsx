@@ -86,7 +86,7 @@ const DatePicker: React.FC<DatePickerProps> = ({ value, onChange, label, require
   };
 
   return (
-    <div className={`trip-date-picker quick-entry-date-picker${label === 'Usage End' ? ' quick-entry-date-picker-end' : ''}`}>
+    <div className={`trip-date-picker quick-entry-date-picker${label === 'Usage End' ? ' quick-entry-date-picker-end' : ''}${label === 'Usage Start' || label === 'Usage End' ? ' quick-entry-date-picker-above' : ''}`}>
       <span>{label}</span>
       <button type="button" className={`trip-date-trigger${open ? ' is-open' : ''}`} onClick={openPicker} aria-expanded={open} aria-haspopup="dialog">
         <Calendar size={15} />
@@ -444,7 +444,7 @@ const QuickEntryContent: React.FC<QuickEntryProps> = ({ onClose }) => {
           </div>
         </div>
 
-        <div className="mt-3 grid grid-cols-3 gap-3 rounded-2xl bg-[#eee5d5] p-1.5">
+        <div className="quick-entry-entry-type mt-3 grid grid-cols-3 gap-3 rounded-2xl bg-[#eee5d5] p-1.5">
           {([
             ['standard', 'Standard'],
             ['flight', 'Flight'],
