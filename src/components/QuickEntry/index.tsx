@@ -42,7 +42,7 @@ const parseDateValue = (value: string) => {
 
 const formatPickerDate = (value: string) => {
   const date = parseDateValue(value);
-  return date ? `${date.getFullYear()}年${date.getMonth() + 1}月${date.getDate()}日` : 'Select date';
+  return date ? `${date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}` : 'Select date';
 };
 
 const getMonthCells = (month: Date) => {
@@ -91,11 +91,11 @@ const DatePicker: React.FC<DatePickerProps> = ({ value, onChange, label, require
         <div className="trip-date-popover" role="dialog" aria-label={`${label} calendar`}>
           <div className="trip-date-month">
             <button type="button" onClick={() => setViewMonth(new Date(viewMonth.getFullYear(), viewMonth.getMonth() - 1, 1))} aria-label="Previous month"><ChevronLeft size={18} /></button>
-            <strong>{viewMonth.getFullYear()}年{viewMonth.getMonth() + 1}月</strong>
+            <strong>{viewMonth.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}</strong>
             <button type="button" onClick={() => setViewMonth(new Date(viewMonth.getFullYear(), viewMonth.getMonth() + 1, 1))} aria-label="Next month"><ChevronRight size={18} /></button>
           </div>
           <div className="trip-date-week">
-            {['日', '一', '二', '三', '四', '五', '六'].map((day) => <span key={day}>{day}</span>)}
+            {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map((day) => <span key={day}>{day}</span>)}
           </div>
           <div className="trip-date-grid">
             {monthCells.map((date, index) => {
@@ -505,7 +505,7 @@ const QuickEntryContent: React.FC<QuickEntryProps> = ({ onClose }) => {
               placeholder={deferCny ? 'Later' : (fxRate ? 'Auto' : 'Enter manually')}
               aria-label="CNY Equivalent"
             />
-            {currency.trim().toUpperCase() !== 'CNY' && <button type="button" onClick={() => { setDeferCny(v => !v); if (!deferCny) setCnyEquivalent(''); }} className={`mt-2 text-xs ${deferCny ? 'text-[#17243a] font-semibold' : 'text-[#857a6a]'}`}>{deferCny ? '✓ Enter CNY later' : '稍后填写人民币金额'}</button>}
+            {currency.trim().toUpperCase() !== 'CNY' && <button type="button" onClick={() => { setDeferCny(v => !v); if (!deferCny) setCnyEquivalent(''); }} className={`mt-2 text-xs ${deferCny ? 'text-[#17243a] font-semibold' : 'text-[#857a6a]'}`}>{deferCny ? '✓ Enter CNY later' : 'Enter CNY later'}</button>}
           </label>
         </div>
 
