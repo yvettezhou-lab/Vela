@@ -23,6 +23,7 @@ const toDateValue = (date: Date) => {
 };
 
 const todayValue = () => toDateValue(new Date());
+const normalizePercentageInput = (value: string) => value.replace(/^0+(?=\d)/, '');
 const formatCny = (value: number) => (Number.isFinite(value) ? value.toFixed(2).replace(/\.00$/, '') : '');
 
 interface DatePickerProps {
@@ -108,11 +109,11 @@ const DatePicker: React.FC<DatePickerProps> = ({ value, onChange, label, require
             </button>
           </div>
 
-          <div className="grid grid-cols-7 text-center text-[11px] text-[#9a8f80]">
+          <div className="grid text-center text-[11px] text-[#9a8f80]" style={{ gridTemplateColumns: 'repeat(7, minmax(0, 1fr))' }}>
             {['日', '一', '二', '三', '四', '五', '六'].map((day) => <span key={day} className="py-1">{day}</span>)}
           </div>
 
-          <div className="grid grid-cols-7 gap-y-1 text-center">
+          <div className="grid gap-y-1 text-center" style={{ gridTemplateColumns: 'repeat(7, minmax(0, 1fr))' }}>
             {monthCells.map((date, index) => {
               if (!date) return <span key={`empty-${index}`} className="min-h-11" />;
               const dateValue = toDateValue(date);
@@ -161,6 +162,15 @@ const QuickEntryContent: React.FC<QuickEntryProps> = ({ onClose }) => {
   const trips = useVelaStore((state) => state.trips);
   const addLedgerEntry = useVelaStore((state) => state.addLedgerEntry);
   const eligibleTrips = trips.filter((trip) => trip && (trip.status === 'traveling' || trip.status === 'planning'));
+  const currentTrip = eligibleTrips.find((trip) => trip.status === 'traveling') ?? null;
+  const nearestTrips = eligibleTrips
+    .filter((trip) => trip.id !== currentTrip?.id)
+    .sort((a, b) => {
+      const aStart = Math.min(...(a.segments ?? []).map((segment) => segment.startDate).filter(Number.isFinite));
+      const bStart = Math.min(...(b.segments ?? []).map((segment) => segment.startDate).filter(Number.isFinite));
+      return aStart - bStart;
+    });
+  const tripChoices = currentTrip ? [currentTrip, ...nearestTrips].slice(0, 4) : nearestTrips.slice(0, 4);
   const [targetTripId, setTargetTripId] = useState('');
   const targetTrip = eligibleTrips.find((trip) => trip.id === targetTripId) ?? null;
   const [entryType, setEntryType] = useState<'standard' | 'flight' | 'prepaid_multi_day'>('standard');
@@ -191,13 +201,7 @@ const QuickEntryContent: React.FC<QuickEntryProps> = ({ onClose }) => {
   const successTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
-    const activeTrip = trips.find((trip) => trip.status === 'traveling');
-    const planningTrips = trips.filter((trip) => trip.status === 'planning').sort((a, b) => {
-      const aStart = Math.min(...(a.segments ?? []).map((segment) => segment.startDate));
-      const bStart = Math.min(...(b.segments ?? []).map((segment) => segment.startDate));
-      return aStart - bStart;
-    });
-    const defaultTripId = activeTrip?.id ?? planningTrips[0]?.id ?? '';
+    const defaultTripId = currentTrip?.id ?? nearestTrips[0]?.id ?? '';
     setTargetTripId((current) => current && eligibleTrips.some((trip) => trip.id === current) ? current : defaultTripId);
   }, [trips]);
 
@@ -444,12 +448,17 @@ const QuickEntryContent: React.FC<QuickEntryProps> = ({ onClose }) => {
       <form onSubmit={handleSubmit} className="flex-1 overflow-y-auto px-5 pb-[calc(120px+env(safe-area-inset-bottom))] pt-2">
         {error && <div role="alert" className="mb-4 rounded-xl bg-[#f5d8d2] px-4 py-3 text-sm text-[#7c3e35]">{error}</div>}
 
-        <label className="mb-5 block">
+        <div className="mb-5">
           <span className="mb-2 block text-xs uppercase tracking-[0.14em] text-[#857a6a]">Journey</span>
-          <select value={targetTripId} onChange={(event) => setTargetTripId(event.currentTarget.value)} className="w-full appearance-none rounded-xl bg-[#fbf7ee] px-4 py-3.5 text-base text-[#17243a] shadow-[inset_0_0_0_1px_rgba(80,64,42,.10)] outline-none" required>
-            {eligibleTrips.map((trip) => <option key={trip.id} value={trip.id}>{trip.title}{trip.status === 'traveling' ? ' · Active' : ' · Planning'}</option>)}
-          </select>
-        </label>
+          <div className="grid grid-cols-2 gap-3" role="radiogroup" aria-label="Journey">
+            {tripChoices.map((trip) => (
+              <button key={trip.id} type="button" onClick={() => setTargetTripId(trip.id)} aria-pressed={targetTripId === trip.id} className={`min-h-12 rounded-xl border px-3 text-sm font-medium text-left transition ${targetTripId === trip.id ? 'border-[#17243a] bg-[#17243a] text-[#fffdf8] shadow-md' : 'border-black/5 bg-[#fbf7ee] text-[#17243a] shadow-sm hover:bg-white'}`}>
+                <span className="block truncate">{trip.title}</span>
+                <span className={`mt-1 block text-[10px] uppercase tracking-[0.08em] ${targetTripId === trip.id ? 'text-white/70' : 'text-[#9a8f80]'}`}>{trip.status === 'traveling' ? 'Current' : 'Planning'}</span>
+              </button>
+            ))}
+          </div>
+        </div>
 
         <div className="grid grid-cols-3 gap-3 rounded-2xl bg-[#eee5d5] p-1.5">
           {([
@@ -594,9 +603,9 @@ const QuickEntryContent: React.FC<QuickEntryProps> = ({ onClose }) => {
             <span className="text-xs uppercase tracking-[0.14em] text-[#857a6a]">Participants</span>
             <div className="flex gap-1.5 rounded-xl bg-[#eee5d5] p-1">
               {([
-                ['equal', '按人头平分'],
-                ['preset_percentage', '按设定比例'],
-                ['custom_percentage', '临时决定'],
+                ['equal', 'Equal Split'],
+                ['preset_percentage', 'Preset Percentage'],
+                ['custom_percentage', 'Custom Percentage'],
               ] as const).map(([value, label]) => {
                 const disabled = value === 'preset_percentage' && !targetTrip?.allocationRules?.percentages;
                 return <button key={value} type="button" disabled={disabled} onClick={() => setAllocationMode(value)} aria-pressed={allocationMode === value} className={`min-h-10 rounded-lg border px-3 text-xs font-medium transition ${allocationMode === value ? 'border-[#17243a] bg-[#fffdf8] text-[#17243a] shadow-sm' : 'border-transparent text-[#746b5e] hover:bg-[#fbf7ee]'} ${disabled ? 'cursor-not-allowed opacity-40' : ''}`}>{label}</button>;
@@ -624,7 +633,7 @@ const QuickEntryContent: React.FC<QuickEntryProps> = ({ onClose }) => {
           </div>}
           {allocationMode === 'custom_percentage' && (
             <div className="mt-4 grid grid-cols-2 gap-3">
-              {members.filter((member) => selectedParticipants.has(member.id)).map((member) => <label key={member.id} className="flex min-h-12 items-center justify-between rounded-xl bg-[#fbf7ee] px-4 shadow-[inset_0_0_0_1px_rgba(80,64,42,.10)]"><span className="text-sm">{member.name}</span><span className="flex items-center gap-1"><input type="text" inputMode="decimal" value={customPercentages[member.id] ?? ''} onChange={(event) => setCustomPercentages((previous) => ({ ...previous, [member.id]: event.target.value === '' ? 0 : Number(event.target.value) }))} className="w-16 bg-transparent text-right text-base outline-none" aria-label={`${member.name} percentage`} /><span className="text-sm text-[#857a6a]">%</span></span></label>)}
+              {members.filter((member) => selectedParticipants.has(member.id)).map((member) => <label key={member.id} className="flex min-h-12 items-center justify-between rounded-xl bg-[#fbf7ee] px-4 shadow-[inset_0_0_0_1px_rgba(80,64,42,.10)]"><span className="text-sm">{member.name}</span><span className="flex items-center gap-1"><input type="text" inputMode="decimal" value={customPercentages[member.id] ?? ''} onChange={(event) => { const raw = normalizePercentageInput(event.target.value); setCustomPercentages((previous) => ({ ...previous, [member.id]: raw === '' ? 0 : Number(raw) })); }} className="w-16 bg-transparent text-right text-base outline-none" aria-label={`${member.name} percentage`} /><span className="text-sm text-[#857a6a]">%</span></span></label>)}
             </div>
           )}
         </div>
