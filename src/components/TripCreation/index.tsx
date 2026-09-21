@@ -20,7 +20,7 @@ type DraftSegment = {
   startDateManuallySet: boolean;
 };
 
-const CURRENCIES = ['CNY', 'MYR', 'SGD', 'THB', 'IDR', 'PHP', 'JPY', 'KRW', 'USD', 'EUR', 'GBP', 'AUD', 'HKD', 'ARS', 'AFN', 'ALL', 'DZD', 'BRL', 'KHR', 'CAD', 'CZK', 'DKK', 'EGP', 'ISK', 'INR', 'ILS', 'JOD', 'KZT', 'LAK', 'MVR', 'MXN', 'MNT', 'MAD', 'MMK', 'NPR', 'NZD', 'NOK', 'PLN', 'RUB', 'SAR', 'ZAR', 'TWD', 'LKR', 'SEK', 'CHF', 'TRY', 'AED', 'VND'];
+const CURRENCIES = ['CNY', 'MYR', 'SGD', 'THB', 'IDR', 'PHP', 'JPY', 'KRW', 'USD', 'EUR', 'GBP', 'AUD', 'HKD', 'ARS', 'AFN', 'ALL', 'DZD', 'BRL', 'KHR', 'CAD', 'CZK', 'DKK', 'EGP', 'ISK', 'INR', 'ILS', 'JOD', 'KZT', 'LAK', 'MVR', 'MXN', 'MNT', 'MAD', 'MMK', 'NPR', 'NZD', 'NOK', 'PLN', 'RUB', 'SAR', 'ZAR', 'TWD', 'LKR', 'SEK', 'CHF', 'TRY', 'AED', 'VND', 'HUF'];
 const COUNTRY_CURRENCIES: Record<string, string> = {
   af: 'AFN', al: 'ALL', dz: 'DZD', ar: 'ARS', au: 'AUD', at: 'EUR', be: 'EUR', br: 'BRL',
   kh: 'KHR', ca: 'CAD', cn: 'CNY', hr: 'EUR', cz: 'CZK', dk: 'DKK', eg: 'EGP', fi: 'EUR',
@@ -73,7 +73,7 @@ const parseDateValue = (value: string) => {
 };
 const formatTripDate = (value: string) => {
   const date = parseDateValue(value);
-  return date ? `${date.getFullYear()}年${date.getMonth() + 1}月${date.getDate()}日` : 'Select date';
+  return date ? date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : 'Select date';
 };
 const monthCells = (month: Date) => {
   const first = new Date(month.getFullYear(), month.getMonth(), 1);
@@ -103,10 +103,10 @@ const CompactTripDatePicker: React.FC<{ value: string; onChange: (value: string)
     {open && <div className="trip-date-popover">
       <div className="trip-date-month">
         <button type="button" onClick={() => setMonth(new Date(month.getFullYear(), month.getMonth() - 1, 1))} aria-label="Previous month"><ChevronLeft size={18}/></button>
-        <strong>{month.getFullYear()}年{month.getMonth() + 1}月</strong>
+        <strong>{month.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}</strong>
         <button type="button" onClick={() => setMonth(new Date(month.getFullYear(), month.getMonth() + 1, 1))} aria-label="Next month"><ChevronRight size={18}/></button>
       </div>
-      <div className="trip-date-week">{['日','一','二','三','四','五','六'].map(d => <span key={d}>{d}</span>)}</div>
+      <div className="trip-date-week">{['Sun','Mon','Tue','Wed','Thu','Fri','Sat'].map(d => <span key={d}>{d}</span>)}</div>
       <div className="trip-date-grid">{monthCells(month).map((date, i) => {
         if (!date) return <span key={`empty-${i}`} />;
         const v = toDateInput(date.getTime());
@@ -395,7 +395,7 @@ export const TripCreation: React.FC<Props> = ({ onClose, onCreated, onUpdated, t
             <div className="trip-destination-section">
               <div className="trip-segment-country">
                 <span className="trip-field-label">COUNTRY</span>
-                <div className="trip-country-autocomplete"><input aria-label={"Segment " + (segmentIndex + 1) + " country"} value={segment.destinations[0]?.country ?? ""} onChange={(e) => updateCountry(segmentIndex, e.target.value)} placeholder="Country" list={"vela-country-" + segment.id} /><datalist id={"vela-country-" + segment.id}>{countryMatches(segment.destinations[0]?.country ?? "").map(([en, zh, code]) => <option key={code || en} value={en}>{zh}{code ? " · " + code : ""}</option>)}</datalist></div>
+                <div className="trip-country-autocomplete"><input aria-label={"Segment " + (segmentIndex + 1) + " country"} value={segment.destinations[0]?.country ?? ""} onChange={(e) => updateCountry(segmentIndex, e.target.value)} placeholder="Country" list={"vela-country-" + segment.id} /><datalist id={"vela-country-" + segment.id}>{countryMatches(segment.destinations[0]?.country ?? "").map(([en, zh, code]) => <option key={code || en} value={en}>{en}{code ? " · " + code : ""}</option>)}</datalist></div>
                 <small>One country per segment</small>
               </div>
               <span className="trip-field-label">DESTINATIONS</span>
