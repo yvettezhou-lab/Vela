@@ -140,3 +140,13 @@
   margin: 0 0 2px !important;
   padding: 0 !important;
 }
+
+
+/* Quick Entry spacing and viewport-safe prepaid date popovers. */
+.quick-entry-entry-type {
+  margin-top: 14px !important;
+}
+.quick-entry-date-picker-above .trip-date-popover {
+  top: auto !important;
+  bottom: calc(100% + 6px) !important;
+}
