@@ -420,13 +420,20 @@ const QuickEntryContent: React.FC<QuickEntryProps> = ({ onClose }) => {
 
         <div className="mb-5">
           <span className="mb-2 block text-xs uppercase tracking-[0.14em] text-[#857a6a]">Journey</span>
-          <div className="grid grid-cols-2 gap-3" role="radiogroup" aria-label="Journey">
-            {tripChoices.map((trip) => (
-              <button key={trip.id} type="button" onClick={() => setTargetTripId(trip.id)} aria-pressed={targetTripId === trip.id} className={`min-h-12 rounded-xl border px-3 text-sm font-medium text-left transition ${targetTripId === trip.id ? 'border-[#17243a] bg-[#17243a] text-[#fffdf8] shadow-md' : 'border-black/5 bg-[#fbf7ee] text-[#17243a] shadow-sm hover:bg-white'}`}>
-                <span className="block truncate">{trip.title}</span>
-                <span className={`mt-1 block text-[10px] uppercase tracking-[0.08em] ${targetTripId === trip.id ? 'text-white/70' : 'text-[#9a8f80]'}`}>{trip.status === 'traveling' ? 'Current' : 'Planning'}</span>
-              </button>
-            ))}
+          <div className="grid grid-cols-4 gap-2" role="radiogroup" aria-label="Journey">
+            {tripChoices.map((trip) => {
+              const destinations = (trip.segments ?? [])
+                .flatMap((segment) => segment.destinations ?? [])
+                .map((destination) => destination.city?.trim())
+                .filter(Boolean)
+                .slice(0, 2);
+              const label = destinations.join(' · ') || trip.title;
+              return (
+                <button key={trip.id} type="button" onClick={() => setTargetTripId(trip.id)} aria-pressed={targetTripId === trip.id} className={`min-h-10 rounded-lg border px-2 text-xs font-medium transition ${targetTripId === trip.id ? 'border-[#17243a] bg-[#17243a] text-[#fffdf8] shadow-md' : 'border-black/5 bg-[#fbf7ee] text-[#17243a] shadow-sm hover:bg-white'}`}>
+                  <span className="block truncate">{label}</span>
+                </button>
+              );
+            })}
           </div>
         </div>
 
