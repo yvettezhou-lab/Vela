@@ -9,3 +9,71 @@
 /* Quick Entry dates use the same compact calendar as New Journey. */
 .quick-entry-date-picker{display:grid;gap:7px;position:relative;min-width:0}.quick-entry-date-picker>span{display:block;font-size:8px;font-weight:700;letter-spacing:.16em;color:#8d806d}.quick-entry-date-picker .trip-date-trigger{box-sizing:border-box;width:100%;min-height:43px;border:1px solid rgba(67,76,70,.2);border-radius:10px;background:#f7f3e9;color:#25383c;padding:0 10px;display:flex;align-items:center;gap:7px;text-align:left;cursor:pointer}.quick-entry-date-picker .trip-date-trigger svg{flex:none;color:#738079}.quick-entry-date-picker .trip-date-trigger strong{min-width:0;flex:1;font-size:12px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.quick-entry-date-picker .trip-date-action{font-size:9px;color:#8d806d;flex:none}.quick-entry-date-picker .trip-date-popover{position:absolute;top:calc(100% + 6px);left:0;right:auto;width:min(300px,calc(100vw - 32px));box-sizing:border-box;margin:0;padding:10px 8px 12px;border:1px solid rgba(67,76,70,.16);border-radius:12px;background:#fbf8f0;box-shadow:0 14px 34px rgba(31,37,35,.16);z-index:30}.quick-entry-date-picker .trip-date-month{display:grid;grid-template-columns:36px 1fr 36px;align-items:center;text-align:center;margin-bottom:5px}.quick-entry-date-picker .trip-date-month strong{font-size:12px;color:#25383c}.quick-entry-date-picker .trip-date-month button{width:34px;height:34px;border:0;border-radius:50%;background:transparent;color:#294b4a;display:grid;place-items:center;cursor:pointer}.quick-entry-date-picker .trip-date-week,.quick-entry-date-picker .trip-date-grid{display:grid;grid-template-columns:repeat(7,1fr);text-align:center}.quick-entry-date-picker .trip-date-week{font-size:8px;color:#9a9184;margin-bottom:2px}.quick-entry-date-picker .trip-date-grid{row-gap:2px}.quick-entry-date-picker .trip-date-grid button,.quick-entry-date-picker .trip-date-grid>span{width:34px;height:34px;justify-self:center;display:grid;place-items:center}.quick-entry-date-picker .trip-date-grid button{border:0;border-radius:50%;background:transparent;color:#25383c;font-size:12px;cursor:pointer}.quick-entry-date-picker .trip-date-grid button.today{background:#eee8db;font-weight:600}.quick-entry-date-picker .trip-date-grid button.selected{background:#294b4a;color:#fff;font-weight:600}.quick-entry-date-picker .trip-date-grid button:active{transform:scale(.96)}
 @media(max-width:600px){.quick-entry-date-picker .trip-date-popover{width:min(300px,calc(100vw - 32px))}.quick-entry-date-picker .trip-date-grid button,.quick-entry-date-picker .trip-date-grid>span{width:34px;height:34px}}
+
+/* Quick Entry calendar: exact compact New Journey geometry, with safe edge placement. */
+.quick-entry-date-picker{position:relative;display:grid;gap:7px;min-width:0;overflow:visible}
+.quick-entry-date-picker .trip-date-popover{
+  position:absolute!important;
+  top:calc(100% + 6px)!important;
+  left:0!important;
+  right:auto!important;
+  width:300px!important;
+  max-width:calc(100vw - 32px)!important;
+  box-sizing:border-box!important;
+  margin:0!important;
+  padding:10px 8px 12px!important;
+  border:1px solid rgba(67,76,70,.16)!important;
+  border-radius:12px!important;
+  background:#fbf8f0!important;
+  box-shadow:0 14px 34px rgba(31,37,35,.16)!important;
+  z-index:100!important;
+}
+.quick-entry-date-picker-end .trip-date-popover{
+  left:auto!important;
+  right:0!important;
+}
+.quick-entry-date-picker .trip-date-week,
+.quick-entry-date-picker .trip-date-grid{
+  display:grid!important;
+  grid-template-columns:repeat(7,minmax(0,1fr))!important;
+  width:100%!important;
+  box-sizing:border-box!important;
+  text-align:center!important;
+}
+.quick-entry-date-picker .trip-date-week{font-size:8px!important;color:#9a9184!important;margin-bottom:2px!important}
+.quick-entry-date-picker .trip-date-grid{row-gap:2px!important}
+.quick-entry-date-picker .trip-date-grid button,
+.quick-entry-date-picker .trip-date-grid>span{
+  width:34px!important;
+  min-width:34px!important;
+  max-width:34px!important;
+  height:34px!important;
+  min-height:34px!important;
+  max-height:34px!important;
+  justify-self:center!important;
+  align-self:center!important;
+  display:grid!important;
+  place-items:center!important;
+  box-sizing:border-box!important;
+}
+.quick-entry-date-picker .trip-date-grid button{
+  padding:0!important;
+  border:0!important;
+  border-radius:50%!important;
+  background:transparent!important;
+  color:#25383c!important;
+  font-size:12px!important;
+  line-height:1!important;
+}
+.quick-entry-date-picker .trip-date-month{
+  display:grid!important;
+  grid-template-columns:36px minmax(0,1fr) 36px!important;
+  width:100%!important;
+  box-sizing:border-box!important;
+}
+.quick-entry-date-picker .trip-date-month button{
+  width:34px!important;height:34px!important;padding:0!important;
+}
+@media(max-width:600px){
+  .quick-entry-date-picker .trip-date-popover{width:300px!important;max-width:calc(100vw - 32px)!important}
+}
