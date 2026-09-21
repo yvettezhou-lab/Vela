@@ -413,7 +413,7 @@ const QuickEntryContent: React.FC<QuickEntryProps> = ({ onClose }) => {
         {onClose && <button type="button" onClick={onClose} aria-label="Close Quick Entry" className="vela-quick-close grid min-h-12 min-w-12 place-items-center rounded-full text-[#17243a]"><X size={23} strokeWidth={1.7} /></button>}
       </header>
 
-      {success && <div className="vela-success-toast" role="status" aria-live="polite"><strong>✓ Success</strong><span>已保存</span></div>}
+      {success && <div className="vela-success-toast" role="status" aria-live="polite"><strong>✓ Success</strong><span>Saved</span></div>}
 
       <form onSubmit={handleSubmit} className="flex-1 overflow-y-auto px-5 pb-[calc(120px+env(safe-area-inset-bottom))] pt-2">
         {error && <div role="alert" className="mb-4 rounded-xl bg-[#f5d8d2] px-4 py-3 text-sm text-[#7c3e35]">{error}</div>}
@@ -505,7 +505,7 @@ const QuickEntryContent: React.FC<QuickEntryProps> = ({ onClose }) => {
               placeholder={deferCny ? 'Later' : (fxRate ? 'Auto' : 'Enter manually')}
               aria-label="CNY Equivalent"
             />
-            {currency.trim().toUpperCase() !== 'CNY' && <button type="button" onClick={() => { setDeferCny(v => !v); if (!deferCny) setCnyEquivalent(''); }} className={`mt-2 text-xs ${deferCny ? 'text-[#17243a] font-semibold' : 'text-[#857a6a]'}`}>{deferCny ? '✓ 稍后填写人民币金额' : '稍后填写人民币金额'}</button>}
+            {currency.trim().toUpperCase() !== 'CNY' && <button type="button" onClick={() => { setDeferCny(v => !v); if (!deferCny) setCnyEquivalent(''); }} className={`mt-2 text-xs ${deferCny ? 'text-[#17243a] font-semibold' : 'text-[#857a6a]'}`}>{deferCny ? '✓ Enter CNY later' : '稍后填写人民币金额'}</button>}
           </label>
         </div>
 
@@ -591,7 +591,7 @@ const QuickEntryContent: React.FC<QuickEntryProps> = ({ onClose }) => {
           </div>
           {allocationMode === 'preset_percentage' && targetTrip?.allocationRules?.percentages && (
             <div className="mb-3 rounded-xl bg-[#fbf7ee] px-4 py-3 text-xs text-[#6f6659]">
-              使用本次旅程预设分摊：{Object.entries(targetTrip.allocationRules.percentages)
+              Using this journey's preset allocation:{Object.entries(targetTrip.allocationRules.percentages)
                 .filter(([id, percentage]) => members.some((member) => member.id === id) && Number(percentage) > 0)
                 .map(([id, percentage]) => `${members.find((member) => member.id === id)?.name ?? id} ${percentage}%`)
                 .join(' · ')}
