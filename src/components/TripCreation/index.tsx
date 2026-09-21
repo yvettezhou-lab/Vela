@@ -20,7 +20,7 @@ type DraftSegment = {
   startDateManuallySet: boolean;
 };
 
-const CURRENCIES = ['CNY', 'MYR', 'SGD', 'THB', 'IDR', 'PHP', 'JPY', 'KRW', 'USD', 'EUR', 'GBP', 'AUD', 'HKD'];
+const CURRENCIES = ['CNY', 'MYR', 'SGD', 'THB', 'IDR', 'PHP', 'JPY', 'KRW', 'USD', 'EUR', 'GBP', 'AUD', 'HKD', 'ARS', 'AFN', 'ALL', 'DZD', 'BRL', 'KHR', 'CAD', 'CZK', 'DKK', 'EGP', 'ISK', 'INR', 'ILS', 'JOD', 'KZT', 'LAK', 'MVR', 'MXN', 'MNT', 'MAD', 'MMK', 'NPR', 'NZD', 'NOK', 'PLN', 'RUB', 'SAR', 'ZAR', 'TWD', 'LKR', 'SEK', 'CHF', 'TRY', 'AED', 'VND'];
 const COUNTRY_CURRENCIES: Record<string, string> = {
   af: 'AFN', al: 'ALL', dz: 'DZD', ar: 'ARS', au: 'AUD', at: 'EUR', be: 'EUR', br: 'BRL',
   kh: 'KHR', ca: 'CAD', cn: 'CNY', hr: 'EUR', cz: 'CZK', dk: 'DKK', eg: 'EGP', fi: 'EUR',
