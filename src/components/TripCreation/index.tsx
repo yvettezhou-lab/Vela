@@ -424,7 +424,7 @@ export const TripCreation: React.FC<Props> = ({ onClose, onCreated, onUpdated, t
       {(editing || step === 2) && <>
         <section className="trip-allocation-rules">
         <span className="trip-field-label">PEOPLE &amp; ALLOCATION</span>
-        <small className="trip-allocation-hint">设置这次 Trip 的参与人员和默认分摊比例。Quick Entry 可直接选择“按设定比例”。</small>
+        <small className="trip-allocation-hint">Set the people joining this Trip and the default allocation. Quick Entry can use the preset percentage directly.</small>
         <div className="trip-common-people">
           <span className="trip-field-label">COMMON PEOPLE</span>
           <div className="trip-common-people-list">
@@ -484,7 +484,7 @@ export const TripCreation: React.FC<Props> = ({ onClose, onCreated, onUpdated, t
         </section>
         <section className="trip-account-rules">
           <span className="trip-field-label">ACCOUNTS</span>
-          <small className="trip-allocation-hint">记录这次旅行实际会用到的支付账户。默认账户已提前准备好。</small>
+          <small className="trip-allocation-hint">Select the payment accounts actually used on this Trip. Default accounts are ready to use.</small>
           <div className="trip-member-add-row">
             <input
               value={newAccountName}
