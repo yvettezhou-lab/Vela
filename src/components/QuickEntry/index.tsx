@@ -79,68 +79,38 @@ const DatePicker: React.FC<DatePickerProps> = ({ value, onChange, label, require
   };
 
   return (
-    <div className="vela-date-picker">
-      <span className="mb-2 block text-xs uppercase tracking-[0.14em] text-[#857a6a]">{label}</span>
-      <button
-        type="button"
-        onClick={openPicker}
-        aria-expanded={open}
-        aria-haspopup="dialog"
-        className={`flex min-h-14 w-full items-center justify-between rounded-2xl bg-[#fbf7ee] px-4 text-left shadow-[inset_0_0_0_1px_rgba(80,64,42,.10)] transition active:scale-[0.99] ${open ? 'rounded-b-none shadow-none' : ''}`}
-      >
-        <span className="flex min-w-0 items-center gap-3">
-          <Calendar className="shrink-0 text-[#9a7440]" size={19} strokeWidth={1.8} />
-          <span className={selectedDate ? 'text-base text-[#17243a]' : 'text-base text-[#9a8f80]'}>
-            {formatPickerDate(value)}
-          </span>
-        </span>
-        <span className="text-xs text-[#9a7440]">{open ? 'Done' : 'Change'}</span>
+    <div className="trip-date-picker quick-entry-date-picker">
+      <span>{label}</span>
+      <button type="button" className={`trip-date-trigger${open ? ' is-open' : ''}`} onClick={openPicker} aria-expanded={open} aria-haspopup="dialog">
+        <Calendar size={15} />
+        <strong>{formatPickerDate(value)}</strong>
+        <span className="trip-date-action">{open ? 'Done' : 'Change'}</span>
       </button>
 
       {open && (
-        <div className="rounded-b-2xl bg-[#fbf7ee] px-3 pb-4 shadow-[inset_0_0_0_1px_rgba(80,64,42,.10)]" role="dialog" aria-label={`${label} calendar`}>
-          <div className="flex items-center justify-between border-t border-black/5 px-1 py-3">
-            <button type="button" onClick={() => setViewMonth(new Date(viewMonth.getFullYear(), viewMonth.getMonth() - 1, 1))} aria-label="Previous month" className="grid min-h-10 min-w-10 place-items-center rounded-full text-[#17243a] active:bg-[#eee5d5]">
-              <ChevronLeft size={19} />
-            </button>
-            <span className="text-sm font-medium text-[#17243a]">{viewMonth.getFullYear()}年{viewMonth.getMonth() + 1}月</span>
-            <button type="button" onClick={() => setViewMonth(new Date(viewMonth.getFullYear(), viewMonth.getMonth() + 1, 1))} aria-label="Next month" className="grid min-h-10 min-w-10 place-items-center rounded-full text-[#17243a] active:bg-[#eee5d5]">
-              <ChevronRight size={19} />
-            </button>
+        <div className="trip-date-popover" role="dialog" aria-label={`${label} calendar`}>
+          <div className="trip-date-month">
+            <button type="button" onClick={() => setViewMonth(new Date(viewMonth.getFullYear(), viewMonth.getMonth() - 1, 1))} aria-label="Previous month"><ChevronLeft size={18} /></button>
+            <strong>{viewMonth.getFullYear()}年{viewMonth.getMonth() + 1}月</strong>
+            <button type="button" onClick={() => setViewMonth(new Date(viewMonth.getFullYear(), viewMonth.getMonth() + 1, 1))} aria-label="Next month"><ChevronRight size={18} /></button>
           </div>
-
-          <div className="grid text-center text-[11px] text-[#9a8f80]" style={{ gridTemplateColumns: 'repeat(7, minmax(0, 1fr))' }}>
-            {['日', '一', '二', '三', '四', '五', '六'].map((day) => <span key={day} className="py-1">{day}</span>)}
+          <div className="trip-date-week">
+            {['日', '一', '二', '三', '四', '五', '六'].map((day) => <span key={day}>{day}</span>)}
           </div>
-
-          <div className="grid gap-y-1 text-center" style={{ gridTemplateColumns: 'repeat(7, minmax(0, 1fr))' }}>
+          <div className="trip-date-grid">
             {monthCells.map((date, index) => {
-              if (!date) return <span key={`empty-${index}`} className="min-h-11" />;
+              if (!date) return <span key={`empty-${index}`} />;
               const dateValue = toDateValue(date);
               const selected = dateValue === selectedValue;
               const isToday = dateValue === today;
               return (
-                <button
-                  key={dateValue}
-                  type="button"
-                  onClick={() => chooseDate(date)}
-                  aria-label={dateValue}
-                  aria-pressed={selected}
-                  className={`mx-auto grid min-h-11 w-11 place-items-center rounded-full text-sm transition active:scale-95 ${
-                    selected
-                      ? 'bg-[#17243a] font-medium text-white'
-                      : isToday
-                        ? 'bg-[#eee5d5] font-medium text-[#17243a]'
-                        : 'text-[#17243a] hover:bg-[#eee5d5]'
-                  }`}
-                >
+                <button key={dateValue} type="button" onClick={() => chooseDate(date)} aria-label={dateValue} aria-pressed={selected} className={selected ? 'selected' : isToday ? 'today' : ''}>
                   {date.getDate()}
                 </button>
               );
             })}
           </div>
-
-          {required && !value && <p className="pt-2 text-center text-xs text-[#9a8f80]">Select a date</p>}
+          {required && !value && <p className="pt-1 text-center text-xs text-[#9a8f80]">Select a date</p>}
         </div>
       )}
     </div>
