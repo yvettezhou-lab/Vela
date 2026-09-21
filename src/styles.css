@@ -77,3 +77,66 @@
 @media(max-width:600px){
   .quick-entry-date-picker .trip-date-popover{width:300px!important;max-width:calc(100vw - 32px)!important}
 }
+
+
+/* Quick Entry calendar hardening: one compact, deterministic 7-column grid. */
+.quick-entry-date-picker .trip-date-popover .trip-date-grid {
+  display: grid !important;
+  grid-template-columns: repeat(7, 1fr) !important;
+  grid-auto-rows: 34px !important;
+  gap: 2px 0 !important;
+  align-items: center !important;
+  justify-items: center !important;
+  width: 100% !important;
+  min-width: 0 !important;
+  padding: 0 !important;
+  margin: 0 !important;
+}
+.quick-entry-date-picker .trip-date-popover .trip-date-grid > .trip-date-day,
+.quick-entry-date-picker .trip-date-popover .trip-date-grid > .trip-date-empty {
+  width: 34px !important;
+  min-width: 34px !important;
+  max-width: 34px !important;
+  height: 34px !important;
+  min-height: 34px !important;
+  max-height: 34px !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  box-sizing: border-box !important;
+  justify-self: center !important;
+  align-self: center !important;
+}
+.quick-entry-date-picker .trip-date-popover .trip-date-day {
+  appearance: none !important;
+  -webkit-appearance: none !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  border: 0 !important;
+  outline: 0 !important;
+  border-radius: 50% !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  color: #25383c !important;
+  font: 12px/1 ui-sans-serif, system-ui, sans-serif !important;
+  cursor: pointer !important;
+}
+.quick-entry-date-picker .trip-date-popover .trip-date-day.today {
+  background: #eee8db !important;
+  font-weight: 600 !important;
+}
+.quick-entry-date-picker .trip-date-popover .trip-date-day.selected {
+  background: #294b4a !important;
+  color: #fff !important;
+  font-weight: 600 !important;
+}
+.quick-entry-date-picker .trip-date-popover .trip-date-day:active {
+  transform: scale(.96) !important;
+}
+.quick-entry-date-picker .trip-date-popover .trip-date-week {
+  display: grid !important;
+  grid-template-columns: repeat(7, 1fr) !important;
+  width: 100% !important;
+  margin: 0 0 2px !important;
+  padding: 0 !important;
+}
