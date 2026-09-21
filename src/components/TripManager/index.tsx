@@ -18,8 +18,8 @@ const fromDateInput = (value: string): number => {
 };
 function lifecycleError(error: unknown, action: 'start' | 'archive'): string {
   const message = error instanceof Error ? error.message : String(error);
-  if (action === 'start' && message.toLowerCase().includes('traveling')) return '无法开始行程，已有正在进行中的行程';
-  return action === 'start' ? `无法开始行程：${message}` : `无法结束行程：${message}`;
+  if (action === 'start' && message.toLowerCase().includes('traveling')) return 'Cannot start this journey because another journey is already in progress';
+  return action === 'start' ? `Cannot start journey: ${message}` : `Cannot end journey: ${message}`;
 }
 
 export const TripManager: React.FC = () => {
