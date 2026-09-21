@@ -79,7 +79,7 @@ const DatePicker: React.FC<DatePickerProps> = ({ value, onChange, label, require
   };
 
   return (
-    <div className="trip-date-picker quick-entry-date-picker">
+    <div className={`trip-date-picker quick-entry-date-picker${label === 'Usage End' ? ' quick-entry-date-picker-end' : ''}`}>
       <span>{label}</span>
       <button type="button" className={`trip-date-trigger${open ? ' is-open' : ''}`} onClick={openPicker} aria-expanded={open} aria-haspopup="dialog">
         <Calendar size={15} />
