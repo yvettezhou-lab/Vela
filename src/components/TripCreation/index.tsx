@@ -467,7 +467,7 @@ export const TripCreation: React.FC<Props> = ({ onClose, onCreated, onUpdated, t
             <label key={member.id} className="trip-allocation-row">
               <strong>{member.name}</strong>
               <span>
-                <input type="number" min="0" max="100" step="0.01" value={presetPercentages[member.id] ?? ""} onChange={(e) => setPresetPercentages((current) => ({ ...current, [member.id]: e.target.value === "" ? 0 : Number(e.target.value) }))} aria-label={member.name + " preset percentage"} />
+                <input type="number" min="0" max="100" step="0.01" value={presetPercentages[member.id] ?? ""} onChange={(e) => { const raw = e.target.value.replace(/^0+(?=\d)/, ''); setPresetPercentages((current) => ({ ...current, [member.id]: raw === "" ? 0 : Number(raw) })); }} aria-label={member.name + " preset percentage"} />
                 %
               </span>
               <button type="button" className="trip-member-remove" onClick={() => {
