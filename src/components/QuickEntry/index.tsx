@@ -31,6 +31,9 @@ interface DatePickerProps {
   onChange: (value: string) => void;
   label: string;
   required?: boolean;
+  pickerId: string;
+  openPickerId: string | null;
+  onOpenPicker: (pickerId: string | null) => void;
 }
 
 const parseDateValue = (value: string) => {
@@ -55,9 +58,9 @@ const getMonthCells = (month: Date) => {
   });
 };
 
-const DatePicker: React.FC<DatePickerProps> = ({ value, onChange, label, required }) => {
+const DatePicker: React.FC<DatePickerProps> = ({ value, onChange, label, required, pickerId, openPickerId, onOpenPicker }) => {
   const selectedDate = parseDateValue(value);
-  const [open, setOpen] = useState(false);
+  const open = openPickerId === pickerId;
   const [viewMonth, setViewMonth] = useState(() => {
     const base = selectedDate ?? new Date();
     return new Date(base.getFullYear(), base.getMonth(), 1);
@@ -68,14 +71,18 @@ const DatePicker: React.FC<DatePickerProps> = ({ value, onChange, label, require
   const selectedValue = selectedDate ? toDateValue(selectedDate) : '';
 
   const openPicker = () => {
+    if (open) {
+      onOpenPicker(null);
+      return;
+    }
     const base = parseDateValue(value) ?? new Date();
     setViewMonth(new Date(base.getFullYear(), base.getMonth(), 1));
-    setOpen(true);
+    onOpenPicker(pickerId);
   };
 
   const chooseDate = (date: Date) => {
     onChange(toDateValue(date));
-    setOpen(false);
+    onOpenPicker(null);
   };
 
   return (
@@ -141,6 +148,7 @@ const QuickEntryContent: React.FC<QuickEntryProps> = ({ onClose }) => {
     });
   const tripChoices = currentTrip ? [currentTrip, ...nearestTrips].slice(0, 4) : nearestTrips.slice(0, 4);
   const [targetTripId, setTargetTripId] = useState('');
+  const [openDatePicker, setOpenDatePicker] = useState<string | null>(null);
   const targetTrip = eligibleTrips.find((trip) => trip.id === targetTripId) ?? null;
   const [entryType, setEntryType] = useState<'standard' | 'flight' | 'prepaid_multi_day'>('standard');
     const [amount, setAmount] = useState('');
@@ -436,7 +444,7 @@ const QuickEntryContent: React.FC<QuickEntryProps> = ({ onClose }) => {
           </div>
         </div>
 
-        <div className="grid grid-cols-3 gap-3 rounded-2xl bg-[#eee5d5] p-1.5">
+        <div className="mt-3 grid grid-cols-3 gap-3 rounded-2xl bg-[#eee5d5] p-1.5">
           {([
             ['standard', 'Standard'],
             ['flight', 'Flight'],
@@ -538,7 +546,7 @@ const QuickEntryContent: React.FC<QuickEntryProps> = ({ onClose }) => {
 
         {entryType === 'standard' && (
           <div className="mt-6">
-            <DatePicker value={paymentDate} onChange={setPaymentDate} label="Date" required />
+            <DatePicker pickerId="standard-payment" openPickerId={openDatePicker} onOpenPicker={setOpenDatePicker} value={paymentDate} onChange={setPaymentDate} label="Date" required />
           </div>
         )}
 
@@ -551,18 +559,18 @@ const QuickEntryContent: React.FC<QuickEntryProps> = ({ onClose }) => {
               </div>
             </div>
             <div className="grid grid-cols-2 gap-5">
-              <DatePicker value={outboundDate} onChange={setOutboundDate} label="Outbound" required />
-              {flightType === 'round_trip' && <DatePicker value={returnDate} onChange={setReturnDate} label="Return" required />}
+              <DatePicker pickerId="flight-outbound" openPickerId={openDatePicker} onOpenPicker={setOpenDatePicker} value={outboundDate} onChange={setOutboundDate} label="Outbound" required />
+              {flightType === 'round_trip' && <DatePicker pickerId="flight-return" openPickerId={openDatePicker} onOpenPicker={setOpenDatePicker} value={returnDate} onChange={setReturnDate} label="Return" required />}
             </div>
           </div>
         )}
 
         {entryType === 'prepaid_multi_day' && (
           <div className="mt-6 space-y-5">
-            <DatePicker value={paymentDate} onChange={setPaymentDate} label="Payment Date" required />
+            <DatePicker pickerId="prepaid-payment" openPickerId={openDatePicker} onOpenPicker={setOpenDatePicker} value={paymentDate} onChange={setPaymentDate} label="Payment Date" required />
             <div className="grid grid-cols-2 gap-5">
-              <DatePicker value={usageStart} onChange={setUsageStart} label="Usage Start" required />
-              <DatePicker value={usageEnd} onChange={setUsageEnd} label="Usage End" required />
+              <DatePicker pickerId="prepaid-usage-start" openPickerId={openDatePicker} onOpenPicker={setOpenDatePicker} value={usageStart} onChange={setUsageStart} label="Usage Start" required />
+              <DatePicker pickerId="prepaid-usage-end" openPickerId={openDatePicker} onOpenPicker={setOpenDatePicker} value={usageEnd} onChange={setUsageEnd} label="Usage End" required />
             </div>
           </div>
         )}
