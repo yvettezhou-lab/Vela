@@ -50,7 +50,7 @@ export default function Home({ onNavigate, onCreateTrip, onManageTrips }: HomePr
     </button>
   );
 
-  const activeTripCount = trips.filter((trip) => trip.status !== 'achieve').length;
+  const activeTripCount = trips.filter((trip) => trip.status === 'planning' || trip.status === 'traveling').length;
   const tripLabel = activeTripCount === 1 ? 'TRIP' : 'TRIPS';
 
   return <main className="vela-home">
