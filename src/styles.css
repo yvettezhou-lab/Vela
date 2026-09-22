@@ -150,3 +150,15 @@
   top: auto !important;
   bottom: calc(100% + 6px) !important;
 }
+
+
+/* Quick Entry: keep the Journey selector visually separate from entry type tabs. */
+.vela-quick-fullscreen .quick-entry-journey {
+  margin-bottom: 0 !important;
+  padding-bottom: 0 !important;
+}
+.vela-quick-fullscreen .quick-entry-entry-type {
+  margin-top: 18px !important;
+  position: relative !important;
+  z-index: 1 !important;
+}
