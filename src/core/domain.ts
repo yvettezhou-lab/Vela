@@ -1,4 +1,4 @@
-export type TripStatus = 'planning' | 'traveling' | 'achieve' | 'cancelled';
+export type TripStatus = 'planning' | 'traveling' | 'achieve';
 export type AllocationMode = 'equal' | 'preset_percentage' | 'custom_percentage';
 export type FlightType = 'one_way' | 'round_trip';
 export interface Member { id: string; name: string; archived?: boolean; }
