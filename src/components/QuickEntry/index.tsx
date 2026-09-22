@@ -422,7 +422,7 @@ const QuickEntryContent: React.FC<QuickEntryProps> = ({ onClose }) => {
 
       {success && <div className="vela-success-toast" role="status" aria-live="polite"><strong>✓ Success</strong><span>Saved</span></div>}
 
-      <form onSubmit={handleSubmit} className="flex-1 overflow-y-auto px-5 pb-[calc(120px+env(safe-area-inset-bottom))] pt-2">
+      <form onSubmit={handleSubmit} className="flex-1 overflow-y-auto px-5 pb-[calc(180px+env(safe-area-inset-bottom))] pt-2">
         {error && <div role="alert" className="mb-4 rounded-xl bg-[#f5d8d2] px-4 py-3 text-sm text-[#7c3e35]">{error}</div>}
 
         <div className="mb-5 pb-3">
