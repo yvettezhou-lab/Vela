@@ -66,6 +66,7 @@ interface VelaState {
   commonAccounts: Account[];
   addTrip: (rawTrip: unknown) => void;
   updateTripStatus: (tripId: string, newStatus: unknown) => void;
+  deleteTrip: (tripId: string) => void;
   updateTrip: (tripId: string, trip: Trip) => void;
   updateTripDates: (tripId: string, startDate: number, endDate: number) => void;
   evaluateAutoStart: (now?: number) => void;
