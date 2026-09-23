@@ -4,6 +4,8 @@ import { AllocationRule, Destination, TravelSegment, Trip } from '../../core/dom
 import { useVelaStore } from '../../store/useVelaStore';
 import { deleteTripCover, isIndexedDbCoverKey, putTripCover } from '../../core/coverImageStore';
 import { useTripCover } from '../../hooks/useTripCover';
+import { ImageCropper } from './ImageCropper';
+import './imageCropper.css';
 import { buildAutoTripTitle } from '../../utils/tripTitle';
 import './styles.css';
 
@@ -168,6 +170,7 @@ export const TripCreation: React.FC<Props> = ({ onClose, onCreated, onUpdated, t
   const [categories, setCategories] = useState(() => trip?.categories.map((category) => ({ ...category })) ?? []);
   const [coverFile, setCoverFile] = useState<File | null>(null);
   const [coverPreview, setCoverPreview] = useState<string | null>(null);
+  const [cropFile, setCropFile] = useState<File | null>(null);
   const [isSaving, setIsSaving] = useState(false);
   const [allocationRules, setAllocationRules] = useState<AllocationRule | undefined>(() => trip?.allocationRules?.percentages ? { allocationMode: 'preset_percentage', percentages: { ...trip.allocationRules.percentages } } : undefined);
   const [presetPercentages, setPresetPercentages] = useState<Record<string, number>>(() => {
@@ -238,6 +241,11 @@ export const TripCreation: React.FC<Props> = ({ onClose, onCreated, onUpdated, t
     if (!file.type.startsWith('image/')) return setError('Please choose an image file.');
     if (file.size > 8 * 1024 * 1024) return setError('Cover image must be 8 MB or smaller.');
     setError('');
+    setCropFile(file);
+  };
+
+  const confirmCroppedCover = (file: File) => {
+    setCropFile(null);
     setCoverFile(file);
     setCoverPreview((current) => { if (current) URL.revokeObjectURL(current); return URL.createObjectURL(file); });
   };
@@ -410,6 +418,8 @@ export const TripCreation: React.FC<Props> = ({ onClose, onCreated, onUpdated, t
         })}
         <button type="button" className="trip-add-segment" onClick={addSegment}>+ Add segment</button>
       </div>
+
+      {cropFile && <ImageCropper file={cropFile} onCancel={() => setCropFile(null)} onConfirm={confirmCroppedCover} />}
 
       <div className="trip-cover-field trip-cover-field-compact">
         <span className="trip-field-label">COVER</span>
