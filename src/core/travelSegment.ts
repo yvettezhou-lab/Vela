@@ -1,8 +1,20 @@
 import type { LedgerEntry, TravelSegment } from './domain';
 
+const toDayStart = (timestamp: number): number => {
+  const date = new Date(timestamp);
+  return new Date(date.getFullYear(), date.getMonth(), date.getDate()).getTime();
+};
+
 export const findSegmentByDate = (segments: TravelSegment[], date: number): TravelSegment | undefined => {
   if (!Number.isFinite(date)) return undefined;
-  return segments.filter((segment) => date >= segment.startDate && date <= segment.endDate).sort((a, b) => b.startDate - a.startDate)[0];
+  const day = toDayStart(date);
+  return segments
+    .filter((segment) => {
+      const startDay = toDayStart(segment.startDate);
+      const endDay = toDayStart(segment.endDate);
+      return day >= startDay && day <= endDay;
+    })
+    .sort((a, b) => b.startDate - a.startDate)[0];
 };
 
 export const getLedgerEntryDate = (entry: LedgerEntry): number => {
