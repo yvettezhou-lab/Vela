@@ -11,7 +11,7 @@ const generateId = () =>
     : `entry_${Math.random().toString(36).slice(2, 11)}`;
 
 const toDateTimestamp = (value: string) => {
-  const timestamp = new Date(`${value}T12:00:00`).getTime();
+  const timestamp = new Date(`${value}T00:00:00`).getTime();
   return Number.isFinite(timestamp) ? timestamp : NaN;
 };
 
