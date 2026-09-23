@@ -18,16 +18,17 @@ export const ImageCropper: React.FC<ImageCropperProps> = ({
   const viewportRef = useRef<HTMLDivElement>(null);
   const imageRef = useRef<HTMLImageElement>(null);
   const [src, setSrc] = useState<string>('');
+  const [viewportWidth, setViewportWidth] = useState(0);
   const [zoom, setZoom] = useState(1);
   const [baseScale, setBaseScale] = useState(1);
   const [imageSize, setImageSize] = useState({ width: 0, height: 0 });
   const [position, setPosition] = useState({ x: 0, y: 0 });
   const dragRef = useRef({ active: false, startX: 0, startY: 0, originX: 0, originY: 0 });
 
-  const viewportSize = useMemo(() => {
-    const width = Math.max(0, viewportRef.current?.clientWidth ?? 0);
-    return { width, height: width / aspectRatio };
-  }, [aspectRatio, src]);
+  const viewportSize = useMemo(() => ({
+    width: viewportWidth,
+    height: viewportWidth / aspectRatio,
+  }), [aspectRatio, viewportWidth]);
 
   useEffect(() => {
     const url = URL.createObjectURL(file);
@@ -60,13 +61,19 @@ export const ImageCropper: React.FC<ImageCropperProps> = ({
   };
 
   useEffect(() => {
-    if (!src) return;
+    const node = viewportRef.current;
+    if (!node) return;
+    const updateSize = () => setViewportWidth(node.clientWidth);
+    updateSize();
+    const observer = new ResizeObserver(updateSize);
+    observer.observe(node);
+    return () => observer.disconnect();
+  }, [src]);
+
+  useEffect(() => {
+    if (!src || !viewportSize.width) return;
     const frame = requestAnimationFrame(resetCrop);
-    window.addEventListener('resize', resetCrop);
-    return () => {
-      cancelAnimationFrame(frame);
-      window.removeEventListener('resize', resetCrop);
-    };
+    return () => cancelAnimationFrame(frame);
   }, [src, viewportSize.width, viewportSize.height]);
 
   const applyZoom = (nextZoom: number) => {
