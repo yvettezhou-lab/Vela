@@ -176,6 +176,7 @@ const QuickEntryContent: React.FC<QuickEntryProps> = ({ onClose }) => {
   const cnyEquivalentComposingRef = useRef(false);
   const cnyManualRef = useRef(false);
   const successTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const formRef = useRef<HTMLFormElement | null>(null);
 
   useEffect(() => {
     const defaultTripId = currentTrip?.id ?? nearestTrips[0]?.id ?? '';
@@ -323,6 +324,11 @@ const QuickEntryContent: React.FC<QuickEntryProps> = ({ onClose }) => {
     allocations[allocations.length - 1].amount = Math.round((allocations[allocations.length - 1].amount * 100 + targetCents - allocatedCents)) / 100;
     return allocations;
   };
+
+  useEffect(() => {
+    if (!error) return;
+    formRef.current?.scrollTo({ top: 0, behavior: 'smooth' });
+  }, [error]);
 
   const handleSubmit = (event: React.FormEvent) => {
     event.preventDefault();
@@ -622,7 +628,10 @@ const QuickEntryContent: React.FC<QuickEntryProps> = ({ onClose }) => {
           )}
         </div>
 
-        <button type="submit" className="mt-8 min-h-12 w-full rounded-2xl bg-slate-900 px-5 text-base font-semibold text-white shadow-md shadow-slate-900/20 transition-all duration-200 active:scale-[0.98] active:opacity-80">Save Entry</button>
+        <div className="quick-entry-submit-wrap">
+          {error && <div className="quick-entry-submit-error" role="alert" aria-live="assertive">{error}</div>}
+          <button type="submit" className="mt-8 min-h-12 w-full rounded-2xl bg-slate-900 px-5 text-base font-semibold text-white shadow-md shadow-slate-900/20 transition-all duration-200 active:scale-[0.98] active:opacity-80">Save Entry</button>
+        </div>
       </form>
     </section>
   );
