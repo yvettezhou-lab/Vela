@@ -56,8 +56,12 @@ const toDateInput = (timestamp: number) => {
   const date = new Date(timestamp);
   return Number.isFinite(timestamp) ? `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}` : '';
 };
-const toTimestamp = (value: string) => {
-  const timestamp = new Date(`${value}T12:00:00`).getTime();
+const toStartTimestamp = (value: string) => {
+  const timestamp = new Date(`${value}T00:00:00`).getTime();
+  return Number.isFinite(timestamp) ? timestamp : NaN;
+};
+const toEndTimestamp = (value: string) => {
+  const timestamp = new Date(`${value}T23:59:59.999`).getTime();
   return Number.isFinite(timestamp) ? timestamp : NaN;
 };
 const countryCurrency = (country: string) => {
@@ -146,8 +150,8 @@ export const TripCreation: React.FC<Props> = ({ onClose, onCreated, onUpdated, t
       titleEdited: false,
       segments: segments.map((segment) => ({
         id: segment.id,
-        startDate: toTimestamp(segment.startDate),
-        endDate: toTimestamp(segment.endDate),
+        startDate: toStartTimestamp(segment.startDate),
+        endDate: toEndTimestamp(segment.endDate),
         destinations: segment.destinations.map((destination) => ({ ...destination })),
         primaryCurrency: segment.primaryCurrency,
       })),
@@ -202,7 +206,7 @@ export const TripCreation: React.FC<Props> = ({ onClose, onCreated, onUpdated, t
   };
 
   const overlapPairs = useMemo(() => {
-    const ranges = segments.map((segment, index) => ({ index, start: toTimestamp(segment.startDate), end: toTimestamp(segment.endDate) }))
+    const ranges = segments.map((segment, index) => ({ index, start: toStartTimestamp(segment.startDate), end: toEndTimestamp(segment.endDate) }))
       .filter((range) => Number.isFinite(range.start) && Number.isFinite(range.end) && range.start <= range.end);
     const pairs: [number, number][] = [];
     for (let i = 0; i < ranges.length; i++) for (let j = i + 1; j < ranges.length; j++)
@@ -313,7 +317,7 @@ export const TripCreation: React.FC<Props> = ({ onClose, onCreated, onUpdated, t
     if (!segments.length) return setError('Please add at least one segment.');
     for (let i = 0; i < segments.length; i++) {
       const draft = segments[i];
-      const start = toTimestamp(draft.startDate), end = toTimestamp(draft.endDate);
+      const start = toStartTimestamp(draft.startDate), end = toEndTimestamp(draft.endDate);
       if (!Number.isFinite(start) || !Number.isFinite(end)) return setError(`Please choose both dates for Segment ${i + 1}.`);
       if (end < start) return setError(`End date cannot be before start date in Segment ${i + 1}.`);
       if (draft.destinations.some((destination) => !destination.country.trim() && !destination.city.trim())) return setError(`Please complete the destination in Segment ${i + 1}.`);
@@ -336,7 +340,7 @@ export const TripCreation: React.FC<Props> = ({ onClose, onCreated, onUpdated, t
     const normalizedSegments: TravelSegment[] = [];
     for (let i = 0; i < segments.length; i++) {
       const draft = segments[i];
-      const start = toTimestamp(draft.startDate), end = toTimestamp(draft.endDate);
+      const start = toStartTimestamp(draft.startDate), end = toEndTimestamp(draft.endDate);
       if (!Number.isFinite(start) || !Number.isFinite(end)) return setError(`Please choose both dates for Segment ${i + 1}.`);
       if (end < start) return setError(`End date cannot be before start date in Segment ${i + 1}.`);
       const destinations = draft.destinations.map((destination) => ({ country: destination.country.trim(), region: destination.region?.trim() || undefined, city: destination.city.trim() }));
