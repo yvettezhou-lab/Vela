@@ -16,9 +16,10 @@ const fromDateInput = (value: string): number => {
   const [year, month, day] = value.split('-').map(Number);
   return new Date(year, month - 1, day).getTime();
 };
-function lifecycleError(error: unknown, action: 'start' | 'archive'): string {
+function lifecycleError(error: unknown, action: 'start' | 'archive' | 'reopen'): string {
   const message = error instanceof Error ? error.message : String(error);
   if (action === 'start' && message.toLowerCase().includes('traveling')) return 'Cannot start this journey because another journey is already in progress';
+  if (action === 'reopen') return `Cannot reopen journey: ${message}`;
   return action === 'start' ? `Cannot start journey: ${message}` : `Cannot end journey: ${message}`;
 }
 
@@ -28,6 +29,7 @@ export const TripManager: React.FC = () => {
   const deleteTrip = useVelaStore((state) => state.deleteTrip);
   const [error, setError] = useState<string | null>(null);
   const [endingTripId, setEndingTripId] = useState<string | null>(null);
+  const [reopeningTripId, setReopeningTripId] = useState<string | null>(null);
   const [deletingTripId, setDeletingTripId] = useState<string | null>(null);
   const [editingTrip, setEditingTrip] = useState<Trip | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
@@ -61,7 +63,14 @@ export const TripManager: React.FC = () => {
     try { updateTripStatus(endingTripId, 'achieve'); setEndingTripId(null); }
     catch (caught) { setError(lifecycleError(caught, 'archive')); }
   };
+  const requestReopenJourney = (tripId: string) => { setError(null); setReopeningTripId(tripId); };
+  const confirmReopenJourney = () => {
+    if (!reopeningTripId) return; setError(null);
+    try { updateTripStatus(reopeningTripId, 'traveling'); setReopeningTripId(null); }
+    catch (caught) { setError(lifecycleError(caught, 'reopen')); }
+  };
   const endingTrip = endingTripId ? trips.find((trip) => trip.id === endingTripId) : null;
+  const reopeningTrip = reopeningTripId ? trips.find((trip) => trip.id === reopeningTripId) : null;
   const deletingTrip = deletingTripId ? trips.find((trip) => trip.id === deletingTripId) : null;
   const confirmDeleteJourney = () => {
     if (!deletingTripId) return; setError(null);
@@ -104,7 +113,7 @@ export const TripManager: React.FC = () => {
                       {planningContext && <div style={styles.planningContext} aria-label={`Planning context for ${trip.title}`}><span>{planningContext.durationDays} days</span><span>{planningContext.memberCount} {planningContext.memberCount === 1 ? 'traveler' : 'travelers'}</span><span>{planningContext.currency}</span></div>}
                       {historicalReference && <div style={styles.forecast} aria-label={`Historical budget reference for ${trip.title}`}><div style={styles.forecastLabel}>HISTORICAL REFERENCE</div><div style={styles.forecastRange}>{historicalReference.currency} {historicalReference.estimatedRangeMin.toLocaleString()}–{historicalReference.estimatedRangeMax.toLocaleString()}</div><div style={styles.forecastDetail}>Based on {historicalReference.comparableTripCount} comparable trip{historicalReference.comparableTripCount === 1 ? '' : 's'} · historical daily average {historicalReference.currency} {historicalReference.historicalDailyAverageMin.toLocaleString()}–{historicalReference.historicalDailyAverageMax.toLocaleString()}</div></div>}
                     </div>
-                    <div style={styles.actions}><button type="button" onClick={() => setEditingTrip(trip)} style={styles.dateButton}>Edit journey</button>{status === 'planning' && <button type="button" onClick={() => startTrip(trip.id)} style={styles.primaryButton}>Start Trip</button>}{status === 'traveling' && <button type="button" onClick={() => requestEndJourney(trip.id)} style={styles.secondaryButton}>End Journey</button>}<button type="button" onClick={() => setDeletingTripId(trip.id)} style={styles.deleteJourneyButton}>Delete Journey</button></div>
+                    <div style={styles.actions}><button type="button" onClick={() => setEditingTrip(trip)} style={styles.dateButton}>Edit journey</button>{status === 'planning' && <button type="button" onClick={() => startTrip(trip.id)} style={styles.primaryButton}>Start Trip</button>}{status === 'traveling' && <button type="button" onClick={() => requestEndJourney(trip.id)} style={styles.secondaryButton}>End Journey</button>}{status === 'achieve' && <button type="button" onClick={() => requestReopenJourney(trip.id)} style={styles.secondaryButton}>Reopen Journey</button>}<button type="button" onClick={() => setDeletingTripId(trip.id)} style={styles.deleteJourneyButton}>Delete Journey</button></div>
                   </article>
                 );
               })}
@@ -113,7 +122,7 @@ export const TripManager: React.FC = () => {
         </section>
       ))}
       {editingTrip && <div role="presentation" style={styles.backdrop} onMouseDown={(event) => { if (event.target === event.currentTarget) setEditingTrip(null); }}><div className="trip-manager-edit-sheet"><TripCreation trip={editingTrip} onClose={() => setEditingTrip(null)} onUpdated={() => setEditingTrip(null)} /></div></div>}
-      {deletingTrip && <div role="presentation" style={styles.backdrop} onMouseDown={(event) => { if (event.target === event.currentTarget) setDeletingTripId(null); }}><div role="dialog" aria-modal="true" aria-labelledby="delete-journey-title" style={styles.dialog}><div style={styles.dialogEyebrow}>DELETE JOURNEY</div><h3 id="delete-journey-title" style={styles.dialogTitle}>Delete {deletingTrip.title}?</h3><p style={styles.dialogBody}>This permanently deletes the journey, including its ledger, people, accounts, categories and all other journey data. This cannot be undone.</p><div style={styles.dialogActions}><button type="button" onClick={() => setDeletingTripId(null)} style={styles.cancelButton}>Keep Journey</button><button type="button" onClick={confirmDeleteJourney} style={styles.confirmDeleteButton}>Delete Permanently</button></div></div></div>}{endingTrip && <div role="presentation" style={styles.backdrop} onMouseDown={(event) => { if (event.target === event.currentTarget) setEndingTripId(null); }}><div role="dialog" aria-modal="true" aria-labelledby="end-journey-title" style={styles.dialog}><div style={styles.dialogEyebrow}>END JOURNEY</div><h3 id="end-journey-title" style={styles.dialogTitle}>Finish {endingTrip.title}?</h3><p style={styles.dialogBody}>This will close the active journey and move it to Achieve. Its existing ledger entries remain unchanged and will be reflected in completed journeys.</p><div style={styles.dialogActions}><button type="button" onClick={() => setEndingTripId(null)} style={styles.cancelButton}>Keep traveling</button><button type="button" onClick={confirmEndJourney} style={styles.confirmButton}>End Journey</button></div></div></div>}
+      {reopeningTrip && <div role="presentation" style={styles.backdrop} onMouseDown={(event) => { if (event.target === event.currentTarget) setReopeningTripId(null); }}><div role="dialog" aria-modal="true" aria-labelledby="reopen-journey-title" style={styles.dialog}><div style={styles.dialogEyebrow}>REOPEN JOURNEY</div><h3 id="reopen-journey-title" style={styles.dialogTitle}>Reopen {reopeningTrip.title}?</h3><p style={styles.dialogBody}>This will move the journey back to Traveling so it becomes the current journey again. Its existing ledger and journey data stay unchanged.</p><div style={styles.dialogActions}><button type="button" onClick={() => setReopeningTripId(null)} style={styles.cancelButton}>Keep Achieved</button><button type="button" onClick={confirmReopenJourney} style={styles.confirmButton}>Reopen Journey</button></div></div></div>}{deletingTrip && <div role="presentation" style={styles.backdrop} onMouseDown={(event) => { if (event.target === event.currentTarget) setDeletingTripId(null); }}><div role="dialog" aria-modal="true" aria-labelledby="delete-journey-title" style={styles.dialog}><div style={styles.dialogEyebrow}>DELETE JOURNEY</div><h3 id="delete-journey-title" style={styles.dialogTitle}>Delete {deletingTrip.title}?</h3><p style={styles.dialogBody}>This permanently deletes the journey, including its ledger, people, accounts, categories and all other journey data. This cannot be undone.</p><div style={styles.dialogActions}><button type="button" onClick={() => setDeletingTripId(null)} style={styles.cancelButton}>Keep Journey</button><button type="button" onClick={confirmDeleteJourney} style={styles.confirmDeleteButton}>Delete Permanently</button></div></div></div>}{endingTrip && <div role="presentation" style={styles.backdrop} onMouseDown={(event) => { if (event.target === event.currentTarget) setEndingTripId(null); }}><div role="dialog" aria-modal="true" aria-labelledby="end-journey-title" style={styles.dialog}><div style={styles.dialogEyebrow}>END JOURNEY</div><h3 id="end-journey-title" style={styles.dialogTitle}>Finish {endingTrip.title}?</h3><p style={styles.dialogBody}>This will close the active journey and move it to Achieve. Its existing ledger entries remain unchanged and will be reflected in completed journeys.</p><div style={styles.dialogActions}><button type="button" onClick={() => setEndingTripId(null)} style={styles.cancelButton}>Keep traveling</button><button type="button" onClick={confirmEndJourney} style={styles.confirmButton}>End Journey</button></div></div></div>}
     </section>
   );
 };
