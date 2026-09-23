@@ -126,3 +126,186 @@
 .vela-settings-header>h1{margin:7px 0 4px!important;font:500 34px/1.08 ui-serif,Georgia,Cambria,"Times New Roman",serif!important;font-style:italic!important;letter-spacing:-.025em!important}
 .vela-settings-header>p{margin:0 0 24px!important;font:10px/1.4 ui-sans-serif,system-ui,sans-serif!important;color:rgba(15,23,42,.50)!important}
 @media(max-width:600px){.vela-trip-manager-main{padding-left:16px;padding-right:16px}.vela-trip-manager-main .trip-manager-edit-sheet{max-height:calc(100dvh - 18px)!important;border-radius:16px!important}}
+
+
+/* Ledger visual reset — Carina-inspired native list treatment. */
+.vela-app-root > main.page.vela-secondary-shell:has(.vela-ledger-page){
+  max-width:480px!important;
+  width:100%!important;
+  min-height:100dvh!important;
+  margin:0 auto!important;
+  padding:20px 16px calc(124px + env(safe-area-inset-bottom))!important;
+  background:#f6f7f5!important;
+  color:#111827!important;
+  box-shadow:none!important;
+}
+.vela-ledger-page{width:100%;color:#111827}
+.vela-ledger-header{
+  display:flex;
+  align-items:flex-start;
+  justify-content:space-between;
+  padding:8px 0 18px;
+  margin:0 0 18px;
+  border-bottom:1px solid #e5e7eb;
+}
+.vela-ledger-eyebrow{
+  display:block;
+  margin-bottom:6px;
+  font:700 9px/1.2 -apple-system,BlinkMacSystemFont,"SF Pro Text","PingFang SC",sans-serif;
+  letter-spacing:.16em;
+  color:#6b7280;
+}
+.vela-ledger-header h1{
+  margin:0;
+  font:500 30px/1.08 ui-serif,Georgia,"Times New Roman",serif;
+  letter-spacing:-.02em;
+  color:#111827;
+}
+.vela-ledger-journey{margin-bottom:16px}
+.vela-ledger-journey>label{
+  display:block;
+  margin-bottom:7px;
+  font:500 11px/1.2 -apple-system,BlinkMacSystemFont,"SF Pro Text","PingFang SC",sans-serif;
+  color:#6b7280;
+}
+.vela-ledger-select-wrap{position:relative}
+.vela-ledger-select-wrap select{
+  appearance:none!important;
+  -webkit-appearance:none!important;
+  width:100%!important;
+  min-height:46px!important;
+  padding:0 40px 0 14px!important;
+  border:1px solid #e2e5e9!important;
+  border-radius:13px!important;
+  background:#fff!important;
+  color:#111827!important;
+  outline:none!important;
+  font:500 15px/1 -apple-system,BlinkMacSystemFont,"SF Pro Text","PingFang SC",sans-serif!important;
+  box-shadow:0 1px 2px rgba(17,24,39,.03)!important;
+}
+.vela-ledger-select-wrap svg{
+  position:absolute;
+  right:13px;
+  top:50%;
+  transform:translateY(-50%);
+  pointer-events:none;
+  color:#6b7280;
+}
+.vela-ledger-filters{
+  display:flex;
+  gap:7px;
+  margin:0 0 14px;
+}
+.vela-ledger-filters button{
+  min-height:32px;
+  padding:0 13px;
+  border:1px solid #e5e7eb;
+  border-radius:999px;
+  background:#eef0f2;
+  color:#6b7280;
+  font:500 12px/1 -apple-system,BlinkMacSystemFont,"SF Pro Text","PingFang SC",sans-serif;
+}
+.vela-ledger-filters button.active{
+  border-color:#111827;
+  background:#111827;
+  color:#fff;
+}
+.vela-ledger-list{
+  overflow:hidden;
+  background:#fff;
+  border:1px solid #e8eaed;
+  border-radius:18px;
+  box-shadow:0 2px 10px rgba(17,24,39,.025);
+}
+.vela-ledger-entry{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:14px;
+  min-height:84px;
+  padding:15px 14px 15px 16px;
+  border-bottom:1px solid #eef0f3;
+  background:#fff;
+}
+.vela-ledger-entry:last-child{border-bottom:0}
+.vela-ledger-entry-main{min-width:0;flex:1}
+.vela-ledger-entry-title{display:flex;align-items:center;gap:7px;min-width:0}
+.vela-ledger-entry-title strong{
+  min-width:0;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+  font:600 15px/1.25 -apple-system,BlinkMacSystemFont,"SF Pro Text","PingFang SC",sans-serif;
+  color:#111827;
+}
+.vela-ledger-entry-meta{
+  display:block;
+  margin-top:5px;
+  font:12px/1.35 -apple-system,BlinkMacSystemFont,"SF Pro Text","PingFang SC",sans-serif;
+  color:#6b7280;
+}
+.vela-ledger-entry-detail{
+  display:block;
+  margin-top:3px;
+  font:11px/1.35 -apple-system,BlinkMacSystemFont,"SF Pro Text","PingFang SC",sans-serif;
+  color:#9ca3af;
+}
+.vela-ledger-badge{
+  flex:0 0 auto;
+  padding:3px 7px;
+  border-radius:999px;
+  font:600 9px/1 -apple-system,BlinkMacSystemFont,"SF Pro Text","PingFang SC",sans-serif;
+}
+.vela-ledger-badge.pending{background:#fef3c7;color:#92400e}
+.vela-ledger-badge.muted{background:#f3f4f6;color:#6b7280}
+.vela-ledger-entry-actions{
+  display:flex;
+  flex:0 0 auto;
+  align-items:center;
+  gap:5px;
+}
+.vela-ledger-add-cny{
+  min-height:34px;
+  padding:0 10px;
+  border:1px solid #e2e5e9;
+  border-radius:9px;
+  background:#f8f9fa;
+  color:#374151;
+  font:600 11px/1 -apple-system,BlinkMacSystemFont,"SF Pro Text","PingFang SC",sans-serif;
+}
+.vela-ledger-delete{
+  width:34px;
+  height:34px;
+  min-width:34px;
+  padding:0;
+  display:grid;
+  place-items:center;
+  border:0;
+  border-radius:9px;
+  background:transparent;
+  color:#9ca3af;
+}
+.vela-ledger-delete:active{background:#f3f4f6;color:#374151}
+.vela-ledger-empty-card{
+  padding:32px 18px;
+  border:1px solid #e8eaed;
+  border-radius:18px;
+  background:#fff;
+  text-align:center;
+  color:#8a919d;
+  font:13px/1.5 -apple-system,BlinkMacSystemFont,"SF Pro Text","PingFang SC",sans-serif;
+}
+.vela-ledger-empty{
+  padding:34px 18px;
+  text-align:center;
+  color:#8a919d;
+  font:13px/1.5 -apple-system,BlinkMacSystemFont,"SF Pro Text","PingFang SC",sans-serif;
+}
+@media(max-width:600px){
+  .vela-app-root > main.page.vela-secondary-shell:has(.vela-ledger-page){
+    padding-left:16px!important;
+    padding-right:16px!important;
+  }
+  .vela-ledger-entry{min-height:82px;padding-left:15px}
+  .vela-ledger-entry-title strong{font-size:14px}
+}
