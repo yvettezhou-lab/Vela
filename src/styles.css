@@ -154,11 +154,11 @@
 
 /* Quick Entry: keep the Journey selector visually separate from entry type tabs. */
 .vela-quick-fullscreen .quick-entry-journey {
-  margin-bottom: 0 !important;
+  margin-bottom: 14px !important;
   padding-bottom: 0 !important;
 }
 .vela-quick-fullscreen .quick-entry-entry-type {
-  margin-top: 18px !important;
+  margin-top: 0 !important;
   position: relative !important;
   z-index: 1 !important;
 }
