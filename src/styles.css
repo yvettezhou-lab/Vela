@@ -199,3 +199,25 @@
   margin:auto !important;
   transform:none !important;
 }
+
+/* Quick Entry calendar: make the visible calendar the active touch target on iOS. */
+.quick-entry-date-picker .trip-date-popover{
+  pointer-events:auto !important;
+  position:relative !important;
+}
+.quick-entry-date-picker .trip-date-popover .trip-date-month,
+.quick-entry-date-picker .trip-date-popover .trip-date-week,
+.quick-entry-date-picker .trip-date-popover .trip-date-grid{
+  position:relative !important;
+  z-index:1001 !important;
+  pointer-events:auto !important;
+}
+.quick-entry-date-picker .trip-date-popover button{
+  position:relative !important;
+  z-index:1002 !important;
+  pointer-events:auto !important;
+  touch-action:manipulation !important;
+}
+.quick-entry-date-picker .trip-date-popover .trip-date-day.disabled{
+  pointer-events:none !important;
+}
