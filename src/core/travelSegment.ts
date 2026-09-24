@@ -5,8 +5,8 @@ const toDayStart = (timestamp: number): number => {
   return new Date(date.getFullYear(), date.getMonth(), date.getDate()).getTime();
 };
 
-export const findSegmentByDate = (segments: TravelSegment[], date: number): TravelSegment | undefined => {
-  if (!Number.isFinite(date)) return undefined;
+export const getSegmentsByDate = (segments: TravelSegment[], date: number): TravelSegment[] => {
+  if (!Number.isFinite(date)) return [];
   const day = toDayStart(date);
   return segments
     .filter((segment) => {
@@ -14,8 +14,11 @@ export const findSegmentByDate = (segments: TravelSegment[], date: number): Trav
       const endDay = toDayStart(segment.endDate);
       return day >= startDay && day <= endDay;
     })
-    .sort((a, b) => b.startDate - a.startDate)[0];
+    .sort((a, b) => a.startDate - b.startDate);
 };
+
+export const findSegmentByDate = (segments: TravelSegment[], date: number): TravelSegment | undefined =>
+  getSegmentsByDate(segments, date)[0];
 
 export const getLedgerEntryDate = (entry: LedgerEntry): number => {
   if (entry.entryType === 'flight') return entry.outboundDate;
@@ -46,7 +49,10 @@ export const validateLedgerEntryDates = (segments: TravelSegment[], entry: Ledge
 export const getSegmentForLedgerEntry = (
   segments: TravelSegment[],
   entry: LedgerEntry,
-): TravelSegment | undefined => findSegmentByDate(segments, getLedgerEntryDate(entry));
+): TravelSegment | undefined => {
+  if (entry.segmentId) return segments.find((segment) => segment.id === entry.segmentId);
+  return findSegmentByDate(segments, getLedgerEntryDate(entry));
+};
 
 export const getTripStartDate = (trip: { segments: TravelSegment[] }): number => Math.min(...trip.segments.map((segment) => segment.startDate));
 export const getTripEndDate = (trip: { segments: TravelSegment[] }): number => Math.max(...trip.segments.map((segment) => segment.endDate));
