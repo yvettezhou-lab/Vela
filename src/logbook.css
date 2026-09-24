@@ -684,3 +684,17 @@
   .logbook-detail-list>div{font-size:11px;padding:10px 0}
   .logbook-detail-list b{font-size:13px}
 }
+
+/* Compact legend rows: do not distribute items across the full chart height. */
+.logbook-analytics .logbook-legend{
+  justify-content:flex-start;
+  align-self:center;
+  width:100%;
+}
+.logbook-analytics .logbook-legend>div{
+  padding:8px 0;
+  min-height:0;
+}
+@media(max-width:650px){
+  .logbook-analytics .logbook-legend>div{padding:8px 0}
+}
