@@ -222,7 +222,11 @@ const QuickEntryContent: React.FC<QuickEntryProps> = ({ onClose }) => {
 
   useEffect(() => {
     if (!targetTrip) return;
-    const dateValue = entryType === 'flight' ? outboundDate : paymentDate;
+    const dateValue = entryType === 'flight'
+      ? outboundDate
+      : entryType === 'prepaid_multi_day'
+        ? usageStart
+        : paymentDate;
     const date = toDateTimestamp(dateValue);
     if (!Number.isFinite(date)) return;
     const resolved = getSegmentPrimaryCurrency(segments, date);
