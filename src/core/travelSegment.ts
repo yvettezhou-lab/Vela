@@ -23,6 +23,26 @@ export const getLedgerEntryDate = (entry: LedgerEntry): number => {
   return entry.paymentDate;
 };
 
+export const getLedgerEntryRelevantDates = (entry: LedgerEntry): number[] => {
+  if (entry.entryType === 'flight') {
+    return entry.flightType === 'round_trip'
+      ? [entry.outboundDate, entry.returnDate]
+      : [entry.outboundDate];
+  }
+  if (entry.entryType === 'prepaid_multi_day') {
+    return [entry.usageStart, entry.usageEnd];
+  }
+  return [entry.paymentDate];
+};
+
+export const validateLedgerEntryDates = (segments: TravelSegment[], entry: LedgerEntry): void => {
+  for (const date of getLedgerEntryRelevantDates(entry)) {
+    if (!findSegmentByDate(segments, date)) {
+      throw new Error('Ledger Error: Entry date must fall within a TravelSegment date range');
+    }
+  }
+};
+
 export const getSegmentForLedgerEntry = (
   segments: TravelSegment[],
   entry: LedgerEntry,
