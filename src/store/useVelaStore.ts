@@ -6,6 +6,7 @@ import { DomainValidator, isRecord } from '../core/validation';
 import { migrateLegacyPlanToTrip } from '../core/legacyAdapter';
 import { getAutoStartTripId } from '../utils/tripLifecycle';
 import { refreshAutoTripTitles } from '../utils/tripTitle';
+import { findSegmentByDate, getLedgerEntryDate } from '../core/travelSegment';
 
 const LEGACY_STORAGE_KEY = 'vela.plan.v1';
 const withDefaultCategories = (trip: Trip): Trip => {
@@ -21,7 +22,15 @@ const withDefaultCategories = (trip: Trip): Trip => {
   return { ...trip, categories: mergedCategories, ledger }; 
 };
 const withDefaultAccounts = (trip: Trip): Trip => ({ ...trip, accounts: trip.accounts.length > 0 ? trip.accounts : [{ id: 'default-account-cash', name: 'Cash' }, { id: 'default-account-credit-card', name: 'Credit Card' }] });
-const normalizeTrips = (trips: Trip[]): Trip[] => refreshAutoTripTitles(trips.map((trip) => withDefaultAccounts(withDefaultCategories(trip))));
+const normalizeTrips = (trips: Trip[]): Trip[] => refreshAutoTripTitles(trips.map((rawTrip) => {
+  const trip = withDefaultAccounts(withDefaultCategories(rawTrip));
+  const ledger = trip.ledger.map((entry) => {
+    if (entry.segmentId) return entry;
+    const segment = findSegmentByDate(trip.segments, getLedgerEntryDate(entry));
+    return segment ? { ...entry, segmentId: segment.id } : entry;
+  });
+  return { ...trip, ledger };
+}));
 
 const migratePersistedTrip = (rawTrip: unknown): Trip => {
   if (!isRecord(rawTrip)) throw new Error('Persisted Trip is not an object');
