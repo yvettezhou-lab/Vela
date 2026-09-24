@@ -157,7 +157,9 @@ export const calculateMinimalSettlementTransfers = (segment: SettlementSegment):
       else other.cents -= amount;
 
       transfers.push({ fromMemberId: from, toMemberId: to, amountCny: amount / 100 });
-      dfs(start + 1, transfers);
+      // Keep working on the same member when only part of its balance was
+      // settled; otherwise a remaining balance could be skipped entirely.
+      dfs(current.cents === 0 ? start + 1 : start, transfers);
       transfers.pop();
       current.cents = currentBefore;
       other.cents = otherBefore;
