@@ -81,12 +81,6 @@ const formatTripDate = (value: string) => {
   const date = parseDateValue(value);
   return date ? date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : 'Select date';
 };
-const nextCalendarDate = (value: string) => {
-  const date = parseDateValue(value);
-  if (!date) return value;
-  date.setDate(date.getDate() + 1);
-  return toDateInput(date.getTime());
-};
 const monthCells = (month: Date) => {
   const first = new Date(month.getFullYear(), month.getMonth(), 1);
   const offset = first.getDay();
