@@ -203,7 +203,11 @@
 /* Quick Entry calendar: make the visible calendar the active touch target on iOS. */
 .quick-entry-date-picker .trip-date-popover{
   pointer-events:auto !important;
-  position:relative !important;
+  position:absolute !important;
+  top:calc(100% + 6px) !important;
+  left:0 !important;
+  right:auto !important;
+  z-index:1000 !important;
 }
 .quick-entry-date-picker .trip-date-popover .trip-date-month,
 .quick-entry-date-picker .trip-date-popover .trip-date-week,
