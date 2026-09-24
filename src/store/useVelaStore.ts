@@ -1,12 +1,13 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import { Trip, TripStatus, Member, Account, Category } from '../core/domain';
+import { Trip, TripStatus, Member, Account, Category, TripList } from '../core/domain';
 import { getDefaultCategories } from '../core/defaults';
 import { DomainValidator, isRecord } from '../core/validation';
 import { migrateLegacyPlanToTrip } from '../core/legacyAdapter';
 import { getAutoStartTripId } from '../utils/tripLifecycle';
 import { refreshAutoTripTitles } from '../utils/tripTitle';
 import { findSegmentByDate, getLedgerEntryDate } from '../core/travelSegment';
+import { ensureTripLists, createDefaultTripLists, cloneList } from '../utils/travelLists';
 
 const LEGACY_STORAGE_KEY = 'vela.plan.v1';
 const withDefaultCategories = (trip: Trip): Trip => {
@@ -23,7 +24,7 @@ const withDefaultCategories = (trip: Trip): Trip => {
 };
 const withDefaultAccounts = (trip: Trip): Trip => ({ ...trip, accounts: trip.accounts.length > 0 ? trip.accounts : [{ id: 'default-account-cash', name: 'Cash' }, { id: 'default-account-credit-card', name: 'Credit Card' }] });
 const normalizeTrips = (trips: Trip[]): Trip[] => refreshAutoTripTitles(trips.map((rawTrip) => {
-  const trip = withDefaultAccounts(withDefaultCategories(rawTrip));
+  const trip = ensureTripLists(withDefaultAccounts(withDefaultCategories(rawTrip));
   const ledger = trip.ledger.map((entry) => {
     if (entry.segmentId) return entry;
     const segment = findSegmentByDate(trip.segments, getLedgerEntryDate(entry));
@@ -90,6 +91,13 @@ interface VelaState {
   renameCommonAccount: (id: string, name: string) => void;
   deleteCommonAccount: (id: string) => void;
   getCurrentTrip: () => Trip | null;
+  addList: (tripId: string, name: string, source?: TripList) => void;
+  addListFromTrip: (targetTripId: string, sourceTripId: string, listIds: string[]) => void;
+  updateList: (tripId: string, list: TripList) => void;
+  deleteList: (tripId: string, listId: string) => void;
+  addListItem: (tripId: string, listId: string, title: string) => void;
+  updateListItem: (tripId: string, listId: string, itemId: string, patch: Partial<Pick<import('../core/domain').ListItem, 'title'|'completed'|'note'>>) => void;
+  deleteListItem: (tripId: string, listId: string, itemId: string) => void;
 }
 
 const migrateLegacyStorageIfNeeded = (currentTrips: Trip[]): Trip[] => {
@@ -109,7 +117,7 @@ export const useVelaStore = create<VelaState>()(persist((set, get) => ({
   trips: [],
   commonMembers: [],
   commonAccounts: [{ id: 'common-account-cash', name: 'Cash' }, { id: 'common-account-credit-card', name: 'Credit Card' }],
-  addTrip: (rawTrip) => { const strictTrip = withDefaultAccounts(withDefaultCategories(DomainValidator.validateEntireTrip(rawTrip, get().trips))); const refreshedTrips = refreshAutoTripTitles([...get().trips, strictTrip]); set({ trips: refreshedTrips }); get().evaluateAutoStart(); },
+  addTrip: (rawTrip) => { const validated = DomainValidator.validateEntireTrip(rawTrip, get().trips); const tripWithLists = ensureTripLists(validated); const strictTrip = withDefaultAccounts(withDefaultCategories(tripWithLists)); const refreshedTrips = refreshAutoTripTitles([...get().trips, strictTrip]); set({ trips: refreshedTrips }); get().evaluateAutoStart(); },
   updateTrip: (tripId, trip) => { const trips = get().trips; if (!trips.some((item) => item.id === tripId)) throw new Error(`Store Error: Trip ${tripId} not found`); const strictTrip = DomainValidator.validateEntireTrip({ ...trip, id: tripId, updatedAt: Date.now() }, trips.filter((item) => item.id !== tripId)); const refreshedTrips = refreshAutoTripTitles(trips.map((item) => item.id === tripId ? strictTrip : item)); set({ trips: refreshedTrips }); },
   updateTripStatus: (tripId, newStatus) => { const trips = get().trips; const trip = trips.find((t) => t.id === tripId); if (!trip) throw new Error(`Store Error: Trip ${tripId} not found`); DomainValidator.validateTripStatus(trips, tripId, newStatus, trip.status); if (newStatus !== 'planning' && newStatus !== 'traveling' && newStatus !== 'achieve') throw new Error(`Store Error: Invalid status ${newStatus}`); set({ trips: trips.map((t) => t.id === tripId ? { ...t, status: newStatus as TripStatus, updatedAt: Date.now() } : t) }); },
   updateTripDates: (tripId, startDate, endDate) => { if (!Number.isFinite(startDate) || !Number.isFinite(endDate)) throw new Error('Store Error: Trip dates must be finite numbers'); if (startDate > endDate) throw new Error('Store Error: Start date cannot be after end date'); const trips = get().trips; const trip = trips.find((t) => t.id === tripId); if (!trip) throw new Error(`Store Error: Trip ${tripId} not found`); if (trip.segments.length === 0) throw new Error(`Store Error: Trip ${tripId} has no TravelSegment`); const updatedSegments = trip.segments.map((segment, index) => index === 0 ? { ...segment, startDate, endDate } : segment); const strictTrip = DomainValidator.validateEntireTrip({ ...trip, segments: updatedSegments, updatedAt: Date.now() }, trips.filter((t) => t.id !== tripId)); const refreshedTrips = refreshAutoTripTitles(trips.map((item) => item.id === tripId ? strictTrip : item)); set({ trips: refreshedTrips }); get().evaluateAutoStart(); },
@@ -135,6 +143,13 @@ export const useVelaStore = create<VelaState>()(persist((set, get) => ({
     if (inActiveTrip) throw new Error(`Cannot delete ${account.name}: it is used by a planning or current trip.`);
     set({ commonAccounts: get().commonAccounts.filter((item) => item.id !== id) });
   },
+  addList: (tripId, name, source) => { const clean = name.trim(); if (!clean) throw new Error('List name is required'); const trips=get().trips; const trip=trips.find(t=>t.id===tripId); if(!trip) throw new Error(`Trip ${tripId} not found`); if(trip.lists.some(list=>list.name.trim().toLowerCase()===clean.toLowerCase())) throw new Error('A list with this name already exists'); const t=Date.now(); const list=source ? cloneList({ ...source, name:clean }, tripId, trip.lists.length) : { id:crypto.randomUUID(), tripId, name:clean, sortOrder:trip.lists.length, createdAt:t, updatedAt:t, items:[] }; set({trips:trips.map(item=>item.id===tripId?{...item,lists:[...item.lists,list],updatedAt:t}:item)}); },
+  addListFromTrip: (targetTripId, sourceTripId, listIds) => { const trips=get().trips; const target=trips.find(t=>t.id===targetTripId); const source=trips.find(t=>t.id===sourceTripId); if(!target||!source) throw new Error('Trip not found'); const selected=source.lists.filter(list=>listIds.includes(list.id)); const existing=new Set(target.lists.map(list=>list.name.trim().toLowerCase())); const clones=selected.filter(list=>!existing.has(list.name.trim().toLowerCase())).map((list,index)=>cloneList(list,targetTripId,target.lists.length+index)); if(!clones.length) throw new Error('All selected lists already exist in this trip'); const t=Date.now(); set({trips:trips.map(item=>item.id===targetTripId?{...item,lists:[...item.lists,...clones],updatedAt:t}:item)}); },
+  updateList: (tripId, list) => { const trips=get().trips; const trip=trips.find(t=>t.id===tripId); if(!trip) throw new Error('Trip not found'); const clean=list.name.trim(); if(!clean) throw new Error('List name is required'); if(trip.lists.some(item=>item.id!==list.id&&item.name.trim().toLowerCase()===clean.toLowerCase())) throw new Error('A list with this name already exists'); const t=Date.now(); set({trips:trips.map(item=>item.id===tripId?{...item,lists:item.lists.map(x=>x.id===list.id?{...list,name:clean,tripId,updatedAt:t}:x),updatedAt:t}:item)}); },
+  deleteList: (tripId, listId) => { const trips=get().trips; set({trips:trips.map(trip=>trip.id===tripId?{...trip,lists:trip.lists.filter(list=>list.id!==listId).map((list,index)=>({...list,sortOrder:index})),updatedAt:Date.now()}:trip)}); },
+  addListItem: (tripId,listId,title) => { const clean=title.trim(); if(!clean) throw new Error('Item is required'); const trips=get().trips; const t=Date.now(); set({trips:trips.map(trip=>trip.id===tripId?{...trip,lists:trip.lists.map(list=>list.id===listId?{...list,updatedAt:t,items:[...list.items,{id:crypto.randomUUID(),listId,title:clean,completed:false,sortOrder:list.items.length,createdAt:t,updatedAt:t}]}:list),updatedAt:t}:trip)}); },
+  updateListItem: (tripId,listId,itemId,patch) => { const trips=get().trips; const t=Date.now(); set({trips:trips.map(trip=>trip.id===tripId?{...trip,lists:trip.lists.map(list=>list.id===listId?{...list,updatedAt:t,items:list.items.map(item=>item.id===itemId?{...item,...patch,title:patch.title?.trim()||item.title,updatedAt:t}:item)}:list),updatedAt:t}:trip)}); },
+  deleteListItem: (tripId,listId,itemId) => { const trips=get().trips; set({trips:trips.map(trip=>trip.id===tripId?{...trip,lists:trip.lists.map(list=>list.id===listId?{...list,items:list.items.filter(item=>item.id!==itemId).map((item,index)=>({...item,sortOrder:index})),updatedAt:Date.now()}:list),updatedAt:Date.now()}:trip)}); },
   getCurrentTrip: () => { const trips = get().trips; const traveling = trips.find((t) => t.status === 'traveling'); if (traveling) return traveling; return trips.filter((t) => t.status === 'planning').sort((a, b) => b.updatedAt - a.updatedAt)[0] ?? null; },
 }), { name: 'vela-core-v2', version: 1, migrate: (persistedState, _version) => {
       const migrated = migratePersistedState(persistedState);
