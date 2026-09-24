@@ -90,7 +90,7 @@ const monthCells = (month: Date) => {
     return day >= 1 && day <= days ? new Date(month.getFullYear(), month.getMonth(), day) : null;
   });
 };
-const CompactTripDatePicker: React.FC<{ value: string; onChange: (value: string) => void; label: string }> = ({ value, onChange, label }) => {
+const CompactTripDatePicker: React.FC<{ value: string; onChange: (value: string) => void; label: string; preferredMonth?: string }> = ({ value, onChange, label, preferredMonth }) => {
   const selected = parseDateValue(value);
   const [open, setOpen] = useState(false);
   const [month, setMonth] = useState(() => {
@@ -101,7 +101,7 @@ const CompactTripDatePicker: React.FC<{ value: string; onChange: (value: string)
   const select = (date: Date) => { onChange(toDateInput(date.getTime())); setOpen(false); };
   return <div className="trip-date-picker">
     <span>{label}</span>
-    <button type="button" className={`trip-date-trigger${open ? ' is-open' : ''}`} onClick={() => { const base = parseDateValue(value) ?? new Date(); setMonth(new Date(base.getFullYear(), base.getMonth(), 1)); setOpen(true); }} aria-expanded={open}>
+    <button type="button" className={`trip-date-trigger${open ? ' is-open' : ''}`} onClick={() => { const base = parseDateValue(value) ?? parseDateValue(preferredMonth ?? '') ?? new Date(); setMonth(new Date(base.getFullYear(), base.getMonth(), 1)); setOpen(true); }} aria-expanded={open}>
       <CalendarDays size={14} />
       <strong>{formatTripDate(value)}</strong>
       <span className="trip-date-action">{open ? 'Done' : 'Change'}</span>
@@ -405,7 +405,7 @@ export const TripCreation: React.FC<Props> = ({ onClose, onCreated, onUpdated, t
                 {segmentIndex > 0 && !segment.startDateManuallySet && <span>Linked to Segment {segmentIndex} end</span>}
                 {segmentIndex > 0 && segment.startDateManuallySet && <button type="button" onClick={() => updateSegment(segmentIndex, { startDate: segments[segmentIndex - 1].endDate, startDateManuallySet: false })}>Use previous end</button>}
               </div>
-              <CompactTripDatePicker label="END" value={segment.endDate} onChange={(value) => updateSegment(segmentIndex, { endDate: value })} />
+              <CompactTripDatePicker label="END" value={segment.endDate} preferredMonth={segment.startDate} onChange={(value) => updateSegment(segmentIndex, { endDate: value })} />
             </div>
             {overlaps && <p className="trip-segment-inline-error" role="alert">This date range overlaps another segment. Segments must not overlap.</p>}
             <div className="trip-destination-section">
