@@ -604,6 +604,7 @@ const QuickEntryContent: React.FC<QuickEntryProps> = ({ onClose }) => {
 
         {entryType === 'flight' && (
           <div className="mt-6 space-y-5">
+            <DatePicker pickerId="flight-payment" openPickerId={openDatePicker} onOpenPicker={setOpenDatePicker} value={paymentDate} onChange={setPaymentDate} label="Payment Date" required />
             <div>
               <span className="mb-2 block text-xs uppercase tracking-[0.14em] text-[#857a6a]">Flight</span>
               <div className="grid grid-cols-2 gap-3">
