@@ -409,7 +409,7 @@ export const TripCreation: React.FC<Props> = ({ onClose, onCreated, onUpdated, t
               <div className="trip-linked-start">
                 <CompactTripDatePicker label={segmentIndex > 0 && !segment.startDateManuallySet ? 'START · FOLLOWS PREVIOUS END' : 'START'} value={segment.startDate} onChange={(value) => updateSegment(segmentIndex, { startDate: value, startDateManuallySet: true })} />
                 {segmentIndex > 0 && !segment.startDateManuallySet && <span>Linked to Segment {segmentIndex} end</span>}
-                {segmentIndex > 0 && segment.startDateManuallySet && <button type="button" onClick={() => updateSegment(segmentIndex, { startDate: nextCalendarDate(segments[segmentIndex - 1].endDate), startDateManuallySet: false })}>Use previous end</button>}
+                {segmentIndex > 0 && segment.startDateManuallySet && <button type="button" onClick={() => updateSegment(segmentIndex, { startDate: segments[segmentIndex - 1].endDate, startDateManuallySet: false })}>Use previous end</button>}
               </div>
               <CompactTripDatePicker label="END" value={segment.endDate} onChange={(value) => updateSegment(segmentIndex, { endDate: value })} />
             </div>
