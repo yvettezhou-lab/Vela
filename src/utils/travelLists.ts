@@ -117,6 +117,32 @@ export const TRAVEL_LIST_TEMPLATES: TravelListTemplate[] = [
   { id:'rainy-tropical', name:'Rainy / Tropical', description:'热带、雨季、高湿环境', items:RAINY_TROPICAL_ITEMS },
 ];
 
+const LIST_ITEM_ALIASES: Array<[string, string]> = [
+  ['高倍防晒', '防晒'],
+  ['个人常用药', '常用药'],
+  ['小型急救包', '急救包'],
+  ['药品收纳袋', '药品收纳'],
+  ['密封袋', '脏衣袋'],
+];
+
+export const listItemKey = (title: string): string => {
+  const compact = title.trim().toLowerCase().replace(/[×x*\d]+/g, '').replace(/[\\/（）()、，,：:·.\s-]+/g, '');
+  const alias = LIST_ITEM_ALIASES.find(([from]) => compact === from.replace(/[\\/（）()、，,：:·.\s-]+/g, ''));
+  return alias ? alias[1].replace(/[\\/（）()、，,：:·.\s-]+/g, '') : compact;
+};
+
+export const filterDuplicateListItems = (existingLists: TripList[], titles: string[]): string[] => {
+  const seen = new Set(existingLists.flatMap((list) => list.items.map((item) => listItemKey(item.title))));
+  const result: string[] = [];
+  for (const title of titles) {
+    const key = listItemKey(title);
+    if (!key || seen.has(key)) continue;
+    seen.add(key);
+    result.push(title);
+  }
+  return result;
+};
+
 const makeList = (tripId: string, name: string, titles: string[], sortOrder: number): TripList => {
   const t = now(); const listId = id();
   return { id:listId, tripId, name, sortOrder, createdAt:t, updatedAt:t, items:titles.map((title,index) => ({ id:id(), listId:listId, title, completed:false, sortOrder:index, createdAt:t, updatedAt:t })) };
@@ -133,14 +159,14 @@ export const createDefaultTripLists = (trip: Trip): TripList[] => [
   makeList(trip.id, 'Medicine', MEDICINE_ITEMS, 2),
 ];
 
-export const createListFromTemplate = (tripId: string, template: TravelListTemplate, sortOrder: number): TripList =>
-  makeList(tripId, template.name, template.items, sortOrder);
+export const createListFromTemplate = (tripId: string, template: TravelListTemplate, sortOrder: number, existingLists: TripList[] = []): TripList =>
+  makeList(tripId, template.name, filterDuplicateListItems(existingLists, template.items), sortOrder);
 
 export const ensureTripLists = (trip: Trip): Trip => trip.lists?.length ? trip : { ...trip, lists:createDefaultTripLists(trip) };
 
-export const cloneList = (source: TripList, tripId: string, sortOrder: number): TripList => {
+export const cloneList = (source: TripList, tripId: string, sortOrder: number, existingLists: TripList[] = []): TripList => {
   const t = now(); const listId = id();
-  return { id:listId, tripId, name:source.name, sortOrder, createdAt:t, updatedAt:t, items:source.items.slice().sort((a,b)=>a.sortOrder-b.sortOrder).map((item,index)=>({ id:id(), listId, title:item.title, completed:false, sortOrder:index, ...(item.note ? {note:item.note} : {}), createdAt:t, updatedAt:t })) };
+  const titles = filterDuplicateListItems(existingLists, source.items.slice().sort((a,b)=>a.sortOrder-b.sortOrder).map((item) => item.title)); return { id:listId, tripId, name:source.name, sortOrder, createdAt:t, updatedAt:t, items:titles.map((title,index)=>({ id:id(), listId, title, completed:false, sortOrder:index, createdAt:t, updatedAt:t })) };
 };
 
 export const listStats = (list: TripList) => ({ total:list.items.length, completed:list.items.filter(item=>item.completed).length });
