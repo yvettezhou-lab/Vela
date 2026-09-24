@@ -34,6 +34,7 @@ interface DatePickerProps {
   pickerId: string;
   openPickerId: string | null;
   onOpenPicker: (pickerId: string | null) => void;
+  openMonthValue?: string;
 }
 
 const parseDateValue = (value: string) => {
@@ -58,7 +59,7 @@ const getMonthCells = (month: Date) => {
   });
 };
 
-const DatePicker: React.FC<DatePickerProps> = ({ value, onChange, label, required, pickerId, openPickerId, onOpenPicker }) => {
+const DatePicker: React.FC<DatePickerProps> = ({ value, onChange, label, required, pickerId, openPickerId, onOpenPicker, openMonthValue }) => {
   const selectedDate = parseDateValue(value);
   const open = openPickerId === pickerId;
   const [viewMonth, setViewMonth] = useState(() => {
@@ -75,7 +76,7 @@ const DatePicker: React.FC<DatePickerProps> = ({ value, onChange, label, require
       onOpenPicker(null);
       return;
     }
-    const base = parseDateValue(value) ?? new Date();
+    const base = parseDateValue(value) ?? parseDateValue(openMonthValue ?? '') ?? new Date();
     setViewMonth(new Date(base.getFullYear(), base.getMonth(), 1));
     onOpenPicker(pickerId);
   };
@@ -231,7 +232,7 @@ const QuickEntryContent: React.FC<QuickEntryProps> = ({ onClose }) => {
     if (!Number.isFinite(date)) return;
     const resolved = getSegmentPrimaryCurrency(segments, date);
     if (resolved) setCurrency(resolved);
-  }, [targetTrip, segments, entryType, paymentDate, outboundDate]);
+  }, [targetTrip, segments, entryType, paymentDate, outboundDate, usageStart]);
 
   useEffect(() => {
     const normalizedCurrency = currency.trim().toUpperCase();
@@ -580,7 +581,7 @@ const QuickEntryContent: React.FC<QuickEntryProps> = ({ onClose }) => {
             <DatePicker pickerId="prepaid-payment" openPickerId={openDatePicker} onOpenPicker={setOpenDatePicker} value={paymentDate} onChange={setPaymentDate} label="Payment Date" required />
             <div className="grid grid-cols-2 gap-5">
               <DatePicker pickerId="prepaid-usage-start" openPickerId={openDatePicker} onOpenPicker={setOpenDatePicker} value={usageStart} onChange={setUsageStart} label="Usage Start" required />
-              <DatePicker pickerId="prepaid-usage-end" openPickerId={openDatePicker} onOpenPicker={setOpenDatePicker} value={usageEnd} onChange={setUsageEnd} label="Usage End" required />
+              <DatePicker pickerId="prepaid-usage-end" openPickerId={openDatePicker} onOpenPicker={setOpenDatePicker} value={usageEnd} onChange={setUsageEnd} label="Usage End" required openMonthValue={usageStart} />
             </div>
           </div>
         )}
@@ -636,6 +637,7 @@ const QuickEntryContent: React.FC<QuickEntryProps> = ({ onClose }) => {
           {error && <div className="quick-entry-submit-error" role="alert" aria-live="assertive">{error}</div>}
           <button type="submit" className="mt-8 min-h-12 w-full rounded-2xl bg-slate-900 px-5 text-base font-semibold text-white shadow-md shadow-slate-900/20 transition-all duration-200 active:scale-[0.98] active:opacity-80">Save Entry</button>
         </div>
+        {success && <div className="quick-entry-recorded-toast" role="status" aria-live="polite">Recorded</div>}
       </form>
     </section>
   );
