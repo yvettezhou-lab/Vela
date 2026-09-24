@@ -1,37 +1,31 @@
 import { describe, expect, it } from 'vitest';
 import type { TravelSegment } from './domain';
-import { findSegmentByDate, getLedgerEntryDate, resolveLedgerEntryCurrency } from './travelSegment';
+import { findSegmentByDate, getLedgerEntryDate, resolveLedgerEntryCurrency, validateLedgerEntryDates } from './travelSegment';
 
+const day = (value: string, end = false) => new Date(value + 'T' + (end ? '23:59:59.999' : '00:00:00')).getTime();
 const segments: TravelSegment[] = [
-  { id: 's1', destinations: [{ country: 'Malaysia', city: 'Kuala Lumpur' }], startDate: 100, endDate: 199, primaryCurrency: 'MYR' },
-  { id: 's2', destinations: [{ country: 'Singapore', city: 'Singapore' }], startDate: 199, endDate: 299, primaryCurrency: 'SGD' },
+  { id: 's1', destinations: [{ country: 'Malaysia', city: 'Kuala Lumpur' }], startDate: day('2026-10-01'), endDate: day('2026-10-03', true), primaryCurrency: 'MYR' },
+  { id: 's2', destinations: [{ country: 'Singapore', city: 'Singapore' }], startDate: day('2026-10-04'), endDate: day('2026-10-05', true), primaryCurrency: 'SGD' },
 ];
 
 describe('travel segment resolution', () => {
-  it('matches inclusive segment date ranges', () => {
-    expect(findSegmentByDate(segments, 100)?.id).toBe('s1');
-    expect(findSegmentByDate(segments, 198)?.id).toBe('s1');
-    expect(findSegmentByDate(segments, 199)?.id).toBe('s2');
-    expect(findSegmentByDate(segments, 200)?.id).toBe('s2');
-    expect(findSegmentByDate(segments, 999)).toBeUndefined();
+  it('matches full calendar-day segment ranges', () => {
+    expect(findSegmentByDate(segments, day('2026-10-01'))?.id).toBe('s1');
+    expect(findSegmentByDate(segments, day('2026-10-03', true))?.id).toBe('s1');
+    expect(findSegmentByDate(segments, day('2026-10-04'))?.id).toBe('s2');
+    expect(findSegmentByDate(segments, day('2026-10-05', true))?.id).toBe('s2');
+    expect(findSegmentByDate(segments, day('2026-10-06'))).toBeUndefined();
   });
-
-  it('uses payment date for standard/prepaid entries and outbound date for flights', () => {
-    expect(getLedgerEntryDate({ entryType: 'standard', paymentDate: 120 } as any)).toBe(120);
-    expect(getLedgerEntryDate({ entryType: 'prepaid_multi_day', paymentDate: 220 } as any)).toBe(220);
-    expect(getLedgerEntryDate({ entryType: 'flight', flightType: 'one_way', outboundDate: 240 } as any)).toBe(240);
+  it('uses payment date for standard, usage start for prepaid, and outbound date for flights', () => {
+    expect(getLedgerEntryDate({ entryType: 'standard', paymentDate: day('2026-10-02') } as any)).toBe(day('2026-10-02'));
+    expect(getLedgerEntryDate({ entryType: 'prepaid_multi_day', paymentDate: day('2026-09-24'), usageStart: day('2026-10-02'), usageEnd: day('2026-10-05', true) } as any)).toBe(day('2026-10-02'));
+    expect(getLedgerEntryDate({ entryType: 'flight', flightType: 'one_way', outboundDate: day('2026-10-02') } as any)).toBe(day('2026-10-02'));
   });
-
-  it('resolves currency from the matched segment and rejects dates outside all segments', () => {
-    expect(resolveLedgerEntryCurrency(segments, { entryType: 'standard', paymentDate: 120 } as any)).toBe('MYR');
-    expect(resolveLedgerEntryCurrency(segments, { entryType: 'flight', flightType: 'one_way', outboundDate: 240 } as any)).toBe('SGD');
-    expect(() => resolveLedgerEntryCurrency(segments, { entryType: 'standard', paymentDate: 300 } as any)).toThrow(/must fall within a TravelSegment/);
+  it('resolves prepaid currency from usage start, not payment date', () => {
+    expect(resolveLedgerEntryCurrency(segments, { entryType: 'prepaid_multi_day', paymentDate: day('2026-09-24'), usageStart: day('2026-10-02'), usageEnd: day('2026-10-03', true) } as any)).toBe('MYR');
   });
-});
-
-
-describe('boundary day resolution', () => {
-  it('prefers the newer segment when a date belongs to both segments', () => {
-    expect(resolveLedgerEntryCurrency(segments, { entryType: 'standard', paymentDate: 199 } as any)).toBe('SGD');
+  it('rejects relevant dates outside all segments', () => {
+    expect(() => validateLedgerEntryDates(segments, { entryType: 'standard', paymentDate: day('2026-09-24') } as any)).toThrow(/must fall within a TravelSegment/);
+    expect(() => validateLedgerEntryDates(segments, { entryType: 'prepaid_multi_day', paymentDate: day('2026-09-24'), usageStart: day('2026-10-02'), usageEnd: day('2026-10-06') } as any)).toThrow(/must fall within a TravelSegment/);
   });
 });
