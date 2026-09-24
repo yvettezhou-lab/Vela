@@ -24,6 +24,7 @@ export const LedgerView: React.FC = () => {
   const updateLedgerEntry = useVelaStore((s) => s.updateLedgerEntry);
   const [selectedTripId, setSelectedTripId] = useState('');
   const [filter, setFilter] = useState<'all' | 'pending'>('all');
+  const [segmentFilterId, setSegmentFilterId] = useState('');
 
   const selectedTrip = trips.find((trip) => trip.id === selectedTripId) ?? currentTrip;
   const ledger = selectedTrip?.ledger ?? [];
@@ -42,7 +43,10 @@ export const LedgerView: React.FC = () => {
 
   const membersById = new Map(selectedTrip.members.map((member) => [member.id, member.name]));
   const entries = [...ledger].sort((a, b) => getLedgerEntryDate(b) - getLedgerEntryDate(a));
-  const filtered = filter === 'pending' ? entries.filter((entry) => entry.isPending) : entries;
+  const filteredByStatus = filter === 'pending' ? entries.filter((entry) => entry.isPending) : entries;
+  const filtered = segmentFilterId
+    ? filteredByStatus.filter((entry) => entry.segmentId === segmentFilterId)
+    : filteredByStatus;
   const pendingCount = entries.filter((entry) => entry.isPending).length;
 
   const fillCny = (entry: LedgerEntry) => {
@@ -104,6 +108,7 @@ export const LedgerView: React.FC = () => {
             onChange={(event) => {
               setSelectedTripId(event.target.value);
               setFilter('all');
+              setSegmentFilterId('');
             }}
           >
             <option value={selectedTrip.id}>{selectedTrip.title}</option>
@@ -122,17 +127,25 @@ export const LedgerView: React.FC = () => {
       </div>
 
       <div className="vela-ledger-filters" role="group" aria-label="Ledger filters">
-        <button type="button" className={filter === 'all' ? 'active' : ''} onClick={() => setFilter('all')}>
+        <button type="button" className={filter === 'all' && !segmentFilterId ? 'active' : ''} onClick={() => { setFilter('all'); setSegmentFilterId(''); }}>
           All
         </button>
-        <button type="button" className={filter === 'pending' ? 'active' : ''} onClick={() => setFilter('pending')}>
+        <button type="button" className={filter === 'pending' && !segmentFilterId ? 'active' : ''} onClick={() => { setFilter('pending'); setSegmentFilterId(''); }}>
           Pending CNY{pendingCount ? ` · ${pendingCount}` : ''}
         </button>
+        {selectedTrip.segments.map((segment) => {
+          const label = segment.destinations.map((destination) => destination.city || destination.country).filter(Boolean).join(' · ') || 'Segment';
+          return (
+            <button key={segment.id} type="button" className={segmentFilterId === segment.id ? 'active' : ''} onClick={() => { setSegmentFilterId(segment.id); setFilter('all'); }}>
+              {label}
+            </button>
+          );
+        })}
       </div>
 
       {filtered.length === 0 ? (
         <div className="vela-ledger-empty-card">
-          {filter === 'pending' ? 'No entries waiting for CNY.' : 'No ledger entries yet.'}
+          {filter === 'pending' ? 'No entries waiting for CNY.' : segmentFilterId ? 'No entries in this Segment.' : 'No ledger entries yet.'}
         </div>
       ) : (
         <div className="vela-ledger-list">
