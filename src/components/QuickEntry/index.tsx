@@ -35,6 +35,8 @@ interface DatePickerProps {
   openPickerId: string | null;
   onOpenPicker: (pickerId: string | null) => void;
   openMonthValue?: string;
+  minDate?: string;
+  maxDate?: string;
 }
 
 const parseDateValue = (value: string) => {
@@ -59,7 +61,7 @@ const getMonthCells = (month: Date) => {
   });
 };
 
-const DatePicker: React.FC<DatePickerProps> = ({ value, onChange, label, required, pickerId, openPickerId, onOpenPicker, openMonthValue }) => {
+const DatePicker: React.FC<DatePickerProps> = ({ value, onChange, label, required, pickerId, openPickerId, onOpenPicker, openMonthValue, minDate, maxDate }) => {
   const selectedDate = parseDateValue(value);
   const open = openPickerId === pickerId;
   const [viewMonth, setViewMonth] = useState(() => {
@@ -111,8 +113,9 @@ const DatePicker: React.FC<DatePickerProps> = ({ value, onChange, label, require
               const dateValue = toDateValue(date);
               const selected = dateValue === selectedValue;
               const isToday = dateValue === today;
+              const outOfRange = (minDate && dateValue < minDate) || (maxDate && dateValue > maxDate);
               return (
-                <button key={dateValue} type="button" onClick={() => chooseDate(date)} aria-label={dateValue} aria-pressed={selected} className={`trip-date-day ${selected ? 'selected' : isToday ? 'today' : ''}`}>
+                <button key={dateValue} type="button" onClick={() => !outOfRange && chooseDate(date)} disabled={Boolean(outOfRange)} aria-label={dateValue} aria-pressed={selected} className={`trip-date-day ${selected ? 'selected' : isToday ? 'today' : ''}${outOfRange ? ' disabled' : ''}`}>
                   {date.getDate()}
                 </button>
               );
@@ -195,6 +198,14 @@ const QuickEntryContent: React.FC<QuickEntryProps> = ({ onClose }) => {
   const activeMembers = targetTrip?.members?.filter((member) => member.archived !== true) ?? [];
   const members = activeMembers;
   const categories = targetTrip?.categories?.filter((category) => category.archived !== true) ?? [];
+
+  const tripDateBounds = (() => {
+    if (!targetTrip?.segments?.length) return { minDate: undefined as string | undefined, maxDate: undefined as string | undefined };
+    const starts = targetTrip.segments.map((segment) => segment.startDate).filter(Number.isFinite);
+    const ends = targetTrip.segments.map((segment) => segment.endDate).filter(Number.isFinite);
+    if (!starts.length || !ends.length) return { minDate: undefined as string | undefined, maxDate: undefined as string | undefined };
+    return { minDate: toDateValue(new Date(Math.min(...starts))), maxDate: toDateValue(new Date(Math.max(...ends))) };
+  })();
 
   useEffect(() => () => {
     if (successTimerRef.current) clearTimeout(successTimerRef.current);
@@ -583,7 +594,7 @@ const QuickEntryContent: React.FC<QuickEntryProps> = ({ onClose }) => {
 
         {entryType === 'standard' && (
           <div className="mt-6">
-            <DatePicker pickerId="standard-payment" openPickerId={openDatePicker} onOpenPicker={setOpenDatePicker} value={paymentDate} onChange={setPaymentDate} label="Date" required />
+            <DatePicker pickerId="standard-payment" openPickerId={openDatePicker} onOpenPicker={setOpenDatePicker} value={paymentDate} onChange={setPaymentDate} label="Date" required minDate={tripDateBounds.minDate} maxDate={tripDateBounds.maxDate} />
           </div>
         )}
 
@@ -596,18 +607,18 @@ const QuickEntryContent: React.FC<QuickEntryProps> = ({ onClose }) => {
               </div>
             </div>
             <div className="grid grid-cols-2 gap-5">
-              <DatePicker pickerId="flight-outbound" openPickerId={openDatePicker} onOpenPicker={setOpenDatePicker} value={outboundDate} onChange={setOutboundDate} label="Outbound" required />
-              {flightType === 'round_trip' && <DatePicker pickerId="flight-return" openPickerId={openDatePicker} onOpenPicker={setOpenDatePicker} value={returnDate} onChange={setReturnDate} label="Return" required />}
+              <DatePicker pickerId="flight-outbound" openPickerId={openDatePicker} onOpenPicker={setOpenDatePicker} value={outboundDate} onChange={(value) => { setOutboundDate(value); if (returnDate && returnDate < value) setReturnDate(''); }} label="Outbound" required minDate={tripDateBounds.minDate} maxDate={tripDateBounds.maxDate} />
+              {flightType === 'round_trip' && <DatePicker pickerId="flight-return" openPickerId={openDatePicker} onOpenPicker={setOpenDatePicker} value={returnDate} onChange={setReturnDate} label="Return" required minDate={outboundDate || tripDateBounds.minDate} maxDate={tripDateBounds.maxDate} openMonthValue={outboundDate || tripDateBounds.minDate} />}
             </div>
           </div>
         )}
 
         {entryType === 'prepaid_multi_day' && (
           <div className="mt-6 space-y-5">
-            <DatePicker pickerId="prepaid-payment" openPickerId={openDatePicker} onOpenPicker={setOpenDatePicker} value={paymentDate} onChange={setPaymentDate} label="Payment Date" required />
+            <DatePicker pickerId="prepaid-payment" openPickerId={openDatePicker} onOpenPicker={setOpenDatePicker} value={paymentDate} onChange={setPaymentDate} label="Payment Date" required minDate={tripDateBounds.minDate} maxDate={tripDateBounds.maxDate} />
             <div className="grid grid-cols-2 gap-5">
-              <DatePicker pickerId="prepaid-usage-start" openPickerId={openDatePicker} onOpenPicker={setOpenDatePicker} value={usageStart} onChange={setUsageStart} label="Usage Start" required />
-              <DatePicker pickerId="prepaid-usage-end" openPickerId={openDatePicker} onOpenPicker={setOpenDatePicker} value={usageEnd} onChange={setUsageEnd} label="Usage End" required openMonthValue={usageStart} />
+              <DatePicker pickerId="prepaid-usage-start" openPickerId={openDatePicker} onOpenPicker={setOpenDatePicker} value={usageStart} onChange={(value) => { setUsageStart(value); if (usageEnd && usageEnd < value) setUsageEnd(''); }} label="Usage Start" required minDate={tripDateBounds.minDate} maxDate={tripDateBounds.maxDate} />
+              <DatePicker pickerId="prepaid-usage-end" openPickerId={openDatePicker} onOpenPicker={setOpenDatePicker} value={usageEnd} onChange={setUsageEnd} label="Usage End" required minDate={usageStart || tripDateBounds.minDate} maxDate={tripDateBounds.maxDate} openMonthValue={usageStart || tripDateBounds.minDate} />
             </div>
           </div>
         )}
