@@ -195,7 +195,6 @@ const QuickEntryContent: React.FC<QuickEntryProps> = ({ onClose }) => {
   const activeMembers = targetTrip?.members?.filter((member) => member.archived !== true) ?? [];
   const members = activeMembers;
   const categories = targetTrip?.categories?.filter((category) => category.archived !== true) ?? [];
-  const segments = targetTrip?.segments ?? [];
 
   useEffect(() => () => {
     if (successTimerRef.current) clearTimeout(successTimerRef.current);
