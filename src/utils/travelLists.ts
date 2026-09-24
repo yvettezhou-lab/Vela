@@ -165,20 +165,40 @@ export const isDomesticTrip = (trip: Trip): boolean => {
 
 export const createDefaultTripLists = (trip: Trip): TripList[] => {
   const domestic = isDomesticTrip(trip);
-  return [
-    makeList(trip.id, domestic ? 'Domestic Travel' : 'International Travel', domestic ? DOMESTIC_ITEMS : INTERNATIONAL_ITEMS, 0),
-    makeList(trip.id, 'General Travel', GENERAL_TRAVEL_ITEMS, 1),
-    makeList(trip.id, 'Medicine', MEDICINE_ITEMS, 2),
-  ];
+  const generalList = makeList(trip.id, 'General Travel', GENERAL_TRAVEL_ITEMS, 1);
+  const baseList = makeList(
+    trip.id,
+    domestic ? 'Domestic Travel' : 'International Travel',
+    filterDuplicateListItems([generalList], domestic ? DOMESTIC_ITEMS : INTERNATIONAL_ITEMS),
+    0,
+  );
+  const medicineList = makeList(
+    trip.id,
+    'Medicine',
+    filterDuplicateListItems([generalList, baseList], MEDICINE_ITEMS),
+    2,
+  );
+  return [baseList, generalList, medicineList];
 };
 
 export const createListFromTemplate = (tripId: string, template: TravelListTemplate, sortOrder: number, existingLists: TripList[] = []): TripList =>
   makeList(tripId, template.name, filterDuplicateListItems(existingLists, template.items), sortOrder);
 
+const listDedupPriority = (list: TripList): number => {
+  const name = list.name.trim().toLowerCase();
+  if (name === 'general travel') return 0;
+  if (name === 'medicine') return 1;
+  return 2;
+};
+
 export const dedupeTripLists = (lists: TripList[]): TripList[] => {
   const seen = new Set<string>();
   let changed = false;
-  const next = lists.map((list) => {
+  const priorityOrder = lists
+    .map((list, index) => ({ list, index, priority: listDedupPriority(list) }))
+    .sort((a, b) => a.priority - b.priority || a.index - b.index);
+
+  for (const { list } of priorityOrder) {
     const kept = list.items.filter((item) => {
       const key = listItemKey(item.title);
       if (!key || seen.has(key)) { changed = true; return false; }
@@ -186,8 +206,14 @@ export const dedupeTripLists = (lists: TripList[]): TripList[] => {
       return true;
     }).map((item, index) => ({ ...item, sortOrder:index }));
     if (kept.length !== list.items.length) changed = true;
-    return kept.length === list.items.length ? list : { ...list, items:kept, updatedAt:now() };
-  }).map((list, index) => list.sortOrder === index ? list : { ...list, sortOrder:index });
+    if (kept.length !== list.items.length) {
+      const nextList = { ...list, items:kept, updatedAt:now() };
+      const index = lists.findIndex((item) => item.id === list.id);
+      lists = lists.map((item, i) => i === index ? nextList : item);
+    }
+  }
+
+  const next = lists.map((list, index) => list.sortOrder === index ? list : { ...list, sortOrder:index });
   return changed ? next : lists;
 };
 
