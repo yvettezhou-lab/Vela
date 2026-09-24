@@ -13,7 +13,7 @@ export type TravelListTemplate = {
 const GENERAL_TRAVEL_ITEMS = [
   '衣服', '裤子', '内衣', '一次性内裤', '袜子', '马桶垫',
   '头灯', '手电', '脚架', '洗漱包（洗发水、洗面奶）', '插线板',
-  '手表充电器', '手机充电器', '充电宝', '灭蚊器', '药',
+  '手表充电器', '手机充电器', '充电宝', '灭蚊器',
 ];
 
 const DOMESTIC_ITEMS = [
