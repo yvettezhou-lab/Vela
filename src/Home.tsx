@@ -17,7 +17,7 @@ const TripCoverImage: React.FC<{ trip: Trip }> = ({ trip }) => {
   return <img src={src || DEFAULT_COVER} alt="" onError={(event) => { event.currentTarget.src = DEFAULT_COVER; }} />;
 };
 
-export default function Home({ onNavigate, onCreateTrip, onManageTrips }: HomeProps) {
+export default function Home({ onNavigate, onCreateTrip, onManageTrips, onOpenLists }: HomeProps) {
   const trips = useVelaStore((state) => state.trips);
   const { current, planning, recent } = useMemo(() => {
     const traveling = trips.find((trip) => trip.status === 'traveling');
