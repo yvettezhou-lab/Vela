@@ -15,5 +15,7 @@ export type LedgerEntry = StandardEntry | FlightEntry | PrepaidMultiDayEntry;
 export interface TripFinancialTotals { financialTotal: number; settledAmount: number; pendingAmount: number; }
 export interface Destination { country: string; region?: string; city: string; }
 export interface TravelSegment { id: string; destinations: Destination[]; startDate: number; endDate: number; primaryCurrency: string; }
+export interface ListItem { id: string; listId: string; title: string; completed: boolean; sortOrder: number; note?: string; createdAt: number; updatedAt: number; }
+export interface TripList { id: string; tripId: string; name: string; sortOrder: number; createdAt: number; updatedAt: number; items: ListItem[]; }
 export interface AllocationRule { allocationMode: 'preset_percentage'; percentages: Record<string, number>; }
-export interface Trip { id: string; title: string; titleEdited?: boolean; segments: TravelSegment[]; status: TripStatus; allocationRules?: AllocationRule; coverImage?: string; members: Member[]; accounts: Account[]; categories: Category[]; ledger: LedgerEntry[]; createdAt: number; updatedAt: number; }
+export interface Trip { id: string; title: string; titleEdited?: boolean; segments: TravelSegment[]; status: TripStatus; allocationRules?: AllocationRule; coverImage?: string; members: Member[]; accounts: Account[]; categories: Category[]; ledger: LedgerEntry[]; lists: TripList[]; createdAt: number; updatedAt: number; }
