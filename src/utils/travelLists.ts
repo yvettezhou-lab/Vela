@@ -163,11 +163,16 @@ export const isDomesticTrip = (trip: Trip): boolean => {
   return countries.length === 0 || countries.every(country => ['china','中国','cn'].includes(country));
 };
 
-export const createDefaultTripLists = (trip: Trip): TripList[] => [
-  makeList(trip.id, isDomesticTrip(trip) ? 'Domestic Travel' : 'International Travel', isDomesticTrip(trip) ? DOMESTIC_ITEMS : INTERNATIONAL_ITEMS, 0),
-  makeList(trip.id, 'Daily Carry', DAILY_ITEMS, 1),
-  makeList(trip.id, 'Medicine', MEDICINE_ITEMS, 2),
-];
+export const createDefaultTripLists = (trip: Trip): TripList[] => {
+  const domestic = isDomesticTrip(trip);
+  const baseTemplate = TRAVEL_LIST_TEMPLATES.find((template) => template.id === (domestic ? 'domestic' : 'international'))!;
+  const generalTemplate = TRAVEL_LIST_TEMPLATES.find((template) => template.id === 'general')!;
+  const medicineTemplate = TRAVEL_LIST_TEMPLATES.find((template) => template.id === 'medicine')!;
+  const baseList = createListFromTemplate(trip.id, baseTemplate, 0);
+  const generalList = createListFromTemplate(trip.id, generalTemplate, 1, [baseList]);
+  const medicineList = createListFromTemplate(trip.id, medicineTemplate, 2, [baseList, generalList]);
+  return [baseList, generalList, medicineList];
+};
 
 export const createListFromTemplate = (tripId: string, template: TravelListTemplate, sortOrder: number, existingLists: TripList[] = []): TripList =>
   makeList(tripId, template.name, filterDuplicateListItems(existingLists, template.items), sortOrder);
