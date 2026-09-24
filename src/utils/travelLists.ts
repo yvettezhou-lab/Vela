@@ -169,20 +169,24 @@ export const isDomesticTrip = (trip: Trip): boolean => {
 
 export const createDefaultTripLists = (trip: Trip): TripList[] => {
   const domestic = isDomesticTrip(trip);
-  const generalList = makeList(trip.id, 'General Travel', GENERAL_TRAVEL_ITEMS, 1);
+  const hasOvernight = trip.segments.some((segment) => segment.endDate > segment.startDate);
   const baseList = makeList(
     trip.id,
     domestic ? 'Domestic Travel' : 'International Travel',
-    filterDuplicateListItems([generalList], domestic ? DOMESTIC_ITEMS : INTERNATIONAL_ITEMS),
+    domestic ? DOMESTIC_ITEMS : INTERNATIONAL_ITEMS,
     0,
   );
+  const generalList = hasOvernight
+    ? makeList(trip.id, 'General Travel', filterDuplicateListItems([baseList], GENERAL_TRAVEL_ITEMS), 1)
+    : null;
+  const existingLists = generalList ? [baseList, generalList] : [baseList];
   const medicineList = makeList(
     trip.id,
     'Medicine',
-    filterDuplicateListItems([generalList, baseList], MEDICINE_ITEMS),
-    2,
+    filterDuplicateListItems(existingLists, MEDICINE_ITEMS),
+    generalList ? 2 : 1,
   );
-  return [baseList, generalList, medicineList];
+  return generalList ? [baseList, generalList, medicineList] : [baseList, medicineList];
 };
 
 export const createListFromTemplate = (tripId: string, template: TravelListTemplate, sortOrder: number, existingLists: TripList[] = []): TripList =>
