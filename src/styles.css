@@ -169,35 +169,60 @@
 
 .quick-entry-submit-wrap > button[type="submit"] { appearance:none !important; -webkit-appearance:none !important; display:block !important; box-sizing:border-box !important; min-height:48px !important; height:48px !important; width:100% !important; border:0 !important; border-radius:16px !important; background:#0f172a !important; color:#fff !important; font:600 16px/1 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif !important; padding:0 20px !important; box-shadow:0 6px 14px rgba(15,23,42,.20) !important; }
 
-.quick-entry-success-backdrop{position:fixed;inset:0;z-index:120;display:flex;align-items:center;justify-content:center;padding:24px;background:rgba(15,23,42,.18);backdrop-filter:blur(2px)}
-.quick-entry-success-modal{width:min(300px,calc(100vw - 48px));box-sizing:border-box;padding:28px 24px 24px;border:1px solid rgba(15,23,42,.08);border-radius:24px;background:#faf9f5;color:#0f172a;box-shadow:0 18px 48px rgba(15,23,42,.18);display:flex;flex-direction:column;align-items:center;text-align:center;animation:quickEntryRecorded .18s ease-out both}
-.quick-entry-success-check{width:48px;height:48px;border-radius:50%;display:grid;place-items:center;background:#0f172a;color:#fff;margin-bottom:14px;font:600 24px/1 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
-.quick-entry-success-modal strong{font:600 20px/1.2 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;letter-spacing:.01em}
-.quick-entry-success-modal>span{margin-top:7px;color:#7a746a;font:400 13px/1.45 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
-@keyframes quickEntryRecorded{from{opacity:0;transform:scale(.94)}to{opacity:1;transform:scale(1)}}
-
-
-/* Quick Entry: success feedback is a true viewport-centered modal. */
 .quick-entry-success-backdrop{
   position:fixed !important;
   inset:0 !important;
-  width:100vw !important;
-  height:100dvh !important;
-  z-index:9999 !important;
+  z-index:99999 !important;
   display:flex !important;
   align-items:center !important;
   justify-content:center !important;
+  width:100vw !important;
+  height:100dvh !important;
   padding:24px !important;
   box-sizing:border-box !important;
-  background:rgba(15,23,42,.18) !important;
-  backdrop-filter:blur(2px);
-  pointer-events:auto !important;
+  background:rgba(15,23,42,.16) !important;
+  pointer-events:none !important;
 }
 .quick-entry-success-modal{
-  position:relative !important;
-  width:min(300px,calc(100vw - 48px)) !important;
-  margin:auto !important;
+  width:min(320px,calc(100vw - 48px)) !important;
+  min-height:190px !important;
+  box-sizing:border-box !important;
+  margin:0 !important;
+  padding:28px 24px 24px !important;
+  border:1px solid rgba(15,23,42,.08) !important;
+  border-radius:24px !important;
+  background:#fbf7ee !important;
+  color:#17243a !important;
+  box-shadow:0 18px 48px rgba(15,23,42,.18) !important;
+  display:flex !important;
+  flex-direction:column !important;
+  align-items:center !important;
+  justify-content:center !important;
+  text-align:center !important;
   transform:none !important;
+  animation:quickEntryRecorded .18s ease-out both !important;
 }
-
-/* Quick Entry calendar uses the same native button interaction as New Journey. */
+.quick-entry-success-check{
+  width:52px !important;
+  height:52px !important;
+  margin:0 0 14px !important;
+  border-radius:50% !important;
+  display:grid !important;
+  place-items:center !important;
+  background:#17243a !important;
+  color:#fffdf8 !important;
+  font:600 25px/1 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif !important;
+}
+.quick-entry-success-modal strong{
+  font:600 20px/1.2 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif !important;
+  letter-spacing:.01em !important;
+}
+.quick-entry-success-modal>span{
+  margin-top:7px !important;
+  color:#7a746a !important;
+  font:400 13px/1.45 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif !important;
+}
+@keyframes quickEntryRecorded{
+  from{opacity:0;transform:scale(.94)}
+  to{opacity:1;transform:scale(1)}
+}
