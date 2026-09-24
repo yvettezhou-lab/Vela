@@ -70,6 +70,12 @@ const DatePicker: React.FC<DatePickerProps> = ({ value, onChange, label, require
   });
 
   const monthCells = getMonthCells(viewMonth);
+  useEffect(() => {
+    if (!open) return;
+    const base = parseDateValue(value) ?? parseDateValue(openMonthValue ?? '') ?? parseDateValue(minDate ?? '') ?? new Date();
+    setViewMonth(new Date(base.getFullYear(), base.getMonth(), 1));
+  }, [open, value, openMonthValue, minDate]);
+
   const today = toDateValue(new Date());
   const selectedValue = selectedDate ? toDateValue(selectedDate) : '';
 
@@ -468,8 +474,6 @@ const QuickEntryContent: React.FC<QuickEntryProps> = ({ onClose }) => {
         {onClose && <button type="button" onClick={onClose} aria-label="Close Quick Entry" className="vela-quick-close grid min-h-12 min-w-12 place-items-center rounded-full text-[#17243a]"><X size={23} strokeWidth={1.7} /></button>}
       </header>
 
-      {success && <div className="vela-success-toast" role="status" aria-live="polite"><strong>✓ Success</strong><span>Saved</span></div>}
-
       <form onSubmit={handleSubmit} className="flex-1 overflow-y-auto px-5 pb-[calc(180px+env(safe-area-inset-bottom))] pt-2">
         {error && <div role="alert" className="mb-4 rounded-xl bg-[#f5d8d2] px-4 py-3 text-sm text-[#7c3e35]">{error}</div>}
 
@@ -594,7 +598,7 @@ const QuickEntryContent: React.FC<QuickEntryProps> = ({ onClose }) => {
 
         {entryType === 'standard' && (
           <div className="mt-6">
-            <DatePicker pickerId="standard-payment" openPickerId={openDatePicker} onOpenPicker={setOpenDatePicker} value={paymentDate} onChange={setPaymentDate} label="Date" required minDate={tripDateBounds.minDate} maxDate={tripDateBounds.maxDate} />
+            <DatePicker pickerId="standard-payment" openPickerId={openDatePicker} onOpenPicker={setOpenDatePicker} value={paymentDate} onChange={setPaymentDate} label="Date" required />
           </div>
         )}
 
@@ -615,7 +619,7 @@ const QuickEntryContent: React.FC<QuickEntryProps> = ({ onClose }) => {
 
         {entryType === 'prepaid_multi_day' && (
           <div className="mt-6 space-y-5">
-            <DatePicker pickerId="prepaid-payment" openPickerId={openDatePicker} onOpenPicker={setOpenDatePicker} value={paymentDate} onChange={setPaymentDate} label="Payment Date" required minDate={tripDateBounds.minDate} maxDate={tripDateBounds.maxDate} />
+            <DatePicker pickerId="prepaid-payment" openPickerId={openDatePicker} onOpenPicker={setOpenDatePicker} value={paymentDate} onChange={setPaymentDate} label="Payment Date" required />
             <div className="grid grid-cols-2 gap-5">
               <DatePicker pickerId="prepaid-usage-start" openPickerId={openDatePicker} onOpenPicker={setOpenDatePicker} value={usageStart} onChange={(value) => { setUsageStart(value); if (usageEnd && usageEnd < value) setUsageEnd(''); }} label="Usage Start" required minDate={tripDateBounds.minDate} maxDate={tripDateBounds.maxDate} />
               <DatePicker pickerId="prepaid-usage-end" openPickerId={openDatePicker} onOpenPicker={setOpenDatePicker} value={usageEnd} onChange={setUsageEnd} label="Usage End" required minDate={usageStart || tripDateBounds.minDate} maxDate={tripDateBounds.maxDate} openMonthValue={usageStart || tripDateBounds.minDate} />
