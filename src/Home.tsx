@@ -1,6 +1,6 @@
 import { getTripDestinations, getTripEndDate, getTripPrimaryCurrency, getTripStartDate } from './core/travelSegment';
 import React, { useMemo, useState } from 'react';
-import { Calendar, ChevronRight, MapPin, Plus, Database } from 'lucide-react';
+import { Calendar, ChevronRight, MapPin, Plus } from 'lucide-react';
 import { calculateFinancialTotals } from './core/calculations';
 import { Trip } from './core/domain';
 import { useVelaStore } from './store/useVelaStore';
@@ -38,14 +38,13 @@ export default function Home({ onNavigate, onCreateTrip, onManageTrips }: HomePr
       <button className="vela-trip-row-main" type="button" onClick={() => onNavigate('Ledger')}>
         <TripCoverImage trip={trip} />
         <span className="vela-trip-row-copy"><strong>{trip.title}</strong><small>{getTripDestinations(trip).join(' · ') || 'Destination not set'} · {dateLabel(trip)}</small><em>{localSummary(trip) || 'No payments yet'}</em></span>
-        <span className={`vela-status-pill ${trip.status}`}>{trip.status === 'achieve' ? 'ACHIEVE' : 'PLANNING'}</span>
-      </button>
+        </button>
       {trip.status === 'planning' && <button className="vela-start-journey" type="button" onClick={() => startJourney(trip.id)}>Start Journey</button>}
       <ChevronRight className="vela-trip-row-chevron" size={17} />
     </div>
   ) : (
     <button className="vela-current-card" key={trip.id} type="button" onClick={() => onNavigate('Ledger')}>
-      <span className="vela-current-copy"><span className="vela-current-label">CURRENT TRIP <i /></span><span className="vela-current-status">{trip.status}</span><strong>{trip.title}</strong><span className="vela-destination"><MapPin size={12} />{getTripDestinations(trip).join(' · ') || 'Choose a destination'}</span><span className="vela-date"><Calendar size={13} />{dateLabel(trip)}</span><span className="vela-summary">{localSummary(trip) || 'Your travel record starts here.'}</span><span className="vela-current-tether"><Database size={13} /> Quick Entry will be recorded to this trip <ChevronRight size={13} /></span></span>
+      <span className="vela-current-copy"><span className="vela-current-label">CURRENT TRIP <i /></span><strong>{trip.title}</strong><span className="vela-destination"><MapPin size={12} />{getTripDestinations(trip).join(' · ') || 'Choose a destination'}</span><span className="vela-date"><Calendar size={13} />{dateLabel(trip)}</span><span className="vela-summary">{localSummary(trip) || 'Your travel record starts here.'}</span></span>
       <span className="vela-current-image"><TripCoverImage trip={trip} /><b>01</b></span>
     </button>
   );
