@@ -68,7 +68,7 @@ export const generateTripInsights = (trip: Trip): TripInsights => {
 export const calculateTravelFrequency = (trips: Trip[], targetYear: number): TravelFrequency => {
   const yearTrips = trips
     .filter((trip) => new Date(getTripStartDate(trip)).getFullYear() === targetYear)
-    .sort((a, b) => a.startDate - b.startDate);
+    .sort((a, b) => getTripStartDate(a) - getTripStartDate(b));
   const travelDays = yearTrips.reduce((sum, trip) => sum + getTripDays(trip), 0);
   const months = new Set<number>();
   yearTrips.forEach((trip) => {
@@ -79,7 +79,7 @@ export const calculateTravelFrequency = (trips: Trip[], targetYear: number): Tra
       cursor.setDate(cursor.getDate() + 1);
     }
   });
-  const gaps = yearTrips.slice(1).map((trip, index) => Math.max(0, Math.round((getTripStartDate(trip) - yearTrips[index].endDate) / DAY_MS)));
+  const gaps = yearTrips.slice(1).map((trip, index) => Math.max(0, Math.round((getTripStartDate(trip) - getTripEndDate(yearTrips[index]) / DAY_MS)));
   return {
     tripsPerYear: yearTrips.length,
     travelDaysPerYear: travelDays,
