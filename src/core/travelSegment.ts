@@ -19,6 +19,7 @@ export const findSegmentByDate = (segments: TravelSegment[], date: number): Trav
 
 export const getLedgerEntryDate = (entry: LedgerEntry): number => {
   if (entry.entryType === 'flight') return entry.outboundDate;
+  if (entry.entryType === 'prepaid_multi_day') return entry.usageStart;
   return entry.paymentDate;
 };
 
