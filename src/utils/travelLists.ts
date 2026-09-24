@@ -165,13 +165,11 @@ export const isDomesticTrip = (trip: Trip): boolean => {
 
 export const createDefaultTripLists = (trip: Trip): TripList[] => {
   const domestic = isDomesticTrip(trip);
-  const baseTemplate = TRAVEL_LIST_TEMPLATES.find((template) => template.id === (domestic ? 'domestic' : 'international'))!;
-  const generalTemplate = TRAVEL_LIST_TEMPLATES.find((template) => template.id === 'general')!;
-  const medicineTemplate = TRAVEL_LIST_TEMPLATES.find((template) => template.id === 'medicine')!;
-  const baseList = createListFromTemplate(trip.id, baseTemplate, 0);
-  const generalList = createListFromTemplate(trip.id, generalTemplate, 1, [baseList]);
-  const medicineList = createListFromTemplate(trip.id, medicineTemplate, 2, [baseList, generalList]);
-  return [baseList, generalList, medicineList];
+  return [
+    makeList(trip.id, domestic ? 'Domestic Travel' : 'International Travel', domestic ? DOMESTIC_ITEMS : INTERNATIONAL_ITEMS, 0),
+    makeList(trip.id, 'General Travel', GENERAL_TRAVEL_ITEMS, 1),
+    makeList(trip.id, 'Medicine', MEDICINE_ITEMS, 2),
+  ];
 };
 
 export const createListFromTemplate = (tripId: string, template: TravelListTemplate, sortOrder: number, existingLists: TripList[] = []): TripList =>
