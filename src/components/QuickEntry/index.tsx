@@ -121,7 +121,7 @@ const DatePicker: React.FC<DatePickerProps> = ({ value, onChange, label, require
               const isToday = dateValue === today;
               const outOfRange = (minDate && dateValue < minDate) || (maxDate && dateValue > maxDate);
               return (
-                <button key={dateValue} type="button" onPointerUp={(event) => { event.preventDefault(); if (!outOfRange) chooseDate(date); }} onClick={(event) => { event.preventDefault(); if (!outOfRange) chooseDate(date); }} disabled={Boolean(outOfRange)} aria-label={dateValue} aria-pressed={selected} className={`trip-date-day ${selected ? 'selected' : isToday ? 'today' : ''}${outOfRange ? ' disabled' : ''}`}>
+                <button key={dateValue} type="button" onClick={() => !outOfRange && chooseDate(date)} disabled={Boolean(outOfRange)} aria-label={dateValue} aria-pressed={selected} className={`trip-date-day ${selected ? 'selected' : isToday ? 'today' : ''}${outOfRange ? ' disabled' : ''}`}>
                   {date.getDate()}
                 </button>
               );
