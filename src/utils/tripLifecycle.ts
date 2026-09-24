@@ -1,4 +1,5 @@
 import type { Trip } from '../core/domain';
+import { getTripStartDate } from '../core/travelSegment';
 
 const getLocalCalendarStart = (timestamp: number): number => {
   const date = new Date(timestamp);
@@ -10,6 +11,6 @@ export const getAutoStartTripId = (trips: Trip[], now: number): string | null =>
   if (trips.some((trip) => trip.status === 'traveling')) return null;
   const today = getLocalCalendarStart(now);
   return trips
-    .filter((trip) => trip.status === 'planning' && getLocalCalendarStart(trip.startDate) <= today)
-    .sort((a, b) => a.startDate - b.startDate || a.createdAt - b.createdAt)[0]?.id ?? null;
+    .filter((trip) => trip.status === 'planning' && getLocalCalendarStart(getTripStartDate(trip)) <= today)
+     .sort((a, b) => getTripStartDate(a) - getTripStartDate(b) || a.createdAt - b.createdAt)[0]?.id ?? null;
 };
