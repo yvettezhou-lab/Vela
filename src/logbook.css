@@ -671,3 +671,16 @@
   font:400 10px/1.2 Georgia,"Times New Roman",serif;
   color:#243148;
 }
+
+/* Selected breakdown details: readable secondary table below the chart card */
+.logbook-selected-detail{padding:13px 14px}
+.logbook-selected-detail-heading{font-size:11px;padding-bottom:9px}
+.logbook-selected-detail-heading strong{font-size:19px}
+.logbook-detail-list>div{padding:10px 0;font-size:11px;line-height:1.35}
+.logbook-detail-list b{font-size:13px}
+@media(max-width:650px){
+  .logbook-selected-detail-heading{font-size:11px}
+  .logbook-selected-detail-heading strong{font-size:19px}
+  .logbook-detail-list>div{font-size:11px;padding:10px 0}
+  .logbook-detail-list b{font-size:13px}
+}
