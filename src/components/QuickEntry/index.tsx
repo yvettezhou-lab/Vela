@@ -663,7 +663,15 @@ const QuickEntryContent: React.FC<QuickEntryProps> = ({ onClose }) => {
           {error && <div className="quick-entry-submit-error" role="alert" aria-live="assertive">{error}</div>}
           <button type="submit" className="mt-8 min-h-12 w-full rounded-2xl bg-slate-900 px-5 text-base font-semibold text-white shadow-md shadow-slate-900/20 transition-all duration-200 active:scale-[0.98] active:opacity-80">Save Entry</button>
         </div>
-        {success && <div className="quick-entry-recorded-toast" role="status" aria-live="polite">Recorded</div>}
+        {success && (
+        <div className="quick-entry-success-backdrop" role="presentation">
+          <div className="quick-entry-success-modal" role="status" aria-live="polite">
+            <div className="quick-entry-success-check"><span>✓</span></div>
+            <strong>Recorded</strong>
+            <span>Your record has been saved.</span>
+          </div>
+        </div>
+      )}
       </form>
 
       {pendingSegmentSwitch && (
