@@ -1,9 +1,9 @@
-import { getSegmentPrimaryCurrency, getTripPrimaryCurrency } from '../../core/travelSegment';
+import { getSegmentsByDate, getLedgerEntryDate, getTripPrimaryCurrency } from '../../core/travelSegment';
 import React, { Component, ErrorInfo, ReactNode, useEffect, useRef, useState } from 'react';
 import { Calendar, ChevronLeft, ChevronRight, X } from 'lucide-react';
 import { useVelaStore } from '../../store/useVelaStore';
 import { TRANSPORT_CATEGORY_ID } from '../../core/validation';
-import { Allocation, AllocationMode, FlightType, LedgerEntry } from '../../core/domain';
+import { Allocation, AllocationMode, FlightType, LedgerEntry, TravelSegment } from '../../core/domain';
 
 const generateId = () =>
   typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function'
@@ -171,6 +171,12 @@ const QuickEntryContent: React.FC<QuickEntryProps> = ({ onClose }) => {
   const [customPercentages, setCustomPercentages] = useState<Record<string, number>>({});
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
+  const [pendingSegmentSwitch, setPendingSegmentSwitch] = useState<{
+    tripId: string;
+    entry: LedgerEntry;
+    currentSegmentId: string;
+    nextSegment: TravelSegment;
+  } | null>(null);
   const [fxRate, setFxRate] = useState<number | null>(null);
   const currencyComposingRef = useRef(false);
   const amountComposingRef = useRef(false);
@@ -206,7 +212,11 @@ const QuickEntryContent: React.FC<QuickEntryProps> = ({ onClose }) => {
     });
     setAccountId((current) => current && accounts.some((account) => account.id === current) ? current : accounts[0]?.id ?? '');
     setPayerId((current) => current && members.some((member) => member.id === current) ? current : members[0]?.id ?? '');
-    setCurrency(getTripPrimaryCurrency(targetTrip));
+    const lastUsedCurrency = [...targetTrip.ledger]
+      .sort((a, b) => b.createdAt - a.createdAt)
+      .map((entry) => entry.originalCurrency?.trim().toUpperCase())
+      .find(Boolean);
+    setCurrency(lastUsedCurrency || getTripPrimaryCurrency(targetTrip));
     const savedRule = targetTrip.allocationRules;
     if (savedRule) {
       setCustomPercentages({});
@@ -220,19 +230,6 @@ const QuickEntryContent: React.FC<QuickEntryProps> = ({ onClose }) => {
       });
     }
   }, [targetTrip]);
-
-  useEffect(() => {
-    if (!targetTrip) return;
-    const dateValue = entryType === 'flight'
-      ? outboundDate
-      : entryType === 'prepaid_multi_day'
-        ? usageStart
-        : paymentDate;
-    const date = toDateTimestamp(dateValue);
-    if (!Number.isFinite(date)) return;
-    const resolved = getSegmentPrimaryCurrency(segments, date);
-    if (resolved) setCurrency(resolved);
-  }, [targetTrip, segments, entryType, paymentDate, outboundDate, usageStart]);
 
   useEffect(() => {
     const normalizedCurrency = currency.trim().toUpperCase();
@@ -335,6 +332,16 @@ const QuickEntryContent: React.FC<QuickEntryProps> = ({ onClose }) => {
     formRef.current?.scrollTo({ top: 0, behavior: 'smooth' });
   }, [error]);
 
+  const saveEntry = (tripId: string, entry: LedgerEntry, segmentId?: string) => {
+    addLedgerEntry(tripId, segmentId ? { ...entry, segmentId } : entry);
+    setAmount('');
+    setCnyEquivalent('');
+    setError(null);
+    setSuccess(true);
+    if (successTimerRef.current) clearTimeout(successTimerRef.current);
+    successTimerRef.current = setTimeout(() => setSuccess(false), 1800);
+  };
+
   const handleSubmit = (event: React.FormEvent) => {
     event.preventDefault();
     setError(null);
@@ -393,14 +400,34 @@ const QuickEntryContent: React.FC<QuickEntryProps> = ({ onClose }) => {
       }
 
       if (!targetTrip) throw new Error('Journey is required.');
-      addLedgerEntry(targetTrip.id, finalEntry);
 
-      setAmount('');
-      setCnyEquivalent('');
-      setError(null);
-      setSuccess(true);
-      if (successTimerRef.current) clearTimeout(successTimerRef.current);
-      successTimerRef.current = setTimeout(() => setSuccess(false), 1800);
+      const contextDate = getLedgerEntryDate(finalEntry);
+      const daySegments = getSegmentsByDate(targetTrip.segments, contextDate);
+      const sameDayEntries = targetTrip.ledger
+        .filter((entry) => {
+          const entryDate = getLedgerEntryDate(entry);
+          return Number.isFinite(entryDate) && toDateValue(new Date(entryDate)) === toDateValue(new Date(contextDate));
+        })
+        .sort((a, b) => b.createdAt - a.createdAt);
+      const lastSegmentId = sameDayEntries.find((entry) => entry.segmentId)?.segmentId;
+      const currentSegmentIndex = lastSegmentId
+        ? daySegments.findIndex((segment) => segment.id === lastSegmentId)
+        : 0;
+      const safeCurrentIndex = currentSegmentIndex >= 0 ? currentSegmentIndex : 0;
+      const currentSegment = daySegments[safeCurrentIndex];
+      const nextSegment = daySegments[safeCurrentIndex + 1];
+
+      if (currentSegment && nextSegment) {
+        setPendingSegmentSwitch({
+          tripId: targetTrip.id,
+          entry: finalEntry,
+          currentSegmentId: currentSegment.id,
+          nextSegment,
+        });
+        return;
+      }
+
+      saveEntry(targetTrip.id, finalEntry, currentSegment?.id);
     } catch (submissionError: unknown) {
       setSuccess(false);
       setError(submissionError instanceof Error ? submissionError.message : String(submissionError));
@@ -639,6 +666,40 @@ const QuickEntryContent: React.FC<QuickEntryProps> = ({ onClose }) => {
         </div>
         {success && <div className="quick-entry-recorded-toast" role="status" aria-live="polite">Recorded</div>}
       </form>
+
+      {pendingSegmentSwitch && (
+        <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/25 p-4 sm:items-center" role="dialog" aria-modal="true" aria-labelledby="segment-switch-title">
+          <div className="w-full max-w-sm rounded-3xl bg-[#fbf7ee] p-5 text-[#17243a] shadow-2xl">
+            <p className="text-xs uppercase tracking-[0.16em] text-[#857a6a]">Journey handoff</p>
+            <h3 id="segment-switch-title" className="mt-2 text-xl font-medium">Switch to {pendingSegmentSwitch.nextSegment.destinations.map((destination) => destination.city || destination.country).filter(Boolean).join(' · ') || 'next segment'}?</h3>
+            <p className="mt-2 text-sm leading-6 text-[#766957]">No keeps this entry in the current segment. You’ll be asked again next time until you switch.</p>
+            <div className="mt-5 grid grid-cols-2 gap-3">
+              <button
+                type="button"
+                onClick={() => {
+                  const pending = pendingSegmentSwitch;
+                  setPendingSegmentSwitch(null);
+                  saveEntry(pending.tripId, pending.entry, pending.currentSegmentId);
+                }}
+                className="min-h-12 rounded-2xl border border-black/10 bg-white px-4 text-sm font-semibold text-[#17243a]"
+              >
+                No
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  const pending = pendingSegmentSwitch;
+                  setPendingSegmentSwitch(null);
+                  saveEntry(pending.tripId, pending.entry, pending.nextSegment.id);
+                }}
+                className="min-h-12 rounded-2xl bg-slate-900 px-4 text-sm font-semibold text-white"
+              >
+                Yes
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </section>
   );
 };
