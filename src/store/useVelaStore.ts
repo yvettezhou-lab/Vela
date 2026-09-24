@@ -24,7 +24,7 @@ const withDefaultCategories = (trip: Trip): Trip => {
 };
 const withDefaultAccounts = (trip: Trip): Trip => ({ ...trip, accounts: trip.accounts.length > 0 ? trip.accounts : [{ id: 'default-account-cash', name: 'Cash' }, { id: 'default-account-credit-card', name: 'Credit Card' }] });
 const normalizeTrips = (trips: Trip[]): Trip[] => refreshAutoTripTitles(trips.map((rawTrip) => {
-  const trip = ensureTripLists(withDefaultAccounts(withDefaultCategories(rawTrip));
+  const trip = ensureTripLists(withDefaultAccounts(withDefaultCategories(rawTrip)));
   const ledger = trip.ledger.map((entry) => {
     if (entry.segmentId) return entry;
     const segment = findSegmentByDate(trip.segments, getLedgerEntryDate(entry));
