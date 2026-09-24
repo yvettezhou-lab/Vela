@@ -79,7 +79,7 @@ export const calculateTravelFrequency = (trips: Trip[], targetYear: number): Tra
       cursor.setDate(cursor.getDate() + 1);
     }
   });
-  const gaps = yearTrips.slice(1).map((trip, index) => Math.max(0, Math.round((getTripStartDate(trip) - getTripEndDate(yearTrips[index]) / DAY_MS)));
+  const gaps = yearTrips.slice(1).map((trip, index) => Math.max(0, Math.round((getTripStartDate(trip) - getTripEndDate(yearTrips[index])) / DAY_MS)));
   return {
     tripsPerYear: yearTrips.length,
     travelDaysPerYear: travelDays,
