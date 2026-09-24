@@ -121,7 +121,6 @@ const LIST_ITEM_ALIASES: Array<[string, string]> = [
   ['高倍防晒', '防晒'],
   ['个人常用药', '常用药'],
   ['小型急救包', '急救包'],
-  ['小型急救包', '急救包'],
 ];
 
 export const listItemKey = (title: string): string => {
