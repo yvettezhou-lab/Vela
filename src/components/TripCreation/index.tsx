@@ -81,6 +81,12 @@ const formatTripDate = (value: string) => {
   const date = parseDateValue(value);
   return date ? date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : 'Select date';
 };
+const nextCalendarDate = (value: string) => {
+  const date = parseDateValue(value);
+  if (!date) return value;
+  date.setDate(date.getDate() + 1);
+  return toDateInput(date.getTime());
+};
 const monthCells = (month: Date) => {
   const first = new Date(month.getFullYear(), month.getMonth(), 1);
   const offset = first.getDay();
@@ -264,7 +270,7 @@ export const TripCreation: React.FC<Props> = ({ onClose, onCreated, onUpdated, t
     if (Object.prototype.hasOwnProperty.call(patch, 'endDate')) {
       for (let i = index + 1; i < next.length; i++) {
         if (next[i].startDateManuallySet) break;
-        next[i] = { ...next[i], startDate: next[i - 1].endDate };
+        next[i] = { ...next[i], startDate: nextCalendarDate(next[i - 1].endDate) };
       }
     }
     return next;
@@ -296,7 +302,7 @@ export const TripCreation: React.FC<Props> = ({ onClose, onCreated, onUpdated, t
   const addSegment = () => setSegments((current) => {
     const previous = current[current.length - 1];
     const next = makeDraftSegment();
-    if (previous?.endDate) next.startDate = previous.endDate;
+    if (previous?.endDate) next.startDate = nextCalendarDate(previous.endDate);
     next.startDateManuallySet = false;
     return [...current, next];
   });
@@ -399,7 +405,7 @@ export const TripCreation: React.FC<Props> = ({ onClose, onCreated, onUpdated, t
               <div className="trip-linked-start">
                 <CompactTripDatePicker label={segmentIndex > 0 && !segment.startDateManuallySet ? 'START · FOLLOWS PREVIOUS END' : 'START'} value={segment.startDate} onChange={(value) => updateSegment(segmentIndex, { startDate: value, startDateManuallySet: true })} />
                 {segmentIndex > 0 && !segment.startDateManuallySet && <span>Linked to Segment {segmentIndex} end</span>}
-                {segmentIndex > 0 && segment.startDateManuallySet && <button type="button" onClick={() => updateSegment(segmentIndex, { startDate: segments[segmentIndex - 1].endDate, startDateManuallySet: false })}>Use previous end</button>}
+                {segmentIndex > 0 && segment.startDateManuallySet && <button type="button" onClick={() => updateSegment(segmentIndex, { startDate: nextCalendarDate(segments[segmentIndex - 1].endDate), startDateManuallySet: false })}>Use previous end</button>}
               </div>
               <CompactTripDatePicker label="END" value={segment.endDate} onChange={(value) => updateSegment(segmentIndex, { endDate: value })} />
             </div>
