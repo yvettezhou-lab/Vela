@@ -7,7 +7,7 @@ import { migrateLegacyPlanToTrip } from '../core/legacyAdapter';
 import { getAutoStartTripId } from '../utils/tripLifecycle';
 import { refreshAutoTripTitles } from '../utils/tripTitle';
 import { findSegmentByDate, getLedgerEntryDate } from '../core/travelSegment';
-import { ensureTripLists, createDefaultTripLists, cloneList } from '../utils/travelLists';
+import { ensureTripLists, createDefaultTripLists, cloneList, createListFromTemplate, TravelListTemplate } from '../utils/travelLists';
 
 const LEGACY_STORAGE_KEY = 'vela.plan.v1';
 const withDefaultCategories = (trip: Trip): Trip => {
@@ -92,6 +92,7 @@ interface VelaState {
   deleteCommonAccount: (id: string) => void;
   getCurrentTrip: () => Trip | null;
   addList: (tripId: string, name: string, source?: TripList) => void;
+  addListTemplate: (tripId: string, template: TravelListTemplate) => void;
   addListFromTrip: (targetTripId: string, sourceTripId: string, listIds: string[]) => void;
   updateList: (tripId: string, list: TripList) => void;
   deleteList: (tripId: string, listId: string) => void;
@@ -143,6 +144,7 @@ export const useVelaStore = create<VelaState>()(persist((set, get) => ({
     if (inActiveTrip) throw new Error(`Cannot delete ${account.name}: it is used by a planning or current trip.`);
     set({ commonAccounts: get().commonAccounts.filter((item) => item.id !== id) });
   },
+  addListTemplate: (tripId, template) => { const trips=get().trips; const trip=trips.find(t=>t.id===tripId); if(!trip) throw new Error(`Trip ${tripId} not found`); const clean=template.name.trim(); if(trip.lists.some(list=>list.name.trim().toLowerCase()===clean.toLowerCase())) throw new Error('A list with this name already exists'); const t=Date.now(); const list=createListFromTemplate(tripId, template, trip.lists.length); set({trips:trips.map(item=>item.id===tripId?{...item,lists:[...item.lists,list],updatedAt:t}:item)}); },
   addList: (tripId, name, source) => { const clean = name.trim(); if (!clean) throw new Error('List name is required'); const trips=get().trips; const trip=trips.find(t=>t.id===tripId); if(!trip) throw new Error(`Trip ${tripId} not found`); if(trip.lists.some(list=>list.name.trim().toLowerCase()===clean.toLowerCase())) throw new Error('A list with this name already exists'); const t=Date.now(); const list=source ? cloneList({ ...source, name:clean }, tripId, trip.lists.length) : { id:crypto.randomUUID(), tripId, name:clean, sortOrder:trip.lists.length, createdAt:t, updatedAt:t, items:[] }; set({trips:trips.map(item=>item.id===tripId?{...item,lists:[...item.lists,list],updatedAt:t}:item)}); },
   addListFromTrip: (targetTripId, sourceTripId, listIds) => { const trips=get().trips; const target=trips.find(t=>t.id===targetTripId); const source=trips.find(t=>t.id===sourceTripId); if(!target||!source) throw new Error('Trip not found'); const selected=source.lists.filter(list=>listIds.includes(list.id)); const existing=new Set(target.lists.map(list=>list.name.trim().toLowerCase())); const clones=selected.filter(list=>!existing.has(list.name.trim().toLowerCase())).map((list,index)=>cloneList(list,targetTripId,target.lists.length+index)); if(!clones.length) throw new Error('All selected lists already exist in this trip'); const t=Date.now(); set({trips:trips.map(item=>item.id===targetTripId?{...item,lists:[...item.lists,...clones],updatedAt:t}:item)}); },
   updateList: (tripId, list) => { const trips=get().trips; const trip=trips.find(t=>t.id===tripId); if(!trip) throw new Error('Trip not found'); const clean=list.name.trim(); if(!clean) throw new Error('List name is required'); if(trip.lists.some(item=>item.id!==list.id&&item.name.trim().toLowerCase()===clean.toLowerCase())) throw new Error('A list with this name already exists'); const t=Date.now(); set({trips:trips.map(item=>item.id===tripId?{...item,lists:item.lists.map(x=>x.id===list.id?{...list,name:clean,tripId,updatedAt:t}:x),updatedAt:t}:item)}); },
