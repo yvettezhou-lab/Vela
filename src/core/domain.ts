@@ -5,7 +5,7 @@ export interface Member { id: string; name: string; archived?: boolean; }
 export interface Account { id: string; name: string; archived?: boolean; }
 export interface Category { id: string; name: string; type: string; archived?: boolean; excludeFromStats?: boolean; }
 export interface Allocation { memberId: string; percentage?: number; amount: number; }
-export interface BaseLedgerEntry { id: string; categoryId: string; originalAmount: number; originalCurrency: string; cnyEquivalent: number; includeInCost: boolean; isRefund: boolean; isPending: boolean; payerId: string; accountId: string; allocationMode: AllocationMode; allocations: Allocation[]; createdAt: number; updatedAt: number; }
+export interface BaseLedgerEntry { id: string; segmentId?: string; categoryId: string; originalAmount: number; originalCurrency: string; cnyEquivalent: number; includeInCost: boolean; isRefund: boolean; isPending: boolean; payerId: string; accountId: string; allocationMode: AllocationMode; allocations: Allocation[]; createdAt: number; updatedAt: number; }
 export interface StandardEntry extends BaseLedgerEntry { entryType: 'standard'; paymentDate: number; }
 export interface FlightOneWay extends BaseLedgerEntry { entryType: 'flight'; flightType: 'one_way'; outboundDate: number; }
 export interface FlightRoundTrip extends BaseLedgerEntry { entryType: 'flight'; flightType: 'round_trip'; outboundDate: number; returnDate: number; }
