@@ -1,7 +1,7 @@
 import React, { useMemo, useState } from 'react';
 import { ChevronDown, Download, Scale } from 'lucide-react';
 import { useVelaStore } from '../../store/useVelaStore';
-import { calculateSegmentSettlements, settlementMemberName, type SettlementSegment } from '../../core/settlement';
+import { calculateMinimalSettlementTransfers, calculateSegmentSettlements, settlementMemberName, type SettlementSegment } from '../../core/settlement';
 import { exportSettlementCollection, exportSettlementRaw } from '../../core/settlementExport';
 
 const money = (value: number) => `¥${value.toFixed(2)}`;
@@ -27,6 +27,7 @@ const PayerRow: React.FC<{ segment: SettlementSegment; payerId: string; members:
 const SegmentRow: React.FC<{ segment: SettlementSegment; index: number; members: ReturnType<typeof useVelaStore.getState>['trips'][number]['members'] }> = ({ segment, index, members }) => {
   const [open, setOpen] = useState(true);
   const hasActivity = segment.payers.length > 0;
+  const transfers = calculateMinimalSettlementTransfers(segment);
   return <article className={`settlement-segment${open ? '' : ' is-collapsed'}`}>
     <button type="button" className="settlement-segment-head" onClick={() => setOpen((value) => !value)} aria-expanded={open}>
       <span className="settlement-segment-index">{String(index + 1).padStart(2, '0')}</span>
@@ -34,7 +35,21 @@ const SegmentRow: React.FC<{ segment: SettlementSegment; index: number; members:
       <span className="settlement-segment-total">{hasActivity ? money(segment.payers.reduce((sum, payer) => sum + payer.paidCny, 0)) : '—'}</span>
       <ChevronDown size={17} aria-hidden="true" />
     </button>
-    <div className="settlement-segment-body">{hasActivity ? segment.payers.map((payer) => <PayerRow key={payer.payerId} segment={segment} payerId={payer.payerId} members={members} />) : <div className="settlement-segment-empty">No settled expenses in this segment.</div>}</div>
+    <div className="settlement-segment-body">
+      {hasActivity ? <>
+        <section className="settlement-final">
+          <div className="settlement-final-heading"><span>FINAL SETTLEMENT</span><strong>{transfers.length} {transfers.length === 1 ? 'TRANSFER' : 'TRANSFERS'}</strong></div>
+          {transfers.length ? transfers.map((transfer, transferIndex) => (
+            <div className="settlement-final-row" key={`${transfer.fromMemberId}-${transfer.toMemberId}-${transfer.amountCny}-${transferIndex}`}>
+              <span><strong>{settlementMemberName(members, transfer.fromMemberId)}</strong><span> → </span><strong>{settlementMemberName(members, transfer.toMemberId)}</strong></span>
+              <strong>{money(transfer.amountCny)}</strong>
+            </div>
+          )) : <div className="settlement-no-debt">Everyone is settled.</div>}
+        </section>
+        <div className="settlement-detail-label">PAYMENT DETAIL</div>
+        {segment.payers.map((payer) => <PayerRow key={payer.payerId} segment={segment} payerId={payer.payerId} members={members} />)}
+      </> : <div className="settlement-segment-empty">No settled expenses in this segment.</div>}
+    </div>
   </article>;
 };
 
