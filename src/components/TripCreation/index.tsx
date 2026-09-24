@@ -212,11 +212,15 @@ export const TripCreation: React.FC<Props> = ({ onClose, onCreated, onUpdated, t
   };
 
   const overlapPairs = useMemo(() => {
+    const dayStart = (timestamp: number) => {
+      const date = new Date(timestamp);
+      return new Date(date.getFullYear(), date.getMonth(), date.getDate()).getTime();
+    };
     const ranges = segments.map((segment, index) => ({ index, start: toStartTimestamp(segment.startDate), end: toEndTimestamp(segment.endDate) }))
       .filter((range) => Number.isFinite(range.start) && Number.isFinite(range.end) && range.start <= range.end);
     const pairs: [number, number][] = [];
     for (let i = 0; i < ranges.length; i++) for (let j = i + 1; j < ranges.length; j++)
-      if (ranges[i].start < ranges[j].end && ranges[j].start < ranges[i].end) pairs.push([ranges[i].index, ranges[j].index]);
+      if (dayStart(ranges[i].start) < dayStart(ranges[j].end) && dayStart(ranges[j].start) < dayStart(ranges[i].end)) pairs.push([ranges[i].index, ranges[j].index]);
     return pairs;
   }, [segments]);
 
@@ -270,7 +274,7 @@ export const TripCreation: React.FC<Props> = ({ onClose, onCreated, onUpdated, t
     if (Object.prototype.hasOwnProperty.call(patch, 'endDate')) {
       for (let i = index + 1; i < next.length; i++) {
         if (next[i].startDateManuallySet) break;
-        next[i] = { ...next[i], startDate: nextCalendarDate(next[i - 1].endDate) };
+        next[i] = { ...next[i], startDate: next[i - 1].endDate };
       }
     }
     return next;
@@ -302,7 +306,7 @@ export const TripCreation: React.FC<Props> = ({ onClose, onCreated, onUpdated, t
   const addSegment = () => setSegments((current) => {
     const previous = current[current.length - 1];
     const next = makeDraftSegment();
-    if (previous?.endDate) next.startDate = nextCalendarDate(previous.endDate);
+    if (previous?.endDate) next.startDate = previous.endDate;
     next.startDateManuallySet = false;
     return [...current, next];
   });
