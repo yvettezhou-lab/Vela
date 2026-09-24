@@ -21,6 +21,14 @@ const parseSegments = (raw: unknown): TravelSegment[] => {
  const ordered = [...segments].sort((a, b) => a.startDate - b.startDate); const dayStart = (timestamp: number) => { const date = new Date(timestamp); return new Date(date.getFullYear(), date.getMonth(), date.getDate()).getTime(); }; for (let i = 1; i < ordered.length; i++) if (dayStart(ordered[i].startDate) < dayStart(ordered[i - 1].endDate)) throw new Error(`Domain Violation: TravelSegment date ranges cannot overlap (${ordered[i - 1].id} and ${ordered[i].id})`);
  return segments;
 };
+const validateLedgerEntryDates = (segments: TravelSegment[], entry: LedgerEntry): void => {
+ const relevantDates = entry.entryType === 'flight'
+  ? entry.flightType === 'round_trip' ? [entry.outboundDate, entry.returnDate] : [entry.outboundDate]
+  : entry.entryType === 'prepaid_multi_day' ? [entry.usageStart, entry.usageEnd] : [entry.paymentDate];
+ for (const date of relevantDates) {
+  if (!findSegmentByDate(segments, date)) throw new Error('Ledger Error: Entry date must fall within a TravelSegment date range');
+ }
+};
 export const DomainValidator = {
 validateTripStatus: (trips: Trip[], targetTripId: string, newStatus: unknown, currentStatus?: unknown) => { const transitions: Record<string, string[]> = { planning: ['traveling'], traveling: ['achieve'], achieve: ['traveling'] }; if (typeof newStatus !== 'string' || !transitions[newStatus]) throw new Error(`Lifecycle Violation: Invalid target status '${newStatus}'`); if (currentStatus !== undefined) { if (typeof currentStatus !== 'string' || !transitions[currentStatus]) throw new Error(`Lifecycle Violation: Invalid current status '${currentStatus}'`); if (!transitions[currentStatus].includes(newStatus)) throw new Error(`Lifecycle Violation: Cannot transition from ${currentStatus} to ${newStatus}`); } if (newStatus === 'traveling' && trips.find(t => t.status === 'traveling' && t.id !== targetTripId)) throw new Error('Lifecycle Violation: Only one traveling trip allowed'); },
 validateEntireTrip: (rawTrip: unknown, allTrips: Trip[]): Trip => {
