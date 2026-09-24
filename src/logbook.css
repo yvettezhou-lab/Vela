@@ -563,3 +563,41 @@
     height:120px;
   }
 }
+
+
+/* Logbook category chart: match Carina's large visual balance */
+.logbook-analytics .logbook-donut-layout{
+  grid-template-columns:180px 1fr;
+  gap:18px;
+  min-height:290px;
+}
+.logbook-analytics .logbook-donut-wrap,
+.logbook-analytics .logbook-donut{
+  width:180px;
+  height:180px;
+}
+.logbook-analytics .logbook-donut-total{font-size:13px}
+.logbook-analytics .logbook-donut-label{font-size:6px}
+.logbook-analytics .logbook-legend{
+  justify-content:space-evenly;
+}
+.logbook-analytics .logbook-legend>div{
+  gap:8px;
+  padding:5px 0 8px;
+}
+.logbook-analytics .logbook-legend span{font-size:11px}
+.logbook-analytics .logbook-legend strong{font-size:11px}
+@media(max-width:650px){
+  .logbook-analytics .logbook-donut-layout{
+    grid-template-columns:180px 1fr;
+    gap:12px;
+    min-height:280px;
+  }
+  .logbook-analytics .logbook-donut-wrap,
+  .logbook-analytics .logbook-donut{
+    width:180px;
+    height:180px;
+  }
+  .logbook-analytics .logbook-legend span{font-size:10px}
+  .logbook-analytics .logbook-legend strong{font-size:10px}
+}
