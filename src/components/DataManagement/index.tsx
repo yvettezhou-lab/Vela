@@ -4,6 +4,7 @@ import { DomainValidator } from '../../core/validation';
 import { getDefaultCategories } from '../../core/defaults';
 import { useVelaStore } from '../../store/useVelaStore';
 import type { Account, Member, Trip } from '../../core/domain';
+import { ensureTripLists } from '../../utils/travelLists';
 import './dataManagement.css';
 
 const EXPORT_VERSION = 1;
@@ -18,7 +19,7 @@ type ExportPayload = {
 const isRecord = (value: unknown): value is Record<string, unknown> =>
   typeof value === 'object' && value !== null && !Array.isArray(value);
 
-const normalizeTrip = (trip: Trip): Trip => ({
+const normalizeTrip = (trip: Trip): Trip => ensureTripLists({
   ...trip,
   categories: trip.categories.length > 0 ? trip.categories : getDefaultCategories(),
   accounts: trip.accounts.length > 0 ? trip.accounts : [
