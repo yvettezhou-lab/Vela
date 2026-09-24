@@ -615,3 +615,23 @@
 .logbook-view-toggle button:not(.active):active{
   background:#ddd9d0;
 }
+
+.logbook-chart-area{display:flex;flex-direction:column;align-items:center;justify-content:center;min-width:0}
+.logbook-chart-switcher{border:0;background:transparent;padding:0;margin:0;width:100%;height:210px;display:flex;align-items:center;justify-content:center;cursor:pointer}
+.logbook-chart-switcher .logbook-donut{width:180px;height:180px}
+.logbook-chart-hint{font:6px/1 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;letter-spacing:.12em;text-transform:uppercase;color:#9a968e;margin-top:2px}
+.logbook-bar-chart{height:180px;width:150px;display:flex;align-items:flex-end;justify-content:center;gap:7px;padding:8px 4px 0}
+.logbook-bar-item{height:100%;flex:1;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;min-width:0}
+.logbook-bar-value{font:8px/1 Georgia,serif;color:#243148;margin-bottom:4px;white-space:nowrap}
+.logbook-bar-column{height:145px;width:100%;display:flex;align-items:flex-end;justify-content:center}
+.logbook-bar-column i{display:block;width:75%;min-height:4px}
+.logbook-legend>div{position:relative;cursor:pointer;padding:8px 0 9px;transition:background .15s ease}
+.logbook-legend>div.selected{background:rgba(183,155,101,.10);padding-left:5px;padding-right:5px}
+.logbook-detail{margin:7px 0 0 17px;border-top:1px solid #e8e0d3;padding-top:5px}
+.logbook-detail div{display:flex;justify-content:space-between;gap:8px;padding:3px 0;font:8px/1.2 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:#77736b}
+.logbook-detail b{font:8px/1.2 Georgia,serif;color:#243148}
+@media(max-width:650px){
+ .logbook-chart-switcher{height:210px}
+ .logbook-chart-switcher .logbook-donut{width:180px;height:180px}
+ .logbook-bar-chart{width:145px;height:180px;gap:5px}
+}
