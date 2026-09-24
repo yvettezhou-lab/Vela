@@ -121,8 +121,7 @@ const LIST_ITEM_ALIASES: Array<[string, string]> = [
   ['高倍防晒', '防晒'],
   ['个人常用药', '常用药'],
   ['小型急救包', '急救包'],
-  ['药品收纳袋', '药品收纳'],
-  ['密封袋', '脏衣袋'],
+  ['小型急救包', '急救包'],
 ];
 
 export const listItemKey = (title: string): string => {
@@ -162,7 +161,26 @@ export const createDefaultTripLists = (trip: Trip): TripList[] => [
 export const createListFromTemplate = (tripId: string, template: TravelListTemplate, sortOrder: number, existingLists: TripList[] = []): TripList =>
   makeList(tripId, template.name, filterDuplicateListItems(existingLists, template.items), sortOrder);
 
-export const ensureTripLists = (trip: Trip): Trip => trip.lists?.length ? trip : { ...trip, lists:createDefaultTripLists(trip) };
+export const dedupeTripLists = (lists: TripList[]): TripList[] => {
+  const seen = new Set<string>();
+  let changed = false;
+  const next = lists.map((list) => {
+    const kept = list.items.filter((item) => {
+      const key = listItemKey(item.title);
+      if (!key || seen.has(key)) { changed = true; return false; }
+      seen.add(key);
+      return true;
+    }).map((item, index) => ({ ...item, sortOrder:index }));
+    if (kept.length !== list.items.length) changed = true;
+    return kept.length === list.items.length ? list : { ...list, items:kept, updatedAt:now() };
+  }).map((list, index) => list.sortOrder === index ? list : { ...list, sortOrder:index });
+  return changed ? next : lists;
+};
+
+export const ensureTripLists = (trip: Trip): Trip => {
+  const lists = trip.lists?.length ? dedupeTripLists(trip.lists) : createDefaultTripLists(trip);
+  return trip.lists === lists ? trip : { ...trip, lists };
+};
 
 export const cloneList = (source: TripList, tripId: string, sortOrder: number, existingLists: TripList[] = []): TripList => {
   const t = now(); const listId = id();
