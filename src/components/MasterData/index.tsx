@@ -20,6 +20,7 @@ export const MasterData: React.FC = () => {
   const [error, setError] = useState('');
   const [personalListMemberId, setPersonalListMemberId] = useState<string | null>(null);
   const [personalItem, setPersonalItem] = useState('');
+  const [openGroup, setOpenGroup] = useState<'member' | 'account' | null>(null);
 
   const edit = (kind: 'member' | 'account', id: string, current: string) => {
     const next = window.prompt(kind === 'member' ? 'Common person name' : 'Account name', current)?.trim();
@@ -111,22 +112,34 @@ export const MasterData: React.FC = () => {
     <p className="master-data-global-hint">These are Vela-wide defaults. A Trip copies the people and accounts it needs; changing them here does not alter existing trips.</p>
     {error && <p className="master-data-preset-message">{error}</p>}
 
-    <section className="master-data-group">
-      <div className="master-data-group-head">
-        <div><span className="master-data-kicker">COMMON PEOPLE</span><strong className="master-data-section-title">People</strong></div>
-        <button type="button" className="master-data-add" onClick={() => startAdd('member')}><Plus size={14} /> Add</button>
-      </div>
-      {editor('member')}
-      <div className="master-data-list">{list('member')}</div>
+    <section className={`master-data-group ${openGroup === 'member' ? 'open' : ''}`}>
+      <button type="button" className="master-data-group-toggle" aria-expanded={openGroup === 'member'} onClick={() => { setOpenGroup(openGroup === 'member' ? null : 'member'); setAdding(null); setPersonalListMemberId(null); }}>
+        <span><span className="master-data-kicker">COMMON PEOPLE</span><strong className="master-data-section-title">People</strong></span>
+        <span className="master-data-group-chevron" aria-hidden="true">⌄</span>
+      </button>
+      {openGroup === 'member' && <>
+        <div className="master-data-group-head master-data-group-actions">
+          <span />
+          <button type="button" className="master-data-add" onClick={() => startAdd('member')}><Plus size={14} /> Add</button>
+        </div>
+        {editor('member')}
+        <div className="master-data-list">{list('member')}</div>
+      </>}
     </section>
 
-    <section className="master-data-group">
-      <div className="master-data-group-head">
-        <div><span className="master-data-kicker">COMMON ACCOUNTS</span><strong className="master-data-section-title">Accounts</strong></div>
-        <button type="button" className="master-data-add" onClick={() => startAdd('account')}><Plus size={14} /> Add</button>
-      </div>
-      {editor('account')}
-      <div className="master-data-list">{list('account')}</div>
+    <section className={`master-data-group ${openGroup === 'account' ? 'open' : ''}`}>
+      <button type="button" className="master-data-group-toggle" aria-expanded={openGroup === 'account'} onClick={() => { setOpenGroup(openGroup === 'account' ? null : 'account'); setAdding(null); }}>
+        <span><span className="master-data-kicker">COMMON ACCOUNTS</span><strong className="master-data-section-title">Accounts</strong></span>
+        <span className="master-data-group-chevron" aria-hidden="true">⌄</span>
+      </button>
+      {openGroup === 'account' && <>
+        <div className="master-data-group-head master-data-group-actions">
+          <span />
+          <button type="button" className="master-data-add" onClick={() => startAdd('account')}><Plus size={14} /> Add</button>
+        </div>
+        {editor('account')}
+        <div className="master-data-list">{list('account')}</div>
+      </>}
     </section>
   </div>;
 };
