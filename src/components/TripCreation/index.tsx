@@ -1,4 +1,4 @@
-import React, { FormEvent, useMemo, useState, useEffect } from 'react';
+import React, { FormEvent, useMemo, useState, useEffect, useRef } from 'react';
 import { CalendarDays, ChevronDown, ChevronLeft, ChevronRight, Plus, Trash2, X } from 'lucide-react';
 import { AllocationRule, Destination, TravelSegment, Trip } from '../../core/domain';
 import { useVelaStore } from '../../store/useVelaStore';
