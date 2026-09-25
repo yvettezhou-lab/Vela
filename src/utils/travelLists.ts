@@ -178,12 +178,20 @@ export const createDefaultTripLists = (trip: Trip, commonMembers: Member[] = [])
   const domestic = isDomesticTrip(trip);
   const hasOvernight = trip.segments.some((segment) => segment.endDate > segment.startDate);
   const lists: TripList[] = [];
+  const getTemplateItems = (templateId: string, fallback: string[]) => {
+    const template = TRAVEL_LIST_TEMPLATES.find((entry) => entry.id === templateId);
+    return template ? getTravelListTemplateItems(template) : fallback;
+  };
   if (hasOvernight) {
-    const generalTemplate = TRAVEL_LIST_TEMPLATES.find((template) => template.id === 'general');
-    lists.push(makeList(trip.id, 'General Travel', generalTemplate ? getTravelListTemplateItems(generalTemplate) : GENERAL_TRAVEL_ITEMS, 0));
+    lists.push(makeList(trip.id, 'General Travel', getTemplateItems('general', GENERAL_TRAVEL_ITEMS), 0));
   }
-  lists.push(makeList(trip.id, domestic ? 'Domestic Travel' : 'International Travel', domestic ? DOMESTIC_ITEMS : INTERNATIONAL_ITEMS, lists.length));
-  lists.push(makeList(trip.id, 'Medicine', MEDICINE_ITEMS, lists.length));
+  lists.push(makeList(
+    trip.id,
+    domestic ? 'Domestic Travel' : 'International Travel',
+    getTemplateItems(domestic ? 'domestic' : 'international', domestic ? DOMESTIC_ITEMS : INTERNATIONAL_ITEMS),
+    lists.length,
+  ));
+  lists.push(makeList(trip.id, 'Medicine', getTemplateItems('medicine', MEDICINE_ITEMS), lists.length));
   const tripMemberNames = new Set((trip.members ?? []).filter((member) => member.archived !== true).map((member) => member.name.trim().toLowerCase()));
   commonMembers.filter((member) => member.archived !== true && member.personalListItems?.length && tripMemberNames.has(member.name.trim().toLowerCase())).forEach((member) => {
     const titles = member.personalListItems!.map((item) => item.trim()).filter(Boolean);
