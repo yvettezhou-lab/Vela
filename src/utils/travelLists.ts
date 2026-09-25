@@ -178,7 +178,10 @@ export const createDefaultTripLists = (trip: Trip, commonMembers: Member[] = [])
   const domestic = isDomesticTrip(trip);
   const hasOvernight = trip.segments.some((segment) => segment.endDate > segment.startDate);
   const lists: TripList[] = [];
-  if (hasOvernight) lists.push(makeList(trip.id, 'General Travel', GENERAL_TRAVEL_ITEMS, 0));
+  if (hasOvernight) {
+    const generalTemplate = TRAVEL_LIST_TEMPLATES.find((template) => template.id === 'general');
+    lists.push(makeList(trip.id, 'General Travel', generalTemplate ? getTravelListTemplateItems(generalTemplate) : GENERAL_TRAVEL_ITEMS, 0));
+  }
   lists.push(makeList(trip.id, domestic ? 'Domestic Travel' : 'International Travel', domestic ? DOMESTIC_ITEMS : INTERNATIONAL_ITEMS, lists.length));
   lists.push(makeList(trip.id, 'Medicine', MEDICINE_ITEMS, lists.length));
   const tripMemberNames = new Set((trip.members ?? []).filter((member) => member.archived !== true).map((member) => member.name.trim().toLowerCase()));
@@ -189,8 +192,34 @@ export const createDefaultTripLists = (trip: Trip, commonMembers: Member[] = [])
   return lists;
 };
 
+
+const TEMPLATE_OVERRIDE_STORAGE_KEY = 'vela-travel-list-template-overrides';
+
+export const getTravelListTemplateItems = (template: TravelListTemplate): string[] => {
+  if (typeof window === 'undefined') return [...template.items];
+  try {
+    const raw = window.localStorage.getItem(TEMPLATE_OVERRIDE_STORAGE_KEY);
+    const overrides = raw ? JSON.parse(raw) as Record<string, unknown> : {};
+    const items = overrides[template.id];
+    return Array.isArray(items) ? items.filter((item): item is string => typeof item === 'string' && item.trim().length > 0) : [...template.items];
+  } catch {
+    return [...template.items];
+  }
+};
+
+export const saveTravelListTemplateItems = (templateId: string, items: string[]): void => {
+  if (typeof window === 'undefined') return;
+  try {
+    const raw = window.localStorage.getItem(TEMPLATE_OVERRIDE_STORAGE_KEY);
+    const overrides = raw ? JSON.parse(raw) as Record<string, unknown> : {};
+    overrides[templateId] = Array.from(new Set(items.map((item) => item.trim()).filter(Boolean)));
+    window.localStorage.setItem(TEMPLATE_OVERRIDE_STORAGE_KEY, JSON.stringify(overrides));
+    window.dispatchEvent(new CustomEvent('vela-template-updated', { detail: { templateId } }));
+  } catch { /* keep the app usable if storage is unavailable */ }
+};
+
 export const createListFromTemplate = (tripId: string, template: TravelListTemplate, sortOrder: number, existingLists: TripList[] = []): TripList =>
-  makeList(tripId, template.name, filterDuplicateListItems(existingLists, template.items), sortOrder);
+  makeList(tripId, template.name, filterDuplicateListItems(existingLists, getTravelListTemplateItems(template)), sortOrder);
 
 const listAllowsSharedItems = (list: TripList): boolean => {
   const name = list.name.trim().toLowerCase();
