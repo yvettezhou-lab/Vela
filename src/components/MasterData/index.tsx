@@ -9,6 +9,8 @@ export const MasterData: React.FC = () => {
   const addMember = useVelaStore((state) => state.addCommonMember);
   const renameMember = useVelaStore((state) => state.renameCommonMember);
   const deleteMember = useVelaStore((state) => state.deleteCommonMember);
+  const addMemberListItem = useVelaStore((state) => state.addCommonMemberListItem);
+  const deleteMemberListItem = useVelaStore((state) => state.deleteCommonMemberListItem);
   const addAccount = useVelaStore((state) => state.addCommonAccount);
   const renameAccount = useVelaStore((state) => state.renameCommonAccount);
   const deleteAccount = useVelaStore((state) => state.deleteCommonAccount);
@@ -16,6 +18,8 @@ export const MasterData: React.FC = () => {
   const [accountName, setAccountName] = useState('');
   const [adding, setAdding] = useState<'member' | 'account' | null>(null);
   const [error, setError] = useState('');
+  const [personalListMemberId, setPersonalListMemberId] = useState<string | null>(null);
+  const [personalItem, setPersonalItem] = useState('');
 
   const edit = (kind: 'member' | 'account', id: string, current: string) => {
     const next = window.prompt(kind === 'member' ? 'Common person name' : 'Account name', current)?.trim();
@@ -59,13 +63,34 @@ export const MasterData: React.FC = () => {
   const list = (kind: 'member' | 'account') => {
     const items = kind === 'member' ? members : accounts;
     return items.filter((item) => !item.archived).map((item) => (
-      <div className="master-data-row" key={item.id}>
-        <strong>{item.name}</strong>
-        <div className="master-data-actions">
-          <button type="button" aria-label={`Edit ${item.name}`} onClick={() => edit(kind, item.id, item.name)}><Pencil size={14} /></button>
-          <button type="button" aria-label={`Delete ${item.name}`} onClick={() => archive(kind, item.id, item.name)}><Trash2 size={14} /></button>
+      <React.Fragment key={item.id}>
+        <div className="master-data-row">
+          <strong>{item.name}</strong>
+          <div className="master-data-actions">
+            {kind === 'member' && <button type="button" onClick={() => { setPersonalListMemberId(personalListMemberId === item.id ? null : item.id); setPersonalItem(''); }}>List</button>}
+            <button type="button" aria-label={`Edit ${item.name}`} onClick={() => edit(kind, item.id, item.name)}><Pencil size={14} /></button>
+            <button type="button" aria-label={`Delete ${item.name}`} onClick={() => archive(kind, item.id, item.name)}><Trash2 size={14} /></button>
+          </div>
         </div>
-      </div>
+        {kind === 'member' && personalListMemberId === item.id && (
+          <div className="master-data-personal-list">
+            <div className="master-data-personal-title">Personal travel list</div>
+            <div className="master-data-personal-items">
+              {(item.personalListItems ?? []).map((entry) => (
+                <div className="master-data-personal-item" key={entry}>
+                  <span>{entry}</span>
+                  <button type="button" aria-label={`Delete ${entry}`} onClick={() => deleteMemberListItem(item.id, entry)}><X size={13} /></button>
+                </div>
+              ))}
+            </div>
+            <div className="master-data-editor">
+              <input value={personalItem} onChange={(e) => setPersonalItem(e.target.value)} placeholder="Add personal item" onKeyDown={(e) => { if (e.key === 'Enter' && personalItem.trim()) { addMemberListItem(item.id, personalItem); setPersonalItem(''); } }} />
+              <button type="button" onClick={() => { if (!personalItem.trim()) return; addMemberListItem(item.id, personalItem); setPersonalItem(''); }}>Add</button>
+            </div>
+            <small>Trips that include {item.name} will automatically get this list.</small>
+          </div>
+        )}
+      </React.Fragment>
     ));
   };
 
