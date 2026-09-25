@@ -1,4 +1,4 @@
-import type { Trip, TripList, ListItem } from '../core/domain';
+import type { Trip, TripList, ListItem, Member } from '../core/domain';
 
 const now = () => Date.now();
 const id = () => crypto.randomUUID();
@@ -154,6 +154,16 @@ export const filterDuplicateListItems = (existingLists: TripList[], titles: stri
   return result;
 };
 
+const makeListWithCompletion = (tripId: string, name: string, titles: string[], sortOrder: number, existingLists: TripList[] = []): TripList => {
+  const existingCompletion = new Map<string, boolean>();
+  existingLists.forEach((list) => list.items.forEach((item) => {
+    const key = listItemKey(item.title);
+    if (key && item.completed) existingCompletion.set(key, true);
+  }));
+  const list = makeList(tripId, name, titles, sortOrder);
+  return { ...list, items: list.items.map((item) => ({ ...item, completed: existingCompletion.get(listItemKey(item.title)) === true })) };
+};
+
 const makeList = (tripId: string, name: string, titles: string[], sortOrder: number): TripList => {
   const t = now(); const listId = id();
   return { id:listId, tripId, name, sortOrder, createdAt:t, updatedAt:t, items:titles.map((title,index) => ({ id:id(), listId:listId, title, completed:false, sortOrder:index, createdAt:t, updatedAt:t })) };
@@ -164,26 +174,19 @@ export const isDomesticTrip = (trip: Trip): boolean => {
   return countries.length === 0 || countries.every(country => ['china','中国','cn'].includes(country));
 };
 
-export const createDefaultTripLists = (trip: Trip): TripList[] => {
+export const createDefaultTripLists = (trip: Trip, commonMembers: Member[] = []): TripList[] => {
   const domestic = isDomesticTrip(trip);
   const hasOvernight = trip.segments.some((segment) => segment.endDate > segment.startDate);
-  const baseList = makeList(
-    trip.id,
-    domestic ? 'Domestic Travel' : 'International Travel',
-    domestic ? DOMESTIC_ITEMS : INTERNATIONAL_ITEMS,
-    0,
-  );
-  const generalList = hasOvernight
-    ? makeList(trip.id, 'General Travel', filterDuplicateListItems([baseList], GENERAL_TRAVEL_ITEMS), 1)
-    : null;
-  const existingLists = generalList ? [baseList, generalList] : [baseList];
-  const medicineList = makeList(
-    trip.id,
-    'Medicine',
-    filterDuplicateListItems(existingLists, MEDICINE_ITEMS),
-    generalList ? 2 : 1,
-  );
-  return generalList ? [baseList, generalList, medicineList] : [baseList, medicineList];
+  const lists: TripList[] = [];
+  if (hasOvernight) lists.push(makeList(trip.id, 'General Travel', GENERAL_TRAVEL_ITEMS, 0));
+  lists.push(makeList(trip.id, domestic ? 'Domestic Travel' : 'International Travel', domestic ? DOMESTIC_ITEMS : INTERNATIONAL_ITEMS, lists.length));
+  lists.push(makeList(trip.id, 'Medicine', MEDICINE_ITEMS, lists.length));
+  const tripMemberNames = new Set((trip.members ?? []).filter((member) => member.archived !== true).map((member) => member.name.trim().toLowerCase()));
+  commonMembers.filter((member) => member.archived !== true && member.personalListItems?.length && tripMemberNames.has(member.name.trim().toLowerCase())).forEach((member) => {
+    const titles = member.personalListItems!.map((item) => item.trim()).filter(Boolean);
+    if (titles.length) lists.push(makeListWithCompletion(trip.id, `${member.name} · Personal`, titles, lists.length, lists));
+  });
+  return lists;
 };
 
 export const createListFromTemplate = (tripId: string, template: TravelListTemplate, sortOrder: number, existingLists: TripList[] = []): TripList =>
@@ -222,8 +225,19 @@ export const dedupeTripLists = (lists: TripList[]): TripList[] => {
   return changed ? next : lists;
 };
 
-export const ensureTripLists = (trip: Trip): Trip => {
-  const lists = trip.lists?.length ? dedupeTripLists(trip.lists) : createDefaultTripLists(trip);
+export const ensureTripLists = (trip: Trip, commonMembers: Member[] = []): Trip => {
+  let lists = trip.lists?.length ? dedupeTripLists(trip.lists) : createDefaultTripLists(trip, commonMembers);
+  const existingNames = new Set(lists.map((list) => list.name.trim().toLowerCase()));
+  const tripMemberNames = new Set((trip.members ?? []).filter((member) => member.archived !== true).map((member) => member.name.trim().toLowerCase()));
+  commonMembers.filter((member) => member.archived !== true && member.personalListItems?.length && tripMemberNames.has(member.name.trim().toLowerCase())).forEach((member) => {
+    const name = `${member.name} · Personal`;
+    if (existingNames.has(name.toLowerCase())) return;
+    const titles = member.personalListItems!.map((item) => item.trim()).filter(Boolean);
+    if (titles.length) {
+      lists = [...lists, makeListWithCompletion(trip.id, name, titles, lists.length, lists)];
+      existingNames.add(name.toLowerCase());
+    }
+  });
   return trip.lists === lists ? trip : { ...trip, lists };
 };
 
