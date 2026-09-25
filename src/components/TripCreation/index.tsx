@@ -142,6 +142,7 @@ export const TripCreation: React.FC<Props> = ({ onClose, onCreated, onUpdated, t
   const [step, setStep] = useState(1);
   const [titleEdited, setTitleEdited] = useState(Boolean(trip?.titleEdited));
   const [segments, setSegments] = useState<DraftSegment[]>(() => trip?.segments.map(makeDraftSegment) ?? [makeDraftSegment()]);
+  const destinationInputRefs = useRef<Record<string, HTMLInputElement | null>>({});
 
   const generatedTitle = useMemo(() => {
     const draftTrip = {
@@ -291,6 +292,13 @@ export const TripCreation: React.FC<Props> = ({ onClose, onCreated, onUpdated, t
       const suggestedCurrency = countryCurrency(country);
       return { ...segment, destinations, ...(suggestedCurrency && !segment.currencyManuallySet ? { primaryCurrency: suggestedCurrency } : {}) };
     }));
+    const selectedCountry = COUNTRIES.find(([en, zh]) => country.trim() === en || country.trim() === zh);
+    if (selectedCountry) {
+      window.requestAnimationFrame(() => {
+        const segmentId = segments[segmentIndex]?.id ?? '';
+        destinationInputRefs.current[segmentId + '-0']?.focus();
+      });
+    }
   };
   const addDestination = (segmentIndex: number) => setSegments((current) => current.map((segment, i) => i === segmentIndex ? { ...segment, destinations: [...segment.destinations, { country: segment.destinations[0]?.country ?? '', region: '', city: '' }] } : segment));
   const removeDestination = (segmentIndex: number, destinationIndex: number) => setSegments((current) => current.map((segment, i) => {
@@ -416,7 +424,7 @@ export const TripCreation: React.FC<Props> = ({ onClose, onCreated, onUpdated, t
               </div>
               <span className="trip-field-label">DESTINATIONS</span>
               {segment.destinations.map((destination, destinationIndex) => <div className={`trip-destination-row${segment.destinations.length > 1 ? ' has-remove' : ''}`} key={destinationIndex}>
-                <input aria-label={"Segment " + (segmentIndex + 1) + " destination " + (destinationIndex + 1)} value={destination.city} onChange={(e) => updateDestination(segmentIndex, destinationIndex, { city: e.target.value })} placeholder="City / place" />
+                <input ref={(element) => { destinationInputRefs.current[segment.id + '-' + destinationIndex] = element; }} aria-label={"Segment " + (segmentIndex + 1) + " destination " + (destinationIndex + 1)} value={destination.city} onChange={(e) => updateDestination(segmentIndex, destinationIndex, { city: e.target.value })} placeholder="City / place" />
                 {destinationIndex < segment.destinations.length - 1 ? <button type="button" className="trip-icon-button trip-destination-remove" onClick={() => removeDestination(segmentIndex, destinationIndex)} aria-label="Remove destination"><X size={13} /></button> : null}
               </div>)}
               <button type="button" className="trip-add-city" onClick={() => addDestination(segmentIndex)}><Plus size={14} /> Add destination</button>
