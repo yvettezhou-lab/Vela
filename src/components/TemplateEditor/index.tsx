@@ -7,6 +7,7 @@ export const TemplateEditor: React.FC = () => {
   const [selectedId, setSelectedId] = useState('general');
   const [items, setItems] = useState<string[]>([]);
   const [draft, setDraft] = useState('');
+  const [expanded, setExpanded] = useState(false);
 
   const selected = TRAVEL_LIST_TEMPLATES.find((template) => template.id === selectedId) ?? TRAVEL_LIST_TEMPLATES[0];
 
@@ -34,13 +35,17 @@ export const TemplateEditor: React.FC = () => {
   };
 
   return (
-    <section className="template-editor">
-      <div className="template-editor-head">
-        <div>
+    <section className={`template-editor ${expanded ? 'expanded' : ''}`}>
+      <button type="button" className="template-editor-toggle" aria-expanded={expanded} onClick={() => setExpanded((value) => !value)}>
+        <span>
           <span className="master-data-kicker">TRAVEL LIST TEMPLATES</span>
           <strong className="master-data-section-title">Templates</strong>
-          <p className="template-editor-hint">Edit the reusable lists used for future trips. Existing trips are not changed.</p>
-        </div>
+        </span>
+        <span className="template-editor-chevron" aria-hidden="true">⌄</span>
+      </button>
+      {expanded && <>
+      <div className="template-editor-head">
+        <p className="template-editor-hint">Edit the reusable lists used for future trips. Existing trips are not changed.</p>
       </div>
       <div className="template-editor-tabs">
         {TRAVEL_LIST_TEMPLATES.map((template) => (
@@ -67,6 +72,7 @@ export const TemplateEditor: React.FC = () => {
           <button type="button" onClick={() => { if (!draft.trim()) return; save([...items, draft]); setDraft(''); }}><Plus size={15} /> Add</button>
         </div>
       </div>
+      </>}
     </section>
   );
 };
