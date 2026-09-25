@@ -454,16 +454,19 @@ export const TripCreation: React.FC<Props> = ({ onClose, onCreated, onUpdated, t
         <div className="trip-common-people">
           <span className="trip-field-label">COMMON PEOPLE</span>
           <div className="trip-common-people-list">
-            {commonMembers.filter((member) => member.archived !== true && !members.some((selected) => selected.name.trim().toLowerCase() === member.name.trim().toLowerCase())).map((member) => (
+            {commonMembers.filter((member) => member.archived !== true && !members.some((selected) => selected.archived !== true && selected.name.trim().toLowerCase() === member.name.trim().toLowerCase())).map((member) => (
               <button type="button" key={member.id} className="trip-common-person" onClick={() => {
                 const id = member.id;
                 const activeIds = members.filter((item) => item.archived !== true).map((item) => item.id);
                 const shouldRebalance = isEqualPreset(activeIds, presetPercentages);
-                setMembers((current) => [...current, { id, name: member.name }]);
-                setPresetPercentages((current) => shouldRebalance ? buildEqualPreset([...activeIds, id]) : ({ ...current, [id]: 0 }));
+                const existingArchived = members.some((item) => item.id === id && item.archived === true);
+                setMembers((current) => existingArchived
+                  ? current.map((item) => item.id === id ? { ...item, name: member.name, archived: false } : item)
+                  : [...current, { id, name: member.name }]);
+                setPresetPercentages((current) => shouldRebalance ? buildEqualPreset(existingArchived ? activeIds : [...activeIds, id]) : ({ ...current, [id]: current[id] ?? 0 }));
               }}>+ {member.name}</button>
             ))}
-            {!commonMembers.some((member) => member.archived !== true && !members.some((selected) => selected.name.trim().toLowerCase() === member.name.trim().toLowerCase())) && (
+            {!commonMembers.some((member) => member.archived !== true && !members.some((selected) => selected.archived !== true && selected.name.trim().toLowerCase() === member.name.trim().toLowerCase())) && (
               <small className="trip-common-people-empty">No unused common people.</small>
             )}
           </div>
