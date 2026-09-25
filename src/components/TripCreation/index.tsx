@@ -456,7 +456,7 @@ export const TripCreation: React.FC<Props> = ({ onClose, onCreated, onUpdated, t
           <div className="trip-common-people-list">
             {commonMembers.filter((member) => member.archived !== true && !members.some((selected) => selected.name.trim().toLowerCase() === member.name.trim().toLowerCase())).map((member) => (
               <button type="button" key={member.id} className="trip-common-person" onClick={() => {
-                const id = crypto.randomUUID();
+                const id = member.id;
                 const activeIds = members.filter((item) => item.archived !== true).map((item) => item.id);
                 const shouldRebalance = isEqualPreset(activeIds, presetPercentages);
                 setMembers((current) => [...current, { id, name: member.name }]);
@@ -472,7 +472,8 @@ export const TripCreation: React.FC<Props> = ({ onClose, onCreated, onUpdated, t
           if (e.key !== 'Enter') return;
           const name = newMemberName.trim();
           if (!name || members.some((member) => !member.archived && member.name.toLowerCase() === name.toLowerCase())) return;
-          const id = crypto.randomUUID();
+          const commonMatch = commonMembers.find((member) => !member.archived && member.name.trim().toLowerCase() === name.toLowerCase());
+          const id = commonMatch?.id ?? crypto.randomUUID();
           const activeIds = members.filter((member) => member.archived !== true).map((member) => member.id);
           const shouldRebalance = isEqualPreset(activeIds, presetPercentages);
           setMembers((current) => [...current, { id, name }]);
