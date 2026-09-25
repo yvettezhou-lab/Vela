@@ -192,6 +192,11 @@ export const createDefaultTripLists = (trip: Trip, commonMembers: Member[] = [])
 export const createListFromTemplate = (tripId: string, template: TravelListTemplate, sortOrder: number, existingLists: TripList[] = []): TripList =>
   makeList(tripId, template.name, filterDuplicateListItems(existingLists, template.items), sortOrder);
 
+const listAllowsSharedItems = (list: TripList): boolean => {
+  const name = list.name.trim().toLowerCase();
+  return name === 'medicine' || name.endsWith(' · personal');
+};
+
 const listDedupPriority = (list: TripList): number => {
   const name = list.name.trim().toLowerCase();
   if (name === 'general travel') return 0;
@@ -209,7 +214,8 @@ export const dedupeTripLists = (lists: TripList[]): TripList[] => {
   for (const { list } of priorityOrder) {
     const kept = list.items.filter((item) => {
       const key = listItemKey(item.title);
-      if (!key || seen.has(key)) { changed = true; return false; }
+      if (!key) { changed = true; return false; }
+      if (seen.has(key) && !listAllowsSharedItems(list)) { changed = true; return false; }
       seen.add(key);
       return true;
     }).map((item, index) => ({ ...item, sortOrder:index }));
