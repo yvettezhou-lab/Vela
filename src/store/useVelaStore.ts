@@ -87,6 +87,8 @@ interface VelaState {
   addCommonMember: (name: string) => void;
   renameCommonMember: (id: string, name: string) => void;
   deleteCommonMember: (id: string) => void;
+  addCommonMemberListItem: (id: string, title: string) => void;
+  deleteCommonMemberListItem: (id: string, title: string) => void;
   addCommonAccount: (name: string) => void;
   renameCommonAccount: (id: string, name: string) => void;
   deleteCommonAccount: (id: string) => void;
@@ -119,8 +121,8 @@ export const useVelaStore = create<VelaState>()(persist((set, get) => ({
   trips: [],
   commonMembers: [],
   commonAccounts: [{ id: 'common-account-cash', name: 'Cash' }, { id: 'common-account-credit-card', name: 'Credit Card' }],
-  addTrip: (rawTrip) => { const validated = DomainValidator.validateEntireTrip(rawTrip, get().trips); const tripWithLists = ensureTripLists(validated); const strictTrip = withDefaultAccounts(withDefaultCategories(tripWithLists)); const refreshedTrips = refreshAutoTripTitles([...get().trips, strictTrip]); set({ trips: refreshedTrips }); get().evaluateAutoStart(); },
-  updateTrip: (tripId, trip) => { const trips = get().trips; if (!trips.some((item) => item.id === tripId)) throw new Error(`Store Error: Trip ${tripId} not found`); const strictTrip = DomainValidator.validateEntireTrip({ ...trip, id: tripId, updatedAt: Date.now() }, trips.filter((item) => item.id !== tripId)); const refreshedTrips = refreshAutoTripTitles(trips.map((item) => item.id === tripId ? strictTrip : item)); set({ trips: refreshedTrips }); },
+  addTrip: (rawTrip) => { const validated = DomainValidator.validateEntireTrip(rawTrip, get().trips); const tripWithLists = ensureTripLists(validated, get().commonMembers); const strictTrip = withDefaultAccounts(withDefaultCategories(tripWithLists)); const refreshedTrips = refreshAutoTripTitles([...get().trips, strictTrip]); set({ trips: refreshedTrips }); get().evaluateAutoStart(); },
+  updateTrip: (tripId, trip) => { const trips = get().trips; if (!trips.some((item) => item.id === tripId)) throw new Error(`Store Error: Trip ${tripId} not found`); const strictTrip = ensureTripLists(DomainValidator.validateEntireTrip({ ...trip, id: tripId, updatedAt: Date.now() }, trips.filter((item) => item.id !== tripId)), get().commonMembers); const refreshedTrips = refreshAutoTripTitles(trips.map((item) => item.id === tripId ? strictTrip : item)); set({ trips: refreshedTrips }); },
   updateTripStatus: (tripId, newStatus) => { const trips = get().trips; const trip = trips.find((t) => t.id === tripId); if (!trip) throw new Error(`Store Error: Trip ${tripId} not found`); DomainValidator.validateTripStatus(trips, tripId, newStatus, trip.status); if (newStatus !== 'planning' && newStatus !== 'traveling' && newStatus !== 'achieve') throw new Error(`Store Error: Invalid status ${newStatus}`); set({ trips: trips.map((t) => t.id === tripId ? { ...t, status: newStatus as TripStatus, updatedAt: Date.now() } : t) }); },
   updateTripDates: (tripId, startDate, endDate) => { if (!Number.isFinite(startDate) || !Number.isFinite(endDate)) throw new Error('Store Error: Trip dates must be finite numbers'); if (startDate > endDate) throw new Error('Store Error: Start date cannot be after end date'); const trips = get().trips; const trip = trips.find((t) => t.id === tripId); if (!trip) throw new Error(`Store Error: Trip ${tripId} not found`); if (trip.segments.length === 0) throw new Error(`Store Error: Trip ${tripId} has no TravelSegment`); const updatedSegments = trip.segments.map((segment, index) => index === 0 ? { ...segment, startDate, endDate } : segment); const strictTrip = DomainValidator.validateEntireTrip({ ...trip, segments: updatedSegments, updatedAt: Date.now() }, trips.filter((t) => t.id !== tripId)); const refreshedTrips = refreshAutoTripTitles(trips.map((item) => item.id === tripId ? strictTrip : item)); set({ trips: refreshedTrips }); get().evaluateAutoStart(); },
   evaluateAutoStart: (now = Date.now()) => { const trips = get().trips; const candidateId = getAutoStartTripId(trips, now); if (!candidateId) return; const candidate = trips.find((trip) => trip.id === candidateId); if (!candidate) return; DomainValidator.validateTripStatus(trips, candidate.id, 'traveling', candidate.status); set((state) => ({ trips: state.trips.map((trip) => trip.id === candidate.id ? { ...trip, status: 'traveling', updatedAt: Date.now() } : trip) })); },
@@ -132,6 +134,19 @@ export const useVelaStore = create<VelaState>()(persist((set, get) => ({
   addCommonMember: (name) => { const clean = name.trim(); if (!clean) throw new Error('Common person name is required'); const current = get().commonMembers; if (current.some((item) => !item.archived && item.name.toLowerCase() === clean.toLowerCase())) throw new Error('A common person with this name already exists'); set({ commonMembers: [...current, { id: crypto.randomUUID(), name: clean }] }); },
   renameCommonMember: (id, name) => { const clean = name.trim(); if (!clean) throw new Error('Common person name is required'); set({ commonMembers: get().commonMembers.map((item) => item.id === id ? { ...item, name: clean } : item) }); },
   deleteCommonMember: (id) => set({ commonMembers: get().commonMembers.filter((item) => item.id !== id) }),
+  addCommonMemberListItem: (id, title) => {
+    const clean = title.trim();
+    if (!clean) throw new Error('Personal list item is required');
+    set({ commonMembers: get().commonMembers.map((item) => item.id === id
+      ? { ...item, personalListItems: Array.from(new Set([...(item.personalListItems ?? []), clean])) }
+      : item) });
+  },
+  deleteCommonMemberListItem: (id, title) => {
+    const key = title.trim().toLowerCase();
+    set({ commonMembers: get().commonMembers.map((item) => item.id === id
+      ? { ...item, personalListItems: (item.personalListItems ?? []).filter((entry) => entry.trim().toLowerCase() !== key) }
+      : item) });
+  },
   addCommonAccount: (name) => { const clean = name.trim(); if (!clean) throw new Error('Account name is required'); const current = get().commonAccounts; if (current.some((item) => !item.archived && item.name.toLowerCase() === clean.toLowerCase())) throw new Error('An account with this name already exists'); set({ commonAccounts: [...current, { id: crypto.randomUUID(), name: clean }] }); },
   renameCommonAccount: (id, name) => { const clean = name.trim(); if (!clean) throw new Error('Account name is required'); set({ commonAccounts: get().commonAccounts.map((item) => item.id === id ? { ...item, name: clean } : item) }); },
   deleteCommonAccount: (id) => {
