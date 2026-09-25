@@ -99,26 +99,11 @@ export const MasterData: React.FC = () => {
     if (adding !== kind) return null;
     const value = kind === 'member' ? memberName : accountName;
     const setValue = kind === 'member' ? setMemberName : setAccountName;
-    const archivedMembers = kind === 'member' ? members.filter((item) => item.archived) : [];
     return (
-      <div className="master-data-editor-wrap">
-        <div className="master-data-editor">
-          <input autoFocus value={value} onChange={(e) => setValue(e.target.value)} placeholder={kind === 'member' ? 'Person name' : 'Account name'} onKeyDown={(e) => { if (e.key === 'Enter') add(kind); if (e.key === 'Escape') cancelAdd(); }} />
-          <button type="button" onClick={() => add(kind)}>Add</button>
-          <button type="button" className="ghost" aria-label="Cancel" onClick={cancelAdd}><X size={14} /></button>
-        </div>
-        {archivedMembers.length > 0 && (
-          <div className="master-data-restore">
-            <small>Previously removed</small>
-            <div>
-              {archivedMembers.map((member) => (
-                <button key={member.id} type="button" onClick={() => { addCommonMember(member.name); setMemberName(''); setAdding(null); }}>
-                  {member.name}
-                </button>
-              ))}
-            </div>
-          </div>
-        )}
+      <div className="master-data-editor">
+        <input autoFocus value={value} onChange={(e) => setValue(e.target.value)} placeholder={kind === 'member' ? 'Person name' : 'Account name'} onKeyDown={(e) => { if (e.key === 'Enter') add(kind); if (e.key === 'Escape') cancelAdd(); }} />
+        <button type="button" onClick={() => add(kind)}>Add</button>
+        <button type="button" className="ghost" aria-label="Cancel" onClick={cancelAdd}><X size={14} /></button>
       </div>
     );
   };
