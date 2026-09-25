@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Plus, Trash2 } from 'lucide-react';
 import { TRAVEL_LIST_TEMPLATES, getTravelListTemplateItems, saveTravelListTemplateItems } from '../../utils/travelLists';
+import './templateEditor.css';
 
 export const TemplateEditor: React.FC = () => {
   const [selectedId, setSelectedId] = useState('general');
