@@ -131,24 +131,9 @@ export const useVelaStore = create<VelaState>()(persist((set, get) => ({
   deleteLedgerEntry: (tripId, entryId) => { const trips = get().trips; const trip = trips.find((t) => t.id === tripId); if (!trip) throw new Error(`Store Error: Trip ${tripId} not found`); if (!trip.ledger.some((e) => e.id === entryId)) throw new Error(`Store Error: Cannot delete nonexistent Entry ${entryId}`); set((state) => ({ trips: state.trips.map((t) => t.id === tripId ? { ...t, ledger: t.ledger.filter((e) => e.id !== entryId), updatedAt: Date.now() } : t) })); },
   updateMasterData: (tripId, type, id, item) => { const trips = get().trips; const trip = trips.find((t) => t.id === tripId); if (!trip) throw new Error(`Trip ${tripId} not found`); if (id && !trip[type].some((entry) => entry.id === id)) throw new Error(`Master Data Error: ${type} ${id} not found`); if (!item.name.trim()) throw new Error('Master Data Error: Name is required'); if (id && item.id !== id) throw new Error('Master Data Error: ID cannot change'); if (!id && trip[type].some((entry) => entry.name.trim().toLowerCase() === item.name.trim().toLowerCase() && !entry.archived)) throw new Error('Master Data Error: An active item with this name already exists'); set({ trips: trips.map((t) => t.id === tripId ? replaceMasterData(t, type, id, { ...item, name: item.name.trim() }) : t) }); },
   archiveMasterData: (tripId, type, id) => { const trips = get().trips; const trip = trips.find((t) => t.id === tripId); if (!trip) throw new Error(`Trip ${tripId} not found`); const entry = trip[type].find((item) => item.id === id); if (!entry) throw new Error(`Master Data Error: ${type} ${id} not found`); set({ trips: trips.map((t) => t.id === tripId ? { ...t, [type]: t[type].map((item) => item.id === id ? { ...item, archived: true } : item), updatedAt: Date.now() } : t) }); },
-  addCommonMember: (name) => {
-    const clean = name.trim();
-    if (!clean) throw new Error('Common person name is required');
-    const current = get().commonMembers;
-    const existing = current.find((item) => item.name.trim().toLowerCase() === clean.toLowerCase());
-    if (existing?.archived) {
-      set({ commonMembers: current.map((item) => item.id === existing.id ? { ...item, archived: false } : item) });
-      return;
-    }
-    if (existing) throw new Error('A common person with this name already exists');
-    set({ commonMembers: [...current, { id: crypto.randomUUID(), name: clean }] });
-  },
-  renameCommonMember: (id, name) => { const clean = name.trim(); if (!clean) throw new Error('Common person name is required'); set({ commonMembers: get().commonMembers.map((item) => item.id === id ? { ...item, name: clean, archived: false } : item) }); },
-  deleteCommonMember: (id) => {
-    const current = get().commonMembers;
-    if (!current.some((item) => item.id === id)) throw new Error(`Common person ${id} not found`);
-    set({ commonMembers: current.map((item) => item.id === id ? { ...item, archived: true } : item) });
-  },
+  addCommonMember: (name) => { const clean = name.trim(); if (!clean) throw new Error('Common person name is required'); const current = get().commonMembers; if (current.some((item) => !item.archived && item.name.toLowerCase() === clean.toLowerCase())) throw new Error('A common person with this name already exists'); set({ commonMembers: [...current, { id: crypto.randomUUID(), name: clean }] }); },
+  renameCommonMember: (id, name) => { const clean = name.trim(); if (!clean) throw new Error('Common person name is required'); set({ commonMembers: get().commonMembers.map((item) => item.id === id ? { ...item, name: clean } : item) }); },
+  deleteCommonMember: (id) => set({ commonMembers: get().commonMembers.filter((item) => item.id !== id) }),
   addCommonMemberListItem: (id, title) => {
     const clean = title.trim();
     if (!clean) throw new Error('Personal list item is required');
