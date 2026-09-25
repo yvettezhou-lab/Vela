@@ -152,7 +152,40 @@ export const useVelaStore = create<VelaState>()(persist((set, get) => ({
   updateList: (tripId, list) => { const trips=get().trips; const trip=trips.find(t=>t.id===tripId); if(!trip) throw new Error('Trip not found'); const clean=list.name.trim(); if(!clean) throw new Error('List name is required'); const currentLists=Array.isArray(trip.lists)?trip.lists:createDefaultTripLists(trip); if(currentLists.some(item=>item.id!==list.id&&item.name.trim().toLowerCase()===clean.toLowerCase())) throw new Error('A list with this name already exists'); const t=Date.now(); set({trips:trips.map(item=>item.id===tripId?{...item,lists:(Array.isArray(item.lists)?item.lists:createDefaultTripLists(item)).map(x=>x.id===list.id?{...list,name:clean,tripId,updatedAt:t}:x),updatedAt:t}:item)}); },
   deleteList: (tripId, listId) => { const trips=get().trips; set({trips:trips.map(trip=>trip.id===tripId?{...trip,lists:(Array.isArray(trip.lists)?trip.lists:createDefaultTripLists(trip)).filter(list=>list.id!==listId).map((list,index)=>({...list,sortOrder:index})),updatedAt:Date.now()}:trip)}); },
   addListItem: (tripId,listId,title) => { const clean=title.trim(); if(!clean) throw new Error('Item is required'); const trips=get().trips; const trip=trips.find(t=>t.id===tripId); if(!trip) throw new Error('Trip not found'); const lists=Array.isArray(trip.lists)?trip.lists:createDefaultTripLists(trip); const target=lists.find(list=>list.id===listId); if(!target) throw new Error('List not found'); const key=listItemKey(clean); const duplicate=lists.some(list=>list.id!==listId&&list.items.some(item=>listItemKey(item.title)===key)); if(duplicate) throw new Error('This item already exists in another list'); const t=Date.now(); set({trips:trips.map(item=>item.id===tripId?{...item,lists:(Array.isArray(item.lists)?item.lists:createDefaultTripLists(item)).map(list=>list.id===listId?{...list,updatedAt:t,items:[...list.items,{id:crypto.randomUUID(),listId,title:clean,completed:false,sortOrder:list.items.length,createdAt:t,updatedAt:t}]}:list),updatedAt:t}:item)}); },
-  updateListItem: (tripId,listId,itemId,patch) => { const trips=get().trips; const t=Date.now(); set({trips:trips.map(trip=>trip.id===tripId?{...trip,lists:trip.lists.map(list=>list.id===listId?{...list,updatedAt:t,items:list.items.map(item=>item.id===itemId?{...item,...patch,title:patch.title?.trim()||item.title,updatedAt:t}:item)}:list),updatedAt:t}:trip)}); },
+  updateListItem: (tripId,listId,itemId,patch) => {
+    const trips=get().trips;
+    const t=Date.now();
+    set({trips:trips.map(trip=>{
+      if(trip.id!==tripId) return trip;
+      const lists=Array.isArray(trip.lists)?trip.lists:createDefaultTripLists(trip);
+      const targetItem=lists.find(list=>list.id===listId)?.items.find(item=>item.id===itemId);
+      if(!targetItem) return trip;
+      const nextTitle=patch.title?.trim()||targetItem.title;
+      const completionChanged=typeof patch.completed==='boolean';
+      const nextCompleted=completionChanged?patch.completed:targetItem.completed;
+      const key=listItemKey(nextTitle);
+      return {
+        ...trip,
+        lists:lists.map(list=>({
+          ...list,
+          updatedAt:t,
+          items:list.items.map(item=>{
+            const isTarget=item.id===itemId&&list.id===listId;
+            const isDuplicate=listItemKey(item.title)===key;
+            if(!isTarget&&!isDuplicate) return item;
+            return {
+              ...item,
+              ...patch,
+              title:isTarget?nextTitle:item.title,
+              ...(completionChanged&&isDuplicate?{completed:nextCompleted}:{}),
+              updatedAt:t,
+            };
+          }),
+        })),
+        updatedAt:t,
+      };
+    })});
+  },
   deleteListItem: (tripId,listId,itemId) => { const trips=get().trips; set({trips:trips.map(trip=>trip.id===tripId?{...trip,lists:trip.lists.map(list=>list.id===listId?{...list,items:list.items.filter(item=>item.id!==itemId).map((item,index)=>({...item,sortOrder:index})),updatedAt:Date.now()}:list),updatedAt:Date.now()}:trip)}); },
   getCurrentTrip: () => { const trips = get().trips; const traveling = trips.find((t) => t.status === 'traveling'); if (traveling) return traveling; return trips.filter((t) => t.status === 'planning').sort((a, b) => b.updatedAt - a.updatedAt)[0] ?? null; },
 }), { name: 'vela-core-v2', version: 1, migrate: (persistedState, _version) => {
