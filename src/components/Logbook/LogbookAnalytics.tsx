@@ -5,7 +5,7 @@ import { findSegmentByDate, getTripEndDate, getTripStartDate } from '../../core/
 type Breakdown = 'category' | 'segment' | 'account' | 'person';
 const COLORS = ['#a9874b','#718a72','#5f6f82','#ad8250','#8e8476','#6f665a','#a79a87','#9c7b48'];
 const money = (n:number) => '¥' + new Intl.NumberFormat(undefined,{maximumFractionDigits:0}).format(Math.abs(n));
-const dateOf = (e:LedgerEntry) => e.entryType === 'flight' ? e.outboundDate : e.paymentDate;
+const dateOf = (e:LedgerEntry) => e.entryType === 'transport' ? e.outboundDate : e.paymentDate;
 const spend = (e:LedgerEntry) => e.isRefund ? -e.cnyEquivalent : e.cnyEquivalent;
 const countsInStats=(_t:Trip,e:LedgerEntry)=>e.includeInCost&&!e.isPending;
 const Chart = ({items,mode,onToggle}:{items:{label:string;value:number;color?:string}[];mode:'donut'|'bar';onToggle:()=>void}) => {
