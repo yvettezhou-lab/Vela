@@ -19,14 +19,25 @@ const destinationLabel = (destination: { city: string; country: string }) => des
 
 export const getJourneyCheckIssues = (trip: Trip): JourneyCheckIssue[] => {
   const segments = [...trip.segments].sort((a, b) => a.startDate - b.startDate);
+  const stops = segments.flatMap((segment) =>
+    segment.destinations.map((destination, index) => ({
+      segmentId: segment.id,
+      date: index === 0 ? segment.startDate : segment.endDate,
+      label: destinationLabel(destination),
+    })),
+  );
   const issues: JourneyCheckIssue[] = [];
-  for (let i = 0; i < segments.length - 1; i++) {
-    const from = segments[i].destinations.at(-1);
-    const to = segments[i + 1].destinations[0];
-    if (!from || !to) continue;
-    const fromLabel = destinationLabel(from); const toLabel = destinationLabel(to);
-    if (!fromLabel || !toLabel || fromLabel.trim().toLowerCase() === toLabel.trim().toLowerCase()) continue;
-    issues.push({ id: `route:${segments[i].id}:${segments[i + 1].id}`, from: fromLabel, to: toLabel, fromDate: segments[i].endDate, toDate: segments[i + 1].startDate });
+  for (let i = 0; i < stops.length - 1; i++) {
+    const from = stops[i];
+    const to = stops[i + 1];
+    if (!from.label || !to.label || from.label.trim().toLowerCase() === to.label.trim().toLowerCase()) continue;
+    issues.push({
+      id: `route:${from.segmentId}:${to.segmentId}:${i}`,
+      from: from.label,
+      to: to.label,
+      fromDate: from.date,
+      toDate: to.date,
+    });
   }
   return issues;
 };
