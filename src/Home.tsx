@@ -1,5 +1,5 @@
 import { getTripDestinations, getTripEndDate, getTripPrimaryCurrency, getTripStartDate } from './core/travelSegment';
-import React, { useMemo } from 'react';
+import React, { useMemo, useEffect, useRef } from 'react';
 import { Calendar, ChevronRight, List as ListIcon, MapPin, Plus, X } from 'lucide-react';
 import { calculateFinancialTotals } from './core/calculations';
 import { Trip } from './core/domain';
@@ -24,7 +24,8 @@ export default function Home({ onNavigate, onCreateTrip, onManageTrips, onOpenLi
   const [journeyCheckOpen, setJourneyCheckOpen] = React.useState(false);
   const [journeyCheckTripId, setJourneyCheckTripId] = React.useState<string | null>(null);
   const [journeyCheckIssues, setJourneyCheckIssues] = React.useState<ReturnType<typeof getJourneyCheckIssues>>([]);
-  useMemo(() => {
+  useEffect(() => {
+    if (journeyCheckOpen) return;
     const candidates = trips.filter((trip) => trip.status === 'planning' && getJourneyCheckCheckpoint(trip));
     const candidate = candidates.find((trip) => {
       const checkpoint = getJourneyCheckCheckpoint(trip);
@@ -37,7 +38,7 @@ export default function Home({ onNavigate, onCreateTrip, onManageTrips, onOpenLi
     setJourneyCheckTripId(candidate.id);
     setJourneyCheckIssues(getJourneyCheckIssues(candidate));
     setJourneyCheckOpen(true);
-  }, [trips, updateTrip]);
+  }, [trips, updateTrip, journeyCheckOpen]);
 
   const { current, planning, recent } = useMemo(() => {
     const traveling = trips.find((trip) => trip.status === 'traveling');
