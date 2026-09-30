@@ -1,7 +1,7 @@
 import { JourneyCheckResolution, Trip } from './domain';
 import { getTripStartDate } from './travelSegment';
 
-export type JourneyCheckCheckpoint = '7d' | '3d' | '1d';
+export type JourneyCheckCheckpoint = '7d' | '3d' | '1d' | `traveling:${string}:morning` | `traveling:${string}:evening`;
 export type JourneyCheckIssue = { id: string; from: string; to: string; fromDate: number; toDate: number };
 
 const dayStart = (timestamp: number) => { const d = new Date(timestamp); return new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime(); };
@@ -51,3 +51,20 @@ export const markJourneyCheckShown = (trip: Trip, checkpoint: JourneyCheckCheckp
 export const setJourneyCheckResolution = (trip: Trip, issueId: string, resolution: JourneyCheckResolution): Trip => ({
   ...trip, journeyCheck: { shownCheckpoints: [...(trip.journeyCheck?.shownCheckpoints ?? [])], resolutions: { ...(trip.journeyCheck?.resolutions ?? {}), [issueId]: resolution } },
 });
+export const getTravelingDailyCheckpoint = (trip: Trip, now = Date.now()): JourneyCheckCheckpoint | null => {
+  if (trip.status !== 'traveling' || !trip.segments.length) return null;
+  const today = new Date(now);
+  const hour = today.getHours();
+  if (hour >= 6 && hour < 12) return `traveling:${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}:morning`;
+  if (hour >= 20) return `traveling:${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}:evening`;
+  return null;
+};
+
+export const getUnresolvedFutureJourneyIssues = (trip: Trip, now = Date.now()): JourneyCheckIssue[] => {
+  const today = dayStart(now);
+  return getJourneyCheckIssues(trip).filter((issue) =>
+    dayStart(issue.toDate) >= today &&
+    trip.journeyCheck?.resolutions?.[issue.id] !== 'self_drive' &&
+    trip.journeyCheck?.resolutions?.[issue.id] !== 'local_transport'
+  );
+};
