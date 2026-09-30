@@ -1,5 +1,5 @@
 import { getSegmentsByDate, getLedgerEntryDate, getTripPrimaryCurrency } from '../../core/travelSegment';
-import React, { Component, ErrorInfo, ReactNode, useEffect, useRef, useState } from 'react';
+import React, { Component, ErrorInfo, ReactNode, useEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { Calendar, ChevronLeft, ChevronRight, X } from 'lucide-react';
 import { useVelaStore } from '../../store/useVelaStore';
@@ -206,6 +206,11 @@ const QuickEntryContent: React.FC<QuickEntryProps> = ({ onClose }) => {
   const accounts = activeAccounts.length ? activeAccounts : FALLBACK_ACCOUNTS;
   const activeMembers = targetTrip?.members?.filter((member) => member.archived !== true) ?? [];
   const members = activeMembers;
+  const payerFrequency = useMemo(() => {
+    const counts = new Map<string, number>();
+    trips.forEach((trip) => (trip.ledger ?? []).forEach((entry) => counts.set(entry.payerId, (counts.get(entry.payerId) ?? 0) + 1)));
+    return [...members].sort((a, b) => (counts.get(b.id) ?? 0) - (counts.get(a.id) ?? 0));
+  }, [members, trips]);
   const categories = targetTrip?.categories?.filter((category) => category.archived !== true) ?? [];
 
   const tripDateBounds = (() => {
@@ -512,7 +517,7 @@ const QuickEntryContent: React.FC<QuickEntryProps> = ({ onClose }) => {
           ))}
         </div>
 
-        <div className={`mt-6 grid gap-5 ${isDomesticTrip ? 'grid-cols-1' : 'grid-cols-2'}`}>
+        <div className={`mt-6 grid gap-4 ${isDomesticTrip ? 'grid-cols-[minmax(0,1fr)_minmax(140px,0.72fr)]' : 'grid-cols-2'}`}>
           <label className="block">
             <span className="mb-2 block text-xs uppercase tracking-[0.14em] text-[#857a6a]">Amount</span>
             <div className="flex rounded-xl bg-[#fbf7ee] shadow-[inset_0_0_0_1px_rgba(80,64,42,.10)]">
@@ -572,6 +577,14 @@ const QuickEntryContent: React.FC<QuickEntryProps> = ({ onClose }) => {
             {currency.trim().toUpperCase() !== 'CNY' && <button type="button" onClick={() => { setDeferCny(v => !v); if (!deferCny) setCnyEquivalent(''); }} className={`mt-2 text-xs ${deferCny ? 'text-[#17243a] font-semibold' : 'text-[#857a6a]'}`}>{deferCny ? '✓ Enter CNY later' : 'Enter CNY later'}</button>}
           </label>
            )}
+          {isDomesticTrip && (
+            <label className="block">
+              <span className="mb-2 block text-xs uppercase tracking-[0.14em] text-[#857a6a]">Who Paid?</span>
+              <select value={payerId} onChange={(event) => setPayerId(event.target.value)} className="w-full min-h-[43px] appearance-none rounded-xl bg-[#fbf7ee] px-3 text-sm font-medium text-[#17243a] shadow-[inset_0_0_0_1px_rgba(80,64,42,.10)] outline-none" aria-label="Who Paid">
+                {payerFrequency.map((member) => <option key={member.id} value={member.id}>{member.name}</option>)}
+              </select>
+            </label>
+          )}
        </div>
 
         <div className="mt-6 grid grid-cols-2 gap-5">
@@ -644,13 +657,6 @@ const QuickEntryContent: React.FC<QuickEntryProps> = ({ onClose }) => {
             </div>
           </div>
         )}
-
-        <div className="mt-6">
-          <span className="mb-2 block text-xs uppercase tracking-[0.14em] text-[#857a6a]">Who Paid?</span>
-          <div className="grid grid-cols-4 gap-2">
-            {members.map((member) => <button key={member.id} type="button" onClick={() => setPayerId(member.id)} aria-pressed={payerId === member.id} className={`min-h-10 rounded-xl border px-2 text-sm font-medium transition ${payerId === member.id ? 'border-[#17243a] bg-[#17243a] text-[#fffdf8] shadow-md' : 'border-black/5 bg-[#fbf7ee] text-[#17243a] shadow-sm hover:bg-white'}`}>{member.name}</button>)}
-          </div>
-        </div>
 
         <div className="mt-5">
           <span className="mb-2 block text-xs uppercase tracking-[0.14em] text-[#857a6a]">Participants</span>
