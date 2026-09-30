@@ -18,4 +18,6 @@ export interface TravelSegment { id: string; destinations: Destination[]; startD
 export interface ListItem { id: string; listId: string; title: string; completed: boolean; sortOrder: number; note?: string; createdAt: number; updatedAt: number; }
 export interface TripList { id: string; tripId: string; name: string; sortOrder: number; createdAt: number; updatedAt: number; items: ListItem[]; }
 export interface AllocationRule { allocationMode: 'preset_percentage'; percentages: Record<string, number>; }
-export interface Trip { id: string; title: string; titleEdited?: boolean; segments: TravelSegment[]; status: TripStatus; allocationRules?: AllocationRule; coverImage?: string; members: Member[]; accounts: Account[]; categories: Category[]; ledger: LedgerEntry[]; lists: TripList[]; createdAt: number; updatedAt: number; }
+export type JourneyCheckResolution = 'self_drive' | 'local_transport' | 'later';
+export interface JourneyCheckState { shownCheckpoints?: string[]; resolutions?: Record<string, JourneyCheckResolution>; }
+export interface Trip { id: string; title: string; titleEdited?: boolean; segments: TravelSegment[]; status: TripStatus; allocationRules?: AllocationRule; coverImage?: string; members: Member[]; accounts: Account[]; categories: Category[]; ledger: LedgerEntry[]; lists: TripList[]; journeyCheck?: JourneyCheckState; createdAt: number; updatedAt: number; }
