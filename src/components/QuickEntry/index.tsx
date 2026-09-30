@@ -610,14 +610,14 @@ const QuickEntryContent: React.FC<QuickEntryProps> = ({ onClose }) => {
             <DatePicker pickerId="transport-payment" openPickerId={openDatePicker} onOpenPicker={setOpenDatePicker} value={paymentDate} onChange={setPaymentDate} label="Payment Date" required />
             <div>
               <span className="mb-2 block text-xs uppercase tracking-[0.14em] text-[#857a6a]">Major Transport</span>
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-4 gap-2">
                 {([
                   ['flight', '✈️ Flight'],
                   ['train', '🚄 Train'],
-                  ['long_distance_bus', '🚌 Long-distance Bus'],
+                  ['long_distance_bus', '🚌 Bus'],
                   ['ferry', '⛴️ Ferry'],
                 ] as const).map(([value, label]) => (
-                  <button key={value} type="button" onClick={() => { setTransportMode(value); if (value === 'long_distance_bus') { setJourneyType('one_way'); setReturnDate(''); } }} aria-pressed={transportMode === value} className={`min-h-12 rounded-xl border px-4 text-sm font-medium transition ${transportMode === value ? 'border-[#17243a] bg-[#17243a] text-[#fffdf8] shadow-md' : 'border-black/5 bg-[#fbf7ee] text-[#17243a] shadow-sm hover:bg-white'}`}>
+                  <button key={value} type="button" onClick={() => { setTransportMode(value); if (value === 'long_distance_bus') { setJourneyType('one_way'); setReturnDate(''); } }} aria-pressed={transportMode === value} className={`min-h-12 rounded-xl border px-2 text-sm font-medium transition ${transportMode === value ? 'border-[#17243a] bg-[#17243a] text-[#fffdf8] shadow-md' : 'border-black/5 bg-[#fbf7ee] text-[#17243a] shadow-sm hover:bg-white'}`}>
                     {label}
                   </button>
                 ))}
