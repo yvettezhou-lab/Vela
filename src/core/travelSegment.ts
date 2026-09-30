@@ -21,7 +21,7 @@ export const findSegmentByDate = (segments: TravelSegment[], date: number): Trav
   getSegmentsByDate(segments, date)[0];
 
 export const getLedgerEntryDate = (entry: LedgerEntry): number => {
-  if (entry.entryType === 'transport') return entry.outboundDate;
+  if (entry.entryType === 'transport' || (entry as unknown as { entryType?: string }).entryType === 'flight') return entry.outboundDate;
   if (entry.entryType === 'prepaid_multi_day') return entry.usageStart;
   return entry.paymentDate;
 };
@@ -31,6 +31,12 @@ export const getLedgerEntryRelevantDates = (entry: LedgerEntry): number[] => {
     return entry.journeyType === 'round_trip'
       ? [entry.outboundDate, entry.returnDate]
       : [entry.outboundDate];
+  }
+  if ((entry as unknown as { entryType?: string }).entryType === 'flight') {
+    const legacy = entry as unknown as { flightType?: string; outboundDate: number; returnDate?: number };
+    return legacy.flightType === 'round_trip' && Number.isFinite(legacy.returnDate)
+      ? [legacy.outboundDate, legacy.returnDate]
+      : [legacy.outboundDate];
   }
   if (entry.entryType === 'prepaid_multi_day') {
     return [entry.usageStart, entry.usageEnd];
