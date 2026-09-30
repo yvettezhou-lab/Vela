@@ -589,7 +589,7 @@ const QuickEntryContent: React.FC<QuickEntryProps> = ({ onClose }) => {
           </div>
         )}
 
-        <div className="mt-6 grid grid-cols-2 gap-5">
+        <div className="mt-6 grid min-w-0 gap-5" style={{ gridTemplateColumns: 'minmax(0, 1fr) minmax(0, 1fr)' }}>
           {entryType !== 'transport' && (
             <label className="block">
               <span className="mb-2 block text-xs uppercase tracking-[0.14em] text-[#857a6a]">Category</span>
@@ -598,10 +598,10 @@ const QuickEntryContent: React.FC<QuickEntryProps> = ({ onClose }) => {
               </select>
             </label>
           )}
-          <div className={entryType === 'transport' ? 'col-span-2' : ''}>
+          <div className={`min-w-0 ${entryType === 'transport' ? 'col-span-2' : ''}`}>
             <span className="mb-2 block text-xs uppercase tracking-[0.14em] text-[#857a6a]">Payment Account</span>
             <div className="grid w-full min-w-0 gap-2" style={{ gridTemplateColumns: 'repeat(3, minmax(0, 1fr))' }}>
-              {accounts.map((account) => <button key={account.id} type="button" onClick={() => setAccountId(account.id)} aria-pressed={accountId === account.id} className={`box-border min-w-0 w-full min-h-9 rounded-xl border px-1 text-[11px] leading-none font-medium whitespace-nowrap transition ${accountId === account.id ? 'border-[#17243a] bg-[#17243a] text-[#fffdf8] shadow-sm' : 'border-black/5 bg-[#fbf7ee] text-[#17243a] shadow-sm hover:bg-white'}`}>{account.name}</button>)}
+              {accounts.map((account) => <button key={account.id} type="button" onClick={() => setAccountId(account.id)} aria-pressed={accountId === account.id} className={`box-border min-w-0 w-full min-h-9 rounded-xl border px-1 text-[11px] leading-none font-medium whitespace-nowrap overflow-hidden text-ellipsis transition ${accountId === account.id ? 'border-[#17243a] bg-[#17243a] text-[#fffdf8] shadow-sm' : 'border-black/5 bg-[#fbf7ee] text-[#17243a] shadow-sm hover:bg-white'}`}>{account.name}</button>)}
             </div>
           </div>
         </div>
