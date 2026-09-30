@@ -257,3 +257,118 @@
 .quick-entry-cost-switch span{display:block;width:18px;height:18px;border-radius:50%;background:#fff;box-shadow:0 1px 3px rgba(15,23,42,.16);transform:translateX(0);transition:transform .18s ease}
 .quick-entry-cost-switch.is-on{background:#17243a}
 .quick-entry-cost-switch.is-on span{transform:translateX(16px)}
+
+
+/* Quick Entry mobile: fit the complete form into one viewport whenever possible. */
+@media (max-width: 600px) {
+  .vela-quick-fullscreen > header {
+    padding-top: max(10px, env(safe-area-inset-top)) !important;
+    padding-bottom: 8px !important;
+  }
+  .vela-quick-fullscreen > header p {
+    margin-bottom: 0 !important;
+    font-size: 9px !important;
+    line-height: 1.1 !important;
+  }
+  .vela-quick-fullscreen > header h2 {
+    font-size: 29px !important;
+    line-height: 1 !important;
+  }
+  .vela-quick-fullscreen > form {
+    padding-top: 4px !important;
+    padding-left: 14px !important;
+    padding-right: 14px !important;
+    padding-bottom: calc(96px + env(safe-area-inset-bottom)) !important;
+  }
+  .vela-quick-fullscreen .quick-entry-journey {
+    margin-bottom: 8px !important;
+    padding-bottom: 4px !important;
+  }
+  .vela-quick-fullscreen .quick-entry-journey > span {
+    margin-bottom: 4px !important;
+    font-size: 10px !important;
+  }
+  .vela-quick-fullscreen .quick-entry-journey .grid {
+    gap: 6px !important;
+  }
+  .vela-quick-fullscreen .quick-entry-journey button {
+    min-height: 36px !important;
+    padding: 0 8px !important;
+    font-size: 11px !important;
+  }
+  .vela-quick-fullscreen .quick-entry-entry-type {
+    gap: 6px !important;
+    padding: 4px !important;
+  }
+  .vela-quick-fullscreen .quick-entry-entry-type button {
+    min-height: 42px !important;
+    border-radius: 10px !important;
+    font-size: 13px !important;
+  }
+  .vela-quick-fullscreen form > .mt-6.grid {
+    margin-top: 10px !important;
+    gap: 10px !important;
+  }
+  .vela-quick-fullscreen form > .mt-6.grid label > span {
+    margin-bottom: 4px !important;
+    font-size: 10px !important;
+    letter-spacing: .1em !important;
+  }
+  .vela-quick-fullscreen form > .mt-6.grid select,
+  .vela-quick-fullscreen form > .mt-6.grid input {
+    min-height: 40px !important;
+  }
+  .vela-quick-fullscreen form > .mt-5,
+  .vela-quick-fullscreen form > .mt-6 {
+    margin-top: 10px !important;
+  }
+  .vela-quick-fullscreen .quick-entry-date-picker {
+    gap: 4px !important;
+  }
+  .vela-quick-fullscreen .quick-entry-date-picker .trip-date-trigger {
+    min-height: 38px !important;
+    height: 38px !important;
+    padding: 0 8px !important;
+  }
+  .vela-quick-fullscreen .quick-entry-date-picker .trip-date-trigger strong {
+    font-size: 11px !important;
+  }
+  .vela-quick-fullscreen .quick-entry-date-picker > span {
+    font-size: 7px !important;
+  }
+  .vela-quick-fullscreen .quick-entry-date-picker .trip-date-trigger svg {
+    width: 13px !important;
+    height: 13px !important;
+  }
+  .vela-quick-fullscreen .quick-entry-cost-compact {
+    min-height: 30px !important;
+    margin: 8px 0 3px !important;
+    padding: 4px 7px 4px 10px !important;
+  }
+  .vela-quick-fullscreen .quick-entry-submit-wrap {
+    margin-top: 6px !important;
+    padding-top: 4px !important;
+  }
+  .vela-quick-fullscreen .quick-entry-submit-wrap > button[type="submit"] {
+    min-height: 44px !important;
+    height: 44px !important;
+    border-radius: 14px !important;
+    font-size: 15px !important;
+  }
+  .vela-quick-fullscreen .quick-entry-submit-error {
+    margin-bottom: 6px !important;
+    padding: 7px 10px !important;
+  }
+  .vela-quick-fullscreen .quick-entry-entry-type + .mt-6.grid {
+    margin-top: 10px !important;
+  }
+  .vela-quick-fullscreen .grid.grid-cols-3.gap-2 > button {
+    min-height: 36px !important;
+    padding-left: 8px !important;
+    padding-right: 8px !important;
+    font-size: 12px !important;
+  }
+  .vela-quick-fullscreen .quick-entry-cost-compact + .quick-entry-submit-wrap {
+    margin-top: 5px !important;
+  }
+}
