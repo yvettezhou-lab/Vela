@@ -312,7 +312,7 @@
     width: auto !important;
     min-width: 0 !important;
     max-width: none !important;
-    flex: 1 1 0 !important;
+    flex: 0 0 calc((100% - 8px) / 4) !important;
   }
   .vela-quick-fullscreen form > .mt-6.grid {
     margin-top: 10px !important;
