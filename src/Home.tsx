@@ -36,7 +36,7 @@ export default function Home({ onNavigate, onCreateTrip, onManageTrips, onOpenLi
           : getJourneyCheckIssues(trip).filter((issue) => trip.journeyCheck?.resolutions?.[issue.id] !== 'self_drive' && trip.journeyCheck?.resolutions?.[issue.id] !== 'local_transport');
         return { trip, checkpoint, issues };
       })
-      .filter(({ checkpoint, issues }) => checkpoint && issues.length && !hasJourneyCheckBeenShown(trip, checkpoint));
+      .filter(({ trip, checkpoint, issues }) => checkpoint && issues.length && !hasJourneyCheckBeenShown(trip, checkpoint));
 
     const candidate = candidates[0];
     if (!candidate.checkpoint) return;
