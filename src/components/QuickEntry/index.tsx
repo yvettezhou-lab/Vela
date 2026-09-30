@@ -591,17 +591,7 @@ const QuickEntryContent: React.FC<QuickEntryProps> = ({ onClose }) => {
           </div>
         </div>
 
-        <div className="vela-cost-toggle">
-          <div className="vela-cost-toggle-copy">
-            <span className="vela-cost-toggle-title">Include in Statistics</span>
-            <span className="vela-cost-toggle-help">{includeInCost ? 'Included in trip total, daily average, and Reflection.' : 'Excluded from trip cost statistics; kept in Ledger, Allocation, and Settlement.'}</span>
-          </div>
-          <button type="button" role="switch" aria-checked={includeInCost} onClick={() => setIncludeInCost((value) => !value)} className={`vela-cost-switch ${includeInCost ? 'is-on' : ''}`} aria-label={includeInCost ? 'Included in statistics, tap to exclude' : 'Excluded from statistics, tap to include'}>
-            <span className="vela-cost-switch-knob" />
-          </button>
-          <span className="vela-cost-switch-state">{includeInCost ? 'Included' : 'Excluded'}</span>
-        </div>
-
+        
         {entryType === 'standard' && (
           <div className="mt-6 max-w-[50%]">
             <DatePicker pickerId="standard-payment" openPickerId={openDatePicker} onOpenPicker={setOpenDatePicker} value={paymentDate} onChange={setPaymentDate} label="Date" required />
@@ -700,6 +690,13 @@ const QuickEntryContent: React.FC<QuickEntryProps> = ({ onClose }) => {
               {members.filter((member) => selectedParticipants.has(member.id)).map((member) => <label key={member.id} className="flex min-h-12 items-center justify-between rounded-xl bg-[#fbf7ee] px-4 shadow-[inset_0_0_0_1px_rgba(80,64,42,.10)]"><span className="text-sm">{member.name}</span><span className="flex items-center gap-1"><input type="text" inputMode="decimal" value={customPercentages[member.id] ?? ''} onChange={(event) => { const raw = normalizePercentageInput(event.target.value); setCustomPercentages((previous) => ({ ...previous, [member.id]: raw === '' ? 0 : Number(raw) })); }} className="w-16 bg-transparent text-right text-base outline-none" aria-label={`${member.name} percentage`} /><span className="text-sm text-[#857a6a]">%</span></span></label>)}
             </div>
           )}
+        </div>
+
+        <div className="quick-entry-cost-compact">
+          <span>Include in Statistics</span>
+          <button type="button" role="switch" aria-checked={includeInCost} onClick={() => setIncludeInCost((value) => !value)} className={`quick-entry-cost-switch ${includeInCost ? 'is-on' : ''}`} aria-label={includeInCost ? 'Included in statistics, tap to exclude' : 'Excluded from statistics, tap to include'}>
+            <span />
+          </button>
         </div>
 
         <div className="quick-entry-submit-wrap">
