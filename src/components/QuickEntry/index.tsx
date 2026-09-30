@@ -517,7 +517,7 @@ const QuickEntryContent: React.FC<QuickEntryProps> = ({ onClose }) => {
           ))}
         </div>
 
-        <div className={`mt-6 grid gap-4 ${isDomesticTrip ? 'grid-cols-[minmax(0,1fr)_minmax(140px,0.72fr)]' : 'grid-cols-2'}`}>
+        <div className={`mt-6 grid items-end gap-4 ${isDomesticTrip ? 'grid-cols-[minmax(0,1fr)_minmax(140px,0.72fr)]' : 'grid-cols-[minmax(0,1fr)_minmax(140px,0.72fr)_minmax(140px,0.72fr)]'}`}>
           <label className="block">
             <span className="mb-2 block text-xs uppercase tracking-[0.14em] text-[#857a6a]">Amount</span>
             <div className="flex rounded-xl bg-[#fbf7ee] shadow-[inset_0_0_0_1px_rgba(80,64,42,.10)]">
@@ -668,7 +668,6 @@ const QuickEntryContent: React.FC<QuickEntryProps> = ({ onClose }) => {
                 return <button key={value} type="button" disabled={disabled} onClick={() => setAllocationMode(value)} aria-pressed={allocationMode === value} className={`min-h-9 rounded-lg border px-2 text-xs font-medium transition ${allocationMode === value ? 'border-[#17243a] bg-[#fffdf8] text-[#17243a] shadow-sm' : 'border-transparent text-[#746b5e] hover:bg-[#fbf7ee]'} ${disabled ? 'cursor-not-allowed opacity-40' : ''}`}>{label}</button>;
               })}
             </div>
-          </div>
           {allocationMode === 'preset_percentage' && targetTrip?.allocationRules?.percentages && (
             <div className="mb-3 rounded-xl bg-[#fbf7ee] px-4 py-3 text-xs text-[#6f6659]">
               Using this journey's preset allocation:{Object.entries(targetTrip.allocationRules.percentages)
