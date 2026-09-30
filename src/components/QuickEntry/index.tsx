@@ -4,7 +4,7 @@ import { createPortal } from 'react-dom';
 import { Calendar, ChevronLeft, ChevronRight, X } from 'lucide-react';
 import { useVelaStore } from '../../store/useVelaStore';
 import { TRANSPORT_CATEGORY_ID } from '../../core/validation';
-import { Allocation, AllocationMode, FlightType, LedgerEntry, TravelSegment } from '../../core/domain';
+import { Allocation, AllocationMode, LedgerEntry, TravelSegment, TransportMode, TransportJourneyType } from '../../core/domain';
 
 const generateId = () =>
   typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function'
@@ -161,7 +161,7 @@ const QuickEntryContent: React.FC<QuickEntryProps> = ({ onClose }) => {
   const [targetTripId, setTargetTripId] = useState('');
   const [openDatePicker, setOpenDatePicker] = useState<string | null>(null);
   const targetTrip = eligibleTrips.find((trip) => trip.id === targetTripId) ?? null;
-  const [entryType, setEntryType] = useState<'standard' | 'flight' | 'prepaid_multi_day'>('standard');
+  const [entryType, setEntryType] = useState<'standard' | 'transport' | 'prepaid_multi_day'>('standard');
     const [amount, setAmount] = useState('');
   const [currency, setCurrency] = useState('CNY');
   const [cnyEquivalent, setCnyEquivalent] = useState('');
@@ -175,7 +175,8 @@ const QuickEntryContent: React.FC<QuickEntryProps> = ({ onClose }) => {
   const [returnDate, setReturnDate] = useState('');
   const [usageStart, setUsageStart] = useState('');
   const [usageEnd, setUsageEnd] = useState('');
-  const [flightType, setFlightType] = useState<FlightType>('one_way');
+  const [transportMode, setTransportMode] = useState<TransportMode>('flight');
+  const [journeyType, setJourneyType] = useState<TransportJourneyType>('one_way');
   const [allocationMode, setAllocationMode] = useState<AllocationMode>('equal');
   const [selectedParticipants, setSelectedParticipants] = useState<Set<string>>(new Set());
   const [customPercentages, setCustomPercentages] = useState<Record<string, number>>({});
@@ -369,13 +370,13 @@ const QuickEntryContent: React.FC<QuickEntryProps> = ({ onClose }) => {
       if (!deferCny && (!Number.isFinite(cnyTotal) || cnyTotal <= 0)) throw new Error('CNY Equivalent must be greater than 0.');
       if (!payerId) throw new Error('Payer is required.');
       if (!accountId) throw new Error('Payment account is required.');
-      if (entryType !== 'flight' && !categoryId) throw new Error('Category is required.');
+      if (entryType !== 'transport' && !categoryId) throw new Error('Category is required.');
 
       const allocations = buildAllocations(cnyTotal);
       const now = Date.now();
       const baseData = {
         id: `entry_${generateId()}`,
-        categoryId: entryType === 'flight' ? TRANSPORT_CATEGORY_ID : categoryId,
+        categoryId: entryType === 'transport' ? TRANSPORT_CATEGORY_ID : categoryId,
         originalAmount,
         originalCurrency: currency.trim().toUpperCase(),
         cnyEquivalent: cnyTotal,
@@ -395,16 +396,17 @@ const QuickEntryContent: React.FC<QuickEntryProps> = ({ onClose }) => {
         const date = toDateTimestamp(paymentDate);
         if (!Number.isFinite(date)) throw new Error('Payment date is required.');
         finalEntry = { ...baseData, entryType: 'standard', paymentDate: date };
-      } else if (entryType === 'flight') {
+      } else if (entryType === 'transport') {
         const outbound = toDateTimestamp(outboundDate);
         if (!Number.isFinite(outbound)) throw new Error('Outbound date is required.');
-        if (flightType === 'round_trip') {
+        if (journeyType === 'round_trip') {
+          if (transportMode === 'long_distance_bus') throw new Error('Long-distance bus tickets are one-way only.');
           const returnTimestamp = toDateTimestamp(returnDate);
           if (!Number.isFinite(returnTimestamp)) throw new Error('Return date is required.');
           if (returnTimestamp < outbound) throw new Error('Return date cannot be before outbound date.');
-          finalEntry = { ...baseData, entryType: 'flight', flightType: 'round_trip', outboundDate: outbound, returnDate: returnTimestamp };
+          finalEntry = { ...baseData, entryType: 'transport', transportMode, journeyType: 'round_trip', outboundDate: outbound, returnDate: returnTimestamp };
         } else {
-          finalEntry = { ...baseData, entryType: 'flight', flightType: 'one_way', outboundDate: outbound };
+          finalEntry = { ...baseData, entryType: 'transport', transportMode, journeyType: 'one_way', outboundDate: outbound };
         }
       } else {
         const payment = toDateTimestamp(paymentDate);
@@ -500,7 +502,7 @@ const QuickEntryContent: React.FC<QuickEntryProps> = ({ onClose }) => {
         <div className="quick-entry-entry-type mt-3 grid grid-cols-3 gap-3 rounded-2xl bg-[#eee5d5] p-1.5">
           {([
             ['standard', 'Standard'],
-            ['flight', 'Flight'],
+            ['transport', 'Transport'],
             ['prepaid_multi_day', 'Prepaid'],
           ] as const).map(([value, label]) => (
             <button key={value} type="button" onClick={() => setEntryType(value)} aria-pressed={entryType === value} className={`min-h-12 rounded-xl border px-2 text-sm font-medium transition ${entryType === value ? 'border-[#17243a] bg-[#17243a] text-[#fffdf8] shadow-md' : 'border-black/5 bg-[#fbf7ee] text-[#6f6659] shadow-sm hover:bg-white'}`}>
@@ -570,7 +572,7 @@ const QuickEntryContent: React.FC<QuickEntryProps> = ({ onClose }) => {
         </div>
 
         <div className="mt-6 grid grid-cols-2 gap-5">
-          {entryType !== 'flight' && (
+          {entryType !== 'transport' && (
             <label className="block">
               <span className="mb-2 block text-xs uppercase tracking-[0.14em] text-[#857a6a]">Category</span>
               <select value={categoryId} onChange={(event) => { const next = event.target.value; setCategoryId(next); setIncludeInCost(categories.find((category) => category.id === next)?.excludeFromStats !== true); }} className="w-full appearance-none rounded-xl bg-[#fbf7ee] px-4 text-base text-[#17243a] shadow-[inset_0_0_0_1px_rgba(80,64,42,.10)] outline-none" required>
@@ -578,7 +580,7 @@ const QuickEntryContent: React.FC<QuickEntryProps> = ({ onClose }) => {
               </select>
             </label>
           )}
-          <div className={entryType === 'flight' ? 'col-span-2' : ''}>
+          <div className={entryType === 'transport' ? 'col-span-2' : ''}>
             <span className="mb-2 block text-xs uppercase tracking-[0.14em] text-[#857a6a]">Payment Account</span>
             <div className="grid grid-cols-2 gap-3">
               {accounts.map((account) => <button key={account.id} type="button" onClick={() => setAccountId(account.id)} aria-pressed={accountId === account.id} className={`min-h-12 rounded-xl border px-3 text-sm font-medium transition ${accountId === account.id ? 'border-[#17243a] bg-[#17243a] text-[#fffdf8] shadow-md' : 'border-black/5 bg-[#fbf7ee] text-[#17243a] shadow-sm hover:bg-white'}`}>{account.name}</button>)}
@@ -603,18 +605,35 @@ const QuickEntryContent: React.FC<QuickEntryProps> = ({ onClose }) => {
           </div>
         )}
 
-        {entryType === 'flight' && (
+        {entryType === 'transport' && (
           <div className="mt-6 space-y-5">
-            <DatePicker pickerId="flight-payment" openPickerId={openDatePicker} onOpenPicker={setOpenDatePicker} value={paymentDate} onChange={setPaymentDate} label="Payment Date" required />
+            <DatePicker pickerId="transport-payment" openPickerId={openDatePicker} onOpenPicker={setOpenDatePicker} value={paymentDate} onChange={setPaymentDate} label="Payment Date" required />
             <div>
-              <span className="mb-2 block text-xs uppercase tracking-[0.14em] text-[#857a6a]">Flight</span>
+              <span className="mb-2 block text-xs uppercase tracking-[0.14em] text-[#857a6a]">Major Transport</span>
               <div className="grid grid-cols-2 gap-3">
-                {([['one_way', 'One Way'], ['round_trip', 'Round Trip']] as const).map(([value, label]) => <button key={value} type="button" onClick={() => setFlightType(value)} aria-pressed={flightType === value} className={`min-h-12 rounded-xl border px-4 text-sm font-medium transition ${flightType === value ? 'border-[#17243a] bg-[#17243a] text-[#fffdf8] shadow-md' : 'border-black/5 bg-[#fbf7ee] text-[#17243a] shadow-sm hover:bg-white'}`}>{label}</button>)}
+                {([
+                  ['flight', '✈️ Flight'],
+                  ['train', '🚄 Train'],
+                  ['long_distance_bus', '🚌 Long-distance Bus'],
+                  ['ferry', '⛴️ Ferry'],
+                ] as const).map(([value, label]) => (
+                  <button key={value} type="button" onClick={() => { setTransportMode(value); if (value === 'long_distance_bus') { setJourneyType('one_way'); setReturnDate(''); } }} aria-pressed={transportMode === value} className={`min-h-12 rounded-xl border px-4 text-sm font-medium transition ${transportMode === value ? 'border-[#17243a] bg-[#17243a] text-[#fffdf8] shadow-md' : 'border-black/5 bg-[#fbf7ee] text-[#17243a] shadow-sm hover:bg-white'}`}>
+                    {label}
+                  </button>
+                ))}
               </div>
             </div>
+            {transportMode !== 'long_distance_bus' && (
+              <div>
+                <span className="mb-2 block text-xs uppercase tracking-[0.14em] text-[#857a6a]">Journey</span>
+                <div className="grid grid-cols-2 gap-3">
+                  {([['one_way', 'One Way'], ['round_trip', 'Round Trip']] as const).map(([value, label]) => <button key={value} type="button" onClick={() => setJourneyType(value)} aria-pressed={journeyType === value} className={`min-h-12 rounded-xl border px-4 text-sm font-medium transition ${journeyType === value ? 'border-[#17243a] bg-[#17243a] text-[#fffdf8] shadow-md' : 'border-black/5 bg-[#fbf7ee] text-[#17243a] shadow-sm hover:bg-white'}`}>{label}</button>)}
+                </div>
+              </div>
+            )}
             <div className="grid grid-cols-2 gap-5">
-              <DatePicker pickerId="flight-outbound" openPickerId={openDatePicker} onOpenPicker={setOpenDatePicker} value={outboundDate} onChange={(value) => { setOutboundDate(value); if (returnDate && returnDate < value) setReturnDate(''); }} label="Outbound" required minDate={tripDateBounds.minDate} maxDate={tripDateBounds.maxDate} />
-              {flightType === 'round_trip' && <DatePicker pickerId="flight-return" openPickerId={openDatePicker} onOpenPicker={setOpenDatePicker} value={returnDate} onChange={setReturnDate} label="Return" required minDate={outboundDate || tripDateBounds.minDate} maxDate={tripDateBounds.maxDate} openMonthValue={outboundDate || tripDateBounds.minDate} />}
+              <DatePicker pickerId="transport-outbound" openPickerId={openDatePicker} onOpenPicker={setOpenDatePicker} value={outboundDate} onChange={(value) => { setOutboundDate(value); if (returnDate && returnDate < value) setReturnDate(''); }} label="Outbound" required minDate={tripDateBounds.minDate} maxDate={tripDateBounds.maxDate} />
+              {journeyType === 'round_trip' && transportMode !== 'long_distance_bus' && <DatePicker pickerId="transport-return" openPickerId={openDatePicker} onOpenPicker={setOpenDatePicker} value={returnDate} onChange={setReturnDate} label="Return" required minDate={outboundDate || tripDateBounds.minDate} maxDate={tripDateBounds.maxDate} openMonthValue={outboundDate || tripDateBounds.minDate} />}
             </div>
           </div>
         )}
