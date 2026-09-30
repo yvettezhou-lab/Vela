@@ -306,13 +306,13 @@
     font-size: 13px !important;
   }
   .vela-quick-fullscreen form > .mt-6.grid {
-    grid-template-columns: 180px minmax(0, 1fr) !important;
+    grid-template-columns: 170px minmax(0, 1fr) !important;
   }
   .vela-quick-fullscreen form > .mt-6.grid > div[style*="grid-column: 2"] .flex > button {
-    width: 64px !important;
-    min-width: 64px !important;
-    max-width: 64px !important;
-    flex: 0 0 64px !important;
+    width: 60px !important;
+    min-width: 60px !important;
+    max-width: 60px !important;
+    flex: 0 0 60px !important;
   }
   .vela-quick-fullscreen form > .mt-6.grid {
     margin-top: 10px !important;
