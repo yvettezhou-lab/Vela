@@ -614,7 +614,7 @@ const QuickEntryContent: React.FC<QuickEntryProps> = ({ onClose }) => {
                 {([
                   ['flight', '✈️ Flight'],
                   ['train', '🚄 Train'],
-                  ['long_distance_bus', '🚌 Bus'],
+                  ['long_distance_bus', '🚌 Coach'],
                   ['ferry', '⛴️ Ferry'],
                 ] as const).map(([value, label]) => (
                   <button key={value} type="button" onClick={() => { setTransportMode(value); if (value === 'long_distance_bus') { setJourneyType('one_way'); setReturnDate(''); } }} aria-pressed={transportMode === value} className={`min-h-12 rounded-xl border px-2 text-sm font-medium transition ${transportMode === value ? 'border-[#17243a] bg-[#17243a] text-[#fffdf8] shadow-md' : 'border-black/5 bg-[#fbf7ee] text-[#17243a] shadow-sm hover:bg-white'}`}>
