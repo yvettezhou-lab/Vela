@@ -1,4 +1,4 @@
-import { Trip, TripStatus, AllocationMode, Member, Account, Category, Allocation, BaseLedgerEntry, LedgerEntry, TravelSegment, TripList, ListItem } from './domain';
+import { Trip, TripStatus, AllocationMode, Member, Account, Category, Allocation, BaseLedgerEntry, LedgerEntry, TravelSegment, TripList, ListItem, TransportMode, TransportJourneyType } from './domain';
 import { findSegmentByDate, getLedgerEntryDate } from './travelSegment';
 export const TRANSPORT_CATEGORY_ID = 'cat_transport';
 export const isRecord = (val: unknown): val is Record<string, unknown> => typeof val === 'object' && val !== null && !Array.isArray(val);
@@ -74,10 +74,10 @@ if (rawEntry.entryType === 'standard') {
  ledger.push({ ...baseLedgerEntry, entryType: 'standard', paymentDate: requireFinite(rawEntry.paymentDate, 'paymentDate') });
 } else if (rawEntry.entryType === 'transport' || rawEntry.entryType === 'flight') {
  if (categoryId !== TRANSPORT_CATEGORY_ID) throw new Error('Domain Violation: Transport entry must belong to the Transport category.');
- const transportMode = rawEntry.entryType === 'flight' ? 'flight' : rawEntry.transportMode;
+ const transportMode = (rawEntry.entryType === 'flight' ? 'flight' : rawEntry.transportMode) as TransportMode;
  if (transportMode !== 'flight' && transportMode !== 'train' && transportMode !== 'long_distance_bus' && transportMode !== 'ferry') throw new Error('Domain Violation: Invalid transportMode');
  const outboundDate = requireFinite(rawEntry.outboundDate, 'outboundDate');
- const journeyType = rawEntry.entryType === 'flight' ? rawEntry.flightType : rawEntry.journeyType;
+ const journeyType = (rawEntry.entryType === 'flight' ? rawEntry.flightType : rawEntry.journeyType) as TransportJourneyType;
  if (journeyType === 'round_trip') {
    if (transportMode === 'long_distance_bus') throw new Error('Domain Violation: Long-distance bus entries are one-way only.');
    const returnDate = requireFinite(rawEntry.returnDate, 'returnDate');
