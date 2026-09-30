@@ -600,7 +600,7 @@ const QuickEntryContent: React.FC<QuickEntryProps> = ({ onClose }) => {
           )}
           <div className={entryType === 'transport' ? 'col-span-2' : ''}>
             <span className="mb-2 block text-xs uppercase tracking-[0.14em] text-[#857a6a]">Payment Account</span>
-            <div className="flex flex-wrap gap-2">
+            <div className="grid grid-cols-3 gap-2">
               {accounts.map((account) => <button key={account.id} type="button" onClick={() => setAccountId(account.id)} aria-pressed={accountId === account.id} className={`min-h-10 rounded-full border px-4 text-sm font-medium transition ${accountId === account.id ? 'border-[#17243a] bg-[#17243a] text-[#fffdf8] shadow-sm' : 'border-black/5 bg-[#fbf7ee] text-[#17243a] shadow-sm hover:bg-white'}`}>{account.name}</button>)}
             </div>
           </div>
@@ -673,7 +673,7 @@ const QuickEntryContent: React.FC<QuickEntryProps> = ({ onClose }) => {
               })}
             </div>
           {allocationMode === 'preset_percentage' && targetTrip?.allocationRules?.percentages && (
-            <div className="mb-3 rounded-xl bg-[#fbf7ee] px-4 py-3 text-xs text-[#6f6659]">
+            <div className="mb-2 overflow-x-auto whitespace-nowrap rounded-xl bg-[#fbf7ee] px-3 py-2 text-[11px] leading-4 text-[#6f6659]">
               Using this journey's preset allocation:{Object.entries(targetTrip.allocationRules.percentages)
                 .filter(([id, percentage]) => members.some((member) => member.id === id) && Number(percentage) > 0)
                 .map(([id, percentage]) => `${members.find((member) => member.id === id)?.name ?? id} ${percentage}%`)
