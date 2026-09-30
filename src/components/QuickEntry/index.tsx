@@ -600,14 +600,16 @@ const QuickEntryContent: React.FC<QuickEntryProps> = ({ onClose }) => {
         </div>
 
         {entryType === 'standard' && (
-          <div className="mt-6">
+          <div className="mt-6 max-w-[50%]">
             <DatePicker pickerId="standard-payment" openPickerId={openDatePicker} onOpenPicker={setOpenDatePicker} value={paymentDate} onChange={setPaymentDate} label="Date" required />
           </div>
         )}
 
         {entryType === 'transport' && (
           <div className="mt-6 space-y-5">
-            <DatePicker pickerId="transport-payment" openPickerId={openDatePicker} onOpenPicker={setOpenDatePicker} value={paymentDate} onChange={setPaymentDate} label="Payment Date" required />
+            <div className="max-w-[50%]">
+              <DatePicker pickerId="transport-payment" openPickerId={openDatePicker} onOpenPicker={setOpenDatePicker} value={paymentDate} onChange={setPaymentDate} label="Payment Date" required />
+            </div>
             <div>
               <span className="mb-2 block text-xs uppercase tracking-[0.14em] text-[#857a6a]">Major Transport</span>
               <div className="grid grid-cols-4 gap-2">
@@ -640,7 +642,9 @@ const QuickEntryContent: React.FC<QuickEntryProps> = ({ onClose }) => {
 
         {entryType === 'prepaid_multi_day' && (
           <div className="mt-6 space-y-5">
-            <DatePicker pickerId="prepaid-payment" openPickerId={openDatePicker} onOpenPicker={setOpenDatePicker} value={paymentDate} onChange={setPaymentDate} label="Payment Date" required />
+            <div className="max-w-[50%]">
+              <DatePicker pickerId="prepaid-payment" openPickerId={openDatePicker} onOpenPicker={setOpenDatePicker} value={paymentDate} onChange={setPaymentDate} label="Payment Date" required />
+            </div>
             <div className="grid grid-cols-2 gap-5">
               <DatePicker pickerId="prepaid-usage-start" openPickerId={openDatePicker} onOpenPicker={setOpenDatePicker} value={usageStart} onChange={(value) => { setUsageStart(value); if (usageEnd && usageEnd < value) setUsageEnd(''); }} label="Usage Start" required minDate={tripDateBounds.minDate} maxDate={tripDateBounds.maxDate} />
               <DatePicker pickerId="prepaid-usage-end" openPickerId={openDatePicker} onOpenPicker={setOpenDatePicker} value={usageEnd} onChange={setUsageEnd} label="Usage End" required minDate={usageStart || tripDateBounds.minDate} maxDate={tripDateBounds.maxDate} openMonthValue={usageStart || tripDateBounds.minDate} />
