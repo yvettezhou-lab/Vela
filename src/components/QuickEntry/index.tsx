@@ -517,7 +517,7 @@ const QuickEntryContent: React.FC<QuickEntryProps> = ({ onClose }) => {
           ))}
         </div>
 
-        <div className={`mt-6 grid items-end gap-4 ${isDomesticTrip ? 'grid-cols-[minmax(0,1fr)_minmax(140px,0.72fr)]' : 'grid-cols-[minmax(0,1fr)_minmax(140px,0.72fr)_minmax(140px,0.72fr)]'}`}>
+        <div className="mt-6 grid grid-cols-2 items-end gap-4">
           <label className="block">
             <span className="mb-2 block text-xs uppercase tracking-[0.14em] text-[#857a6a]">Amount</span>
             <div className="flex rounded-xl bg-[#fbf7ee] shadow-[inset_0_0_0_1px_rgba(80,64,42,.10)]">
@@ -548,42 +548,46 @@ const QuickEntryContent: React.FC<QuickEntryProps> = ({ onClose }) => {
               />
             </div>
           </label>
-          {!isDomesticTrip && (
-          <label className="block">
-            <span className="mb-2 block text-xs uppercase tracking-[0.14em] text-[#857a6a]">CNY Equivalent</span>
-            <input
-              type="text"
-              inputMode="decimal"
-              value={cnyEquivalent}
-              readOnly={currency.trim().toUpperCase() === 'CNY'}
-              onCompositionStart={() => { cnyEquivalentComposingRef.current = true; }}
-              onCompositionEnd={(event) => {
-                cnyEquivalentComposingRef.current = false;
-                if (currency.trim().toUpperCase() !== 'CNY') {
-                  cnyManualRef.current = true;
-                  setCnyEquivalent(event.currentTarget.value);
-                }
-              }}
-              onChange={(event) => {
-                if (currency.trim().toUpperCase() !== 'CNY') {
-                  cnyManualRef.current = true;
-                  if (!cnyEquivalentComposingRef.current) setCnyEquivalent(event.currentTarget.value);
-                }
-              }}
-              className="w-full rounded-xl bg-[#fbf7ee] px-4 text-base text-[#17243a] shadow-[inset_0_0_0_1px_rgba(80,64,42,.10)] outline-none read-only:text-[#857a6a]"
-              placeholder={deferCny ? 'Later' : (fxRate ? 'Auto' : 'Enter manually')}
-              aria-label="CNY Equivalent"
-            />
-            {currency.trim().toUpperCase() !== 'CNY' && <button type="button" onClick={() => { setDeferCny(v => !v); if (!deferCny) setCnyEquivalent(''); }} className={`mt-2 text-xs ${deferCny ? 'text-[#17243a] font-semibold' : 'text-[#857a6a]'}`}>{deferCny ? '✓ Enter CNY later' : 'Enter CNY later'}</button>}
-          </label>
-           )}
+
           <label className="block">
             <span className="mb-2 block text-xs uppercase tracking-[0.14em] text-[#857a6a]">Who Paid?</span>
             <select value={payerId} onChange={(event) => setPayerId(event.target.value)} className="w-full min-h-[43px] appearance-none rounded-xl bg-[#fbf7ee] px-3 text-sm font-medium text-[#17243a] shadow-[inset_0_0_0_1px_rgba(80,64,42,.10)] outline-none" aria-label="Who Paid">
               {payerFrequency.map((member) => <option key={member.id} value={member.id}>{member.name}</option>)}
             </select>
           </label>
-       </div>
+        </div>
+
+        {!isDomesticTrip && (
+          <div className="mt-4 max-w-[50%]">
+            <label className="block">
+              <span className="mb-2 block text-xs uppercase tracking-[0.14em] text-[#857a6a]">CNY Equivalent</span>
+              <input
+                type="text"
+                inputMode="decimal"
+                value={cnyEquivalent}
+                readOnly={currency.trim().toUpperCase() === 'CNY'}
+                onCompositionStart={() => { cnyEquivalentComposingRef.current = true; }}
+                onCompositionEnd={(event) => {
+                  cnyEquivalentComposingRef.current = false;
+                  if (currency.trim().toUpperCase() !== 'CNY') {
+                    cnyManualRef.current = true;
+                    setCnyEquivalent(event.currentTarget.value);
+                  }
+                }}
+                onChange={(event) => {
+                  if (currency.trim().toUpperCase() !== 'CNY') {
+                    cnyManualRef.current = true;
+                    if (!cnyEquivalentComposingRef.current) setCnyEquivalent(event.currentTarget.value);
+                  }
+                }}
+                className="w-full rounded-xl bg-[#fbf7ee] px-4 text-base text-[#17243a] shadow-[inset_0_0_0_1px_rgba(80,64,42,.10)] outline-none read-only:text-[#857a6a]"
+                placeholder={deferCny ? 'Later' : (fxRate ? 'Auto' : 'Enter manually')}
+                aria-label="CNY Equivalent"
+              />
+              {currency.trim().toUpperCase() !== 'CNY' && <button type="button" onClick={() => { setDeferCny(v => !v); if (!deferCny) setCnyEquivalent(''); }} className={`mt-2 text-xs ${deferCny ? 'text-[#17243a] font-semibold' : 'text-[#857a6a]'}`}>{deferCny ? '✓ Enter CNY later' : 'Enter CNY later'}</button>}
+            </label>
+          </div>
+        )}
 
         <div className="mt-6 grid grid-cols-2 gap-5">
           {entryType !== 'transport' && (
