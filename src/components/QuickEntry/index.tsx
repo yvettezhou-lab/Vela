@@ -161,6 +161,7 @@ const QuickEntryContent: React.FC<QuickEntryProps> = ({ onClose }) => {
   const [targetTripId, setTargetTripId] = useState('');
   const [openDatePicker, setOpenDatePicker] = useState<string | null>(null);
   const targetTrip = eligibleTrips.find((trip) => trip.id === targetTripId) ?? null;
+  const isDomesticTrip = Boolean(targetTrip?.segments?.length) && targetTrip.segments.every((segment) => segment.destinations?.length > 0 && segment.destinations.every((destination) => ['china', '中国'].includes(destination.country.trim().toLowerCase())));
   const [entryType, setEntryType] = useState<'standard' | 'transport' | 'prepaid_multi_day'>('standard');
     const [amount, setAmount] = useState('');
   const [currency, setCurrency] = useState('CNY');
@@ -511,7 +512,7 @@ const QuickEntryContent: React.FC<QuickEntryProps> = ({ onClose }) => {
           ))}
         </div>
 
-        <div className="mt-6 grid grid-cols-2 gap-5">
+        <div className={`mt-6 grid gap-5 ${isDomesticTrip ? 'grid-cols-1' : 'grid-cols-2'}`}>
           <label className="block">
             <span className="mb-2 block text-xs uppercase tracking-[0.14em] text-[#857a6a]">Amount</span>
             <div className="flex rounded-xl bg-[#fbf7ee] shadow-[inset_0_0_0_1px_rgba(80,64,42,.10)]">
@@ -542,6 +543,7 @@ const QuickEntryContent: React.FC<QuickEntryProps> = ({ onClose }) => {
               />
             </div>
           </label>
+          {!isDomesticTrip && (
           <label className="block">
             <span className="mb-2 block text-xs uppercase tracking-[0.14em] text-[#857a6a]">CNY Equivalent</span>
             <input
@@ -569,7 +571,8 @@ const QuickEntryContent: React.FC<QuickEntryProps> = ({ onClose }) => {
             />
             {currency.trim().toUpperCase() !== 'CNY' && <button type="button" onClick={() => { setDeferCny(v => !v); if (!deferCny) setCnyEquivalent(''); }} className={`mt-2 text-xs ${deferCny ? 'text-[#17243a] font-semibold' : 'text-[#857a6a]'}`}>{deferCny ? '✓ Enter CNY later' : 'Enter CNY later'}</button>}
           </label>
-        </div>
+           )}
+       </div>
 
         <div className="mt-6 grid grid-cols-2 gap-5">
           {entryType !== 'transport' && (
