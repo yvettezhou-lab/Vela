@@ -607,9 +607,6 @@ const QuickEntryContent: React.FC<QuickEntryProps> = ({ onClose }) => {
 
         {entryType === 'transport' && (
           <div className="mt-6 space-y-5">
-            <div className="max-w-[50%]">
-              <DatePicker pickerId="transport-payment" openPickerId={openDatePicker} onOpenPicker={setOpenDatePicker} value={paymentDate} onChange={setPaymentDate} label="Payment Date" required />
-            </div>
             <div>
               <span className="mb-2 block text-xs uppercase tracking-[0.14em] text-[#857a6a]">Major Transport</span>
               <div className="grid grid-cols-4 gap-2">
@@ -625,6 +622,7 @@ const QuickEntryContent: React.FC<QuickEntryProps> = ({ onClose }) => {
                 ))}
               </div>
             </div>
+
             {transportMode !== 'long_distance_bus' && (
               <div>
                 <span className="mb-2 block text-xs uppercase tracking-[0.14em] text-[#857a6a]">Journey</span>
@@ -633,7 +631,9 @@ const QuickEntryContent: React.FC<QuickEntryProps> = ({ onClose }) => {
                 </div>
               </div>
             )}
-            <div className="grid grid-cols-2 gap-5">
+
+            <div className={journeyType === 'round_trip' && transportMode !== 'long_distance_bus' ? 'grid grid-cols-3 gap-3' : 'grid grid-cols-2 gap-3'}>
+              <DatePicker pickerId="transport-payment" openPickerId={openDatePicker} onOpenPicker={setOpenDatePicker} value={paymentDate} onChange={setPaymentDate} label="Payment Date" required />
               <DatePicker pickerId="transport-outbound" openPickerId={openDatePicker} onOpenPicker={setOpenDatePicker} value={outboundDate} onChange={(value) => { setOutboundDate(value); if (returnDate && returnDate < value) setReturnDate(''); }} label="Outbound" required minDate={tripDateBounds.minDate} maxDate={tripDateBounds.maxDate} />
               {journeyType === 'round_trip' && transportMode !== 'long_distance_bus' && <DatePicker pickerId="transport-return" openPickerId={openDatePicker} onOpenPicker={setOpenDatePicker} value={returnDate} onChange={setReturnDate} label="Return" required minDate={outboundDate || tripDateBounds.minDate} maxDate={tripDateBounds.maxDate} openMonthValue={outboundDate || tripDateBounds.minDate} />}
             </div>
