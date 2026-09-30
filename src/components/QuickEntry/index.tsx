@@ -680,11 +680,11 @@ const QuickEntryContent: React.FC<QuickEntryProps> = ({ onClose }) => {
                 .join(' · ')}
             </div>
           )}
-          {allocationMode !== 'preset_percentage' && <div className="mt-2 grid grid-cols-4 gap-2">
+          {allocationMode !== 'preset_percentage' && <div className="mt-2 grid grid-cols-5 gap-1.5">
             {members.map((member) => {
               const selected = selectedParticipants.has(member.id);
               return (
-                <button key={member.id} type="button" onClick={() => toggleParticipant(member.id)} aria-pressed={selected} className={`min-h-10 rounded-xl border px-2 text-sm font-medium transition ${selected ? 'border-[#17243a] bg-[#17243a] text-[#fffdf8] shadow-md' : 'border-black/5 bg-[#fbf7ee] text-[#17243a] shadow-sm hover:bg-white'}`}>
+                <button key={member.id} type="button" onClick={() => toggleParticipant(member.id)} aria-pressed={selected} className={`min-h-9 rounded-xl border px-1 text-[12px] font-medium transition ${selected ? 'border-[#17243a] bg-[#17243a] text-[#fffdf8] shadow-md' : 'border-black/5 bg-[#fbf7ee] text-[#17243a] shadow-sm hover:bg-white'}`}>
                   {member.name}
                   {allocationMode === 'custom_percentage' && selected && <span className="ml-2 opacity-80">{customPercentages[member.id] ?? 0}%</span>}
                 </button>
