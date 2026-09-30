@@ -589,7 +589,7 @@ const QuickEntryContent: React.FC<QuickEntryProps> = ({ onClose }) => {
           </div>
         )}
 
-        <div className="mt-6 grid min-w-0 gap-4" style={{ gridTemplateColumns: '220px minmax(0, 1fr)' }}>
+        <div className="mt-6 grid min-w-0 gap-4" style={{ gridTemplateColumns: '190px minmax(0, 1fr)' }}>
           {entryType !== 'transport' && (
             <label className="block min-w-0" style={{ gridColumn: '1' }}>
               <span className="mb-2 block text-xs uppercase tracking-[0.14em] text-[#857a6a]">Category</span>
