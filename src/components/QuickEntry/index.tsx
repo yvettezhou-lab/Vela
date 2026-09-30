@@ -589,7 +589,7 @@ const QuickEntryContent: React.FC<QuickEntryProps> = ({ onClose }) => {
           </div>
         )}
 
-        <div className="mt-6 grid min-w-0 gap-4" style={{ gridTemplateColumns: '150px minmax(0, 1fr)' }}>
+        <div className="mt-6 grid min-w-0 gap-4" style={{ gridTemplateColumns: '220px minmax(0, 1fr)' }}>
           {entryType !== 'transport' && (
             <label className="block min-w-0" style={{ gridColumn: '1' }}>
               <span className="mb-2 block text-xs uppercase tracking-[0.14em] text-[#857a6a]">Category</span>
@@ -600,8 +600,8 @@ const QuickEntryContent: React.FC<QuickEntryProps> = ({ onClose }) => {
           )}
           <div className={`min-w-0 w-full ${entryType === 'transport' ? 'col-span-2' : ''}`} style={entryType === 'transport' ? undefined : { gridColumn: '2' }}>
             <span className="mb-2 block text-xs uppercase tracking-[0.14em] text-[#857a6a]">Payment Account</span>
-            <div className="flex w-full min-w-0 max-w-full flex-nowrap gap-1">
-              {accounts.map((account) => <button key={account.id} type="button" onClick={() => setAccountId(account.id)} aria-pressed={accountId === account.id} className={`box-border w-[70px] min-w-0 max-w-full min-h-10 rounded-xl border px-1 text-[10px] leading-tight font-medium break-words transition ${accountId === account.id ? 'border-[#17243a] bg-[#17243a] text-[#fffdf8] shadow-md' : 'border-black/5 bg-[#fbf7ee] text-[#17243a] shadow-sm hover:bg-white'}`}>{account.name}</button>)}
+            <div className="flex w-full min-w-0 max-w-full flex-nowrap gap-1 overflow-hidden">
+              {accounts.map((account) => <button key={account.id} type="button" onClick={() => setAccountId(account.id)} aria-pressed={accountId === account.id} style={{ width: 90, minWidth: 90, flex: "0 0 90px" }} className={`box-border min-w-0 max-w-full min-h-10 rounded-xl border px-1 text-[10px] leading-tight font-medium break-words transition ${accountId === account.id ? 'border-[#17243a] bg-[#17243a] text-[#fffdf8] shadow-md' : 'border-black/5 bg-[#fbf7ee] text-[#17243a] shadow-sm hover:bg-white'}`}>{account.name}</button>)}
             </div>
           </div>
         </div>
