@@ -6,9 +6,18 @@ import { useVelaStore } from '../../store/useVelaStore';
 
 const ENTRY_LABELS: Record<LedgerEntry['entryType'], string> = {
   standard: 'Standard',
-  flight: 'Flight',
+  transport: 'Transport',
   prepaid_multi_day: 'Prepaid',
 };
+const TRANSPORT_LABELS = {
+  flight: '✈️ Flight',
+  train: '🚄 Train',
+  long_distance_bus: '🚌 Long-distance Bus',
+  ferry: '⛴️ Ferry',
+} as const;
+const entryLabel = (entry: LedgerEntry) => entry.entryType === 'transport'
+  ? TRANSPORT_LABELS[entry.transportMode]
+  : ENTRY_LABELS[entry.entryType];
 
 const formatDate = (timestamp: number) => {
   const date = new Date(timestamp);
@@ -153,7 +162,7 @@ export const LedgerView: React.FC = () => {
             <article className="vela-ledger-entry" key={entry.id}>
               <div className="vela-ledger-entry-main">
                 <div className="vela-ledger-entry-title">
-                  <strong>{ENTRY_LABELS[entry.entryType]}</strong>
+                  <strong>{entryLabel(entry)}</strong>
                   {entry.isPending && <span className="vela-ledger-badge pending">CNY Pending</span>}
                   {!entry.includeInCost && <span className="vela-ledger-badge muted">Excluded</span>}
                 </div>
@@ -173,7 +182,7 @@ export const LedgerView: React.FC = () => {
                 )}
                 <button
                   type="button"
-                  aria-label={`Delete ${ENTRY_LABELS[entry.entryType]} entry`}
+                  aria-label={`Delete ${entryLabel(entry)} entry`}
                   title="Delete entry"
                   className="vela-ledger-delete"
                   onClick={() => deleteLedgerEntry(selectedTrip.id, entry.id)}
