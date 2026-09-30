@@ -647,22 +647,21 @@ const QuickEntryContent: React.FC<QuickEntryProps> = ({ onClose }) => {
 
         <div className="mt-6">
           <span className="mb-2 block text-xs uppercase tracking-[0.14em] text-[#857a6a]">Who Paid?</span>
-          <div className="flex flex-wrap gap-3">
-            {members.map((member) => <button key={member.id} type="button" onClick={() => setPayerId(member.id)} aria-pressed={payerId === member.id} className={`min-h-12 rounded-xl border px-5 text-sm font-medium transition ${payerId === member.id ? 'border-[#17243a] bg-[#17243a] text-[#fffdf8] shadow-md' : 'border-black/5 bg-[#fbf7ee] text-[#17243a] shadow-sm hover:bg-white'}`}>{member.name}</button>)}
+          <div className="grid grid-cols-4 gap-2">
+            {members.map((member) => <button key={member.id} type="button" onClick={() => setPayerId(member.id)} aria-pressed={payerId === member.id} className={`min-h-10 rounded-xl border px-2 text-sm font-medium transition ${payerId === member.id ? 'border-[#17243a] bg-[#17243a] text-[#fffdf8] shadow-md' : 'border-black/5 bg-[#fbf7ee] text-[#17243a] shadow-sm hover:bg-white'}`}>{member.name}</button>)}
           </div>
         </div>
 
-        <div className="mt-6">
-          <div className="mb-3 flex items-center justify-between gap-3">
-            <span className="text-xs uppercase tracking-[0.14em] text-[#857a6a]">Participants</span>
-            <div className="flex gap-1.5 rounded-xl bg-[#eee5d5] p-1">
+        <div className="mt-5">
+          <span className="mb-2 block text-xs uppercase tracking-[0.14em] text-[#857a6a]">Participants</span>
+            <div className="grid grid-cols-3 gap-2 rounded-xl bg-[#eee5d5] p-1">
               {([
                 ['equal', 'Equal Split'],
                 ['preset_percentage', 'Preset Percentage'],
                 ['custom_percentage', 'Custom Percentage'],
               ] as const).map(([value, label]) => {
                 const disabled = value === 'preset_percentage' && !targetTrip?.allocationRules?.percentages;
-                return <button key={value} type="button" disabled={disabled} onClick={() => setAllocationMode(value)} aria-pressed={allocationMode === value} className={`min-h-10 rounded-lg border px-3 text-xs font-medium transition ${allocationMode === value ? 'border-[#17243a] bg-[#fffdf8] text-[#17243a] shadow-sm' : 'border-transparent text-[#746b5e] hover:bg-[#fbf7ee]'} ${disabled ? 'cursor-not-allowed opacity-40' : ''}`}>{label}</button>;
+                return <button key={value} type="button" disabled={disabled} onClick={() => setAllocationMode(value)} aria-pressed={allocationMode === value} className={`min-h-9 rounded-lg border px-2 text-xs font-medium transition ${allocationMode === value ? 'border-[#17243a] bg-[#fffdf8] text-[#17243a] shadow-sm' : 'border-transparent text-[#746b5e] hover:bg-[#fbf7ee]'} ${disabled ? 'cursor-not-allowed opacity-40' : ''}`}>{label}</button>;
               })}
             </div>
           </div>
@@ -674,11 +673,11 @@ const QuickEntryContent: React.FC<QuickEntryProps> = ({ onClose }) => {
                 .join(' · ')}
             </div>
           )}
-          {allocationMode !== 'preset_percentage' && <div className="flex flex-wrap gap-3">
+          {allocationMode !== 'preset_percentage' && <div className="mt-2 grid grid-cols-4 gap-2">
             {members.map((member) => {
               const selected = selectedParticipants.has(member.id);
               return (
-                <button key={member.id} type="button" onClick={() => toggleParticipant(member.id)} aria-pressed={selected} className={`min-h-12 rounded-xl border px-5 text-sm font-medium transition ${selected ? 'border-[#17243a] bg-[#17243a] text-[#fffdf8] shadow-md' : 'border-black/5 bg-[#fbf7ee] text-[#17243a] shadow-sm hover:bg-white'}`}>
+                <button key={member.id} type="button" onClick={() => toggleParticipant(member.id)} aria-pressed={selected} className={`min-h-10 rounded-xl border px-2 text-sm font-medium transition ${selected ? 'border-[#17243a] bg-[#17243a] text-[#fffdf8] shadow-md' : 'border-black/5 bg-[#fbf7ee] text-[#17243a] shadow-sm hover:bg-white'}`}>
                   {member.name}
                   {allocationMode === 'custom_percentage' && selected && <span className="ml-2 opacity-80">{customPercentages[member.id] ?? 0}%</span>}
                 </button>
@@ -686,7 +685,7 @@ const QuickEntryContent: React.FC<QuickEntryProps> = ({ onClose }) => {
             })}
           </div>}
           {allocationMode === 'custom_percentage' && (
-            <div className="mt-4 grid grid-cols-2 gap-3">
+            <div className="mt-3 grid grid-cols-2 gap-2">
               {members.filter((member) => selectedParticipants.has(member.id)).map((member) => <label key={member.id} className="flex min-h-12 items-center justify-between rounded-xl bg-[#fbf7ee] px-4 shadow-[inset_0_0_0_1px_rgba(80,64,42,.10)]"><span className="text-sm">{member.name}</span><span className="flex items-center gap-1"><input type="text" inputMode="decimal" value={customPercentages[member.id] ?? ''} onChange={(event) => { const raw = normalizePercentageInput(event.target.value); setCustomPercentages((previous) => ({ ...previous, [member.id]: raw === '' ? 0 : Number(raw) })); }} className="w-16 bg-transparent text-right text-base outline-none" aria-label={`${member.name} percentage`} /><span className="text-sm text-[#857a6a]">%</span></span></label>)}
             </div>
           )}
