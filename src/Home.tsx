@@ -1,5 +1,5 @@
 import { getTripDestinations, getTripEndDate, getTripPrimaryCurrency, getTripStartDate } from './core/travelSegment';
-import React, { useMemo, useEffect, useRef } from 'react';
+import React, { useMemo, useEffect } from 'react';
 import { Calendar, ChevronRight, List as ListIcon, MapPin, Plus, X } from 'lucide-react';
 import { calculateFinancialTotals } from './core/calculations';
 import { Trip } from './core/domain';
