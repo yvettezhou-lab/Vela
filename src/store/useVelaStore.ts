@@ -26,9 +26,21 @@ const withDefaultAccounts = (trip: Trip): Trip => ({ ...trip, accounts: trip.acc
 const normalizeTrips = (trips: Trip[]): Trip[] => refreshAutoTripTitles(trips.map((rawTrip) => {
   const trip = ensureTripLists(withDefaultAccounts(withDefaultCategories(rawTrip)));
   const ledger = trip.ledger.map((entry) => {
-    if (entry.segmentId) return entry;
-    const segment = findSegmentByDate(trip.segments, getLedgerEntryDate(entry));
-    return segment ? { ...entry, segmentId: segment.id } : entry;
+    const rawEntry = entry as unknown as Record<string, unknown>;
+    const normalizedEntry = rawEntry.entryType === 'flight'
+      ? (() => {
+          const { flightType, ...rest } = rawEntry;
+          return {
+            ...rest,
+            entryType: 'transport',
+            transportMode: 'flight',
+            journeyType: flightType,
+          } as unknown as Trip['ledger'][number];
+        })()
+      : entry;
+    if (normalizedEntry.segmentId) return normalizedEntry;
+    const segment = findSegmentByDate(trip.segments, getLedgerEntryDate(normalizedEntry));
+    return segment ? { ...normalizedEntry, segmentId: segment.id } : normalizedEntry;
   });
   return { ...trip, ledger };
 }));
