@@ -226,3 +226,27 @@
   from{opacity:0;transform:scale(.94)}
   to{opacity:1;transform:scale(1)}
 }
+
+/* Quick Entry: compact mobile-first date controls. */
+.vela-quick-fullscreen .quick-entry-date-picker .trip-date-trigger{
+  min-height:40px !important;
+  height:40px !important;
+  padding:0 8px !important;
+  gap:5px !important;
+  border-radius:10px !important;
+}
+.vela-quick-fullscreen .quick-entry-date-picker .trip-date-trigger strong{
+  font-size:10.5px !important;
+  letter-spacing:-.01em !important;
+}
+.vela-quick-fullscreen .quick-entry-date-picker .trip-date-action{
+  display:none !important;
+}
+.vela-quick-fullscreen .quick-entry-date-picker .trip-date-trigger svg{
+  width:14px !important;
+  height:14px !important;
+}
+.vela-quick-fullscreen .quick-entry-date-picker>span{
+  font-size:7.5px !important;
+  letter-spacing:.14em !important;
+}
