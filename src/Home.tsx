@@ -39,7 +39,7 @@ export default function Home({ onNavigate, onCreateTrip, onManageTrips, onOpenLi
       .filter(({ trip, checkpoint, issues }) => checkpoint && issues.length && !hasJourneyCheckBeenShown(trip, checkpoint));
 
     const candidate = candidates[0];
-    if (!candidate.checkpoint) return;
+    if (!candidate?.checkpoint) return;
     updateTrip(candidate.trip.id, markJourneyCheckShown(candidate.trip, candidate.checkpoint));
     setJourneyCheckTripId(candidate.trip.id);
     setJourneyCheckIssues(candidate.issues);
