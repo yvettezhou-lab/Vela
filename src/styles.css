@@ -309,10 +309,10 @@
     grid-template-columns: 170px minmax(0, 1fr) !important;
   }
   .vela-quick-fullscreen form > .mt-6.grid > div[style*="grid-column: 2"] .flex > button {
-    width: auto !important;
-    min-width: 0 !important;
-    max-width: none !important;
-    flex: 0 0 calc((100% - 8px) / 4) !important;
+    width: 68px !important;
+    min-width: 68px !important;
+    max-width: 68px !important;
+    flex: 0 0 68px !important;
   }
   .vela-quick-fullscreen form > .mt-6.grid {
     margin-top: 10px !important;
