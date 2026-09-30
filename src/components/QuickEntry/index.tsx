@@ -577,14 +577,12 @@ const QuickEntryContent: React.FC<QuickEntryProps> = ({ onClose }) => {
             {currency.trim().toUpperCase() !== 'CNY' && <button type="button" onClick={() => { setDeferCny(v => !v); if (!deferCny) setCnyEquivalent(''); }} className={`mt-2 text-xs ${deferCny ? 'text-[#17243a] font-semibold' : 'text-[#857a6a]'}`}>{deferCny ? '✓ Enter CNY later' : 'Enter CNY later'}</button>}
           </label>
            )}
-          {(
-            <label className="block">
-              <span className="mb-2 block text-xs uppercase tracking-[0.14em] text-[#857a6a]">Who Paid?</span>
-              <select value={payerId} onChange={(event) => setPayerId(event.target.value)} className="w-full min-h-[43px] appearance-none rounded-xl bg-[#fbf7ee] px-3 text-sm font-medium text-[#17243a] shadow-[inset_0_0_0_1px_rgba(80,64,42,.10)] outline-none" aria-label="Who Paid">
-                {payerFrequency.map((member) => <option key={member.id} value={member.id}>{member.name}</option>)}
-              </select>
-            </label>
-          )}
+          <label className="block">
+            <span className="mb-2 block text-xs uppercase tracking-[0.14em] text-[#857a6a]">Who Paid?</span>
+            <select value={payerId} onChange={(event) => setPayerId(event.target.value)} className="w-full min-h-[43px] appearance-none rounded-xl bg-[#fbf7ee] px-3 text-sm font-medium text-[#17243a] shadow-[inset_0_0_0_1px_rgba(80,64,42,.10)] outline-none" aria-label="Who Paid">
+              {payerFrequency.map((member) => <option key={member.id} value={member.id}>{member.name}</option>)}
+            </select>
+          </label>
        </div>
 
         <div className="mt-6 grid grid-cols-2 gap-5">
