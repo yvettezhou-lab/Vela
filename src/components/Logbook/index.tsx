@@ -6,7 +6,7 @@ import LogbookAnalytics from './LogbookAnalytics';
 interface Props { annualReflection: AnnualReflection; activeTrip: Trip|null; reflectionTrips: Trip[]; }
 const num=(v:number)=>new Intl.NumberFormat(undefined,{maximumFractionDigits:0}).format(v);
 const date=(v:number)=>new Date(v).toLocaleDateString(undefined,{month:'short',day:'numeric',year:'numeric'});
-const entryDate=(e:LedgerEntry)=>e.entryType==='flight'?e.outboundDate:e.paymentDate;
+const entryDate=(e:LedgerEntry)=>e.entryType==='transport'?e.outboundDate:e.paymentDate;
 const signed=(e:LedgerEntry)=>e.isRefund?-e.cnyEquivalent:e.cnyEquivalent;
 const countsInStats=(_t:Trip,e:LedgerEntry)=>e.includeInCost&&!e.isPending;
 const days=(t:Trip)=>Math.max(1,Math.floor((getTripEndDate(t)-getTripStartDate(t))/86400000)+1);
