@@ -307,16 +307,16 @@
   }
     .vela-quick-fullscreen .quick-entry-payment-accounts {
     display: grid !important;
-    grid-template-columns: repeat(3, 68px) !important;
+    grid-template-columns: repeat(3, 60px) !important;
     gap: 4px !important;
     width: auto !important;
     max-width: none !important;
     overflow: visible !important;
   }
   .vela-quick-fullscreen .quick-entry-payment-accounts > button {
-    width: 68px !important;
-    min-width: 68px !important;
-    max-width: 68px !important;
+    width: 60px !important;
+    min-width: 60px !important;
+    max-width: 60px !important;
     flex: none !important;
     overflow-wrap: anywhere !important;
   }
