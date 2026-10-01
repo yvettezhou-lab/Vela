@@ -15,6 +15,11 @@ const App: React.FC = () => {
   const trips = useVelaStore((state) => state.trips); const currentYear = new Date().getFullYear();
   const achieveTrips = useMemo(() => trips.filter((trip) => trip.status === 'achieve'), [trips]); const activeTrip = useMemo(() => trips.find((trip) => trip.status === 'traveling') ?? null, [trips]); const planningTrips = useMemo(() => trips.filter((trip) => trip.status === 'planning'), [trips]);
   const annualReflection = useMemo(() => calculateAnnualTotals(achieveTrips, activeTrip, planningTrips, currentYear), [achieveTrips, activeTrip, planningTrips, currentYear]); const reflectionTrips = useMemo(() => activeTrip ? [...achieveTrips, activeTrip] : achieveTrips, [achieveTrips, activeTrip]);
+  // Re-evaluate date-based trip lifecycle whenever persisted trips hydrate or change.
+  // This keeps a trip from remaining in Planning after its start date arrives.
+  useEffect(() => {
+    useVelaStore.getState().evaluateAutoStart();
+  }, [trips]);
   useEffect(() => {
     if (!('serviceWorker' in navigator)) return;
     const hadController = Boolean(navigator.serviceWorker.controller);
