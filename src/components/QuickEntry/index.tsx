@@ -170,6 +170,7 @@ const QuickEntryContent: React.FC<QuickEntryProps> = ({ onClose }) => {
   const [categoryId, setCategoryId] = useState('');
   const [includeInCost, setIncludeInCost] = useState(true);
   const [accountId, setAccountId] = useState('');
+  const [note, setNote] = useState('');
   const [payerId, setPayerId] = useState('');
   const [paymentDate, setPaymentDate] = useState(todayValue);
   const [outboundDate, setOutboundDate] = useState('');
@@ -392,6 +393,7 @@ const QuickEntryContent: React.FC<QuickEntryProps> = ({ onClose }) => {
         isPending: deferCny,
         payerId,
         accountId,
+        ...(note.trim() ? { note: note.trim() } : {}),
         allocationMode,
         allocations,
         createdAt: now,
@@ -613,7 +615,11 @@ const QuickEntryContent: React.FC<QuickEntryProps> = ({ onClose }) => {
           </div>
         </div>
 
-        
+        <label className="mt-4 block">
+          <span className="mb-2 block text-xs uppercase tracking-[0.14em] text-[#857a6a]">Note</span>
+          <textarea value={note} onChange={(event) => setNote(event.target.value)} rows={2} maxLength={200} placeholder="What was this payment for? e.g. Longling dinner" className="w-full resize-none rounded-xl bg-[#fbf7ee] px-4 py-3 text-sm text-[#17243a] shadow-[inset_0_0_0_1px_rgba(80,64,42,.10)] outline-none placeholder:text-[#aaa092]" aria-label="Note" />
+        </label>
+
         {entryType === 'standard' && (
           <div className="mt-6 max-w-[50%]">
             <DatePicker pickerId="standard-payment" openPickerId={openDatePicker} onOpenPicker={setOpenDatePicker} value={paymentDate} onChange={setPaymentDate} label="Date" required />
