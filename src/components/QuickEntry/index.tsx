@@ -151,6 +151,7 @@ const QuickEntryContent: React.FC<QuickEntryProps> = ({ onClose, editTripId, ini
   const trips = useVelaStore((state) => state.trips);
   const addLedgerEntry = useVelaStore((state) => state.addLedgerEntry);
   const updateLedgerEntry = useVelaStore((state) => state.updateLedgerEntry);
+  const commonCategories = useVelaStore((state) => state.commonCategories);
   const isEditing = Boolean(initialEntry);
   const eligibleTrips = trips.filter((trip) => trip && (trip.status === 'traveling' || trip.status === 'planning'));
   const currentTrip = eligibleTrips.find((trip) => trip.status === 'traveling') ?? null;
@@ -216,7 +217,19 @@ const QuickEntryContent: React.FC<QuickEntryProps> = ({ onClose, editTripId, ini
     trips.forEach((trip) => (trip.ledger ?? []).forEach((entry) => counts.set(entry.payerId, (counts.get(entry.payerId) ?? 0) + 1)));
     return [...members].sort((a, b) => (counts.get(b.id) ?? 0) - (counts.get(a.id) ?? 0));
   }, [members, trips]);
-  const categories = targetTrip?.categories?.filter((category) => category.archived !== true) ?? [];
+  const categories = (() => {
+    const tripCategories = targetTrip?.categories?.filter((category) => category.archived !== true) ?? [];
+    if (!tripCategories.length || !commonCategories?.length) return tripCategories;
+    const commonOrder = new Map(commonCategories.filter((category) => category.archived !== true).map((category, index) => [category.name.trim().toLowerCase(), index]));
+    return [...tripCategories].sort((a, b) => {
+      const ai = commonOrder.get(a.name.trim().toLowerCase());
+      const bi = commonOrder.get(b.name.trim().toLowerCase());
+      if (ai !== undefined && bi !== undefined) return ai - bi;
+      if (ai !== undefined) return -1;
+      if (bi !== undefined) return 1;
+      return 0;
+    });
+  })();
 
   const tripDateBounds = (() => {
     if (!targetTrip?.segments?.length) return { minDate: undefined as string | undefined, maxDate: undefined as string | undefined };
