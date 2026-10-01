@@ -362,6 +362,7 @@ const QuickEntryContent: React.FC<QuickEntryProps> = ({ onClose }) => {
     addLedgerEntry(tripId, segmentId ? { ...entry, segmentId } : entry);
     setAmount('');
     setCnyEquivalent('');
+    setNote('');
     setError(null);
     setSuccess(true);
     if (successTimerRef.current) clearTimeout(successTimerRef.current);
