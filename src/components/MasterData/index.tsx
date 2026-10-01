@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Pencil, Plus, Trash2, X } from 'lucide-react';
+import { ChevronDown, ChevronUp, Pencil, Plus, Trash2, X } from 'lucide-react';
 import { useVelaStore } from '../../store/useVelaStore';
 import './masterData.css';
 
@@ -10,6 +10,7 @@ export const MasterData: React.FC = () => {
   const addCategory = useVelaStore((state) => state.addCommonCategory);
   const renameCategory = useVelaStore((state) => state.renameCommonCategory);
   const deleteCategory = useVelaStore((state) => state.deleteCommonCategory);
+  const reorderCategory = useVelaStore((state) => state.reorderCommonCategory);
   const addMember = useVelaStore((state) => state.addCommonMember);
   const renameMember = useVelaStore((state) => state.renameCommonMember);
   const deleteMember = useVelaStore((state) => state.deleteCommonMember);
@@ -45,7 +46,7 @@ export const MasterData: React.FC = () => {
     } catch (caught) { setError(caught instanceof Error ? caught.message : 'Unable to add.'); }
   };
 
-  const startAdd = (kind: 'member' | 'account') => {
+  const startAdd = (kind: 'category' | 'member' | 'account') => {
     setAdding(kind);
     setError('');
   };
@@ -75,6 +76,10 @@ export const MasterData: React.FC = () => {
           <strong>{item.name}</strong>
           <div className="master-data-actions">
             {kind === 'member' && <button type="button" onClick={() => { setPersonalListMemberId(personalListMemberId === item.id ? null : item.id); setPersonalItem(''); }}>List</button>}
+            {kind === 'category' && <div className="master-data-reorder">
+              <button type="button" aria-label={`Move ${item.name} up`} disabled={items.filter((entry) => !entry.archived).findIndex((entry) => entry.id === item.id) === 0} onClick={() => reorderCategory(item.id, 'up')}><ChevronUp size={14} /></button>
+              <button type="button" aria-label={`Move ${item.name} down`} disabled={items.filter((entry) => !entry.archived).findIndex((entry) => entry.id === item.id) === items.filter((entry) => !entry.archived).length - 1} onClick={() => reorderCategory(item.id, 'down')}><ChevronDown size={14} /></button>
+            </div>}
             <button type="button" aria-label={`Edit ${item.name}`} onClick={() => edit(kind, item.id, item.name)}><Pencil size={14} /></button>
             <button type="button" aria-label={`Delete ${item.name}`} onClick={() => archive(kind, item.id, item.name)}><Trash2 size={14} /></button>
           </div>
