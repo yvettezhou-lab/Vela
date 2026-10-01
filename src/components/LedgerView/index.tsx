@@ -98,25 +98,8 @@ export const LedgerView: React.FC = () => {
   const pendingCount = entries.filter((entry) => entry.isPending).length;
 
   const openEditor = (entry: LedgerEntry) => {
-    setEditError('');
-    setEditDraft({
-      entry,
-      amount: String(entry.originalAmount),
-      currency: entry.originalCurrency,
-      cnyEquivalent: String(entry.cnyEquivalent),
-      payerId: entry.payerId,
-      accountId: entry.accountId,
-      categoryId: entry.categoryId,
-      note: entry.note ?? '',
-      allocationMode: entry.allocationMode,
-      participantIds: entry.allocations.map((allocation) => allocation.memberId),
-      percentages: Object.fromEntries(entry.allocations.map((allocation) => [allocation.memberId, allocation.percentage ?? 0])),
-      paymentDate: 'paymentDate' in entry ? toDateInputValue(entry.paymentDate) : '',
-      outboundDate: 'outboundDate' in entry ? toDateInputValue(entry.outboundDate) : '',
-      returnDate: 'returnDate' in entry ? toDateInputValue(entry.returnDate) : '',
-      usageStart: 'usageStart' in entry ? toDateInputValue(entry.usageStart) : '',
-      usageEnd: 'usageEnd' in entry ? toDateInputValue(entry.usageEnd) : '',
-    });
+    window.history.pushState({}, '', `/entry/edit/${encodeURIComponent(selectedTrip.id)}/${encodeURIComponent(entry.id)}`);
+    window.dispatchEvent(new PopStateEvent('popstate'));
   };
 
   const closeEditor = () => {
