@@ -600,8 +600,18 @@ const QuickEntryContent: React.FC<QuickEntryProps> = ({ onClose }) => {
           )}
           <div className={`min-w-0 w-full ${entryType === 'transport' ? 'col-span-2' : ''}`} style={entryType === 'transport' ? undefined : { gridColumn: '2' }}>
             <span className="mb-2 block text-xs uppercase tracking-[0.14em] text-[#857a6a]">Payment Account</span>
-            <div className="quick-entry-payment-accounts grid w-full min-w-0 max-w-full grid-cols-3 gap-1 overflow-hidden">
-              {accounts.map((account) => <button key={account.id} type="button" onClick={() => setAccountId(account.id)} aria-pressed={accountId === account.id} style={{ width: 52, minWidth: 52, maxWidth: 52, flex: "0 0 52px" }} className={`box-border min-w-0 max-w-full min-h-10 rounded-xl border px-1 text-[10px] leading-tight font-medium break-words transition ${accountId === account.id ? 'border-[#17243a] bg-[#17243a] text-[#fffdf8] shadow-md' : 'border-black/5 bg-[#fbf7ee] text-[#17243a] shadow-sm hover:bg-white'}`}>{account.name}</button>)}
+            <div
+              className="quick-entry-payment-accounts min-w-0"
+              style={{ display: 'grid', gridTemplateColumns: '44px 44px 44px', gap: '4px', width: '136px', minWidth: '136px', maxWidth: '136px', overflow: 'visible' }}
+            >
+              {accounts.map((account) => <button
+                key={account.id}
+                type="button"
+                onClick={() => setAccountId(account.id)}
+                aria-pressed={accountId === account.id}
+                style={{ boxSizing: 'border-box', width: '44px', minWidth: '44px', maxWidth: '44px', paddingLeft: '2px', paddingRight: '2px', justifySelf: 'start' }}
+                className={`min-h-10 rounded-xl border text-[10px] leading-tight font-medium break-words transition ${accountId === account.id ? 'border-[#17243a] bg-[#17243a] text-[#fffdf8] shadow-md' : 'border-black/5 bg-[#fbf7ee] text-[#17243a] shadow-sm hover:bg-white'}`}
+              >{account.name}</button>)}
             </div>
           </div>
         </div>
