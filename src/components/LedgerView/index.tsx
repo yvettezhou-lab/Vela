@@ -380,8 +380,8 @@ export const LedgerView: React.FC = () => {
       )}
 
       {editDraft && (
-        <div className="fixed inset-0 z-[100] flex items-end justify-center bg-black/45 p-3 sm:items-center" role="dialog" aria-modal="true" aria-labelledby="ledger-edit-title">
-          <div className="max-h-[88dvh] w-full max-w-lg overflow-y-auto rounded-3xl bg-[#fbf7ee] p-5 text-[#17243a] shadow-2xl">
+        <div className="vela-ledger-edit-backdrop" role="dialog" aria-modal="true" aria-labelledby="ledger-edit-title">
+          <div className="vela-ledger-edit-sheet">
             <div className="flex items-start justify-between gap-4">
               <div>
                 <p className="text-xs uppercase tracking-[0.16em] text-[#857a6a]">Ledger</p>
