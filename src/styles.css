@@ -305,7 +305,7 @@
     border-radius: 10px !important;
     font-size: 13px !important;
   }
-    .vela-quick-fullscreen .quick-entry-payment-accounts {
+  .vela-quick-fullscreen .quick-entry-payment-accounts {
     display: flex !important;
     align-items: stretch !important;
     gap: 4px !important;
@@ -314,12 +314,12 @@
     max-width: 100% !important;
     overflow: visible !important;
   }
-  .vela-quick-fullscreen .quick-entry-payment-accounts > button {
+  .vela-quick-fullscreen .quick-entry-payment-accounts > .quick-entry-payment-account {
     box-sizing: border-box !important;
+    flex: 0 0 35px !important;
     width: 35px !important;
     min-width: 35px !important;
     max-width: 35px !important;
-    flex: 0 0 35px !important;
     padding-left: 1px !important;
     padding-right: 1px !important;
     overflow-wrap: anywhere !important;
