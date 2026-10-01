@@ -410,3 +410,13 @@
     margin-top: 5px !important;
   }
 }
+
+/* Ledger: group entries by calendar date */
+.vela-ledger-groups{display:grid;gap:14px}
+.vela-ledger-date-group{overflow:hidden;border:1px solid rgba(80,64,42,.10);border-radius:18px;background:#fff}
+.vela-ledger-date-header{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:11px 14px 9px;background:#fbf7ee;border-bottom:1px solid rgba(80,64,42,.09);color:#6f6659;font:600 11px/1.2 -apple-system,BlinkMacSystemFont,"SF Pro Text","PingFang SC",sans-serif;letter-spacing:.02em}
+.vela-ledger-date-header span:first-child{color:#23383d;font:600 13px/1.2 -apple-system,BlinkMacSystemFont,"SF Pro Text","PingFang SC",sans-serif}
+.vela-ledger-date-header span:last-child{color:#9a9185;font-weight:500}
+.vela-ledger-date-group .vela-ledger-list{margin:0;border:0;border-radius:0}
+.vela-ledger-date-group .vela-ledger-entry{border-radius:0;border-left:0;border-right:0;border-top:0}
+.vela-ledger-date-group .vela-ledger-entry:last-child{border-bottom:0}
