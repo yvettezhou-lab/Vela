@@ -45,10 +45,10 @@ textarea { min-height: 96px; }
 /* Payment Account cards are compact controls, not full-width pressed buttons. */
 .vela-entry-route .vela-quick-fullscreen form .quick-entry-payment-account[aria-pressed] {
   box-sizing: border-box !important;
-  width: 35px !important;
-  min-width: 35px !important;
-  max-width: 35px !important;
-  flex: 0 0 35px !important;
+  width: 52px !important;
+  min-width: 52px !important;
+  max-width: 52px !important;
+  flex: 0 0 52px !important;
   padding-left: 1px !important;
   padding-right: 1px !important;
 }
