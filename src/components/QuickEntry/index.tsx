@@ -336,8 +336,12 @@ const QuickEntryContent: React.FC<QuickEntryProps> = ({ onClose }) => {
     }));
 
     if (allocationMode === 'equal') {
-      const baseCents = Math.floor((cnyTotal * 100) / participantIds.length);
-      allocations.forEach((allocation) => { allocation.amount = baseCents / 100; });
+      const totalCents = Math.round(cnyTotal * 100);
+      const baseCents = Math.floor(totalCents / participantIds.length);
+      const remainderCents = totalCents - (baseCents * participantIds.length);
+      allocations.forEach((allocation, index) => {
+        allocation.amount = (baseCents + (index < remainderCents ? 1 : 0)) / 100;
+      });
     } else {
       allocations.forEach((allocation) => {
         const percentage = allocation.percentage ?? 0;
@@ -345,9 +349,6 @@ const QuickEntryContent: React.FC<QuickEntryProps> = ({ onClose }) => {
       });
     }
 
-    const allocatedCents = allocations.reduce((sum, allocation) => sum + Math.round(allocation.amount * 100), 0);
-    const targetCents = Math.round(cnyTotal * 100);
-    allocations[allocations.length - 1].amount = Math.round((allocations[allocations.length - 1].amount * 100 + targetCents - allocatedCents)) / 100;
     return allocations;
   };
 
