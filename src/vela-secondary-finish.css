@@ -250,6 +250,15 @@
   font:11px/1.35 -apple-system,BlinkMacSystemFont,"SF Pro Text","PingFang SC",sans-serif;
   color:#9ca3af;
 }
+.vela-ledger-entry-note{
+  display:block;
+  margin-top:5px;
+  color:#374151;
+  font:500 11px/1.4 -apple-system,BlinkMacSystemFont,"SF Pro Text","PingFang SC",sans-serif;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+}
 .vela-ledger-badge{
   flex:0 0 auto;
   padding:3px 7px;
@@ -273,6 +282,20 @@
   color:#374151;
   font:600 11px/1 -apple-system,BlinkMacSystemFont,"SF Pro Text","PingFang SC",sans-serif;
 }
+.vela-ledger-edit,
+.vela-ledger-delete{
+  width:34px;
+  height:34px;
+  min-width:34px;
+  padding:0;
+  display:grid;
+  place-items:center;
+  border:0;
+  border-radius:9px;
+  background:transparent;
+  color:#9ca3af;
+}
+.vela-ledger-edit:active{background:#f3f4f6;color:#374151}
 .vela-ledger-delete{
   width:34px;
   height:34px;
