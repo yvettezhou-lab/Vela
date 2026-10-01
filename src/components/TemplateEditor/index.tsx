@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Plus, Trash2 } from 'lucide-react';
+import { ChevronDown, ChevronUp, Plus, Trash2 } from 'lucide-react';
 import { TRAVEL_LIST_TEMPLATES, getTravelListTemplateItems, saveTravelListTemplateItems } from '../../utils/travelLists';
 import './templateEditor.css';
 
@@ -63,7 +63,11 @@ export const TemplateEditor: React.FC = () => {
           {items.map((item, index) => (
             <div className="template-editor-item" key={item + index}>
               <span>{item}</span>
-              <button type="button" aria-label={'Delete ' + item} onClick={() => save(items.filter((_, itemIndex) => itemIndex !== index))}><Trash2 size={14} /></button>
+              <div className="template-editor-item-actions">
+                <button type="button" aria-label={'Move ' + item + ' up'} disabled={index === 0} onClick={() => { const next = [...items]; [next[index - 1], next[index]] = [next[index], next[index - 1]]; save(next); }}><ChevronUp size={14} /></button>
+                <button type="button" aria-label={'Move ' + item + ' down'} disabled={index === items.length - 1} onClick={() => { const next = [...items]; [next[index], next[index + 1]] = [next[index + 1], next[index]]; save(next); }}><ChevronDown size={14} /></button>
+                <button type="button" aria-label={'Delete ' + item} onClick={() => save(items.filter((_, itemIndex) => itemIndex !== index))}><Trash2 size={14} /></button>
+              </div>
             </div>
           ))}
         </div>
