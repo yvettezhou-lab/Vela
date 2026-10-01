@@ -96,6 +96,14 @@ export const LedgerView: React.FC = () => {
     ? filteredByStatus.filter((entry) => entry.segmentId === segmentFilterId)
     : filteredByStatus;
   const pendingCount = entries.filter((entry) => entry.isPending).length;
+  const dateGroups = filtered.reduce<Array<{ key: string; label: string; entries: LedgerEntry[] }>>((groups, entry) => {
+    const timestamp = getLedgerEntryDate(entry);
+    const key = toDateInputValue(timestamp);
+    const existing = groups.find((group) => group.key === key);
+    if (existing) existing.entries.push(entry);
+    else groups.push({ key, label: formatDate(timestamp), entries: [entry] });
+    return groups;
+  }, []);
 
   const openEditor = (entry: LedgerEntry) => {
     window.history.pushState({}, '', `/entry/edit/${encodeURIComponent(selectedTrip.id)}/${encodeURIComponent(entry.id)}`);
@@ -351,49 +359,59 @@ export const LedgerView: React.FC = () => {
           {filter === 'pending' ? 'No entries waiting for CNY.' : segmentFilterId ? 'No entries in this Segment.' : 'No ledger entries yet.'}
         </div>
       ) : (
-        <div className="vela-ledger-list">
-          {filtered.map((entry) => (
-            <article className="vela-ledger-entry" key={entry.id}>
-              <div className="vela-ledger-entry-main">
-                <div className="vela-ledger-entry-title">
-                  <strong>{entryLabel(entry)}</strong>
-                  {entry.isPending && <span className="vela-ledger-badge pending">CNY Pending</span>}
-                  {!entry.includeInCost && <span className="vela-ledger-badge muted">Excluded</span>}
-                </div>
-                <span className="vela-ledger-entry-meta">
-                  {membersById.get(entry.payerId) ?? entry.payerId} · {formatDate(getLedgerEntryDate(entry))}
-                </span>
-                <span className="vela-ledger-entry-detail">
-                  {entry.originalCurrency} · {entry.originalAmount.toFixed(2)} · CNY {entry.isPending ? 'Pending' : entry.cnyEquivalent.toFixed(2)}
-                </span>
+        <div className="vela-ledger-groups">
+          {dateGroups.map((group) => (
+            <section className="vela-ledger-date-group" key={group.key}>
+              <div className="vela-ledger-date-header">
+                <span>{group.label}</span>
+                <span>{group.entries.length} {group.entries.length === 1 ? 'entry' : 'entries'}</span>
               </div>
+              <div className="vela-ledger-list">
+                {group.entries.map((entry) => (
+                  <article className="vela-ledger-entry" key={entry.id}>
+                    <div className="vela-ledger-entry-main">
+                      <div className="vela-ledger-entry-title">
+                        <strong>{entryLabel(entry)}</strong>
+                        {entry.isPending && <span className="vela-ledger-badge pending">CNY Pending</span>}
+                        {!entry.includeInCost && <span className="vela-ledger-badge muted">Excluded</span>}
+                      </div>
+                      <span className="vela-ledger-entry-meta">
+                        {membersById.get(entry.payerId) ?? entry.payerId}
+                      </span>
+                      <span className="vela-ledger-entry-detail">
+                        {entry.originalCurrency} · {entry.originalAmount.toFixed(2)} · CNY {entry.isPending ? 'Pending' : entry.cnyEquivalent.toFixed(2)}
+                      </span>
+                    </div>
 
-              <div className="vela-ledger-entry-actions">
-                {entry.isPending && (
-                  <button type="button" className="vela-ledger-add-cny" onClick={() => fillCny(entry)}>
-                    Add CNY
-                  </button>
-                )}
-                <button
-                  type="button"
-                  aria-label="Edit entry"
-                  title="Edit entry"
-                  className="vela-ledger-edit"
-                  onClick={() => openEditor(entry)}
-                >
-                  <Pencil size={16} strokeWidth={1.7} />
-                </button>
-                <button
-                  type="button"
-                  aria-label={`Delete ${entryLabel(entry)} entry`}
-                  title="Delete entry"
-                  className="vela-ledger-delete"
-                  onClick={() => deleteLedgerEntry(selectedTrip.id, entry.id)}
-                >
-                  <Trash2 size={16} strokeWidth={1.7} />
-                </button>
+                    <div className="vela-ledger-entry-actions">
+                      {entry.isPending && (
+                        <button type="button" className="vela-ledger-add-cny" onClick={() => fillCny(entry)}>
+                          Add CNY
+                        </button>
+                      )}
+                      <button
+                        type="button"
+                        aria-label="Edit entry"
+                        title="Edit entry"
+                        className="vela-ledger-edit"
+                        onClick={() => openEditor(entry)}
+                      >
+                        <Pencil size={16} strokeWidth={1.7} />
+                      </button>
+                      <button
+                        type="button"
+                        aria-label={`Delete ${entryLabel(entry)} entry`}
+                        title="Delete entry"
+                        className="vela-ledger-delete"
+                        onClick={() => deleteLedgerEntry(selectedTrip.id, entry.id)}
+                      >
+                        <Trash2 size={16} strokeWidth={1.7} />
+                      </button>
+                    </div>
+                  </article>
+                ))}
               </div>
-            </article>
+            </section>
           ))}
         </div>
       )}
