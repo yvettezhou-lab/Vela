@@ -316,10 +316,10 @@
   }
   .vela-quick-fullscreen .quick-entry-payment-accounts > .quick-entry-payment-account {
     box-sizing: border-box !important;
-    flex: 0 0 35px !important;
-    width: 35px !important;
-    min-width: 35px !important;
-    max-width: 35px !important;
+    flex: 0 0 52px !important;
+    width: 52px !important;
+    min-width: 52px !important;
+    max-width: 52px !important;
     padding-left: 1px !important;
     padding-right: 1px !important;
     overflow-wrap: anywhere !important;
