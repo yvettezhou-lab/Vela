@@ -530,7 +530,6 @@ const QuickEntryContent: React.FC<QuickEntryProps> = ({ onClose, editTripId, ini
       </header>
 
       <form onSubmit={handleSubmit} className="flex-1 overflow-y-auto px-5 pb-[calc(180px+env(safe-area-inset-bottom))] pt-2">
-        {error && <div role="alert" className="mb-4 rounded-xl bg-[#f5d8d2] px-4 py-3 text-sm text-[#7c3e35]">{error}</div>}
 
         <div className="quick-entry-journey mb-5 pb-3">
           <span className="mb-2 block text-xs uppercase tracking-[0.14em] text-[#857a6a]">Journey</span>
@@ -736,7 +735,7 @@ const QuickEntryContent: React.FC<QuickEntryProps> = ({ onClose, editTripId, ini
                 .join(' · ')}
             </div>
           )}
-          {allocationMode !== 'preset_percentage' && <div className="mt-2 grid gap-1.5" style={{ gridTemplateColumns: 'repeat(5, minmax(0, 1fr))' }}>
+          {allocationMode !== 'preset_percentage' && <div className="quick-entry-participants-grid mt-2">
             {members.map((member) => {
               const selected = selectedParticipants.has(member.id);
               return (
