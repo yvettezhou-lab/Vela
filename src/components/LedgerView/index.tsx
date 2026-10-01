@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Trash2, ChevronDown } from 'lucide-react';
+import { Trash2, ChevronDown, Pencil } from 'lucide-react';
 import { LedgerEntry } from '../../core/domain';
 import { getLedgerEntryDate } from '../../core/travelSegment';
 import { useVelaStore } from '../../store/useVelaStore';
@@ -57,6 +57,17 @@ export const LedgerView: React.FC = () => {
     ? filteredByStatus.filter((entry) => entry.segmentId === segmentFilterId)
     : filteredByStatus;
   const pendingCount = entries.filter((entry) => entry.isPending).length;
+
+  const editNote = (entry: LedgerEntry) => {
+    const raw = window.prompt('Edit note', entry.note ?? '');
+    if (raw === null) return;
+    const note = raw.trim();
+    updateLedgerEntry(selectedTrip.id, entry.id, {
+      ...entry,
+      ...(note ? { note } : { note: undefined }),
+      updatedAt: Date.now(),
+    });
+  };
 
   const fillCny = (entry: LedgerEntry) => {
     const raw = window.prompt('Enter the actual CNY amount from your bank or credit card statement', '');
@@ -172,6 +183,7 @@ export const LedgerView: React.FC = () => {
                 <span className="vela-ledger-entry-detail">
                   {entry.originalCurrency} · {entry.originalAmount.toFixed(2)} · CNY {entry.isPending ? 'Pending' : entry.cnyEquivalent.toFixed(2)}
                 </span>
+                {entry.note && <span className="vela-ledger-entry-note">{entry.note}</span>}
               </div>
 
               <div className="vela-ledger-entry-actions">
@@ -180,6 +192,15 @@ export const LedgerView: React.FC = () => {
                     Add CNY
                   </button>
                 )}
+                <button
+                  type="button"
+                  aria-label="Edit note"
+                  title="Edit note"
+                  className="vela-ledger-edit"
+                  onClick={() => editNote(entry)}
+                >
+                  <Pencil size={16} strokeWidth={1.7} />
+                </button>
                 <button
                   type="button"
                   aria-label={`Delete ${entryLabel(entry)} entry`}
