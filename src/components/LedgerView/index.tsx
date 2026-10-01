@@ -201,12 +201,13 @@ export const LedgerView: React.FC = () => {
         return { ...allocation, amount: value };
       });
     } else {
-      const base = selected.length ? Math.floor(cnyEquivalent * 100 / selected.length) / 100 : 0;
+      const count = selected.length;
+      const totalCents = Math.round(cnyEquivalent * 100);
+      const baseCents = count ? Math.floor(totalCents / count) : 0;
+      const remainderCents = count ? totalCents - baseCents * count : 0;
       allocations = selected.map((allocation, index) => ({
         ...allocation,
-        amount: index === selected.length - 1
-          ? Number((cnyEquivalent - base * (selected.length - 1)).toFixed(2))
-          : base,
+        amount: (baseCents + (index < remainderCents ? 1 : 0)) / 100,
       }));
     }
 
