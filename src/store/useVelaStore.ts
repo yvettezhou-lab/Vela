@@ -84,6 +84,7 @@ export type MasterDataItem = Member | Category | Account;
 interface VelaState {
   trips: Trip[];
   commonMembers: Member[];
+  commonCategories: Category[];
   commonAccounts: Account[];
   addTrip: (rawTrip: unknown) => void;
   updateTripStatus: (tripId: string, newStatus: unknown) => void;
@@ -96,6 +97,9 @@ interface VelaState {
   deleteLedgerEntry: (tripId: string, entryId: string) => void;
   updateMasterData: (tripId: string, type: MasterDataType, id: string | null, item: MasterDataItem) => void;
   archiveMasterData: (tripId: string, type: MasterDataType, id: string) => void;
+  addCommonCategory: (name: string) => void;
+  renameCommonCategory: (id: string, name: string) => void;
+  deleteCommonCategory: (id: string) => void;
   addCommonMember: (name: string) => void;
   renameCommonMember: (id: string, name: string) => void;
   deleteCommonMember: (id: string) => void;
@@ -132,6 +136,7 @@ const replaceMasterData = (trip: Trip, type: MasterDataType, id: string | null, 
 export const useVelaStore = create<VelaState>()(persist((set, get) => ({
   trips: [],
   commonMembers: [],
+  commonCategories: getDefaultCategories(),
   commonAccounts: [{ id: 'common-account-cash', name: 'Cash' }, { id: 'common-account-credit-card', name: 'Credit Card' }],
   addTrip: (rawTrip) => { const validated = DomainValidator.validateEntireTrip(rawTrip, get().trips); const tripWithLists = ensureTripLists(validated, get().commonMembers); const strictTrip = withDefaultAccounts(withDefaultCategories(tripWithLists)); const refreshedTrips = refreshAutoTripTitles([...get().trips, strictTrip]); set({ trips: refreshedTrips }); get().evaluateAutoStart(); },
   updateTrip: (tripId, trip) => { const trips = get().trips; if (!trips.some((item) => item.id === tripId)) throw new Error(`Store Error: Trip ${tripId} not found`); const strictTrip = ensureTripLists(DomainValidator.validateEntireTrip({ ...trip, id: tripId, updatedAt: Date.now() }, trips.filter((item) => item.id !== tripId)), get().commonMembers); const refreshedTrips = refreshAutoTripTitles(trips.map((item) => item.id === tripId ? strictTrip : item)); set({ trips: refreshedTrips }); },
@@ -143,6 +148,9 @@ export const useVelaStore = create<VelaState>()(persist((set, get) => ({
   deleteLedgerEntry: (tripId, entryId) => { const trips = get().trips; const trip = trips.find((t) => t.id === tripId); if (!trip) throw new Error(`Store Error: Trip ${tripId} not found`); if (!trip.ledger.some((e) => e.id === entryId)) throw new Error(`Store Error: Cannot delete nonexistent Entry ${entryId}`); set((state) => ({ trips: state.trips.map((t) => t.id === tripId ? { ...t, ledger: t.ledger.filter((e) => e.id !== entryId), updatedAt: Date.now() } : t) })); },
   updateMasterData: (tripId, type, id, item) => { const trips = get().trips; const trip = trips.find((t) => t.id === tripId); if (!trip) throw new Error(`Trip ${tripId} not found`); if (id && !trip[type].some((entry) => entry.id === id)) throw new Error(`Master Data Error: ${type} ${id} not found`); if (!item.name.trim()) throw new Error('Master Data Error: Name is required'); if (id && item.id !== id) throw new Error('Master Data Error: ID cannot change'); if (!id && trip[type].some((entry) => entry.name.trim().toLowerCase() === item.name.trim().toLowerCase() && !entry.archived)) throw new Error('Master Data Error: An active item with this name already exists'); set({ trips: trips.map((t) => t.id === tripId ? replaceMasterData(t, type, id, { ...item, name: item.name.trim() }) : t) }); },
   archiveMasterData: (tripId, type, id) => { const trips = get().trips; const trip = trips.find((t) => t.id === tripId); if (!trip) throw new Error(`Trip ${tripId} not found`); const entry = trip[type].find((item) => item.id === id); if (!entry) throw new Error(`Master Data Error: ${type} ${id} not found`); set({ trips: trips.map((t) => t.id === tripId ? { ...t, [type]: t[type].map((item) => item.id === id ? { ...item, archived: true } : item), updatedAt: Date.now() } : t) }); },
+  addCommonCategory: (name) => { const clean = name.trim(); if (!clean) throw new Error('Category name is required'); const current = get().commonCategories ?? getDefaultCategories(); if (current.some((item) => !item.archived && item.name.toLowerCase() === clean.toLowerCase())) throw new Error('A category with this name already exists'); const category = { id: crypto.randomUUID(), name: clean, type: 'expense' }; set({ commonCategories: [...current, category], trips: get().trips.map((trip) => (trip.status === 'planning' || trip.status === 'traveling') && !trip.categories.some((item) => item.name.trim().toLowerCase() === clean.toLowerCase()) ? withDefaultCategories({ ...trip, categories: [...trip.categories, { ...category }] }) : trip) }); },
+  renameCommonCategory: (id, name) => { const clean = name.trim(); if (!clean) throw new Error('Category name is required'); set({ commonCategories: (get().commonCategories ?? getDefaultCategories()).map((item) => item.id === id ? { ...item, name: clean } : item) }); },
+  deleteCommonCategory: (id) => { const current = get().commonCategories ?? getDefaultCategories(); const category = current.find((item) => item.id === id); if (!category) throw new Error('Common category not found'); if (get().trips.some((trip) => (trip.status === 'planning' || trip.status === 'traveling') && trip.ledger.some((entry) => entry.categoryId === id))) throw new Error('Cannot delete a category used by an active trip.'); set({ commonCategories: current.filter((item) => item.id !== id) }); },
   addCommonMember: (name) => { const clean = name.trim(); if (!clean) throw new Error('Common person name is required'); const current = get().commonMembers; if (current.some((item) => !item.archived && item.name.toLowerCase() === clean.toLowerCase())) throw new Error('A common person with this name already exists'); set({ commonMembers: [...current, { id: crypto.randomUUID(), name: clean }] }); },
   renameCommonMember: (id, name) => { const clean = name.trim(); if (!clean) throw new Error('Common person name is required'); set({ commonMembers: get().commonMembers.map((item) => item.id === id ? { ...item, name: clean } : item) }); },
   deleteCommonMember: (id) => set({ commonMembers: get().commonMembers.filter((item) => item.id !== id) }),
@@ -220,12 +228,15 @@ export const useVelaStore = create<VelaState>()(persist((set, get) => ({
       if (!isRecord(migrated)) return migrated;
       const trips = Array.isArray(migrated.trips) ? migrated.trips as Trip[] : [];
       const existingMembers = isRecord(migrated) && Array.isArray(migrated.commonMembers) ? migrated.commonMembers as Member[] : [];
+      const existingCategories = isRecord(migrated) && Array.isArray(migrated.commonCategories) ? migrated.commonCategories as Category[] : [];
       const existingAccounts = isRecord(migrated) && Array.isArray(migrated.commonAccounts) ? migrated.commonAccounts as Account[] : [];
       const memberMap = new Map<string, Member>();
       for (const member of [...existingMembers, ...trips.flatMap((trip) => trip.members)]) if (!memberMap.has(member.name.trim().toLowerCase())) memberMap.set(member.name.trim().toLowerCase(), { id: crypto.randomUUID(), name: member.name.trim() });
+      const categoryMap = new Map<string, Category>();
+      for (const category of [...existingCategories, ...trips.flatMap((trip) => trip.categories)]) if (!categoryMap.has(category.name.trim().toLowerCase())) categoryMap.set(category.name.trim().toLowerCase(), { ...category, id: category.id || crypto.randomUUID(), name: category.name.trim() });
       const accountMap = new Map<string, Account>();
       for (const account of [...existingAccounts, ...trips.flatMap((trip) => trip.accounts)]) if (!accountMap.has(account.name.trim().toLowerCase())) accountMap.set(account.name.trim().toLowerCase(), { id: crypto.randomUUID(), name: account.name.trim() });
-      return { ...migrated, commonMembers: [...memberMap.values()].filter((item) => item.name), commonAccounts: [...accountMap.values()].filter((item) => item.name) };
+      return { ...migrated, commonMembers: [...memberMap.values()].filter((item) => item.name), commonCategories: [...categoryMap.values()].filter((item) => item.name), commonAccounts: [...accountMap.values()].filter((item) => item.name) };
     }, onRehydrateStorage: () => (state, error) => { if (error || !state) return; const migratedTrips = migrateLegacyStorageIfNeeded(state.trips); const normalizedTrips = normalizeTrips(migratedTrips);
       const members = state.commonMembers ?? [];
       const accounts = state.commonAccounts?.length ? state.commonAccounts : Array.from(new Map(normalizedTrips.flatMap((trip) => trip.accounts).map((account) => [account.name.trim().toLowerCase(), { id: crypto.randomUUID(), name: account.name.trim() }])).values());
