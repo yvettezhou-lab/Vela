@@ -5,7 +5,11 @@ import './masterData.css';
 
 export const MasterData: React.FC = () => {
   const members = useVelaStore((state) => state.commonMembers);
+  const categories = useVelaStore((state) => state.commonCategories);
   const accounts = useVelaStore((state) => state.commonAccounts);
+  const addCategory = useVelaStore((state) => state.addCommonCategory);
+  const renameCategory = useVelaStore((state) => state.renameCommonCategory);
+  const deleteCategory = useVelaStore((state) => state.deleteCommonCategory);
   const addMember = useVelaStore((state) => state.addCommonMember);
   const renameMember = useVelaStore((state) => state.renameCommonMember);
   const deleteMember = useVelaStore((state) => state.deleteCommonMember);
@@ -14,27 +18,28 @@ export const MasterData: React.FC = () => {
   const addAccount = useVelaStore((state) => state.addCommonAccount);
   const renameAccount = useVelaStore((state) => state.renameCommonAccount);
   const deleteAccount = useVelaStore((state) => state.deleteCommonAccount);
+  const [categoryName, setCategoryName] = useState('');
   const [memberName, setMemberName] = useState('');
   const [accountName, setAccountName] = useState('');
-  const [adding, setAdding] = useState<'member' | 'account' | null>(null);
+  const [adding, setAdding] = useState<'category' | 'member' | 'account' | null>(null);
   const [error, setError] = useState('');
   const [personalListMemberId, setPersonalListMemberId] = useState<string | null>(null);
   const [personalItem, setPersonalItem] = useState('');
   const [openGroup, setOpenGroup] = useState<'member' | 'account' | null>(null);
 
-  const edit = (kind: 'member' | 'account', id: string, current: string) => {
-    const next = window.prompt(kind === 'member' ? 'Common person name' : 'Account name', current)?.trim();
+  const edit = (kind: 'category' | 'member' | 'account', id: string, current: string) => {
+    const next = window.prompt(kind === 'category' ? 'Category name' : kind === 'member' ? 'Common person name' : 'Account name', current)?.trim();
     if (!next || next === current) return;
-    try { kind === 'member' ? renameMember(id, next) : renameAccount(id, next); setError(''); }
+    try { kind === 'category' ? renameCategory(id, next) : kind === 'member' ? renameMember(id, next) : renameAccount(id, next); setError(''); }
     catch (caught) { setError(caught instanceof Error ? caught.message : 'Unable to save.'); }
   };
 
-  const add = (kind: 'member' | 'account') => {
-    const value = (kind === 'member' ? memberName : accountName).trim();
+  const add = (kind: 'category' | 'member' | 'account') => {
+    const value = (kind === 'category' ? categoryName : kind === 'member' ? memberName : accountName).trim();
     if (!value) return;
     try {
-      kind === 'member' ? addMember(value) : addAccount(value);
-      if (kind === 'member') setMemberName(''); else setAccountName('');
+      kind === 'category' ? addCategory(value) : kind === 'member' ? addMember(value) : addAccount(value);
+      if (kind === 'category') setCategoryName(''); else if (kind === 'member') setMemberName(''); else setAccountName('');
       setAdding(null);
       setError('');
     } catch (caught) { setError(caught instanceof Error ? caught.message : 'Unable to add.'); }
@@ -49,20 +54,21 @@ export const MasterData: React.FC = () => {
     setAdding(null);
     setMemberName('');
     setAccountName('');
+    setCategoryName('');
   };
 
-  const archive = (kind: 'member' | 'account', id: string, name: string) => {
+  const archive = (kind: 'category' | 'member' | 'account', id: string, name: string) => {
     if (!window.confirm(`Delete ${name}? Existing trips keep their own copy.`)) return;
     try {
-      kind === 'member' ? deleteMember(id) : deleteAccount(id);
+      kind === 'category' ? deleteCategory(id) : kind === 'member' ? deleteMember(id) : deleteAccount(id);
       setError('');
     } catch (caught) {
       setError(caught instanceof Error ? caught.message : 'Unable to delete.');
     }
   };
 
-  const list = (kind: 'member' | 'account') => {
-    const items = kind === 'member' ? members : accounts;
+  const list = (kind: 'category' | 'member' | 'account') => {
+    const items = kind === 'category' ? categories : kind === 'member' ? members : accounts;
     return items.filter((item) => !item.archived).map((item) => (
       <React.Fragment key={item.id}>
         <div className="master-data-row">
@@ -95,13 +101,13 @@ export const MasterData: React.FC = () => {
     ));
   };
 
-  const editor = (kind: 'member' | 'account') => {
+  const editor = (kind: 'category' | 'member' | 'account') => {
     if (adding !== kind) return null;
-    const value = kind === 'member' ? memberName : accountName;
-    const setValue = kind === 'member' ? setMemberName : setAccountName;
+    const value = kind === 'category' ? categoryName : kind === 'member' ? memberName : accountName;
+    const setValue = kind === 'category' ? setCategoryName : kind === 'member' ? setMemberName : setAccountName;
     return (
       <div className="master-data-editor">
-        <input autoFocus value={value} onChange={(e) => setValue(e.target.value)} placeholder={kind === 'member' ? 'Person name' : 'Account name'} onKeyDown={(e) => { if (e.key === 'Enter') add(kind); if (e.key === 'Escape') cancelAdd(); }} />
+        <input autoFocus value={value} onChange={(e) => setValue(e.target.value)} placeholder={kind === 'category' ? 'Category name' : kind === 'member' ? 'Person name' : 'Account name'} onKeyDown={(e) => { if (e.key === 'Enter') add(kind); if (e.key === 'Escape') cancelAdd(); }} />
         <button type="button" onClick={() => add(kind)}>Add</button>
         <button type="button" className="ghost" aria-label="Cancel" onClick={cancelAdd}><X size={14} /></button>
       </div>
@@ -124,6 +130,21 @@ export const MasterData: React.FC = () => {
         </div>
         {editor('member')}
         <div className="master-data-list">{list('member')}</div>
+      </>}
+    </section>
+
+    <section className={`master-data-group ${openGroup === 'category' ? 'open' : ''}`}>
+      <button type="button" className="master-data-group-toggle" aria-expanded={openGroup === 'category'} onClick={() => { setOpenGroup(openGroup === 'category' ? null : 'category'); setAdding(null); }}>
+        <span><span className="master-data-kicker">COMMON CATEGORIES</span><strong className="master-data-section-title">Categories</strong></span>
+        <span className="master-data-group-chevron" aria-hidden="true">⌄</span>
+      </button>
+      {openGroup === 'category' && <>
+        <div className="master-data-group-head master-data-group-actions">
+          <span />
+          <button type="button" className="master-data-add" onClick={() => startAdd('category')}><Plus size={14} /> Add</button>
+        </div>
+        {editor('category')}
+        <div className="master-data-list">{list('category')}</div>
       </>}
     </section>
 
