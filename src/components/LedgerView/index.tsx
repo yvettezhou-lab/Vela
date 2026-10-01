@@ -398,7 +398,8 @@ export const LedgerView: React.FC = () => {
                         </div>
                       </div>
 
-                      <div className="vela-ledger-entry-actions">
+                    </div>
+                    <div className="vela-ledger-entry-actions">
                         {entry.isPending && (
                           <button type="button" className="vela-ledger-add-cny" onClick={() => fillCny(entry)}>
                             Add CNY
@@ -410,7 +411,6 @@ export const LedgerView: React.FC = () => {
                         <button type="button" aria-label={`Delete ${entryLabel(entry)} entry`} title="Delete entry" className="vela-ledger-delete" onClick={() => { setSwipedEntryId(null); deleteLedgerEntry(selectedTrip.id, entry.id); }}>
                           <Trash2 size={18} strokeWidth={1.7} />
                         </button>
-                      </div>
                     </div>
                   </article>
                 ))}
