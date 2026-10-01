@@ -390,7 +390,7 @@ export const LedgerView: React.FC = () => {
               <button type="button" onClick={closeEditor} className="min-h-10 rounded-xl px-3 text-sm text-[#6f6659]">Cancel</button>
             </div>
 
-            <div className="mt-5 grid grid-cols-2 gap-3">
+            <div className="ledger-edit-actions">
               <label className="block">
                 <span className="mb-1.5 block text-xs uppercase tracking-[0.12em] text-[#857a6a]">Amount</span>
                 <input
@@ -441,7 +441,7 @@ export const LedgerView: React.FC = () => {
               />
             </label>
 
-            <div className="mt-3 grid grid-cols-2 gap-3">
+            <div className="ledger-edit-grid-2">
               <label className="block">
                 <span className="mb-1.5 block text-xs uppercase tracking-[0.12em] text-[#857a6a]">Who Paid?</span>
                 <select value={editDraft.payerId} onChange={(event) => setEditDraft((draft) => draft ? { ...draft, payerId: event.target.value } : draft)} className="w-full rounded-xl bg-white px-3 py-3 text-sm outline-none ring-1 ring-black/10">
@@ -473,7 +473,7 @@ export const LedgerView: React.FC = () => {
             )}
 
             {editDraft.entry.entryType === 'transport' && (
-              <div className="mt-3 grid grid-cols-2 gap-3">
+              <div className="ledger-edit-grid-2">
                 <label className="block">
                   <span className="mb-1.5 block text-xs uppercase tracking-[0.12em] text-[#857a6a]">Outbound</span>
                   <input type="date" value={editDraft.outboundDate} min={toDateInputValue(getTripStartDate(selectedTrip))} max={toDateInputValue(getTripEndDate(selectedTrip))} onChange={(event) => setEditDraft((draft) => draft ? { ...draft, outboundDate: event.target.value } : draft)} className="w-full rounded-xl bg-white px-3 py-3 text-sm outline-none ring-1 ring-black/10" />
@@ -488,7 +488,7 @@ export const LedgerView: React.FC = () => {
             )}
 
             {editDraft.entry.entryType === 'prepaid_multi_day' && (
-              <div className="mt-3 grid grid-cols-2 gap-3">
+              <div className="ledger-edit-grid-2">
                 <label className="block">
                   <span className="mb-1.5 block text-xs uppercase tracking-[0.12em] text-[#857a6a]">Payment Date</span>
                   <input type="date" value={editDraft.paymentDate} min={toDateInputValue(getTripStartDate(selectedTrip))} max={toDateInputValue(getTripEndDate(selectedTrip))} onChange={(event) => setEditDraft((draft) => draft ? { ...draft, paymentDate: event.target.value } : draft)} className="w-full rounded-xl bg-white px-3 py-3 text-sm outline-none ring-1 ring-black/10" />
@@ -512,7 +512,7 @@ export const LedgerView: React.FC = () => {
 
             {editError && <div className="mt-3 rounded-xl bg-red-50 px-3 py-2 text-xs leading-5 text-red-700">{editError}</div>}
 
-            <div className="mt-5 grid grid-cols-2 gap-3">
+            <div className="ledger-edit-actions">
               <button type="button" onClick={closeEditor} className="min-h-12 rounded-2xl border border-black/10 bg-white px-4 text-sm font-semibold">Cancel</button>
               <button type="button" onClick={saveEditor} className="min-h-12 rounded-2xl bg-slate-900 px-4 text-sm font-semibold text-white">Save changes</button>
             </div>
