@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useRef, useState } from 'react';
 import { Trash2, ChevronDown, Pencil } from 'lucide-react';
 import { AllocationMode, LedgerEntry } from '../../core/domain';
 import { findSegmentByDate, getLedgerEntryDate, getTripEndDate, getTripStartDate } from '../../core/travelSegment';
@@ -73,6 +73,9 @@ export const LedgerView: React.FC = () => {
   const [segmentFilterId, setSegmentFilterId] = useState('');
   const [editDraft, setEditDraft] = useState<LedgerEditDraft | null>(null);
   const [editError, setEditError] = useState('');
+  const [swipedEntryId, setSwipedEntryId] = useState<string | null>(null);
+  const touchStartX = useRef(0);
+  const touchStartY = useRef(0);
 
   const selectedTrip = trips.find((trip) => trip.id === selectedTripId) ?? currentTrip;
   const ledger = selectedTrip?.ledger ?? [];
@@ -368,45 +371,46 @@ export const LedgerView: React.FC = () => {
               </div>
               <div className="vela-ledger-list">
                 {group.entries.map((entry) => (
-                  <article className="vela-ledger-entry" key={entry.id}>
-                    <div className="vela-ledger-entry-main">
-                      <div className="vela-ledger-entry-title">
-                        <strong>{entryLabel(entry)}</strong>
-                        {entry.isPending && <span className="vela-ledger-badge pending">CNY Pending</span>}
-                        {!entry.includeInCost && <span className="vela-ledger-badge muted">Excluded</span>}
+                  <article
+                    className={`vela-ledger-entry ${swipedEntryId === entry.id ? 'swiped' : ''}`}
+                    key={entry.id}
+                    onTouchStart={(event) => {
+                      touchStartX.current = event.touches[0]?.clientX ?? 0;
+                      touchStartY.current = event.touches[0]?.clientY ?? 0;
+                    }}
+                    onTouchEnd={(event) => {
+                      const dx = (event.changedTouches[0]?.clientX ?? 0) - touchStartX.current;
+                      const dy = (event.changedTouches[0]?.clientY ?? 0) - touchStartY.current;
+                      if (Math.abs(dx) > 45 && Math.abs(dx) > Math.abs(dy)) {
+                        setSwipedEntryId(dx < 0 ? entry.id : null);
+                      }
+                    }}
+                  >
+                    <div className="vela-ledger-swipe-track">
+                      <div className="vela-ledger-entry-main">
+                        <div className="vela-ledger-entry-title">
+                          <strong>{entryLabel(entry)}</strong>
+                          <span className="vela-ledger-entry-inline">
+                            {membersById.get(entry.payerId) ?? entry.payerId} · {entry.originalCurrency} {entry.originalAmount.toFixed(2)} · CNY {entry.isPending ? 'Pending' : entry.cnyEquivalent.toFixed(2)}
+                          </span>
+                          {entry.isPending && <span className="vela-ledger-badge pending">Pending</span>}
+                          {!entry.includeInCost && <span className="vela-ledger-badge muted">Excluded</span>}
+                        </div>
                       </div>
-                      <span className="vela-ledger-entry-meta">
-                        {membersById.get(entry.payerId) ?? entry.payerId}
-                      </span>
-                      <span className="vela-ledger-entry-detail">
-                        {entry.originalCurrency} · {entry.originalAmount.toFixed(2)} · CNY {entry.isPending ? 'Pending' : entry.cnyEquivalent.toFixed(2)}
-                      </span>
-                    </div>
 
-                    <div className="vela-ledger-entry-actions">
-                      {entry.isPending && (
-                        <button type="button" className="vela-ledger-add-cny" onClick={() => fillCny(entry)}>
-                          Add CNY
+                      <div className="vela-ledger-entry-actions">
+                        {entry.isPending && (
+                          <button type="button" className="vela-ledger-add-cny" onClick={() => fillCny(entry)}>
+                            Add CNY
+                          </button>
+                        )}
+                        <button type="button" aria-label="Edit entry" title="Edit entry" className="vela-ledger-edit" onClick={() => { setSwipedEntryId(null); openEditor(entry); }}>
+                          <Pencil size={18} strokeWidth={1.7} />
                         </button>
-                      )}
-                      <button
-                        type="button"
-                        aria-label="Edit entry"
-                        title="Edit entry"
-                        className="vela-ledger-edit"
-                        onClick={() => openEditor(entry)}
-                      >
-                        <Pencil size={16} strokeWidth={1.7} />
-                      </button>
-                      <button
-                        type="button"
-                        aria-label={`Delete ${entryLabel(entry)} entry`}
-                        title="Delete entry"
-                        className="vela-ledger-delete"
-                        onClick={() => deleteLedgerEntry(selectedTrip.id, entry.id)}
-                      >
-                        <Trash2 size={16} strokeWidth={1.7} />
-                      </button>
+                        <button type="button" aria-label={`Delete ${entryLabel(entry)} entry`} title="Delete entry" className="vela-ledger-delete" onClick={() => { setSwipedEntryId(null); deleteLedgerEntry(selectedTrip.id, entry.id); }}>
+                          <Trash2 size={18} strokeWidth={1.7} />
+                        </button>
+                      </div>
                     </div>
                   </article>
                 ))}
