@@ -15,9 +15,13 @@ const TRANSPORT_LABELS = {
   long_distance_bus: '🚌 Long-distance Bus',
   ferry: '⛴️ Ferry',
 } as const;
-const entryLabel = (entry: LedgerEntry) => entry.entryType === 'transport'
-  ? TRANSPORT_LABELS[entry.transportMode]
-  : ENTRY_LABELS[entry.entryType];
+const entryLabel = (entry: LedgerEntry) => {
+  const note = entry.note?.trim();
+  if (note) return note;
+  return entry.entryType === 'transport'
+    ? TRANSPORT_LABELS[entry.transportMode]
+    : ENTRY_LABELS[entry.entryType];
+};
 
 const formatDate = (timestamp: number) => {
   const date = new Date(timestamp);
@@ -347,7 +351,6 @@ export const LedgerView: React.FC = () => {
                 <span className="vela-ledger-entry-detail">
                   {entry.originalCurrency} · {entry.originalAmount.toFixed(2)} · CNY {entry.isPending ? 'Pending' : entry.cnyEquivalent.toFixed(2)}
                 </span>
-                {entry.note && <span className="vela-ledger-entry-note">{entry.note}</span>}
               </div>
 
               <div className="vela-ledger-entry-actions">
