@@ -137,6 +137,8 @@ const DatePicker: React.FC<DatePickerProps> = ({ value, onChange, label, require
 
 export interface QuickEntryProps {
   onClose?: () => void;
+  editTripId?: string;
+  initialEntry?: LedgerEntry | null;
 }
 
 const FALLBACK_ACCOUNTS = [
@@ -145,9 +147,11 @@ const FALLBACK_ACCOUNTS = [
 ];
 const LEDGER_CURRENCIES = ['CNY', 'MYR', 'SGD', 'THB', 'IDR', 'PHP', 'JPY', 'KRW', 'USD', 'EUR', 'GBP', 'AUD', 'HKD', 'ARS', 'AFN', 'ALL', 'DZD', 'BRL', 'KHR', 'CAD', 'CZK', 'DKK', 'EGP', 'HUF', 'ISK', 'INR', 'ILS', 'JOD', 'KZT', 'LAK', 'MVR', 'MXN', 'MNT', 'MAD', 'MMK', 'NPR', 'NZD', 'NOK', 'PLN', 'RUB', 'SAR', 'ZAR', 'TWD', 'LKR', 'SEK', 'CHF', 'TRY', 'AED', 'VND'];
 
-const QuickEntryContent: React.FC<QuickEntryProps> = ({ onClose }) => {
+const QuickEntryContent: React.FC<QuickEntryProps> = ({ onClose, editTripId, initialEntry }) => {
   const trips = useVelaStore((state) => state.trips);
   const addLedgerEntry = useVelaStore((state) => state.addLedgerEntry);
+  const updateLedgerEntry = useVelaStore((state) => state.updateLedgerEntry);
+  const isEditing = Boolean(initialEntry);
   const eligibleTrips = trips.filter((trip) => trip && (trip.status === 'traveling' || trip.status === 'planning'));
   const currentTrip = eligibleTrips.find((trip) => trip.status === 'traveling') ?? null;
   const nearestTrips = eligibleTrips
@@ -200,7 +204,7 @@ const QuickEntryContent: React.FC<QuickEntryProps> = ({ onClose }) => {
 
   useEffect(() => {
     const defaultTripId = currentTrip?.id ?? nearestTrips[0]?.id ?? '';
-    setTargetTripId((current) => current && eligibleTrips.some((trip) => trip.id === current) ? current : defaultTripId);
+    setTargetTripId((current) => editTripId ?? (current && eligibleTrips.some((trip) => trip.id === current) ? current : defaultTripId));
   }, [trips]);
 
   const activeAccounts = targetTrip?.accounts?.filter((account) => account.archived !== true) ?? [];
@@ -225,6 +229,37 @@ const QuickEntryContent: React.FC<QuickEntryProps> = ({ onClose }) => {
   useEffect(() => () => {
     if (successTimerRef.current) clearTimeout(successTimerRef.current);
   }, []);
+
+  useEffect(() => {
+    if (!initialEntry || !targetTrip || targetTrip.id !== editTripId) return;
+    setEntryType(initialEntry.entryType);
+    setAmount(String(initialEntry.originalAmount));
+    setCurrency(initialEntry.originalCurrency);
+    setCnyEquivalent(String(initialEntry.cnyEquivalent));
+    setDeferCny(initialEntry.isPending);
+    setCategoryId(initialEntry.categoryId);
+    setIncludeInCost(initialEntry.includeInCost);
+    setAccountId(initialEntry.accountId);
+    setNote(initialEntry.note ?? '');
+    setPayerId(initialEntry.payerId);
+    setAllocationMode(initialEntry.allocationMode);
+    setSelectedParticipants(new Set(initialEntry.allocations.map((allocation) => allocation.memberId)));
+    setCustomPercentages(Object.fromEntries(initialEntry.allocations.map((allocation) => [allocation.memberId, allocation.percentage ?? 0])));
+    if (initialEntry.entryType === 'standard' || initialEntry.entryType === 'prepaid_multi_day') {
+      setPaymentDate(toDateValue(new Date(initialEntry.paymentDate)));
+    }
+    if (initialEntry.entryType === 'prepaid_multi_day') {
+      setUsageStart(toDateValue(new Date(initialEntry.usageStart)));
+      setUsageEnd(toDateValue(new Date(initialEntry.usageEnd)));
+    }
+    if (initialEntry.entryType === 'transport') {
+      setTransportMode(initialEntry.transportMode);
+      setJourneyType(initialEntry.journeyType);
+      setPaymentDate(toDateValue(new Date(initialEntry.paymentDate)));
+      setOutboundDate(toDateValue(new Date(initialEntry.outboundDate)));
+      if (initialEntry.journeyType === 'round_trip') setReturnDate(toDateValue(new Date(initialEntry.returnDate)));
+    }
+  }, [initialEntry, targetTrip, editTripId]);
 
   useEffect(() => {
     if (!targetTrip) return;
@@ -359,6 +394,12 @@ const QuickEntryContent: React.FC<QuickEntryProps> = ({ onClose }) => {
   }, [error]);
 
   const saveEntry = (tripId: string, entry: LedgerEntry, segmentId?: string) => {
+    if (isEditing) {
+      updateLedgerEntry(tripId, entry.id, segmentId ? { ...entry, segmentId } : entry);
+      setError(null);
+      onClose?.();
+      return;
+    }
     addLedgerEntry(tripId, segmentId ? { ...entry, segmentId } : entry);
     setAmount('');
     setCnyEquivalent('');
@@ -384,7 +425,7 @@ const QuickEntryContent: React.FC<QuickEntryProps> = ({ onClose }) => {
       const allocations = buildAllocations(cnyTotal);
       const now = Date.now();
       const baseData = {
-        id: `entry_${generateId()}`,
+        id: initialEntry?.id ?? `entry_${generateId()}`,
         categoryId: entryType === 'transport' ? TRANSPORT_CATEGORY_ID : categoryId,
         originalAmount,
         originalCurrency: currency.trim().toUpperCase(),
@@ -397,7 +438,7 @@ const QuickEntryContent: React.FC<QuickEntryProps> = ({ onClose }) => {
         ...(note.trim() ? { note: note.trim() } : {}),
         allocationMode,
         allocations,
-        createdAt: now,
+        createdAt: initialEntry?.createdAt ?? now,
         updatedAt: now,
       };
 
@@ -482,7 +523,7 @@ const QuickEntryContent: React.FC<QuickEntryProps> = ({ onClose }) => {
       <header className="flex shrink-0 items-start justify-between px-5 pb-4 pt-[max(18px,env(safe-area-inset-top))]">
         <div>
           <p className="mb-1 text-[11px] uppercase tracking-[0.2em] text-[#9a7440]">Vela · Record</p>
-          <h2 className="text-[34px] font-normal leading-none">Quick Entry</h2>
+          <h2 className="text-[34px] font-normal leading-none">{isEditing ? 'Edit Entry' : 'Quick Entry'}</h2>
         </div>
         {onClose && <button type="button" onClick={onClose} aria-label="Close Quick Entry" className="vela-quick-close grid min-h-12 min-w-12 place-items-center rounded-full text-[#17243a]"><X size={23} strokeWidth={1.7} /></button>}
       </header>
@@ -721,7 +762,7 @@ const QuickEntryContent: React.FC<QuickEntryProps> = ({ onClose }) => {
 
         <div className="quick-entry-submit-wrap">
           {error && <div className="quick-entry-submit-error" role="alert" aria-live="assertive">{error}</div>}
-          <button type="submit" className="mt-3 min-h-12 w-full rounded-2xl bg-slate-900 px-5 text-base font-semibold text-white shadow-md shadow-slate-900/20 transition-all duration-200 active:scale-[0.98] active:opacity-80">Save Entry</button>
+          <button type="submit" className="mt-3 min-h-12 w-full rounded-2xl bg-slate-900 px-5 text-base font-semibold text-white shadow-md shadow-slate-900/20 transition-all duration-200 active:scale-[0.98] active:opacity-80">{isEditing ? 'Save Changes' : 'Save Entry'}</button>
         </div>
         {success && typeof document !== 'undefined' && createPortal(
           <div className="quick-entry-success-backdrop" role="presentation">
