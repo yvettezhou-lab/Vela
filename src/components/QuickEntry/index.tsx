@@ -263,6 +263,7 @@ const QuickEntryContent: React.FC<QuickEntryProps> = ({ onClose, editTripId, ini
 
   useEffect(() => {
     if (!targetTrip) return;
+    if (initialEntry && targetTrip.id === editTripId) return;
     setCategoryId((current) => {
       if (current && categories.some((category) => category.id === current)) return current;
       const nextCategoryId = categories[0]?.id ?? '';
