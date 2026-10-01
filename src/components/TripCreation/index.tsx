@@ -400,11 +400,7 @@ export const TripCreation: React.FC<Props> = ({ onClose, onCreated, onUpdated, t
       {editing && <div className="trip-title-cover-row">
         <label className="trip-title-field-inline"><span>TRIP TITLE</span><input autoFocus value={title} onChange={(e) => { setTitleEdited(true); setTitle(e.target.value); }} placeholder={generatedTitle || 'Trip title'} /><small className="trip-title-hint">{titleEdited ? 'Custom title' : 'Auto-generated from dates & main destination'}</small></label>
         <div className="trip-cover-inline">
-          <span className="trip-field-label">COVER</span>
-          <div className="trip-cover-inline-actions">
-            <label className="trip-cover-inline-action">{coverFile || persistedCover ? 'Change cover' : 'Add cover'}<input type="file" accept="image/*" onChange={(e) => selectCover(e.target.files?.[0])} /></label>
-            {(coverFile || persistedCover) && <button type="button" className="trip-cover-clear" onClick={clearSelectedCover}>Remove</button>}
-          </div>
+          <label className="trip-cover-inline-action">{coverFile || persistedCover ? 'Edit cover' : 'Add cover'}<input type="file" accept="image/*" onChange={(e) => selectCover(e.target.files?.[0])} /></label>
         </div>
       </div>}
       {(step === 1 || editing) && <>
