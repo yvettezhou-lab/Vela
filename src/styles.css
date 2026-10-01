@@ -306,26 +306,22 @@
     font-size: 13px !important;
   }
     .vela-quick-fullscreen .quick-entry-payment-accounts {
-    display: grid !important;
-    grid-template-columns: repeat(3, 44px) !important;
-    grid-auto-columns: 44px !important;
-    justify-items: start !important;
+    display: flex !important;
     align-items: stretch !important;
     gap: 4px !important;
-    width: 136px !important;
-    min-width: 136px !important;
-    max-width: 136px !important;
+    width: fit-content !important;
+    min-width: 0 !important;
+    max-width: 100% !important;
     overflow: visible !important;
   }
   .vela-quick-fullscreen .quick-entry-payment-accounts > button {
     box-sizing: border-box !important;
-    width: 44px !important;
-    min-width: 44px !important;
-    max-width: 44px !important;
-    flex: none !important;
-    justify-self: start !important;
-    padding-left: 2px !important;
-    padding-right: 2px !important;
+    width: 35px !important;
+    min-width: 35px !important;
+    max-width: 35px !important;
+    flex: 0 0 35px !important;
+    padding-left: 1px !important;
+    padding-right: 1px !important;
     overflow-wrap: anywhere !important;
   }
 .vela-quick-fullscreen form > .mt-6.grid {
