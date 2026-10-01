@@ -609,7 +609,7 @@ const QuickEntryContent: React.FC<QuickEntryProps> = ({ onClose }) => {
                 type="button"
                 onClick={() => setAccountId(account.id)}
                 aria-pressed={accountId === account.id}
-                style={{ boxSizing: 'border-box', flex: '0 0 44px', width: '44px', minWidth: '44px', maxWidth: '44px', paddingLeft: '2px', paddingRight: '2px', overflow: 'hidden', whiteSpace: 'normal' }}
+                style={{ boxSizing: 'border-box', flex: '0 0 35px', width: '35px', minWidth: '35px', maxWidth: '35px', paddingLeft: '1px', paddingRight: '1px', overflow: 'hidden', whiteSpace: 'normal' }}
                 className={`min-h-10 rounded-xl border text-[10px] leading-tight font-medium break-words transition ${accountId === account.id ? 'border-[#17243a] bg-[#17243a] text-[#fffdf8] shadow-md' : 'border-black/5 bg-[#fbf7ee] text-[#17243a] shadow-sm hover:bg-white'}`}
               >{account.name}</button>)}
             </div>
