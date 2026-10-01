@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Trash2, ChevronDown, Pencil } from 'lucide-react';
-import { LedgerEntry } from '../../core/domain';
+import { AllocationMode, LedgerEntry } from '../../core/domain';
 import { findSegmentByDate, getLedgerEntryDate, getTripEndDate, getTripStartDate } from '../../core/travelSegment';
 import { useVelaStore } from '../../store/useVelaStore';
 
@@ -53,6 +53,9 @@ interface LedgerEditDraft {
   accountId: string;
   categoryId: string;
   note: string;
+  allocationMode: AllocationMode;
+  participantIds: string[];
+  percentages: Record<string, number>;
   paymentDate: string;
   outboundDate: string;
   returnDate: string;
@@ -105,6 +108,9 @@ export const LedgerView: React.FC = () => {
       accountId: entry.accountId,
       categoryId: entry.categoryId,
       note: entry.note ?? '',
+      allocationMode: entry.allocationMode,
+      participantIds: entry.allocations.map((allocation) => allocation.memberId),
+      percentages: Object.fromEntries(entry.allocations.map((allocation) => [allocation.memberId, allocation.percentage ?? 0])),
       paymentDate: 'paymentDate' in entry ? toDateInputValue(entry.paymentDate) : '',
       outboundDate: 'outboundDate' in entry ? toDateInputValue(entry.outboundDate) : '',
       returnDate: 'returnDate' in entry ? toDateInputValue(entry.returnDate) : '',
@@ -190,29 +196,54 @@ export const LedgerView: React.FC = () => {
       return;
     }
 
-    const selected = entry.allocations.length
-      ? entry.allocations
-      : [{ memberId: entry.payerId, amount: 0 }];
-    let allocations = selected;
-    if (entry.allocationMode === 'custom_percentage' || entry.allocationMode === 'preset_percentage') {
-      let used = 0;
-      allocations = selected.map((allocation, index) => {
-        const percentage = allocation.percentage ?? 0;
-        const value = index === selected.length - 1
-          ? Number((cnyEquivalent - used).toFixed(2))
-          : Number((cnyEquivalent * percentage / 100).toFixed(2));
-        used += value;
-        return { ...allocation, amount: value };
+    const participantIds = editDraft.allocationMode === 'preset_percentage'
+      ? Object.entries(selectedTrip.allocationRules?.percentages ?? {})
+          .filter(([memberId, percentage]) => selectedTrip.members.some((member) => member.id === memberId) && Number(percentage) > 0)
+          .map(([memberId]) => memberId)
+      : editDraft.participantIds.filter((memberId) => selectedTrip.members.some((member) => member.id === memberId));
+    if (!participantIds.length) {
+      setEditError('Please select at least one participant.');
+      return;
+    }
+
+    let allocations: LedgerEntry['allocations'] = [];
+    if (editDraft.allocationMode === 'preset_percentage') {
+      const percentages = selectedTrip.allocationRules?.percentages ?? {};
+      const total = participantIds.reduce((sum, memberId) => sum + Number(percentages[memberId] ?? 0), 0);
+      if (Math.abs(total - 100) > 0.01) {
+        setEditError('This Journey preset allocation must total 100%.');
+        return;
+      }
+      allocations = participantIds.map((memberId) => ({ memberId, amount: 0, percentage: Number(percentages[memberId] ?? 0) }));
+    } else if (editDraft.allocationMode === 'custom_percentage') {
+      const percentages = Object.fromEntries(participantIds.map((memberId) => [memberId, Number(editDraft.percentages[memberId] ?? 0)]));
+      const total = participantIds.reduce((sum, memberId) => sum + Number(percentages[memberId] ?? 0), 0);
+      if (Math.abs(total - 100) > 0.01) {
+        setEditError('Custom percentages must total 100%.');
+        return;
+      }
+      allocations = participantIds.map((memberId) => ({ memberId, amount: 0, percentage: Number(percentages[memberId] ?? 0) }));
+    } else {
+      allocations = participantIds.map((memberId) => ({ memberId, amount: 0 }));
+    }
+
+    const totalCents = Math.round(cnyEquivalent * 100);
+    const baseCents = allocations.length ? Math.floor(totalCents / allocations.length) : 0;
+    const remainderCents = allocations.length ? totalCents - baseCents * allocations.length : 0;
+    if (editDraft.allocationMode === 'equal') {
+      allocations.forEach((allocation, index) => {
+        allocation.amount = (baseCents + (index < remainderCents ? 1 : 0)) / 100;
       });
     } else {
-      const count = selected.length;
-      const totalCents = Math.round(cnyEquivalent * 100);
-      const baseCents = count ? Math.floor(totalCents / count) : 0;
-      const remainderCents = count ? totalCents - baseCents * count : 0;
-      allocations = selected.map((allocation, index) => ({
-        ...allocation,
-        amount: (baseCents + (index < remainderCents ? 1 : 0)) / 100,
-      }));
+      let usedCents = 0;
+      allocations.forEach((allocation, index) => {
+        const percentage = allocation.percentage ?? 0;
+        const amountCents = index === allocations.length - 1
+          ? totalCents - usedCents
+          : Math.floor(totalCents * percentage / 100);
+        allocation.amount = amountCents / 100;
+        usedCents += amountCents;
+      });
     }
 
     try {
@@ -228,6 +259,7 @@ export const LedgerView: React.FC = () => {
         accountId: editDraft.accountId,
         categoryId: editDraft.categoryId,
         allocations,
+        allocationMode: editDraft.allocationMode,
         ...(editDraft.note.trim() ? { note: editDraft.note.trim() } : { note: undefined }),
         updatedAt: Date.now(),
       });
