@@ -541,6 +541,100 @@ export const LedgerView: React.FC = () => {
               </div>
             )}
 
+            <div className="mt-4">
+              <span className="mb-2 block text-xs uppercase tracking-[0.12em] text-[#857a6a]">Participants &amp; Split</span>
+              <div className="grid grid-cols-3 gap-1 rounded-xl bg-[#eee5d5] p-1">
+                {([
+                  ['equal', 'Equal Split'],
+                  ['preset_percentage', 'Preset'],
+                  ['custom_percentage', 'Custom'],
+                ] as const).map(([value, label]) => {
+                  const disabled = value === 'preset_percentage' && !selectedTrip.allocationRules?.percentages;
+                  return (
+                    <button
+                      key={value}
+                      type="button"
+                      disabled={disabled}
+                      onClick={() => setEditDraft((draft) => draft ? { ...draft, allocationMode: value, percentages: value === 'custom_percentage' ? draft.percentages : draft.percentages } : draft)}
+                      className={`min-h-9 rounded-lg px-1 text-[11px] font-medium ${editDraft.allocationMode === value ? 'bg-white text-[#17243a] shadow-sm' : 'text-[#746b5e]'} ${disabled ? 'opacity-35' : ''}`}
+                    >
+                      {label}
+                    </button>
+                  );
+                })}
+              </div>
+
+              {editDraft.allocationMode === 'preset_percentage' && selectedTrip.allocationRules?.percentages && (
+                <div className="mt-2 rounded-xl bg-[#fbf7ee] px-3 py-2 text-[11px] leading-4 text-[#6f6659]">
+                  {Object.entries(selectedTrip.allocationRules.percentages)
+                    .filter(([id, percentage]) => selectedTrip.members.some((member) => member.id === id) && Number(percentage) > 0)
+                    .map(([id, percentage]) => `${selectedTrip.members.find((member) => member.id === id)?.name ?? id} ${percentage}%`)
+                    .join(' · ')}
+                </div>
+              )}
+
+              {editDraft.allocationMode !== 'preset_percentage' && (
+                <div className="mt-2 grid grid-cols-3 gap-1.5">
+                  {selectedTrip.members.filter((member) => member.archived !== true).map((member) => {
+                    const selected = editDraft.participantIds.includes(member.id);
+                    return (
+                      <button
+                        key={member.id}
+                        type="button"
+                        onClick={() => setEditDraft((draft) => {
+                          if (!draft) return draft;
+                          const participantIds = selected
+                            ? draft.participantIds.filter((id) => id !== member.id)
+                            : [...draft.participantIds, member.id];
+                          return {
+                            ...draft,
+                            participantIds,
+                            percentages: participantIds.includes(member.id)
+                              ? { ...draft.percentages, [member.id]: draft.percentages[member.id] ?? 0 }
+                              : draft.percentages,
+                          };
+                        })}
+                        className={`min-h-9 rounded-xl border px-1 text-[11px] font-medium ${selected ? 'border-[#17243a] bg-[#17243a] text-white' : 'border-black/5 bg-[#fbf7ee] text-[#17243a]'}`}
+                      >
+                        {member.name}
+                        {editDraft.allocationMode === 'custom_percentage' && selected && (
+                          <span className="ml-1 opacity-80">{editDraft.percentages[member.id] ?? 0}%</span>
+                        )}
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
+
+              {editDraft.allocationMode === 'custom_percentage' && (
+                <div className="mt-2 grid grid-cols-2 gap-2">
+                  {editDraft.participantIds.map((memberId) => {
+                    const member = selectedTrip.members.find((item) => item.id === memberId);
+                    if (!member) return null;
+                    return (
+                      <label key={memberId} className="flex min-h-11 items-center justify-between rounded-xl bg-[#fbf7ee] px-3 shadow-[inset_0_0_0_1px_rgba(80,64,42,.10)]">
+                        <span className="text-xs">{member.name}</span>
+                        <span className="flex items-center gap-1">
+                          <input
+                            type="number"
+                            inputMode="decimal"
+                            min="0"
+                            max="100"
+                            step="0.01"
+                            value={editDraft.percentages[memberId] ?? 0}
+                            onChange={(event) => setEditDraft((draft) => draft ? { ...draft, percentages: { ...draft.percentages, [memberId]: Number(event.target.value) || 0 } } : draft)}
+                            className="w-14 bg-transparent text-right text-sm outline-none"
+                            aria-label={`${member.name} percentage`}
+                          />
+                          <span className="text-xs text-[#857a6a]">%</span>
+                        </span>
+                      </label>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+
             <label className="mt-3 block">
               <span className="mb-1.5 block text-xs uppercase tracking-[0.12em] text-[#857a6a]">Note</span>
               <textarea value={editDraft.note} onChange={(event) => setEditDraft((draft) => draft ? { ...draft, note: event.target.value } : draft)} rows={3} maxLength={200} className="w-full resize-none rounded-xl bg-white px-3 py-3 text-sm outline-none ring-1 ring-black/10" />
