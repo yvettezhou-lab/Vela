@@ -600,17 +600,13 @@ const QuickEntryContent: React.FC<QuickEntryProps> = ({ onClose }) => {
           )}
           <div className={`min-w-0 w-full ${entryType === 'transport' ? 'col-span-2' : ''}`} style={entryType === 'transport' ? undefined : { gridColumn: '2' }}>
             <span className="mb-2 block text-xs uppercase tracking-[0.14em] text-[#857a6a]">Payment Account</span>
-            <div
-              className="quick-entry-payment-accounts flex min-w-0 gap-1"
-              style={{ width: 'fit-content', minWidth: 0, maxWidth: '100%', overflow: 'visible' }}
-            >
+            <div className="quick-entry-payment-accounts">
               {accounts.map((account) => <button
                 key={account.id}
                 type="button"
                 onClick={() => setAccountId(account.id)}
                 aria-pressed={accountId === account.id}
-                style={{ boxSizing: 'border-box', flex: '0 0 35px', width: '35px', minWidth: '35px', maxWidth: '35px', paddingLeft: '1px', paddingRight: '1px', overflow: 'hidden', whiteSpace: 'normal' }}
-                className={`min-h-10 rounded-xl border text-[10px] leading-tight font-medium break-words transition ${accountId === account.id ? 'border-[#17243a] bg-[#17243a] text-[#fffdf8] shadow-md' : 'border-black/5 bg-[#fbf7ee] text-[#17243a] shadow-sm hover:bg-white'}`}
+                className={`quick-entry-payment-account min-h-10 rounded-xl border text-[10px] leading-tight font-medium break-words transition ${accountId === account.id ? 'border-[#17243a] bg-[#17243a] text-[#fffdf8] shadow-md' : 'border-black/5 bg-[#fbf7ee] text-[#17243a] shadow-sm hover:bg-white'}`}
               >{account.name}</button>)}
             </div>
           </div>
