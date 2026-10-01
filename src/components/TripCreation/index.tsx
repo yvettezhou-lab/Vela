@@ -397,7 +397,16 @@ export const TripCreation: React.FC<Props> = ({ onClose, onCreated, onUpdated, t
       <button type="button" onClick={onClose} aria-label="Close"><X size={19} /></button>
     </div>
     <form onSubmit={submit}>
-      {editing && <label><span>TRIP TITLE</span><input autoFocus value={title} onChange={(e) => { setTitleEdited(true); setTitle(e.target.value); }} placeholder={generatedTitle || 'Trip title'} /><small className="trip-title-hint">{titleEdited ? 'Custom title' : 'Auto-generated from dates & main destination'}</small></label>}
+      {editing && <div className="trip-title-cover-row">
+        <label className="trip-title-field-inline"><span>TRIP TITLE</span><input autoFocus value={title} onChange={(e) => { setTitleEdited(true); setTitle(e.target.value); }} placeholder={generatedTitle || 'Trip title'} /><small className="trip-title-hint">{titleEdited ? 'Custom title' : 'Auto-generated from dates & main destination'}</small></label>
+        <div className="trip-cover-inline">
+          <span className="trip-field-label">COVER</span>
+          <div className="trip-cover-inline-actions">
+            <label className="trip-cover-inline-action">{coverFile || persistedCover ? 'Change cover' : 'Add cover'}<input type="file" accept="image/*" onChange={(e) => selectCover(e.target.files?.[0])} /></label>
+            {(coverFile || persistedCover) && <button type="button" className="trip-cover-clear" onClick={clearSelectedCover}>Remove</button>}
+          </div>
+        </div>
+      </div>}
       {(step === 1 || editing) && <>
         {!editing && availableSourceTrips.length > 0 && <label className="trip-clone-settings"><span>PAST JOURNEY</span><div className="trip-select-wrap"><select defaultValue="" onChange={(e) => { const source = availableSourceTrips.find((item) => item.id === e.target.value); if (source) cloneSettingsFrom(source); }}><option value="">Optional · clone people & rules…</option>{availableSourceTrips.map((source) => <option key={source.id} value={source.id}>{source.title}</option>)}</select><ChevronDown size={14} /></div></label>}
 
@@ -436,14 +445,6 @@ export const TripCreation: React.FC<Props> = ({ onClose, onCreated, onUpdated, t
       </div>
 
       {cropFile && <ImageCropper file={cropFile} onCancel={() => setCropFile(null)} onConfirm={confirmCroppedCover} />}
-
-      <div className="trip-cover-field trip-cover-field-compact">
-        <span className="trip-field-label">COVER</span>
-        <div className="trip-cover-compact-row">
-          <label className="trip-cover-compact-action">{coverFile || persistedCover ? 'Change cover' : 'Add cover'}<input type="file" accept="image/*" onChange={(e) => selectCover(e.target.files?.[0])} /></label>
-          {(coverFile || persistedCover) && <button type="button" className="trip-cover-clear" onClick={clearSelectedCover}>Remove</button>}
-        </div>
-      </div>
 
       {!editing && <button type="button" className="trip-creation-submit trip-next-button" onClick={goToRules}>Next <ChevronDown size={15} /></button>}
       </>}
