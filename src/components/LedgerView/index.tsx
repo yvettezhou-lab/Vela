@@ -91,6 +91,7 @@ export const LedgerView: React.FC = () => {
   }
 
   const membersById = new Map(selectedTrip.members.map((member) => [member.id, member.name]));
+  const categoriesById = new Map(selectedTrip.categories.map((category) => [category.id, category.name]));
   const entries = [...ledger].sort((a, b) => getLedgerEntryDate(b) - getLedgerEntryDate(a));
   const filteredByStatus = filter === 'pending' ? entries.filter((entry) => entry.isPending) : entries;
   const filtered = segmentFilterId
@@ -381,7 +382,7 @@ export const LedgerView: React.FC = () => {
                         </div>
                         <div className="vela-ledger-entry-row vela-ledger-entry-secondary">
                           <span>
-                            {membersById.get(entry.payerId) ?? entry.payerId} · {entry.entryType === 'transport' ? 'Transport' : entry.categoryId}
+                            {membersById.get(entry.payerId) ?? entry.payerId} · {entry.entryType === 'transport' ? 'Transport' : (categoriesById.get(entry.categoryId) ?? entry.categoryId)}
                             {entry.isPending && <span className="vela-ledger-badge pending">Pending</span>}
                             {!entry.includeInCost && <span className="vela-ledger-badge muted">Excluded</span>}
                           </span>
