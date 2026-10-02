@@ -371,13 +371,24 @@ export const LedgerView: React.FC = () => {
                 {group.entries.map((entry) => (
                   <article className="vela-ledger-entry" key={entry.id} role="button" tabIndex={0} onClick={() => setDetailEntry(entry)} onKeyDown={(event) => { if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); setDetailEntry(entry); } }}>
                     <div className="vela-ledger-entry-main">
-                      <div className="vela-ledger-entry-title">
-                        <strong>{entryLabel(entry)}</strong>
-                        <span className="vela-ledger-entry-inline">
-                          {membersById.get(entry.payerId) ?? entry.payerId} · {entry.originalCurrency === 'CNY' ? `CNY ${entry.originalAmount.toFixed(2)}` : `${entry.originalCurrency} ${entry.originalAmount.toFixed(2)} · CNY ${entry.isPending ? 'Pending' : entry.cnyEquivalent.toFixed(2)}`}
-                        </span>
-                        {entry.isPending && <span className="vela-ledger-badge pending">Pending</span>}
-                        {!entry.includeInCost && <span className="vela-ledger-badge muted">Excluded</span>}
+                      <div className="vela-ledger-entry-content">
+                        <div className="vela-ledger-entry-row">
+                          <strong>{entryLabel(entry)}</strong>
+                          <span className="vela-ledger-amount-primary">
+                            {entry.originalCurrency !== 'CNY' && <small>{entry.originalCurrency}</small>}
+                            {entry.originalAmount.toFixed(2)}
+                          </span>
+                        </div>
+                        <div className="vela-ledger-entry-row vela-ledger-entry-secondary">
+                          <span>
+                            {membersById.get(entry.payerId) ?? entry.payerId} · {entry.entryType === 'transport' ? 'Transport' : entry.categoryId}
+                            {entry.isPending && <span className="vela-ledger-badge pending">Pending</span>}
+                            {!entry.includeInCost && <span className="vela-ledger-badge muted">Excluded</span>}
+                          </span>
+                          {entry.originalCurrency !== 'CNY' && (
+                            <span className="vela-ledger-amount-cny">≈ CNY {entry.isPending ? 'Pending' : entry.cnyEquivalent.toFixed(2)}</span>
+                          )}
+                        </div>
                       </div>
                     </div>
                     <div className="vela-ledger-entry-actions">
