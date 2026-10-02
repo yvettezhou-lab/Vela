@@ -9,7 +9,7 @@ import './imageCropper.css';
 import { buildAutoTripTitle } from '../../utils/tripTitle';
 import './styles.css';
 
-type Props = { onClose: () => void; onCreated?: () => void; onUpdated?: () => void; trip?: Trip | null };
+type Props = { onClose: () => void; onCreated?: () => void; onUpdated?: () => void; onEndJourney?: () => void; onDeleteJourney?: () => void; trip?: Trip | null };
 
 type DraftDestination = Destination;
 type DraftSegment = {
@@ -547,7 +547,13 @@ export const TripCreation: React.FC<Props> = ({ onClose, onCreated, onUpdated, t
         </section>
       </>}
       {!editing && step === 2 && <div className="trip-creation-step-actions"><button type="button" className="trip-secondary-action" onClick={() => { setError(''); setStep(1); }}>Back</button><button className="trip-creation-submit" type="submit" disabled={isSaving}>{isSaving ? 'Saving…' : 'Create Journey'} <ChevronDown size={15} /></button></div>}
-      {editing && <button className="trip-creation-submit" type="submit" disabled={isSaving}>{isSaving ? 'Saving…' : 'Save Journey'} <ChevronDown size={15} /></button>}
+      {editing && <>
+  <button className="trip-creation-submit" type="submit" disabled={isSaving}>{isSaving ? 'Saving…' : 'Save Journey'} <ChevronDown size={15} /></button>
+  {(onEndJourney || onDeleteJourney) && <div className="trip-edit-danger-actions">
+    {onEndJourney && <button type="button" className="trip-edit-end-action" onClick={onEndJourney}>End Journey</button>}
+    {onDeleteJourney && <button type="button" className="trip-edit-delete-action" onClick={onDeleteJourney}>Delete Journey</button>}
+  </div>}
+</>}
       {error && <p className="trip-creation-error" role="alert">{error}</p>}
     </form>
   </div>;
