@@ -630,14 +630,16 @@ const QuickEntryContent: React.FC<QuickEntryProps> = ({ onClose, editTripId, ini
           <label className="block">
             <span className="mb-2 block text-xs uppercase tracking-[0.14em] text-[#857a6a]">Amount</span>
             <div className="flex rounded-xl bg-[#fbf7ee] shadow-[inset_0_0_0_1px_rgba(80,64,42,.10)]">
-              <select
-                value={currency}
-                onChange={(event) => setCurrency(event.currentTarget.value)}
-                aria-label="Currency"
-                className="w-[86px] appearance-none rounded-l-xl bg-transparent px-3 text-base font-medium text-[#17243a] outline-none"
-              >
-                {LEDGER_CURRENCIES.map((item) => <option key={item} value={item}>{item}</option>)}
-              </select>
+              {currency.toUpperCase() === 'CNY' && selectedTrip?.primaryCurrency === 'CNY' ? null : (
+                <select
+                  value={currency}
+                  onChange={(event) => setCurrency(event.currentTarget.value)}
+                  aria-label="Currency"
+                  className="w-[86px] appearance-none rounded-l-xl bg-transparent px-3 text-base font-medium text-[#17243a] outline-none"
+                >
+                  {LEDGER_CURRENCIES.map((item) => <option key={item} value={item}>{item}</option>)}
+                </select>
+              )}
               <input
                 type="text"
                 inputMode="decimal"
