@@ -377,7 +377,7 @@ export const TripCreation: React.FC<Props> = ({ onClose, onCreated, onUpdated, o
       const payload: Trip = {
         id: trip?.id ?? crypto.randomUUID(), title: cleanTitle, titleEdited, segments: normalizedSegments, status: trip?.status ?? 'planning', allocationRules: normalizedAllocationRules,
         coverImage: storedCoverKey ?? trip?.coverImage, members: members.filter((member) => member.archived !== true),
-        accounts, categories, ledger: trip?.ledger ?? [], createdAt: trip?.createdAt ?? now, updatedAt: now,
+        accounts, categories, ledger: trip?.ledger ?? [], lists: trip?.lists ?? [], createdAt: trip?.createdAt ?? now, updatedAt: now,
       };
       if (editing && trip) {
         useVelaStore.getState().updateTrip(trip.id, payload);
