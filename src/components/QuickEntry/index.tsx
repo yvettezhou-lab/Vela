@@ -151,6 +151,7 @@ const QuickEntryContent: React.FC<QuickEntryProps> = ({ onClose, editTripId, ini
   const trips = useVelaStore((state) => state.trips);
   const addLedgerEntry = useVelaStore((state) => state.addLedgerEntry);
   const updateLedgerEntry = useVelaStore((state) => state.updateLedgerEntry);
+  const deleteLedgerEntry = useVelaStore((state) => state.deleteLedgerEntry);
   const commonCategories = useVelaStore((state) => state.commonCategories);
   const isEditing = Boolean(initialEntry);
   const eligibleTrips = trips.filter((trip) => trip && (trip.status === 'traveling' || trip.status === 'planning'));
@@ -422,6 +423,14 @@ const QuickEntryContent: React.FC<QuickEntryProps> = ({ onClose, editTripId, ini
     setSuccess(true);
     if (successTimerRef.current) clearTimeout(successTimerRef.current);
     successTimerRef.current = setTimeout(() => setSuccess(false), 1800);
+  };
+
+  const handleDeleteEntry = () => {
+    if (!initialEntry || !targetTrip) return;
+    const confirmed = window.confirm('Delete this ledger entry?');
+    if (!confirmed) return;
+    deleteLedgerEntry(targetTrip.id, initialEntry.id);
+    onClose?.();
   };
 
   const handleSubmit = (event: React.FormEvent) => {
@@ -776,6 +785,11 @@ const QuickEntryContent: React.FC<QuickEntryProps> = ({ onClose, editTripId, ini
         <div className="quick-entry-submit-wrap">
           {error && <div className="quick-entry-submit-error" role="alert" aria-live="assertive">{error}</div>}
           <button type="submit" className="mt-3 min-h-12 w-full rounded-2xl bg-slate-900 px-5 text-base font-semibold text-white shadow-md shadow-slate-900/20 transition-all duration-200 active:scale-[0.98] active:opacity-80">{isEditing ? 'Save Changes' : 'Save Entry'}</button>
+          {isEditing && (
+            <button type="button" onClick={handleDeleteEntry} className="mt-2 min-h-11 w-full rounded-2xl border border-red-200 bg-red-50 px-5 text-sm font-semibold text-red-700 transition-all duration-200 active:scale-[0.98] active:opacity-80">
+              Delete Entry
+            </button>
+          )}
         </div>
         {success && typeof document !== 'undefined' && createPortal(
           <div className="quick-entry-success-backdrop" role="presentation">
