@@ -385,7 +385,7 @@ const QuickEntryContent: React.FC<QuickEntryProps> = ({ onClose, editTripId, ini
     if (deferCny) return;
     if (cnyManualRef.current) return;
     const numericAmount = evaluateAmountExpression(amount);
-    if (!Number.isFinite(numericAmount) || numericAmount <= 0 || !fxRate) {
+    if (numericAmount === null || !Number.isFinite(numericAmount) || numericAmount <= 0 || !fxRate) {
       if (!amount) setCnyEquivalent('');
       return;
     }
@@ -481,7 +481,7 @@ const QuickEntryContent: React.FC<QuickEntryProps> = ({ onClose, editTripId, ini
     try {
       const originalAmount = evaluateAmountExpression(amount);
       const cnyTotal = deferCny ? 0 : (cnyEquivalent === '' ? originalAmount : Number(cnyEquivalent));
-      if (!Number.isFinite(originalAmount) || originalAmount <= 0) throw new Error('Amount must be greater than 0.');
+      if (originalAmount === null || !Number.isFinite(originalAmount) || originalAmount <= 0) throw new Error('Amount must be greater than 0.');
       if (!deferCny && (!Number.isFinite(cnyTotal) || cnyTotal <= 0)) throw new Error('CNY Equivalent must be greater than 0.');
       if (!payerId) throw new Error('Payer is required.');
       if (!accountId) throw new Error('Payment account is required.');
