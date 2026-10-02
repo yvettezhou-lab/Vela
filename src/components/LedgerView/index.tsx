@@ -374,7 +374,7 @@ export const LedgerView: React.FC = () => {
                       <div className="vela-ledger-entry-title">
                         <strong>{entryLabel(entry)}</strong>
                         <span className="vela-ledger-entry-inline">
-                          {membersById.get(entry.payerId) ?? entry.payerId} · {entry.originalCurrency} {entry.originalAmount.toFixed(2)} · CNY {entry.isPending ? 'Pending' : entry.cnyEquivalent.toFixed(2)}
+                          {membersById.get(entry.payerId) ?? entry.payerId} · {entry.originalCurrency === 'CNY' ? `CNY ${entry.originalAmount.toFixed(2)}` : `${entry.originalCurrency} ${entry.originalAmount.toFixed(2)} · CNY ${entry.isPending ? 'Pending' : entry.cnyEquivalent.toFixed(2)}`}
                         </span>
                         {entry.isPending && <span className="vela-ledger-badge pending">Pending</span>}
                         {!entry.includeInCost && <span className="vela-ledger-badge muted">Excluded</span>}
@@ -409,8 +409,8 @@ export const LedgerView: React.FC = () => {
               <button type="button" onClick={() => setDetailEntry(null)} className="vela-ledger-detail-close" aria-label="Close details">×</button>
             </div>
             <div className="vela-ledger-detail-amount">
-              <strong>{detailEntry.originalCurrency} {detailEntry.originalAmount.toFixed(2)}</strong>
-              <span>CNY {detailEntry.cnyEquivalent.toFixed(2)}</span>
+              <strong>{detailEntry.originalCurrency === 'CNY' ? `CNY ${detailEntry.originalAmount.toFixed(2)}` : `${detailEntry.originalCurrency} ${detailEntry.originalAmount.toFixed(2)}`}</strong>
+              {detailEntry.originalCurrency !== 'CNY' && <span>CNY {detailEntry.cnyEquivalent.toFixed(2)}</span>}
             </div>
             <div className="vela-ledger-detail-grid">
               <div><span>TYPE</span><strong>{ENTRY_LABELS[detailEntry.entryType]}</strong></div>
