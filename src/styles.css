@@ -444,12 +444,12 @@
 /* Ledger compact rows */
 .vela-ledger-date-group .vela-ledger-list{overflow:hidden}
 .vela-ledger-entry-main{width:100%;min-width:0}
-.vela-ledger-entry-content{min-width:0;padding:6px 0}
+.vela-ledger-entry-content{min-width:0;padding:3px 0}
 .vela-ledger-entry-row{display:flex;align-items:baseline;justify-content:space-between;gap:12px;min-width:0}
 .vela-ledger-entry-row strong{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:15px!important}
 .vela-ledger-amount-primary{flex:none;font-size:16px;font-weight:600;line-height:1.05;color:#172033;white-space:nowrap;font-variant-numeric:tabular-nums}
 .vela-ledger-amount-primary small{font-size:9px;font-weight:500;margin-right:4px;color:#8b8276;vertical-align:baseline}
-.vela-ledger-entry-secondary{margin-top:3px;color:#8b95a3;font-size:11px;line-height:1.25}
+.vela-ledger-entry-secondary{margin-top:1px;color:#8b95a3;font-size:11px;line-height:1.25}
 .vela-ledger-entry-secondary>span:first-child{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .vela-ledger-amount-cny{flex:none;color:#8b8276;font-size:12px;white-space:nowrap;font-variant-numeric:tabular-nums}
 .vela-ledger-entry-secondary .vela-ledger-badge{margin-left:6px;vertical-align:middle;font-size:9px!important;padding:2px 5px!important}
