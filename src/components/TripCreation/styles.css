@@ -110,13 +110,13 @@
 .trip-title-cover-row{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:start;gap:14px}
 .trip-title-field-inline{min-width:0}
 .trip-title-field-inline input{width:100%}
-.trip-cover-inline{display:grid;gap:7px;justify-items:end;align-self:start;padding-top:48px}
+.trip-cover-inline{display:grid;gap:7px;justify-items:end;align-self:start;padding-top:8px}
 .trip-cover-inline-actions{display:flex;align-items:center;justify-content:flex-end;gap:8px;min-height:43px}
 .trip-cover-inline-action{display:inline-flex!important;align-items:center;justify-content:center;position:relative!important;width:auto!important;height:36px!important;min-width:78px!important;margin:0!important;padding:0 12px!important;border:1px solid rgba(67,76,70,.2)!important;border-radius:10px!important;background:#f7f3e9!important;color:#52655f!important;font-size:11px!important;font-weight:600!important;cursor:pointer}
 .trip-cover-inline-action input{position:absolute!important;inset:0!important;width:100%!important;height:100%!important;opacity:0!important;cursor:pointer}
 .trip-cover-inline .trip-cover-clear{font-size:10px}
 @media(max-width:600px){
-  .trip-title-cover-row{grid-template-columns:minmax(0,1fr) auto;gap:9px}.trip-cover-inline{padding-top:48px}
+  .trip-title-cover-row{grid-template-columns:minmax(0,1fr) auto;gap:9px}.trip-cover-inline{padding-top:8px}
   .trip-cover-inline-action{min-width:68px!important;padding:0 9px!important}
   .trip-title-cover-row .trip-title-hint{font-size:8px}
 }
