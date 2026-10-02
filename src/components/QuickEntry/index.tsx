@@ -723,7 +723,7 @@ const QuickEntryContent: React.FC<QuickEntryProps> = ({ onClose, editTripId, ini
           </div>
         </div>
 
-        <label className="mt-4 block max-w-[72%]">
+        <label className="mt-4 block w-[72%]">
           <span className="mb-1.5 block text-xs uppercase tracking-[0.14em] text-[#857a6a]">Note</span>
           <textarea value={note} onChange={(event) => setNote(event.target.value)} rows={1} maxLength={200} placeholder="What was this payment for? e.g. Longling dinner" className="h-12 w-full resize-none rounded-xl bg-[#fbf7ee] px-4 py-2.5 text-sm text-[#17243a] shadow-[inset_0_0_0_1px_rgba(80,64,42,.10)] outline-none placeholder:text-[#aaa092]" aria-label="Note" />
         </label>
@@ -736,30 +736,32 @@ const QuickEntryContent: React.FC<QuickEntryProps> = ({ onClose, editTripId, ini
 
         {entryType === 'transport' && (
           <div className="mt-5 space-y-3">
-            <div>
-              <span className="mb-1.5 block text-xs uppercase tracking-[0.14em] text-[#857a6a]">Transport</span>
-              <div className="grid grid-cols-4 gap-2">
-                {([
-                  ['flight', '✈️ Flight'],
-                  ['train', '🚄 Train'],
-                  ['long_distance_bus', '🚌 Coach'],
-                  ['ferry', '⛴️ Ferry'],
-                ] as const).map(([value, label]) => (
-                  <button key={value} type="button" onClick={() => { setTransportMode(value); setJourneyType('one_way'); setReturnDate(''); }} aria-pressed={transportMode === value} className={`min-h-10 rounded-xl border px-1 text-xs font-medium transition ${transportMode === value ? 'border-[#17243a] bg-[#17243a] text-[#fffdf8] shadow-md' : 'border-black/5 bg-[#fbf7ee] text-[#17243a] shadow-sm hover:bg-white'}`}>
-                    {label}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            {transportMode === 'flight' && (
+            <div className="grid grid-cols-2 gap-3 items-start">
               <div>
-                <span className="mb-2 block text-xs uppercase tracking-[0.14em] text-[#857a6a]">Journey</span>
-                <div className="grid grid-cols-2 gap-3">
-                  {([['one_way', 'One Way'], ['round_trip', 'Round Trip']] as const).map(([value, label]) => <button key={value} type="button" onClick={() => setJourneyType(value)} aria-pressed={journeyType === value} className={`min-h-10 rounded-xl border px-3 text-sm font-medium transition ${journeyType === value ? 'border-[#17243a] bg-[#17243a] text-[#fffdf8] shadow-md' : 'border-black/5 bg-[#fbf7ee] text-[#17243a] shadow-sm hover:bg-white'}`}>{label}</button>)}
+                <span className="mb-1.5 block text-xs uppercase tracking-[0.14em] text-[#857a6a]">Transport</span>
+                <div className="grid grid-cols-2 gap-2">
+                  {([
+                    ['flight', '✈️ Flight'],
+                    ['train', '🚄 Train'],
+                    ['long_distance_bus', '🚌 Coach'],
+                    ['ferry', '⛴️ Ferry'],
+                  ] as const).map(([value, label]) => (
+                    <button key={value} type="button" onClick={() => { setTransportMode(value); setJourneyType('one_way'); setReturnDate(''); }} aria-pressed={transportMode === value} className={`min-h-10 rounded-xl border px-1 text-xs font-medium transition ${transportMode === value ? 'border-[#17243a] bg-[#17243a] text-[#fffdf8] shadow-md' : 'border-black/5 bg-[#fbf7ee] text-[#17243a] shadow-sm hover:bg-white'}`}>
+                      {label}
+                    </button>
+                  ))}
                 </div>
               </div>
-            )}
+
+              {transportMode === 'flight' && (
+                <div>
+                  <span className="mb-1.5 block text-xs uppercase tracking-[0.14em] text-[#857a6a]">Journey</span>
+                  <div className="grid grid-cols-1 gap-2">
+                    {([['one_way', 'One Way'], ['round_trip', 'Round Trip']] as const).map(([value, label]) => <button key={value} type="button" onClick={() => setJourneyType(value)} aria-pressed={journeyType === value} className={`min-h-10 rounded-xl border px-3 text-sm font-medium transition ${journeyType === value ? 'border-[#17243a] bg-[#17243a] text-[#fffdf8] shadow-md' : 'border-black/5 bg-[#fbf7ee] text-[#17243a] shadow-sm hover:bg-white'}`}>{label}</button>)}
+                  </div>
+                </div>
+              )}
+            </div>
 
             <div className={journeyType === 'round_trip' && transportMode !== 'long_distance_bus' ? 'grid grid-cols-3 gap-3' : 'grid grid-cols-2 gap-3'}>
               <DatePicker pickerId="transport-payment" openPickerId={openDatePicker} onOpenPicker={setOpenDatePicker} value={paymentDate} onChange={setPaymentDate} label="Payment Date" required />
