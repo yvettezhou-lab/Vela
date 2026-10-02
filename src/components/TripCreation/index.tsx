@@ -134,7 +134,7 @@ const makeDraftSegment = (segment?: TravelSegment): DraftSegment => ({
   startDateManuallySet: Boolean(segment),
 });
 
-export const TripCreation: React.FC<Props> = ({ onClose, onCreated, onUpdated, trip }) => {
+export const TripCreation: React.FC<Props> = ({ onClose, onCreated, onUpdated, onEndJourney, onDeleteJourney, trip }) => {
   const commonMembers = useVelaStore((state) => state.commonMembers);
   const commonAccounts = useVelaStore((state) => state.commonAccounts);
   const editing = Boolean(trip);
