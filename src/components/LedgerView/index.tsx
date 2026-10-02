@@ -73,6 +73,7 @@ export const LedgerView: React.FC = () => {
   const [segmentFilterId, setSegmentFilterId] = useState('');
   const [editDraft, setEditDraft] = useState<LedgerEditDraft | null>(null);
   const [editError, setEditError] = useState('');
+  const [detailEntry, setDetailEntry] = useState<LedgerEntry | null>(null);
 
   const selectedTrip = trips.find((trip) => trip.id === selectedTripId) ?? currentTrip;
   const ledger = selectedTrip?.ledger ?? [];
@@ -368,7 +369,7 @@ export const LedgerView: React.FC = () => {
               </div>
               <div className="vela-ledger-list">
                 {group.entries.map((entry) => (
-                  <article className="vela-ledger-entry" key={entry.id}>
+                  <article className="vela-ledger-entry" key={entry.id} role="button" tabIndex={0} onClick={() => setDetailEntry(entry)} onKeyDown={(event) => { if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); setDetailEntry(entry); } }}>
                     <div className="vela-ledger-entry-main">
                       <div className="vela-ledger-entry-title">
                         <strong>{entryLabel(entry)}</strong>
@@ -385,7 +386,7 @@ export const LedgerView: React.FC = () => {
                           Add CNY
                         </button>
                       )}
-                      <button type="button" aria-label="Edit entry" title="Edit entry" className="vela-ledger-edit" onClick={() => openEditor(entry)}>
+                      <button type="button" aria-label="Edit entry" title="Edit entry" className="vela-ledger-edit" onClick={(event) => { event.stopPropagation(); openEditor(entry); }}>
                         <Pencil size={18} strokeWidth={1.7} />
                       </button>
                     </div>
@@ -394,6 +395,38 @@ export const LedgerView: React.FC = () => {
               </div>
             </section>
           ))}
+        </div>
+      )}
+
+      {detailEntry && (
+        <div className="vela-ledger-detail-backdrop" role="dialog" aria-modal="true" aria-labelledby="ledger-detail-title" onMouseDown={(event) => { if (event.target === event.currentTarget) setDetailEntry(null); }}>
+          <div className="vela-ledger-detail-sheet">
+            <div className="vela-ledger-detail-head">
+              <div>
+                <p className="vela-ledger-detail-eyebrow">LEDGER · DETAIL</p>
+                <h2 id="ledger-detail-title">{entryLabel(detailEntry)}</h2>
+              </div>
+              <button type="button" onClick={() => setDetailEntry(null)} className="vela-ledger-detail-close" aria-label="Close details">×</button>
+            </div>
+            <div className="vela-ledger-detail-amount">
+              <strong>{detailEntry.originalCurrency} {detailEntry.originalAmount.toFixed(2)}</strong>
+              <span>CNY {detailEntry.cnyEquivalent.toFixed(2)}</span>
+            </div>
+            <div className="vela-ledger-detail-grid">
+              <div><span>TYPE</span><strong>{ENTRY_LABELS[detailEntry.entryType]}</strong></div>
+              <div><span>WHO PAID</span><strong>{membersById.get(detailEntry.payerId) ?? detailEntry.payerId}</strong></div>
+              <div><span>PAYMENT ACCOUNT</span><strong>{selectedTrip.accounts.find((account) => account.id === detailEntry.accountId)?.name ?? '—'}</strong></div>
+              <div><span>CATEGORY</span><strong>{selectedTrip.categories.find((category) => category.id === detailEntry.categoryId)?.name ?? '—'}</strong></div>
+              <div><span>PAYMENT DATE</span><strong>{formatDate(detailEntry.paymentDate)}</strong></div>
+              {detailEntry.entryType === 'prepaid_multi_day' && <><div><span>USAGE START</span><strong>{formatDate(detailEntry.usageStart)}</strong></div><div><span>USAGE END</span><strong>{formatDate(detailEntry.usageEnd)}</strong></div></>}
+              {detailEntry.entryType === 'transport' && <><div><span>TRANSPORT</span><strong>{TRANSPORT_LABELS[detailEntry.transportMode]}</strong></div><div><span>OUTBOUND</span><strong>{formatDate(detailEntry.outboundDate)}</strong></div>{detailEntry.journeyType === 'round_trip' && <div><span>RETURN</span><strong>{formatDate(detailEntry.returnDate)}</strong></div>}</>}
+              <div><span>STATUS</span><strong>{detailEntry.isPending ? 'Pending' : detailEntry.includeInCost ? 'Included in statistics' : 'Excluded from statistics'}</strong></div>
+            </div>
+            {detailEntry.note?.trim() && <div className="vela-ledger-detail-note"><span>NOTE</span><p>{detailEntry.note}</p></div>}
+            <div className="vela-ledger-detail-footer">
+              <button type="button" onClick={() => { const entry = detailEntry; setDetailEntry(null); openEditor(entry); }}><Pencil size={15} strokeWidth={1.7} /> Edit</button>
+            </div>
+          </div>
         </div>
       )}
 
