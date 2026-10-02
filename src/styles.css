@@ -421,19 +421,10 @@
 .vela-ledger-date-group .vela-ledger-entry{border-radius:0;border-left:0;border-right:0;border-top:0}
 .vela-ledger-date-group .vela-ledger-entry:last-child{border-bottom:0}
 
-/* Ledger compact rows + swipe actions */
+/* Ledger compact rows */
 .vela-ledger-date-group .vela-ledger-list{overflow:hidden}
-.vela-ledger-entry{overflow:hidden!important}
-.vela-ledger-entry{position:relative!important}
-.vela-ledger-swipe-track{display:block;width:100%;min-width:100%;transition:transform .2s ease;touch-action:pan-y;position:relative;z-index:1;background:#fff}
-.vela-ledger-entry.swiped .vela-ledger-swipe-track{transform:translateX(-112px)}
-.vela-ledger-entry-main{width:100%;min-width:0;padding:11px 14px!important;background:#fff}
+.vela-ledger-entry-main{width:100%;min-width:0}
 .vela-ledger-entry-title{display:flex!important;align-items:center;gap:7px;min-width:0;white-space:nowrap}
 .vela-ledger-entry-title strong{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:15px!important}
 .vela-ledger-entry-inline{min-width:0;overflow:hidden;text-overflow:ellipsis;color:#8b95a3;font-size:11px;white-space:nowrap}
 .vela-ledger-entry-title .vela-ledger-badge{flex:none;font-size:9px!important;padding:2px 5px!important}
-.vela-ledger-entry-actions{position:absolute!important;right:0;top:0;bottom:0;width:112px!important;min-width:112px!important;display:flex!important;align-items:stretch!important;gap:0!important;z-index:0}
-.vela-ledger-entry-actions button{border:0!important;border-radius:0!important;width:56px!important;height:auto!important;min-height:0!important;padding:0!important;display:grid!important;place-items:center!important}
-.vela-ledger-entry-actions .vela-ledger-edit{background:#eee8db!important;color:#4f5d60!important}
-.vela-ledger-entry-actions .vela-ledger-delete{background:#d9aaa0!important;color:#fff!important}
-.vela-ledger-entry-actions .vela-ledger-add-cny{width:112px!important}
