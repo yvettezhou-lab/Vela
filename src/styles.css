@@ -444,7 +444,7 @@
 /* Ledger compact rows */
 .vela-ledger-date-group .vela-ledger-list{overflow:hidden}
 .vela-ledger-entry-main{width:100%;min-width:0}
-.vela-ledger-entry-content{min-width:0;padding:9px 0}
+.vela-ledger-entry-content{min-width:0;padding:6px 0}
 .vela-ledger-entry-row{display:flex;align-items:baseline;justify-content:space-between;gap:12px;min-width:0}
 .vela-ledger-entry-row strong{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:15px!important}
 .vela-ledger-amount-primary{flex:none;font-size:16px;font-weight:600;line-height:1.05;color:#172033;white-space:nowrap;font-variant-numeric:tabular-nums}
