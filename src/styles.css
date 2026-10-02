@@ -448,3 +448,24 @@
 .vela-ledger-entry-title strong{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:15px!important}
 .vela-ledger-entry-inline{min-width:0;overflow:hidden;text-overflow:ellipsis;color:#8b95a3;font-size:11px;white-space:nowrap}
 .vela-ledger-entry-title .vela-ledger-badge{flex:none;font-size:9px!important;padding:2px 5px!important}
+
+.vela-ledger-entry{cursor:pointer}
+.vela-ledger-entry:focus-visible{outline:2px solid rgba(128,107,62,.55);outline-offset:-2px}
+.vela-ledger-detail-backdrop{position:fixed;inset:0;z-index:1200;display:flex;align-items:flex-end;justify-content:center;background:rgba(23,32,51,.28);padding:12px}
+.vela-ledger-detail-sheet{width:min(620px,100%);max-height:min(78dvh,680px);overflow:auto;border:1px solid rgba(83,72,55,.18);border-radius:22px;background:#fbf8f0;color:#172033;box-shadow:0 20px 60px rgba(31,37,35,.2);padding:22px 20px calc(18px + env(safe-area-inset-bottom))}
+.vela-ledger-detail-head{display:flex;align-items:flex-start;justify-content:space-between;gap:16px}
+.vela-ledger-detail-eyebrow{margin:0;color:#9a7650;font-size:9px;font-weight:700;letter-spacing:.18em}
+.vela-ledger-detail-head h2{margin:6px 0 0;font:500 27px/1.15 Georgia,"Times New Roman",serif}
+.vela-ledger-detail-close{width:34px;height:34px;border:0;background:transparent;color:#68736e;font-size:28px;line-height:1;cursor:pointer}
+.vela-ledger-detail-amount{display:flex;align-items:baseline;gap:10px;margin:22px 0 18px;padding-bottom:16px;border-bottom:1px solid rgba(67,76,70,.14)}
+.vela-ledger-detail-amount strong{font-size:25px;font-weight:600}
+.vela-ledger-detail-amount span{color:#8b95a3;font:14px Georgia,serif}
+.vela-ledger-detail-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px 18px}
+.vela-ledger-detail-grid>div{min-width:0}
+.vela-ledger-detail-grid span,.vela-ledger-detail-note>span{display:block;margin-bottom:4px;color:#9a7650;font-size:8px;font-weight:700;letter-spacing:.16em}
+.vela-ledger-detail-grid strong{display:block;color:#293a3d;font-size:13px;font-weight:500;line-height:1.35}
+.vela-ledger-detail-note{margin-top:18px;padding:12px 13px;border-radius:12px;background:#f7f3e9}
+.vela-ledger-detail-note p{margin:5px 0 0;color:#52615f;font-size:13px;line-height:1.5;white-space:pre-wrap}
+.vela-ledger-detail-footer{display:flex;justify-content:flex-end;margin-top:18px;padding-top:14px;border-top:1px solid rgba(67,76,70,.14)}
+.vela-ledger-detail-footer button{display:inline-flex;align-items:center;gap:6px;border:0;border-bottom:1px solid #b8aa8c;background:transparent;color:#806b3e;padding:3px 1px 4px;font-size:12px;font-weight:500;cursor:pointer}
+@media(max-width:600px){.vela-ledger-detail-grid{grid-template-columns:1fr 1fr}.vela-ledger-detail-sheet{padding-left:18px;padding-right:18px}}
