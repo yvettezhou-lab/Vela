@@ -26,6 +26,48 @@ const toDateValue = (date: Date) => {
 const todayValue = () => toDateValue(new Date());
 const normalizePercentageInput = (value: string) => value.replace(/^0+(?=\d)/, '');
 const formatCny = (value: number) => (Number.isFinite(value) ? value.toFixed(2).replace(/\.00$/, '') : '');
+const evaluateAmountExpression = (input: string): number | null => {
+  const expression = input.replace(/\s+/g, '');
+  if (!expression) return null;
+  if (!/^[0-9.+*/()\-]+$/.test(expression)) return null;
+  const tokens = expression.match(/(?:\d+(?:\.\d*)?|\.\d+)|[()+\-*/]/g);
+  if (!tokens || tokens.join('') !== expression) return null;
+  const values: number[] = [];
+  const operators: string[] = [];
+  const precedence: Record<string, number> = { '+': 1, '-': 1, '*': 2, '/': 2 };
+  const apply = () => {
+    const op = operators.pop();
+    const b = values.pop();
+    const a = values.pop();
+    if (!op || a === undefined || b === undefined) throw new Error('Invalid amount expression');
+    if (op === '/' && b === 0) throw new Error('Cannot divide by zero');
+    values.push(op === '+' ? a + b : op === '-' ? a - b : op === '*' ? a * b : a / b);
+  };
+  try {
+    for (const token of tokens) {
+      if (/^[0-9.]/.test(token)) {
+        const value = Number(token);
+        if (!Number.isFinite(value)) return null;
+        values.push(value);
+      } else if (token === '(') {
+        operators.push(token);
+      } else if (token === ')') {
+        while (operators.length && operators[operators.length - 1] !== '(') apply();
+        if (operators.pop() !== '(') return null;
+      } else {
+        while (operators.length && operators[operators.length - 1] !== '(' && precedence[operators[operators.length - 1]] >= precedence[token]) apply();
+        operators.push(token);
+      }
+    }
+    while (operators.length) {
+      if (operators[operators.length - 1] === '(') return null;
+      apply();
+    }
+    return values.length === 1 && Number.isFinite(values[0]) ? values[0] : null;
+  } catch {
+    return null;
+  }
+};
 
 interface DatePickerProps {
   value: string;
@@ -342,7 +384,7 @@ const QuickEntryContent: React.FC<QuickEntryProps> = ({ onClose, editTripId, ini
   useEffect(() => {
     if (deferCny) return;
     if (cnyManualRef.current) return;
-    const numericAmount = Number(amount);
+    const numericAmount = evaluateAmountExpression(amount);
     if (!Number.isFinite(numericAmount) || numericAmount <= 0 || !fxRate) {
       if (!amount) setCnyEquivalent('');
       return;
@@ -437,7 +479,7 @@ const QuickEntryContent: React.FC<QuickEntryProps> = ({ onClose, editTripId, ini
     event.preventDefault();
     setError(null);
     try {
-      const originalAmount = Number(amount);
+      const originalAmount = evaluateAmountExpression(amount);
       const cnyTotal = deferCny ? 0 : (cnyEquivalent === '' ? originalAmount : Number(cnyEquivalent));
       if (!Number.isFinite(originalAmount) || originalAmount <= 0) throw new Error('Amount must be greater than 0.');
       if (!deferCny && (!Number.isFinite(cnyTotal) || cnyTotal <= 0)) throw new Error('CNY Equivalent must be greater than 0.');
