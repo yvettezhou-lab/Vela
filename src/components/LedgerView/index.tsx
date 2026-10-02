@@ -104,12 +104,75 @@ export const LedgerView: React.FC = () => {
     ? filteredByStatus.filter((entry) => entry.segmentId === segmentFilterId)
     : filteredByStatus;
   const pendingCount = entries.filter((entry) => entry.isPending).length;
-  const dateGroups = filtered.reduce<Array<{ key: string; label: string; entries: LedgerEntry[] }>>((groups, entry) => {
-    const timestamp = getLedgerEntryDate(entry);
-    const key = toDateInputValue(timestamp);
+  // Multi-day prepaid expenses (e.g. a 3-day hotel stay) are displayed
+  // against each usage day rather than being charged entirely on the first day.
+  // The underlying ledger entry remains a single payment for settlement/financial totals.
+  type LedgerDisplayEntry = {
+    entry: LedgerEntry;
+    displayDate: number;
+    displayOriginalAmount: number;
+    displayCnyEquivalent: number;
+    displayId: string;
+  };
+
+  const expandForDailyDisplay = (entry: LedgerEntry): LedgerDisplayEntry[] => {
+    if (entry.entryType !== 'prepaid_multi_day') {
+      return [{
+        entry,
+        displayDate: getLedgerEntryDate(entry),
+        displayOriginalAmount: entry.originalAmount,
+        displayCnyEquivalent: entry.cnyEquivalent,
+        displayId: entry.id,
+      }];
+    }
+
+    const start = new Date(entry.usageStart);
+    const end = new Date(entry.usageEnd);
+    const dayCount = Math.max(
+      1,
+      Math.floor((new Date(end.getFullYear(), end.getMonth(), end.getDate()).getTime() -
+        new Date(start.getFullYear(), start.getMonth(), start.getDate()).getTime()) / 86400000) + 1,
+    );
+    if (dayCount === 1) {
+      return [{
+        entry,
+        displayDate: entry.usageStart,
+        displayOriginalAmount: entry.originalAmount,
+        displayCnyEquivalent: entry.cnyEquivalent,
+        displayId: entry.id,
+      }];
+    }
+
+    const originalCents = Math.round(entry.originalAmount * 100);
+    const cnyCents = Math.round(entry.cnyEquivalent * 100);
+    const originalBase = Math.floor(originalCents / dayCount);
+    const originalRemainder = originalCents - originalBase * dayCount;
+    const cnyBase = Math.floor(cnyCents / dayCount);
+    const cnyRemainder = cnyCents - cnyBase * dayCount;
+
+    return Array.from({ length: dayCount }, (_, index) => {
+      const date = new Date(start.getFullYear(), start.getMonth(), start.getDate() + index).getTime();
+      return {
+        entry,
+        displayDate: date,
+        displayOriginalAmount: (originalBase + (index < originalRemainder ? 1 : 0)) / 100,
+        displayCnyEquivalent: (cnyBase + (index < cnyRemainder ? 1 : 0)) / 100,
+        displayId: `${entry.id}__day_${index}`,
+      };
+    });
+  };
+
+  const displayEntries = filtered.flatMap(expandForDailyDisplay).sort((a, b) => {
+    const dateDiff = b.displayDate - a.displayDate;
+    if (dateDiff !== 0) return dateDiff;
+    return (b.entry.createdAt ?? 0) - (a.entry.createdAt ?? 0);
+  });
+
+  const dateGroups = displayEntries.reduce<Array<{ key: string; label: string; entries: LedgerDisplayEntry[] }>>((groups, item) => {
+    const key = toDateInputValue(item.displayDate);
     const existing = groups.find((group) => group.key === key);
-    if (existing) existing.entries.push(entry);
-    else groups.push({ key, label: formatDate(timestamp), entries: [entry] });
+    if (existing) existing.entries.push(item);
+    else groups.push({ key, label: formatDate(item.displayDate), entries: [item] });
     return groups;
   }, []);
 
@@ -375,41 +438,44 @@ export const LedgerView: React.FC = () => {
                 <span>{group.entries.length} {group.entries.length === 1 ? 'entry' : 'entries'}</span>
               </div>
               <div className="vela-ledger-list">
-                {group.entries.map((entry) => (
-                  <article className="vela-ledger-entry" key={entry.id} role="button" tabIndex={0} onClick={() => setDetailEntry(entry)} onKeyDown={(event) => { if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); setDetailEntry(entry); } }}>
-                    <div className="vela-ledger-entry-main">
-                      <div className="vela-ledger-entry-content">
-                        <div className="vela-ledger-entry-row">
-                          <strong>{entryLabel(entry)}</strong>
-                          <span className="vela-ledger-amount-primary">
-                            {entry.originalCurrency !== 'CNY' && <small>{entry.originalCurrency}</small>}
-                            {entry.originalAmount.toFixed(2)}
-                          </span>
-                        </div>
-                        <div className="vela-ledger-entry-row vela-ledger-entry-secondary">
-                          <span>
-                            {membersById.get(entry.payerId) ?? entry.payerId} · {entry.entryType === 'transport' ? 'Transport' : (categoriesById.get(entry.categoryId) ?? entry.categoryId)}
-                            {entry.isPending && <span className="vela-ledger-badge pending">Pending</span>}
-                            {!entry.includeInCost && <span className="vela-ledger-badge muted">Excluded</span>}
-                          </span>
-                          {entry.originalCurrency !== 'CNY' && (
-                            <span className="vela-ledger-amount-cny">≈ CNY {entry.isPending ? 'Pending' : entry.cnyEquivalent.toFixed(2)}</span>
-                          )}
+                {group.entries.map((item) => {
+                  const entry = item.entry;
+                  return (
+                    <article className="vela-ledger-entry" key={item.displayId} role="button" tabIndex={0} onClick={() => setDetailEntry(entry)} onKeyDown={(event) => { if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); setDetailEntry(entry); } }}>
+                      <div className="vela-ledger-entry-main">
+                        <div className="vela-ledger-entry-content">
+                          <div className="vela-ledger-entry-row">
+                            <strong>{entryLabel(entry)}</strong>
+                            <span className="vela-ledger-amount-primary">
+                              {entry.originalCurrency !== 'CNY' && <small>{entry.originalCurrency}</small>}
+                              {item.displayOriginalAmount.toFixed(2)}
+                            </span>
+                          </div>
+                          <div className="vela-ledger-entry-row vela-ledger-entry-secondary">
+                            <span>
+                              {membersById.get(entry.payerId) ?? entry.payerId} · {entry.entryType === 'transport' ? 'Transport' : (categoriesById.get(entry.categoryId) ?? entry.categoryId)}
+                              {entry.isPending && <span className="vela-ledger-badge pending">Pending</span>}
+                              {!entry.includeInCost && <span className="vela-ledger-badge muted">Excluded</span>}
+                            </span>
+                            {entry.originalCurrency !== 'CNY' && (
+                              <span className="vela-ledger-amount-cny">≈ CNY {entry.isPending ? 'Pending' : item.displayCnyEquivalent.toFixed(2)}</span>
+                            )}
+                          </div>
                         </div>
                       </div>
-                    </div>
-                    <div className="vela-ledger-entry-actions">
-                      {entry.isPending && (
-                        <button type="button" className="vela-ledger-add-cny" onClick={() => fillCny(entry)}>
-                          Add CNY
+                      <div className="vela-ledger-entry-actions">
+                        {entry.isPending && (
+                          <button type="button" className="vela-ledger-add-cny" onClick={() => fillCny(entry)}>
+                            Add CNY
+                          </button>
+                        )}
+                        <button type="button" aria-label="Edit entry" title="Edit entry" className="vela-ledger-edit" onClick={(event) => { event.stopPropagation(); openEditor(entry); }}>
+                          <Pencil size={18} strokeWidth={1.7} />
                         </button>
-                      )}
-                      <button type="button" aria-label="Edit entry" title="Edit entry" className="vela-ledger-edit" onClick={(event) => { event.stopPropagation(); openEditor(entry); }}>
-                        <Pencil size={18} strokeWidth={1.7} />
-                      </button>
-                    </div>
-                  </article>
-                ))}
+                      </div>
+                    </article>
+                  );
+                })}
               </div>
             </section>
           ))}
