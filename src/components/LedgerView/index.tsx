@@ -128,10 +128,13 @@ export const LedgerView: React.FC = () => {
 
     const start = new Date(entry.usageStart);
     const end = new Date(entry.usageEnd);
+    // Accommodation usage follows hotel semantics:
+    // check-in on usageStart, check-out on usageEnd.
+    // Therefore 2→5 means nights of 2, 3, 4: 3 usage days, not 4.
     const dayCount = Math.max(
       1,
       Math.floor((new Date(end.getFullYear(), end.getMonth(), end.getDate()).getTime() -
-        new Date(start.getFullYear(), start.getMonth(), start.getDate()).getTime()) / 86400000) + 1,
+        new Date(start.getFullYear(), start.getMonth(), start.getDate()).getTime()) / 86400000),
     );
     if (dayCount === 1) {
       return [{
