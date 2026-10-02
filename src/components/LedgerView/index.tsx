@@ -165,11 +165,23 @@ export const LedgerView: React.FC = () => {
     });
   };
 
-  const displayEntries = filtered.flatMap(expandForDailyDisplay).sort((a, b) => {
-    const dateDiff = b.displayDate - a.displayDate;
-    if (dateDiff !== 0) return dateDiff;
-    return (b.entry.createdAt ?? 0) - (a.entry.createdAt ?? 0);
-  });
+  // Ledger shows only dates that have arrived. Future-dated entries remain stored
+  // and will appear automatically when their date arrives.
+  const todayStart = (() => {
+    const now = new Date();
+    return new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
+  })();
+  const displayEntries = filtered.flatMap(expandForDailyDisplay)
+    .filter((item) => {
+      const date = new Date(item.displayDate);
+      const displayDay = new Date(date.getFullYear(), date.getMonth(), date.getDate()).getTime();
+      return displayDay <= todayStart;
+    })
+    .sort((a, b) => {
+      const dateDiff = b.displayDate - a.displayDate;
+      if (dateDiff !== 0) return dateDiff;
+      return (b.entry.createdAt ?? 0) - (a.entry.createdAt ?? 0);
+    });
 
   const dateGroups = displayEntries.reduce<Array<{ key: string; label: string; entries: LedgerDisplayEntry[] }>>((groups, item) => {
     const key = toDateInputValue(item.displayDate);
