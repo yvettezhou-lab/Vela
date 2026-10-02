@@ -737,22 +737,22 @@ const QuickEntryContent: React.FC<QuickEntryProps> = ({ onClose, editTripId, ini
         {entryType === 'transport' && (
           <div className="mt-5 space-y-3">
             <div>
-              <span className="mb-1.5 block text-xs uppercase tracking-[0.14em] text-[#857a6a]">Major Transport</span>
-              <div className="grid grid-cols-5 gap-2">
+              <span className="mb-1.5 block text-xs uppercase tracking-[0.14em] text-[#857a6a]">Transport</span>
+              <div className="grid grid-cols-4 gap-2">
                 {([
                   ['flight', '✈️ Flight'],
                   ['train', '🚄 Train'],
                   ['long_distance_bus', '🚌 Coach'],
                   ['ferry', '⛴️ Ferry'],
                 ] as const).map(([value, label]) => (
-                  <button key={value} type="button" onClick={() => { setTransportMode(value); if (value === 'long_distance_bus') { setJourneyType('one_way'); setReturnDate(''); } }} aria-pressed={transportMode === value} className={`min-h-12 rounded-xl border px-2 text-sm font-medium transition ${transportMode === value ? 'border-[#17243a] bg-[#17243a] text-[#fffdf8] shadow-md' : 'border-black/5 bg-[#fbf7ee] text-[#17243a] shadow-sm hover:bg-white'}`}>
+                  <button key={value} type="button" onClick={() => { setTransportMode(value); setJourneyType('one_way'); setReturnDate(''); }} aria-pressed={transportMode === value} className={`min-h-11 rounded-xl border px-1 text-xs font-medium transition ${transportMode === value ? 'border-[#17243a] bg-[#17243a] text-[#fffdf8] shadow-md' : 'border-black/5 bg-[#fbf7ee] text-[#17243a] shadow-sm hover:bg-white'}`}>
                     {label}
                   </button>
                 ))}
               </div>
             </div>
 
-            {transportMode !== 'long_distance_bus' && (
+            {transportMode === 'flight' && (
               <div>
                 <span className="mb-2 block text-xs uppercase tracking-[0.14em] text-[#857a6a]">Journey</span>
                 <div className="grid grid-cols-2 gap-3">
