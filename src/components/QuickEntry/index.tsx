@@ -736,7 +736,7 @@ const QuickEntryContent: React.FC<QuickEntryProps> = ({ onClose, editTripId, ini
           <div className="mt-5 space-y-3">
             <div>
               <span className="mb-1.5 block text-xs uppercase tracking-[0.14em] text-[#857a6a]">Major Transport</span>
-              <div className="grid grid-cols-4 gap-2">
+              <div className="grid grid-cols-5 gap-2">
                 {([
                   ['flight', '✈️ Flight'],
                   ['train', '🚄 Train'],
