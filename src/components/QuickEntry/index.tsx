@@ -436,9 +436,28 @@ const QuickEntryContent: React.FC<QuickEntryProps> = ({ onClose, editTripId, ini
         allocation.amount = (baseCents + (index < remainderCents ? 1 : 0)) / 100;
       });
     } else {
-      allocations.forEach((allocation) => {
+      // Allocate in cents so rounded participant amounts always add up exactly
+      // to the CNY total. Any leftover cents go to the largest fractional
+      // remainders, avoiding the 1-cent-per-person rounding drift.
+      const totalCents = Math.round(cnyTotal * 100);
+      const centParts = allocations.map((allocation, index) => {
         const percentage = allocation.percentage ?? 0;
-        allocation.amount = Math.floor(cnyTotal * percentage) / 100;
+        const exactCents = totalCents * percentage / 100;
+        const baseCents = Math.floor(exactCents);
+        return { index, baseCents, remainder: exactCents - baseCents };
+      });
+      let remainingCents = totalCents - centParts.reduce((sum, part) => sum + part.baseCents, 0);
+      centParts
+        .slice()
+        .sort((a, b) => b.remainder - a.remainder || a.index - b.index)
+        .forEach((part) => {
+          if (remainingCents > 0) {
+            part.baseCents += 1;
+            remainingCents -= 1;
+          }
+        });
+      centParts.forEach((part) => {
+        allocations[part.index].amount = part.baseCents / 100;
       });
     }
 
