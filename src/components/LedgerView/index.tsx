@@ -92,7 +92,13 @@ export const LedgerView: React.FC = () => {
 
   const membersById = new Map(selectedTrip.members.map((member) => [member.id, member.name]));
   const categoriesById = new Map(selectedTrip.categories.map((category) => [category.id, category.name]));
-  const entries = [...ledger].sort((a, b) => getLedgerEntryDate(b) - getLedgerEntryDate(a));
+  // Newest first: sort by ledger date descending, then by creation time
+  // descending so entries on the same day appear in the order they were added.
+  const entries = [...ledger].sort((a, b) => {
+    const dateDiff = getLedgerEntryDate(b) - getLedgerEntryDate(a);
+    if (dateDiff !== 0) return dateDiff;
+    return (b.createdAt ?? 0) - (a.createdAt ?? 0);
+  });
   const filteredByStatus = filter === 'pending' ? entries.filter((entry) => entry.isPending) : entries;
   const filtered = segmentFilterId
     ? filteredByStatus.filter((entry) => entry.segmentId === segmentFilterId)
