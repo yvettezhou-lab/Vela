@@ -670,7 +670,6 @@ const QuickEntryContent: React.FC<QuickEntryProps> = ({ onClose, editTripId, ini
       <form onSubmit={handleSubmit} className="flex-1 overflow-y-auto px-5 pb-[calc(180px+env(safe-area-inset-bottom))] pt-2">
         <div className="mb-5" style={{ display: "grid", gridTemplateColumns: "minmax(0, 1fr) minmax(0, 1.9fr)", alignItems: "end", gap: 12 }}>
           <div className="quick-entry-journey" style={{ minWidth: 0 }}>
-            <span className="mb-2 block text-xs uppercase tracking-[0.14em] text-[#857a6a]">Journey</span>
             <div className="relative">
               {tripChoices.slice(0, 1).map((trip) => {
                 const destinations = (trip.segments ?? [])
@@ -697,7 +696,6 @@ const QuickEntryContent: React.FC<QuickEntryProps> = ({ onClose, editTripId, ini
               aria-expanded={paidEditorOpen}
               aria-label="Edit paid date and time"
             >
-              <span className="text-sm font-semibold uppercase tracking-[0.16em] text-[#857a6a]">Paid</span>
               <strong className="text-xl font-semibold text-[#17243a]">{formatPaidTimestamp(toPaidTimestamp(paidAtDate, paidAtTime))}</strong>
             </button>
             {paidEditorOpen && (
