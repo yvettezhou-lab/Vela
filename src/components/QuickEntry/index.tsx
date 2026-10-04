@@ -669,16 +669,16 @@ const QuickEntryContent: React.FC<QuickEntryProps> = ({ onClose, editTripId, ini
 
       <form onSubmit={handleSubmit} className="flex-1 overflow-y-auto px-5 pb-[calc(180px+env(safe-area-inset-bottom))] pt-2">
         <div className="mb-5">
-          <div className="relative w-full max-w-md">
+          <div className="relative w-full">
             <button
               type="button"
               onClick={() => setPaidEditorOpen((open) => !open)}
-              className="flex min-h-14 w-full items-center justify-between rounded-2xl bg-[#fbf7ee] px-5 text-left shadow-[inset_0_0_0_1px_rgba(80,64,42,.10)] transition hover:bg-white"
+              className="flex min-h-[60px] w-full items-center justify-between rounded-2xl border border-black/5 bg-[#fbf7ee] px-5 text-left shadow-[inset_0_0_0_1px_rgba(80,64,42,.10)] transition hover:bg-white"
               aria-expanded={paidEditorOpen}
               aria-label="Edit paid date and time"
             >
-              <span className="text-xs font-medium uppercase tracking-[0.16em] text-[#857a6a]">Paid</span>
-              <strong className="text-lg font-medium text-[#17243a]">{formatPaidTimestamp(toPaidTimestamp(paidAtDate, paidAtTime))}</strong>
+              <span className="text-sm font-semibold uppercase tracking-[0.16em] text-[#857a6a]">Paid</span>
+              <strong className="text-xl font-semibold text-[#17243a]">{formatPaidTimestamp(toPaidTimestamp(paidAtDate, paidAtTime))}</strong>
             </button>
             {paidEditorOpen && (
               <div className="absolute left-0 top-full z-30 mt-2 grid w-[260px] grid-cols-2 gap-2 rounded-2xl bg-[#fbf7ee] p-3 shadow-xl ring-1 ring-black/10">
@@ -696,23 +696,22 @@ const QuickEntryContent: React.FC<QuickEntryProps> = ({ onClose, editTripId, ini
         </div>
 
         <div className="quick-entry-journey mb-5 pb-3">
-          <div className="grid grid-cols-4 items-center gap-2" role="radiogroup" aria-label="Journey">
-            <div className="col-span-3 grid grid-cols-3 gap-2">
-              {tripChoices.slice(0, 3).map((trip) => {
-                const destinations = (trip.segments ?? [])
-                  .flatMap((segment) => segment.destinations ?? [])
-                  .map((destination) => destination.city?.trim())
-                  .filter(Boolean)
-                  .slice(0, 2);
-                const label = destinations.join(' · ') || trip.title;
-                return (
-                  <button key={trip.id} type="button" onClick={() => setTargetTripId(trip.id)} aria-pressed={targetTripId === trip.id} className={`min-h-10 min-w-0 rounded-lg border px-2 text-xs font-medium transition ${targetTripId === trip.id ? 'border-[#17243a] bg-[#17243a] text-[#fffdf8] shadow-md' : 'border-black/5 bg-[#fbf7ee] text-[#17243a] shadow-sm hover:bg-white'}`}>
-                    <span className="block truncate">{label}</span>
-                  </button>
-                );
-              })}
-            </div>
-         </div>
+          <span className="mb-2 block text-xs uppercase tracking-[0.14em] text-[#857a6a]">Journey</span>
+          <div className="grid grid-cols-3 gap-2" role="radiogroup" aria-label="Journey">
+            {tripChoices.slice(0, 3).map((trip) => {
+              const destinations = (trip.segments ?? [])
+                .flatMap((segment) => segment.destinations ?? [])
+                .map((destination) => destination.city?.trim())
+                .filter(Boolean)
+                .slice(0, 2);
+              const label = destinations.join(' · ') || trip.title;
+              return (
+                <button key={trip.id} type="button" onClick={() => setTargetTripId(trip.id)} aria-pressed={targetTripId === trip.id} className={`min-h-12 min-w-0 rounded-xl border px-3 text-sm font-medium transition ${targetTripId === trip.id ? 'border-[#17243a] bg-[#17243a] text-[#fffdf8] shadow-md' : 'border-black/5 bg-[#fbf7ee] text-[#17243a] shadow-sm hover:bg-white'}`}>
+                  <span className="block truncate">{label}</span>
+                </button>
+              );
+            })}
+          </div>
         </div>
 
         <div className="quick-entry-entry-type mt-3 grid grid-cols-3 gap-3 rounded-2xl bg-[#eee5d5] p-1.5">
