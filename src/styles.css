@@ -262,7 +262,7 @@
   .vela-quick-fullscreen>form{padding-top:4px!important;padding-left:14px!important;padding-right:14px!important;padding-bottom:calc(96px + env(safe-area-inset-bottom))!important}
   .vela-quick-fullscreen .quick-entry-planning-row{gap:6px!important;margin-bottom:12px!important}
   .vela-quick-fullscreen .quick-entry-planning-trip,
-  .vela-quick-fullscreen .quick-entry-planning-paid-button{min-height:36px!important;height:36px!important;max-height:36px!important;padding-left:8px!important;padding-right:8px!important}
+  .vela-quick-fullscreen .quick-entry-planning-paid-button{padding-left:8px!important;padding-right:8px!important}
   .vela-quick-fullscreen .quick-entry-entry-type{gap:6px!important;padding:4px!important;margin-top:0!important}
   .vela-quick-fullscreen .quick-entry-entry-type button{min-height:42px!important;border-radius:10px!important;font-size:13px!important}
   .vela-quick-fullscreen .quick-entry-amount-row{grid-template-columns:170px minmax(0,1fr)!important;margin-top:10px!important;gap:10px!important}
@@ -350,14 +350,3 @@
 .vela-ledger-detail-footer{display:flex;justify-content:flex-end;margin-top:18px;padding-top:14px;border-top:1px solid rgba(67,76,70,.14)}
 .vela-ledger-detail-footer button{display:inline-flex;align-items:center;gap:6px;border:0;border-bottom:1px solid #b8aa8c;background:transparent;color:#806b3e;padding:3px 1px 4px;font-size:12px;font-weight:500;cursor:pointer}
 @media(max-width:600px){.vela-ledger-detail-grid{grid-template-columns:1fr 1fr}.vela-ledger-detail-sheet{padding-left:18px;padding-right:18px}}
-
-/* Quick Entry planning row: keep all four slots compact and equal. */
-.vela-quick-fullscreen .quick-entry-planning-row { align-items:start !important; }
-.vela-quick-fullscreen .quick-entry-planning-row > button,
-.vela-quick-fullscreen .quick-entry-planning-row > div > button {
-  min-height:36px !important;
-  height:36px !important;
-  max-height:36px !important;
-  padding-top:0 !important;
-  padding-bottom:0 !important;
-}
