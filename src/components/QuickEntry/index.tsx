@@ -668,7 +668,7 @@ const QuickEntryContent: React.FC<QuickEntryProps> = ({ onClose, editTripId, ini
       </header>
 
       <form onSubmit={handleSubmit} className="flex-1 overflow-y-auto px-5 pb-[calc(180px+env(safe-area-inset-bottom))] pt-2">
-        <div className="quick-entry-planning-row mb-5" style={{ display: "grid", gridTemplateColumns: "repeat(4, minmax(0, 1fr))", gap: 12, alignItems: "start" }}>
+        <div className="quick-entry-planning-row mb-5">
           {tripChoices.slice(0, 1).map((trip) => {
             const destinations = (trip.segments ?? [])
               .flatMap((segment) => segment.destinations ?? [])
@@ -690,7 +690,7 @@ const QuickEntryContent: React.FC<QuickEntryProps> = ({ onClose, editTripId, ini
             );
           })}
 
-          <div style={{ gridColumn: "4", position: "relative", minWidth: 0 }}>
+          <div className="quick-entry-planning-paid">
             <button
               type="button"
               onClick={() => setPaidEditorOpen((open) => !open)}
@@ -699,7 +699,7 @@ const QuickEntryContent: React.FC<QuickEntryProps> = ({ onClose, editTripId, ini
               aria-expanded={paidEditorOpen}
               aria-label="Edit paid date and time"
             >
-              <strong className="text-base font-semibold" style={{ color: '#17243a' }}>{formatPaidTimestamp(toPaidTimestamp(paidAtDate, paidAtTime))}</strong>
+              <strong className="text-base font-semibold">{formatPaidTimestamp(toPaidTimestamp(paidAtDate, paidAtTime))}</strong>
             </button>
             {paidEditorOpen && (
               <div className="absolute right-0 top-full z-30 mt-2 grid w-[260px] grid-cols-2 gap-2 rounded-2xl bg-[#fbf7ee] p-3 shadow-xl ring-1 ring-black/10">
@@ -728,7 +728,7 @@ const QuickEntryContent: React.FC<QuickEntryProps> = ({ onClose, editTripId, ini
           ))}
         </div>
 
-        <div className="mt-6 grid grid-cols-2 items-end gap-4">
+        <div className="quick-entry-amount-row mt-6 grid grid-cols-2 items-end gap-4">
           <label className="block">
             <span className="mb-2 block text-xs uppercase tracking-[0.14em] text-[#857a6a]">Amount</span>
             <div className="flex rounded-xl bg-[#fbf7ee] shadow-[inset_0_0_0_1px_rgba(80,64,42,.10)]">
@@ -802,16 +802,16 @@ const QuickEntryContent: React.FC<QuickEntryProps> = ({ onClose, editTripId, ini
           </div>
         )}
 
-        <div className="mt-6 grid min-w-0 gap-4" style={{ gridTemplateColumns: '220px minmax(0, 1fr)' }}>
+        <div className="quick-entry-category-row mt-6 grid min-w-0 gap-4">
           {entryType !== 'transport' && (
-            <label className="block min-w-0" style={{ gridColumn: '1' }}>
+            <label className="quick-entry-category-field block min-w-0">
               <span className="mb-2 block text-xs uppercase tracking-[0.14em] text-[#857a6a]">Category</span>
               <select value={categoryId} onChange={(event) => { const next = event.target.value; setCategoryId(next); setIncludeInCost(categories.find((category) => category.id === next)?.excludeFromStats !== true); }} className="w-full appearance-none rounded-xl bg-[#fbf7ee] px-4 text-base text-[#17243a] shadow-[inset_0_0_0_1px_rgba(80,64,42,.10)] outline-none" required>
                 {categories.map((category) => <option key={category.id} value={category.id}>{category.name}</option>)}
               </select>
             </label>
           )}
-          <div className={`min-w-0 w-full ${entryType === 'transport' ? 'col-span-2' : ''}`} style={entryType === 'transport' ? undefined : { gridColumn: '2' }}>
+          <div className={`quick-entry-payment-field min-w-0 w-full ${entryType === 'transport' ? 'quick-entry-payment-field-full' : ''}`}>
             <span className="mb-2 block text-xs uppercase tracking-[0.14em] text-[#857a6a]">Payment Account</span>
             <div className="quick-entry-payment-accounts">
               {accounts.map((account) => <button
@@ -877,14 +877,14 @@ const QuickEntryContent: React.FC<QuickEntryProps> = ({ onClose, editTripId, ini
 
         <div className="mt-5">
           <span className="mb-2 block text-xs uppercase tracking-[0.14em] text-[#857a6a]">Participants</span>
-            <div className="grid grid-cols-3 gap-2 rounded-xl bg-[#eee5d5] p-1">
+            <div className="quick-entry-allocation-mode grid grid-cols-3 gap-2 rounded-xl bg-[#eee5d5] p-1">
               {([
                 ['equal', 'Equal Split'],
                 ['preset_percentage', 'Preset Percentage'],
                 ['custom_percentage', 'Custom Percentage'],
               ] as const).map(([value, label]) => {
                 const disabled = value === 'preset_percentage' && !targetTrip?.allocationRules?.percentages;
-                return <button key={value} type="button" disabled={disabled} onClick={() => setAllocationMode(value)} aria-pressed={allocationMode === value} className={`min-h-9 rounded-lg border px-2 text-xs font-medium transition ${allocationMode === value ? 'border-[#17243a] bg-[#fffdf8] text-[#17243a] shadow-sm' : 'border-transparent text-[#746b5e] hover:bg-[#fbf7ee]'} ${disabled ? 'cursor-not-allowed opacity-40' : ''}`}>{label}</button>;
+                return <button key={value} type="button" disabled={disabled} onClick={() => setAllocationMode(value)} aria-pressed={allocationMode === value} className={`quick-entry-allocation-mode-button min-h-9 rounded-lg border px-2 text-xs font-medium transition ${allocationMode === value ? 'border-[#17243a] bg-[#fffdf8] text-[#17243a] shadow-sm' : 'border-transparent text-[#746b5e] hover:bg-[#fbf7ee]'} ${disabled ? 'cursor-not-allowed opacity-40' : ''}`}>{label}</button>;
               })}
             </div>
           {allocationMode === 'preset_percentage' && targetTrip?.allocationRules?.percentages && (
@@ -895,7 +895,7 @@ const QuickEntryContent: React.FC<QuickEntryProps> = ({ onClose, editTripId, ini
                 .join(' · ')}
             </div>
           )}
-          {allocationMode !== 'preset_percentage' && <div className="quick-entry-participants-grid mt-2" style={{ display: 'grid', gridTemplateColumns: 'repeat(5, minmax(0, 1fr))', gap: '6px', width: '100%', minWidth: 0, boxSizing: 'border-box' }}>
+          {allocationMode !== 'preset_percentage' && <div className="quick-entry-participants-grid mt-2">
             {members.map((member) => {
               const selected = selectedParticipants.has(member.id);
               return (
