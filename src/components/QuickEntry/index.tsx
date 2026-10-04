@@ -822,7 +822,7 @@ const QuickEntryContent: React.FC<QuickEntryProps> = ({ onClose, editTripId, ini
                 .join(' · ')}
             </div>
           )}
-          {allocationMode !== 'preset_percentage' && <div className="quick-entry-participants-grid mt-2">
+          {allocationMode !== 'preset_percentage' && <div className="quick-entry-participants-grid mt-2" style={{ display: 'grid', gridTemplateColumns: 'repeat(5, minmax(0, 1fr))', gap: '6px', width: '100%', minWidth: 0, boxSizing: 'border-box' }}>
             {members.map((member) => {
               const selected = selectedParticipants.has(member.id);
               return (
