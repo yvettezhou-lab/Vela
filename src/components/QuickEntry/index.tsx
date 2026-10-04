@@ -113,6 +113,17 @@ const DatePicker: React.FC<DatePickerProps> = ({ value, onChange, label, require
   });
 
   const monthCells = getMonthCells(viewMonth);
+  const pickerRef = useRef<HTMLDivElement | null>(null);
+  useEffect(() => {
+    if (!open) return;
+    const handleOutsidePointerDown = (event: PointerEvent) => {
+      const target = event.target;
+      if (!(target instanceof Node)) return;
+      if (!pickerRef.current?.contains(target)) onOpenPicker(null);
+    };
+    document.addEventListener('pointerdown', handleOutsidePointerDown);
+    return () => document.removeEventListener('pointerdown', handleOutsidePointerDown);
+  }, [open, onOpenPicker]);
   useEffect(() => {
     if (!open) return;
     const base = parseDateValue(value) ?? parseDateValue(openMonthValue ?? '') ?? parseDateValue(minDate ?? '') ?? new Date();
@@ -138,7 +149,7 @@ const DatePicker: React.FC<DatePickerProps> = ({ value, onChange, label, require
   };
 
   return (
-    <div className={`trip-date-picker quick-entry-date-picker${label === 'Return' || label === 'Usage End' ? ' quick-entry-date-picker-end' : ''}${label === 'Usage Start' || label === 'Usage End' ? ' quick-entry-date-picker-above' : ''}`}>
+    <div ref={pickerRef} className={`trip-date-picker quick-entry-date-picker${label === 'Return' || label === 'Usage End' ? ' quick-entry-date-picker-end' : ''}${label === 'Usage Start' || label === 'Usage End' ? ' quick-entry-date-picker-above' : ''}`}>
       <span>{label}</span>
       <button type="button" className={`trip-date-trigger${open ? ' is-open' : ''}`} onClick={openPicker} aria-expanded={open} aria-haspopup="dialog">
         <Calendar size={15} />
