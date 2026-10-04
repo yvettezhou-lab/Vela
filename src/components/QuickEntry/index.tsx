@@ -673,7 +673,7 @@ const QuickEntryContent: React.FC<QuickEntryProps> = ({ onClose, editTripId, ini
             <button
               type="button"
               onClick={() => setPaidEditorOpen((open) => !open)}
-              className="flex min-h-[60px] w-full items-center justify-between rounded-2xl border border-black/5 bg-[#fbf7ee] px-5 text-left shadow-[inset_0_0_0_1px_rgba(80,64,42,.10)] transition hover:bg-white"
+              className="flex w-full items-center justify-between rounded-2xl border border-black/5 bg-[#fbf7ee] px-5 text-left shadow-[inset_0_0_0_1px_rgba(80,64,42,.10)] transition hover:bg-white" style={{ minHeight: 60, height: 60 }}
               aria-expanded={paidEditorOpen}
               aria-label="Edit paid date and time"
             >
