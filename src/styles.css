@@ -405,16 +405,19 @@
     margin-top: 10px !important;
   }
   .vela-quick-fullscreen .quick-entry-participants-grid {
-    display: grid !important;
-    grid-template-columns: repeat(5, minmax(0, 1fr)) !important;
+    display: flex !important;
+    flex-wrap: wrap !important;
+    align-items: stretch !important;
     gap: 6px !important;
     width: 100% !important;
     min-width: 0 !important;
     box-sizing: border-box !important;
+    overflow: hidden !important;
   }
   .vela-quick-fullscreen .quick-entry-participants-grid > button {
-    flex: none !important;
-    width: 100% !important;
+    flex: 0 0 calc((100% - 24px) / 5) !important;
+    width: calc((100% - 24px) / 5) !important;
+    max-width: calc((100% - 24px) / 5) !important;
     min-width: 0 !important;
     box-sizing: border-box !important;
     min-height: 44px !important;
