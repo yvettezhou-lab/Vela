@@ -683,7 +683,7 @@ const QuickEntryContent: React.FC<QuickEntryProps> = ({ onClose, editTripId, ini
                 onClick={() => setTargetTripId(trip.id)}
                 aria-pressed={targetTripId === trip.id}
                 className={`min-w-0 rounded-2xl border px-3 text-sm font-medium transition ${targetTripId === trip.id ? 'border-[#17243a] bg-[#17243a] text-[#fffdf8] shadow-md' : 'border-black/5 bg-[#fbf7ee] text-[#17243a] shadow-sm hover:bg-white'}`}
-                style={{ minHeight: 40, height: 40 }}
+                style={{ minHeight: 36, height: 36 }}
               >
                 <span className="block truncate">{label}</span>
               </button>
@@ -695,7 +695,7 @@ const QuickEntryContent: React.FC<QuickEntryProps> = ({ onClose, editTripId, ini
               type="button"
               onClick={() => setPaidEditorOpen((open) => !open)}
               className="flex w-full items-center justify-end rounded-2xl border border-black/5 bg-[#fbf7ee] px-4 text-left shadow-[inset_0_0_0_1px_rgba(80,64,42,.10)] transition hover:bg-white"
-              style={{ minHeight: 40, height: 40, color: '#17243a' }}
+              style={{ minHeight: 36, height: 36, color: '#17243a' }}
               aria-expanded={paidEditorOpen}
               aria-label="Edit paid date and time"
             >
