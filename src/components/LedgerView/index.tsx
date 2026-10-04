@@ -15,6 +15,13 @@ const TRANSPORT_LABELS = {
   long_distance_bus: '🚌 Long-distance Bus',
   ferry: '⛴️ Ferry',
 } as const;
+const getPaidTimestamp = (entry: LedgerEntry) => {
+  if (Number.isFinite(entry.paidAt)) return entry.paidAt as number;
+  if ('paymentDate' in entry && Number.isFinite(entry.paymentDate)) return entry.paymentDate as number;
+  if (entry.entryType === 'transport' && Number.isFinite(entry.outboundDate)) return entry.outboundDate;
+  return entry.createdAt;
+};
+
 const entryLabel = (entry: LedgerEntry) => {
   const note = entry.note?.trim();
   if (note) return note;
@@ -92,11 +99,10 @@ export const LedgerView: React.FC = () => {
 
   const membersById = new Map(selectedTrip.members.map((member) => [member.id, member.name]));
   const categoriesById = new Map(selectedTrip.categories.map((category) => [category.id, category.name]));
-  // Newest first: sort by ledger date descending, then by creation time
-  // descending so entries on the same day appear in the order they were added.
+  // Newest paid first. Legacy entries fall back to their existing payment/business date.
   const entries = [...ledger].sort((a, b) => {
-    const dateDiff = getLedgerEntryDate(b) - getLedgerEntryDate(a);
-    if (dateDiff !== 0) return dateDiff;
+    const paidDiff = getPaidTimestamp(b) - getPaidTimestamp(a);
+    if (paidDiff !== 0) return paidDiff;
     return (b.createdAt ?? 0) - (a.createdAt ?? 0);
   });
   const filteredByStatus = filter === 'pending' ? entries.filter((entry) => entry.isPending) : entries;
@@ -119,7 +125,7 @@ export const LedgerView: React.FC = () => {
     if (entry.entryType !== 'prepaid_multi_day') {
       return [{
         entry,
-        displayDate: getLedgerEntryDate(entry),
+        displayDate: getPaidTimestamp(entry),
         displayOriginalAmount: entry.originalAmount,
         displayCnyEquivalent: entry.cnyEquivalent,
         displayId: entry.id,
@@ -516,7 +522,7 @@ export const LedgerView: React.FC = () => {
               <div><span>WHO PAID</span><strong>{membersById.get(detailEntry.payerId) ?? detailEntry.payerId}</strong></div>
               <div><span>PAYMENT ACCOUNT</span><strong>{selectedTrip.accounts.find((account) => account.id === detailEntry.accountId)?.name ?? '—'}</strong></div>
               <div><span>CATEGORY</span><strong>{selectedTrip.categories.find((category) => category.id === detailEntry.categoryId)?.name ?? '—'}</strong></div>
-              <div><span>PAYMENT DATE</span><strong>{formatDate(detailEntry.paymentDate)}</strong></div>
+              <div><span>PAID</span><strong>{formatPaidTimestamp(getPaidTimestamp(detailEntry))}</strong></div>
               {detailEntry.entryType === 'prepaid_multi_day' && <><div><span>USAGE START</span><strong>{formatDate(detailEntry.usageStart)}</strong></div><div><span>USAGE END</span><strong>{formatDate(detailEntry.usageEnd)}</strong></div></>}
               {detailEntry.entryType === 'transport' && <><div><span>TRANSPORT</span><strong>{TRANSPORT_LABELS[detailEntry.transportMode]}</strong></div><div><span>OUTBOUND</span><strong>{formatDate(detailEntry.outboundDate)}</strong></div>{detailEntry.journeyType === 'round_trip' && <div><span>RETURN</span><strong>{formatDate(detailEntry.returnDate)}</strong></div>}</>}
               <div><span>STATUS</span><strong>{detailEntry.isPending ? 'Pending' : detailEntry.includeInCost ? 'Included in statistics' : 'Excluded from statistics'}</strong></div>
