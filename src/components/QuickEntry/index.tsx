@@ -668,12 +668,32 @@ const QuickEntryContent: React.FC<QuickEntryProps> = ({ onClose, editTripId, ini
       </header>
 
       <form onSubmit={handleSubmit} className="flex-1 overflow-y-auto px-5 pb-[calc(180px+env(safe-area-inset-bottom))] pt-2">
-        <div className="mb-5">
+        <div className="mb-5 grid grid-cols-[minmax(0,1fr)_minmax(0,1.9fr)] items-end gap-3">
+          <div className="quick-entry-journey">
+            <span className="mb-2 block text-xs uppercase tracking-[0.14em] text-[#857a6a]">Journey</span>
+            <div className="relative">
+              {tripChoices.slice(0, 1).map((trip) => {
+                const destinations = (trip.segments ?? [])
+                  .flatMap((segment) => segment.destinations ?? [])
+                  .map((destination) => destination.city?.trim())
+                  .filter(Boolean)
+                  .slice(0, 2);
+                const label = destinations.join(' · ') || trip.title;
+                return (
+                  <button key={trip.id} type="button" onClick={() => setTargetTripId(trip.id)} aria-pressed={targetTripId === trip.id} className={`flex min-h-[60px] w-full min-w-0 items-center justify-center rounded-2xl border px-3 text-sm font-medium transition ${targetTripId === trip.id ? 'border-[#17243a] bg-[#17243a] text-[#fffdf8] shadow-md' : 'border-black/5 bg-[#fbf7ee] text-[#17243a] shadow-sm hover:bg-white'}`}>
+                    <span className="block truncate">{label}</span>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
           <div className="relative w-full">
             <button
               type="button"
               onClick={() => setPaidEditorOpen((open) => !open)}
-              className="flex w-full items-center justify-between rounded-2xl border border-black/5 bg-[#fbf7ee] px-5 text-left shadow-[inset_0_0_0_1px_rgba(80,64,42,.10)] transition hover:bg-white" style={{ minHeight: 60, height: 60 }}
+              className="flex w-full items-center justify-between rounded-2xl border border-black/5 bg-[#fbf7ee] px-5 text-left shadow-[inset_0_0_0_1px_rgba(80,64,42,.10)] transition hover:bg-white"
+              style={{ minHeight: 60, height: 60 }}
               aria-expanded={paidEditorOpen}
               aria-label="Edit paid date and time"
             >
@@ -681,7 +701,7 @@ const QuickEntryContent: React.FC<QuickEntryProps> = ({ onClose, editTripId, ini
               <strong className="text-xl font-semibold text-[#17243a]">{formatPaidTimestamp(toPaidTimestamp(paidAtDate, paidAtTime))}</strong>
             </button>
             {paidEditorOpen && (
-              <div className="absolute left-0 top-full z-30 mt-2 grid w-[260px] grid-cols-2 gap-2 rounded-2xl bg-[#fbf7ee] p-3 shadow-xl ring-1 ring-black/10">
+              <div className="absolute right-0 top-full z-30 mt-2 grid w-[260px] grid-cols-2 gap-2 rounded-2xl bg-[#fbf7ee] p-3 shadow-xl ring-1 ring-black/10">
                 <label className="block">
                   <span className="mb-1 block text-[10px] uppercase tracking-[0.12em] text-[#857a6a]">Date</span>
                   <input type="date" value={paidAtDate} onChange={(event) => { setPaidAtDate(event.target.value); setPaymentDate(event.target.value); }} className="w-full rounded-xl bg-white px-2 py-2 text-sm outline-none ring-1 ring-black/10" />
@@ -692,25 +712,6 @@ const QuickEntryContent: React.FC<QuickEntryProps> = ({ onClose, editTripId, ini
                 </label>
               </div>
             )}
-          </div>
-        </div>
-
-        <div className="quick-entry-journey mb-5 pb-3">
-          <span className="mb-2 block text-xs uppercase tracking-[0.14em] text-[#857a6a]">Journey</span>
-          <div className="grid grid-cols-3 gap-2" role="radiogroup" aria-label="Journey">
-            {tripChoices.slice(0, 3).map((trip) => {
-              const destinations = (trip.segments ?? [])
-                .flatMap((segment) => segment.destinations ?? [])
-                .map((destination) => destination.city?.trim())
-                .filter(Boolean)
-                .slice(0, 2);
-              const label = destinations.join(' · ') || trip.title;
-              return (
-                <button key={trip.id} type="button" onClick={() => setTargetTripId(trip.id)} aria-pressed={targetTripId === trip.id} className={`min-h-12 min-w-0 rounded-xl border px-3 text-sm font-medium transition ${targetTripId === trip.id ? 'border-[#17243a] bg-[#17243a] text-[#fffdf8] shadow-md' : 'border-black/5 bg-[#fbf7ee] text-[#17243a] shadow-sm hover:bg-white'}`}>
-                  <span className="block truncate">{label}</span>
-                </button>
-              );
-            })}
           </div>
         </div>
 
