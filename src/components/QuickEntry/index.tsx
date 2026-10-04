@@ -668,58 +668,46 @@ const QuickEntryContent: React.FC<QuickEntryProps> = ({ onClose, editTripId, ini
       </header>
 
       <form onSubmit={handleSubmit} className="flex-1 overflow-y-auto px-5 pb-[calc(180px+env(safe-area-inset-bottom))] pt-2">
-        <div className="mb-4 flex justify-end">
-          <div className="relative">
-            <button
-              type="button"
-              onClick={() => setPaidEditorOpen((open) => !open)}
-              className="rounded-xl px-2 py-1 text-xs font-medium text-[#6f6659] transition hover:bg-[#eee5d5]"
-              aria-expanded={paidEditorOpen}
-              aria-label="Edit paid date and time"
-            >
-              {formatPaidTimestamp(toPaidTimestamp(paidAtDate, paidAtTime))}
-            </button>
-            {paidEditorOpen && (
-              <div className="absolute right-0 top-full z-30 mt-2 grid w-[260px] grid-cols-2 gap-2 rounded-2xl bg-[#fbf7ee] p-3 shadow-xl ring-1 ring-black/10">
-                <label className="block">
-                  <span className="mb-1 block text-[10px] uppercase tracking-[0.12em] text-[#857a6a]">Date</span>
-                  <input
-                    type="date"
-                    value={paidAtDate}
-                    onChange={(event) => { setPaidAtDate(event.target.value); setPaymentDate(event.target.value); }}
-                    className="w-full rounded-xl bg-white px-2 py-2 text-sm outline-none ring-1 ring-black/10"
-                  />
-                </label>
-                <label className="block">
-                  <span className="mb-1 block text-[10px] uppercase tracking-[0.12em] text-[#857a6a]">Time</span>
-                  <input
-                    type="time"
-                    value={paidAtTime}
-                    onChange={(event) => setPaidAtTime(event.target.value)}
-                    className="w-full rounded-xl bg-white px-2 py-2 text-sm outline-none ring-1 ring-black/10"
-                  />
-                </label>
-              </div>
-            )}
-          </div>
-        </div>
-
         <div className="quick-entry-journey mb-5 pb-3">
-          <span className="mb-2 block text-xs uppercase tracking-[0.14em] text-[#857a6a]">Journey</span>
-          <div className="grid grid-cols-4 gap-2" role="radiogroup" aria-label="Journey">
-            {tripChoices.map((trip) => {
-              const destinations = (trip.segments ?? [])
-                .flatMap((segment) => segment.destinations ?? [])
-                .map((destination) => destination.city?.trim())
-                .filter(Boolean)
-                .slice(0, 2);
-              const label = destinations.join(' · ') || trip.title;
-              return (
-                <button key={trip.id} type="button" onClick={() => setTargetTripId(trip.id)} aria-pressed={targetTripId === trip.id} className={`min-h-10 rounded-lg border px-2 text-xs font-medium transition ${targetTripId === trip.id ? 'border-[#17243a] bg-[#17243a] text-[#fffdf8] shadow-md' : 'border-black/5 bg-[#fbf7ee] text-[#17243a] shadow-sm hover:bg-white'}`}>
-                  <span className="block truncate">{label}</span>
-                </button>
-              );
-            })}
+          <div className="grid grid-cols-4 items-center gap-2" role="radiogroup" aria-label="Journey">
+            <div className="col-span-3 grid grid-cols-3 gap-2">
+              {tripChoices.slice(0, 3).map((trip) => {
+                const destinations = (trip.segments ?? [])
+                  .flatMap((segment) => segment.destinations ?? [])
+                  .map((destination) => destination.city?.trim())
+                  .filter(Boolean)
+                  .slice(0, 2);
+                const label = destinations.join(' · ') || trip.title;
+                return (
+                  <button key={trip.id} type="button" onClick={() => setTargetTripId(trip.id)} aria-pressed={targetTripId === trip.id} className={`min-h-10 min-w-0 rounded-lg border px-2 text-xs font-medium transition ${targetTripId === trip.id ? 'border-[#17243a] bg-[#17243a] text-[#fffdf8] shadow-md' : 'border-black/5 bg-[#fbf7ee] text-[#17243a] shadow-sm hover:bg-white'}`}>
+                    <span className="block truncate">{label}</span>
+                  </button>
+                );
+              })}
+            </div>
+            <div className="relative min-w-0 flex justify-end">
+              <button
+                type="button"
+                onClick={() => setPaidEditorOpen((open) => !open)}
+                className="min-h-10 max-w-full rounded-xl px-1 text-xs font-medium text-[#6f6659] transition hover:bg-[#eee5d5]"
+                aria-expanded={paidEditorOpen}
+                aria-label="Edit paid date and time"
+              >
+                <span className="block truncate">{formatPaidTimestamp(toPaidTimestamp(paidAtDate, paidAtTime))}</span>
+              </button>
+              {paidEditorOpen && (
+                <div className="absolute right-0 top-full z-30 mt-2 grid w-[260px] grid-cols-2 gap-2 rounded-2xl bg-[#fbf7ee] p-3 shadow-xl ring-1 ring-black/10">
+                  <label className="block">
+                    <span className="mb-1 block text-[10px] uppercase tracking-[0.12em] text-[#857a6a]">Date</span>
+                    <input type="date" value={paidAtDate} onChange={(event) => { setPaidAtDate(event.target.value); setPaymentDate(event.target.value); }} className="w-full rounded-xl bg-white px-2 py-2 text-sm outline-none ring-1 ring-black/10" />
+                  </label>
+                  <label className="block">
+                    <span className="mb-1 block text-[10px] uppercase tracking-[0.12em] text-[#857a6a]">Time</span>
+                    <input type="time" value={paidAtTime} onChange={(event) => setPaidAtTime(event.target.value)} className="w-full rounded-xl bg-white px-2 py-2 text-sm outline-none ring-1 ring-black/10" />
+                  </label>
+                </div>
+              )}
+            </div>
           </div>
         </div>
 
