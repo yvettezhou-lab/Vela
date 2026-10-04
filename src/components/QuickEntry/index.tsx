@@ -668,6 +668,33 @@ const QuickEntryContent: React.FC<QuickEntryProps> = ({ onClose, editTripId, ini
       </header>
 
       <form onSubmit={handleSubmit} className="flex-1 overflow-y-auto px-5 pb-[calc(180px+env(safe-area-inset-bottom))] pt-2">
+        <div className="mb-5">
+          <div className="relative w-full max-w-md">
+            <button
+              type="button"
+              onClick={() => setPaidEditorOpen((open) => !open)}
+              className="flex min-h-14 w-full items-center justify-between rounded-2xl bg-[#fbf7ee] px-5 text-left shadow-[inset_0_0_0_1px_rgba(80,64,42,.10)] transition hover:bg-white"
+              aria-expanded={paidEditorOpen}
+              aria-label="Edit paid date and time"
+            >
+              <span className="text-xs font-medium uppercase tracking-[0.16em] text-[#857a6a]">Paid</span>
+              <strong className="text-lg font-medium text-[#17243a]">{formatPaidTimestamp(toPaidTimestamp(paidAtDate, paidAtTime))}</strong>
+            </button>
+            {paidEditorOpen && (
+              <div className="absolute left-0 top-full z-30 mt-2 grid w-[260px] grid-cols-2 gap-2 rounded-2xl bg-[#fbf7ee] p-3 shadow-xl ring-1 ring-black/10">
+                <label className="block">
+                  <span className="mb-1 block text-[10px] uppercase tracking-[0.12em] text-[#857a6a]">Date</span>
+                  <input type="date" value={paidAtDate} onChange={(event) => { setPaidAtDate(event.target.value); setPaymentDate(event.target.value); }} className="w-full rounded-xl bg-white px-2 py-2 text-sm outline-none ring-1 ring-black/10" />
+                </label>
+                <label className="block">
+                  <span className="mb-1 block text-[10px] uppercase tracking-[0.12em] text-[#857a6a]">Time</span>
+                  <input type="time" value={paidAtTime} onChange={(event) => setPaidAtTime(event.target.value)} className="w-full rounded-xl bg-white px-2 py-2 text-sm outline-none ring-1 ring-black/10" />
+                </label>
+              </div>
+            )}
+          </div>
+        </div>
+
         <div className="quick-entry-journey mb-5 pb-3">
           <div className="grid grid-cols-4 items-center gap-2" role="radiogroup" aria-label="Journey">
             <div className="col-span-3 grid grid-cols-3 gap-2">
@@ -685,30 +712,7 @@ const QuickEntryContent: React.FC<QuickEntryProps> = ({ onClose, editTripId, ini
                 );
               })}
             </div>
-            <div className="relative min-w-0 flex justify-end">
-              <button
-                type="button"
-                onClick={() => setPaidEditorOpen((open) => !open)}
-                className="min-h-10 max-w-full rounded-xl px-1 text-xs font-medium text-[#6f6659] transition hover:bg-[#eee5d5]"
-                aria-expanded={paidEditorOpen}
-                aria-label="Edit paid date and time"
-              >
-                <span className="block truncate">{formatPaidTimestamp(toPaidTimestamp(paidAtDate, paidAtTime))}</span>
-              </button>
-              {paidEditorOpen && (
-                <div className="absolute right-0 top-full z-30 mt-2 grid w-[260px] grid-cols-2 gap-2 rounded-2xl bg-[#fbf7ee] p-3 shadow-xl ring-1 ring-black/10">
-                  <label className="block">
-                    <span className="mb-1 block text-[10px] uppercase tracking-[0.12em] text-[#857a6a]">Date</span>
-                    <input type="date" value={paidAtDate} onChange={(event) => { setPaidAtDate(event.target.value); setPaymentDate(event.target.value); }} className="w-full rounded-xl bg-white px-2 py-2 text-sm outline-none ring-1 ring-black/10" />
-                  </label>
-                  <label className="block">
-                    <span className="mb-1 block text-[10px] uppercase tracking-[0.12em] text-[#857a6a]">Time</span>
-                    <input type="time" value={paidAtTime} onChange={(event) => setPaidAtTime(event.target.value)} className="w-full rounded-xl bg-white px-2 py-2 text-sm outline-none ring-1 ring-black/10" />
-                  </label>
-                </div>
-              )}
-            </div>
-          </div>
+         </div>
         </div>
 
         <div className="quick-entry-entry-type mt-3 grid grid-cols-3 gap-3 rounded-2xl bg-[#eee5d5] p-1.5">
