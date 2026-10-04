@@ -24,6 +24,30 @@ const toDateValue = (date: Date) => {
 };
 
 const todayValue = () => toDateValue(new Date());
+const currentTimeValue = () => {
+  const date = new Date();
+  return `${String(date.getHours()).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')}`;
+};
+const toPaidTimestamp = (dateValue: string, timeValue: string) => {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(dateValue) || !/^\d{2}:\d{2}$/.test(timeValue)) return NaN;
+  const [year, month, day] = dateValue.split('-').map(Number);
+  const [hour, minute] = timeValue.split(':').map(Number);
+  const date = new Date(year, month - 1, day, hour, minute, 0, 0);
+  return Number.isFinite(date.getTime()) ? date.getTime() : NaN;
+};
+const paidParts = (timestamp: number) => {
+  const date = new Date(timestamp);
+  return {
+    date: toDateValue(date),
+    time: `${String(date.getHours()).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')}`,
+  };
+};
+const formatPaidTimestamp = (timestamp: number) => {
+  const date = new Date(timestamp);
+  return Number.isFinite(date.getTime())
+    ? date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) + ` · ${String(date.getHours()).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')}`
+    : 'Select date & time';
+};
 const normalizePercentageInput = (value: string) => value.replace(/^0+(?=\d)/, '');
 const formatCny = (value: number) => (Number.isFinite(value) ? value.toFixed(2).replace(/\.00$/, '') : '');
 const evaluateAmountExpression = (input: string): number | null => {
@@ -232,6 +256,9 @@ const QuickEntryContent: React.FC<QuickEntryProps> = ({ onClose, editTripId, ini
   const [note, setNote] = useState('');
   const [payerId, setPayerId] = useState('');
   const [paymentDate, setPaymentDate] = useState(todayValue);
+  const [paidAtDate, setPaidAtDate] = useState(todayValue);
+  const [paidAtTime, setPaidAtTime] = useState(currentTimeValue);
+  const [paidEditorOpen, setPaidEditorOpen] = useState(false);
   const [outboundDate, setOutboundDate] = useState('');
   const [returnDate, setReturnDate] = useState('');
   const [usageStart, setUsageStart] = useState('');
@@ -312,6 +339,14 @@ const QuickEntryContent: React.FC<QuickEntryProps> = ({ onClose, editTripId, ini
     setAllocationMode(initialEntry.allocationMode);
     setSelectedParticipants(new Set(initialEntry.allocations.map((allocation) => allocation.memberId)));
     setCustomPercentages(Object.fromEntries(initialEntry.allocations.map((allocation) => [allocation.memberId, allocation.percentage ?? 0])));
+    const legacyPaidAt = initialEntry.paidAt
+      ?? ('paymentDate' in initialEntry ? initialEntry.paymentDate : undefined)
+      ?? ('outboundDate' in initialEntry ? initialEntry.outboundDate : undefined)
+      ?? initialEntry.createdAt;
+    const initialPaid = paidParts(legacyPaidAt);
+    setPaidAtDate(initialPaid.date);
+    setPaidAtTime(initialPaid.time);
+    setPaymentDate(initialPaid.date);
     if (initialEntry.entryType === 'standard' || initialEntry.entryType === 'prepaid_multi_day') {
       setPaymentDate(toDateValue(new Date(initialEntry.paymentDate)));
     }
@@ -322,7 +357,6 @@ const QuickEntryContent: React.FC<QuickEntryProps> = ({ onClose, editTripId, ini
     if (initialEntry.entryType === 'transport') {
       setTransportMode(initialEntry.transportMode);
       setJourneyType(initialEntry.journeyType);
-      setPaymentDate(toDateValue(new Date(initialEntry.paymentDate)));
       setOutboundDate(toDateValue(new Date(initialEntry.outboundDate)));
       if (initialEntry.journeyType === 'round_trip') setReturnDate(toDateValue(new Date(initialEntry.returnDate)));
     }
@@ -491,6 +525,11 @@ const QuickEntryContent: React.FC<QuickEntryProps> = ({ onClose, editTripId, ini
     setAmount('');
     setCnyEquivalent('');
     setNote('');
+    const freshNow = Date.now();
+    const freshPaid = paidParts(freshNow);
+    setPaidAtDate(freshPaid.date);
+    setPaidAtTime(freshPaid.time);
+    setPaidEditorOpen(false);
     setError(null);
     setSuccess(true);
     if (successTimerRef.current) clearTimeout(successTimerRef.current);
@@ -518,6 +557,10 @@ const QuickEntryContent: React.FC<QuickEntryProps> = ({ onClose, editTripId, ini
       if (entryType !== 'transport' && !categoryId) throw new Error('Category is required.');
 
       const allocations = buildAllocations(cnyTotal);
+      const paidAt = toPaidTimestamp(paidAtDate, paidAtTime);
+      if (!Number.isFinite(paidAt)) throw new Error('Paid date and time are required.');
+      const paidDateOnly = toDateTimestamp(paidAtDate);
+      if (!Number.isFinite(paidDateOnly)) throw new Error('Paid date is required.');
       const now = Date.now();
       const baseData = {
         id: initialEntry?.id ?? `entry_${generateId()}`,
@@ -535,13 +578,14 @@ const QuickEntryContent: React.FC<QuickEntryProps> = ({ onClose, editTripId, ini
         allocations,
         createdAt: initialEntry?.createdAt ?? now,
         updatedAt: now,
+        paidAt,
       };
 
       let finalEntry: LedgerEntry;
       if (entryType === 'standard') {
         const date = toDateTimestamp(paymentDate);
         if (!Number.isFinite(date)) throw new Error('Payment date is required.');
-        finalEntry = { ...baseData, entryType: 'standard', paymentDate: date };
+        finalEntry = { ...baseData, entryType: 'standard', paymentDate: paidDateOnly };
       } else if (entryType === 'transport') {
         const outbound = toDateTimestamp(outboundDate);
         if (!Number.isFinite(outbound)) throw new Error('Outbound date is required.');
@@ -550,9 +594,9 @@ const QuickEntryContent: React.FC<QuickEntryProps> = ({ onClose, editTripId, ini
           const returnTimestamp = toDateTimestamp(returnDate);
           if (!Number.isFinite(returnTimestamp)) throw new Error('Return date is required.');
           if (returnTimestamp < outbound) throw new Error('Return date cannot be before outbound date.');
-          finalEntry = { ...baseData, entryType: 'transport', transportMode, journeyType: 'round_trip', outboundDate: outbound, returnDate: returnTimestamp };
+          finalEntry = { ...baseData, entryType: 'transport', transportMode, journeyType: 'round_trip', outboundDate: outbound, returnDate: returnTimestamp, paymentDate: paidDateOnly };
         } else {
-          finalEntry = { ...baseData, entryType: 'transport', transportMode, journeyType: 'one_way', outboundDate: outbound };
+          finalEntry = { ...baseData, entryType: 'transport', transportMode, journeyType: 'one_way', outboundDate: outbound, paymentDate: paidDateOnly };
         }
       } else {
         const payment = toDateTimestamp(paymentDate);
@@ -561,7 +605,7 @@ const QuickEntryContent: React.FC<QuickEntryProps> = ({ onClose, editTripId, ini
         if (!Number.isFinite(payment)) throw new Error('Payment date is required.');
         if (!Number.isFinite(start) || !Number.isFinite(end)) throw new Error('Usage dates are required.');
         if (end < start) throw new Error('Usage end cannot be before usage start.');
-        finalEntry = { ...baseData, entryType: 'prepaid_multi_day', paymentDate: payment, usageStart: start, usageEnd: end };
+        finalEntry = { ...baseData, entryType: 'prepaid_multi_day', paymentDate: paidDateOnly, usageStart: start, usageEnd: end };
       }
 
       if (!targetTrip) throw new Error('Journey is required.');
@@ -624,6 +668,41 @@ const QuickEntryContent: React.FC<QuickEntryProps> = ({ onClose, editTripId, ini
       </header>
 
       <form onSubmit={handleSubmit} className="flex-1 overflow-y-auto px-5 pb-[calc(180px+env(safe-area-inset-bottom))] pt-2">
+        <div className="mb-4 flex justify-end">
+          <div className="relative">
+            <button
+              type="button"
+              onClick={() => setPaidEditorOpen((open) => !open)}
+              className="rounded-xl px-2 py-1 text-xs font-medium text-[#6f6659] transition hover:bg-[#eee5d5]"
+              aria-expanded={paidEditorOpen}
+              aria-label="Edit paid date and time"
+            >
+              {formatPaidTimestamp(toPaidTimestamp(paidAtDate, paidAtTime))}
+            </button>
+            {paidEditorOpen && (
+              <div className="absolute right-0 top-full z-30 mt-2 grid w-[260px] grid-cols-2 gap-2 rounded-2xl bg-[#fbf7ee] p-3 shadow-xl ring-1 ring-black/10">
+                <label className="block">
+                  <span className="mb-1 block text-[10px] uppercase tracking-[0.12em] text-[#857a6a]">Date</span>
+                  <input
+                    type="date"
+                    value={paidAtDate}
+                    onChange={(event) => { setPaidAtDate(event.target.value); setPaymentDate(event.target.value); }}
+                    className="w-full rounded-xl bg-white px-2 py-2 text-sm outline-none ring-1 ring-black/10"
+                  />
+                </label>
+                <label className="block">
+                  <span className="mb-1 block text-[10px] uppercase tracking-[0.12em] text-[#857a6a]">Time</span>
+                  <input
+                    type="time"
+                    value={paidAtTime}
+                    onChange={(event) => setPaidAtTime(event.target.value)}
+                    className="w-full rounded-xl bg-white px-2 py-2 text-sm outline-none ring-1 ring-black/10"
+                  />
+                </label>
+              </div>
+            )}
+          </div>
+        </div>
 
         <div className="quick-entry-journey mb-5 pb-3">
           <span className="mb-2 block text-xs uppercase tracking-[0.14em] text-[#857a6a]">Journey</span>
@@ -758,12 +837,6 @@ const QuickEntryContent: React.FC<QuickEntryProps> = ({ onClose, editTripId, ini
           <textarea value={note} onChange={(event) => setNote(event.target.value)} rows={1} maxLength={200} placeholder="What was this payment for? e.g. Longling dinner" className="h-12 w-full resize-none rounded-xl bg-[#fbf7ee] px-4 py-2.5 text-sm text-[#17243a] shadow-[inset_0_0_0_1px_rgba(80,64,42,.10)] outline-none placeholder:text-[#aaa092]" aria-label="Note" />
         </label>
 
-        {entryType === 'standard' && (
-          <div className="mt-6 max-w-[50%]">
-            <DatePicker pickerId="standard-payment" openPickerId={openDatePicker} onOpenPicker={setOpenDatePicker} value={paymentDate} onChange={setPaymentDate} label="Date" required />
-          </div>
-        )}
-
         {entryType === 'transport' && (
           <div className="mt-5 space-y-3">
             <div className="grid grid-cols-2 gap-3 items-start">
@@ -794,7 +867,6 @@ const QuickEntryContent: React.FC<QuickEntryProps> = ({ onClose, editTripId, ini
             </div>
 
             <div className={journeyType === 'round_trip' && transportMode !== 'long_distance_bus' ? 'grid grid-cols-3 gap-3' : 'grid grid-cols-2 gap-3'}>
-              <DatePicker pickerId="transport-payment" openPickerId={openDatePicker} onOpenPicker={setOpenDatePicker} value={paymentDate} onChange={setPaymentDate} label="Payment Date" required />
               <DatePicker pickerId="transport-outbound" openPickerId={openDatePicker} onOpenPicker={setOpenDatePicker} value={outboundDate} onChange={(value) => { setOutboundDate(value); if (returnDate && returnDate < value) setReturnDate(''); }} label="Outbound" required minDate={tripDateBounds.minDate} maxDate={tripDateBounds.maxDate} />
               {journeyType === 'round_trip' && transportMode !== 'long_distance_bus' && <DatePicker pickerId="transport-return" openPickerId={openDatePicker} onOpenPicker={setOpenDatePicker} value={returnDate} onChange={setReturnDate} label="Return" required minDate={outboundDate || tripDateBounds.minDate} maxDate={tripDateBounds.maxDate} openMonthValue={outboundDate || tripDateBounds.minDate} />}
             </div>
@@ -803,9 +875,6 @@ const QuickEntryContent: React.FC<QuickEntryProps> = ({ onClose, editTripId, ini
 
         {entryType === 'prepaid_multi_day' && (
           <div className="mt-6 space-y-5">
-            <div className="max-w-[50%]">
-              <DatePicker pickerId="prepaid-payment" openPickerId={openDatePicker} onOpenPicker={setOpenDatePicker} value={paymentDate} onChange={setPaymentDate} label="Payment Date" required />
-            </div>
             <div className="grid grid-cols-2 gap-5">
               <DatePicker pickerId="prepaid-usage-start" openPickerId={openDatePicker} onOpenPicker={setOpenDatePicker} value={usageStart} onChange={(value) => { setUsageStart(value); if (usageEnd && usageEnd < value) setUsageEnd(''); }} label="Usage Start" required minDate={tripDateBounds.minDate} maxDate={tripDateBounds.maxDate} />
               <DatePicker pickerId="prepaid-usage-end" openPickerId={openDatePicker} onOpenPicker={setOpenDatePicker} value={usageEnd} onChange={setUsageEnd} label="Usage End" required minDate={usageStart || tripDateBounds.minDate} maxDate={tripDateBounds.maxDate} openMonthValue={usageStart || tripDateBounds.minDate} />
