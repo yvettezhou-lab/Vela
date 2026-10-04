@@ -668,35 +668,38 @@ const QuickEntryContent: React.FC<QuickEntryProps> = ({ onClose, editTripId, ini
       </header>
 
       <form onSubmit={handleSubmit} className="flex-1 overflow-y-auto px-5 pb-[calc(180px+env(safe-area-inset-bottom))] pt-2">
-        <div className="mb-5" style={{ display: "grid", gridTemplateColumns: "minmax(0, 1fr) minmax(0, 1.9fr)", alignItems: "end", gap: 12 }}>
-          <div className="quick-entry-journey" style={{ minWidth: 0 }}>
-            <div className="relative">
-              {tripChoices.slice(0, 1).map((trip) => {
-                const destinations = (trip.segments ?? [])
-                  .flatMap((segment) => segment.destinations ?? [])
-                  .map((destination) => destination.city?.trim())
-                  .filter(Boolean)
-                  .slice(0, 2);
-                const label = destinations.join(' · ') || trip.title;
-                return (
-                  <button key={trip.id} type="button" onClick={() => setTargetTripId(trip.id)} aria-pressed={targetTripId === trip.id} className={`flex min-h-[60px] w-full min-w-0 items-center justify-center rounded-2xl border px-3 text-sm font-medium transition ${targetTripId === trip.id ? 'border-[#17243a] bg-[#17243a] text-[#fffdf8] shadow-md' : 'border-black/5 bg-[#fbf7ee] text-[#17243a] shadow-sm hover:bg-white'}`}>
-                    <span className="block truncate">{label}</span>
-                  </button>
-                );
-              })}
-            </div>
-          </div>
+        <div className="mb-5" style={{ display: "grid", gridTemplateColumns: "minmax(0, 1fr) minmax(0, 1.9fr)", gap: 12 }}>
+          {tripChoices.slice(0, 1).map((trip) => {
+            const destinations = (trip.segments ?? [])
+              .flatMap((segment) => segment.destinations ?? [])
+              .map((destination) => destination.city?.trim())
+              .filter(Boolean)
+              .slice(0, 2);
+            const label = destinations.join(' · ') || trip.title;
+            return (
+              <button
+                key={trip.id}
+                type="button"
+                onClick={() => setTargetTripId(trip.id)}
+                aria-pressed={targetTripId === trip.id}
+                className={`min-w-0 rounded-2xl border px-3 text-sm font-medium transition ${targetTripId === trip.id ? 'border-[#17243a] bg-[#17243a] text-[#fffdf8] shadow-md' : 'border-black/5 bg-[#fbf7ee] text-[#17243a] shadow-sm hover:bg-white'}`}
+                style={{ minHeight: 60, height: 60 }}
+              >
+                <span className="block truncate">{label}</span>
+              </button>
+            );
+          })}
 
-          <div className="relative w-full">
+          <div className="relative min-w-0">
             <button
               type="button"
               onClick={() => setPaidEditorOpen((open) => !open)}
-              className="flex w-full items-center justify-between rounded-2xl border border-black/5 bg-[#fbf7ee] px-5 text-left shadow-[inset_0_0_0_1px_rgba(80,64,42,.10)] transition hover:bg-white"
-              style={{ minHeight: 60, height: 60 }}
+              className="flex w-full items-center justify-end rounded-2xl border border-black/5 bg-[#fbf7ee] px-5 text-left shadow-[inset_0_0_0_1px_rgba(80,64,42,.10)] transition hover:bg-white"
+              style={{ minHeight: 60, height: 60, color: '#17243a' }}
               aria-expanded={paidEditorOpen}
               aria-label="Edit paid date and time"
             >
-              <strong className="text-xl font-semibold text-[#17243a]">{formatPaidTimestamp(toPaidTimestamp(paidAtDate, paidAtTime))}</strong>
+              <strong className="text-xl font-semibold" style={{ color: '#17243a' }}>{formatPaidTimestamp(toPaidTimestamp(paidAtDate, paidAtTime))}</strong>
             </button>
             {paidEditorOpen && (
               <div className="absolute right-0 top-full z-30 mt-2 grid w-[260px] grid-cols-2 gap-2 rounded-2xl bg-[#fbf7ee] p-3 shadow-xl ring-1 ring-black/10">
