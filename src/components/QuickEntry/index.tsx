@@ -668,7 +668,7 @@ const QuickEntryContent: React.FC<QuickEntryProps> = ({ onClose, editTripId, ini
       </header>
 
       <form onSubmit={handleSubmit} className="flex-1 overflow-y-auto px-5 pb-[calc(180px+env(safe-area-inset-bottom))] pt-2">
-        <div className="mb-5" style={{ display: "grid", gridTemplateColumns: "repeat(4, minmax(0, 1fr))", gap: 12 }}>
+        <div className="quick-entry-planning-row mb-5" style={{ display: "grid", gridTemplateColumns: "repeat(4, minmax(0, 1fr))", gap: 12, alignItems: "start" }}>
           {tripChoices.slice(0, 1).map((trip) => {
             const destinations = (trip.segments ?? [])
               .flatMap((segment) => segment.destinations ?? [])
