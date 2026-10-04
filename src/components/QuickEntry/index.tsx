@@ -45,7 +45,7 @@ const paidParts = (timestamp: number) => {
 const formatPaidTimestamp = (timestamp: number) => {
   const date = new Date(timestamp);
   return Number.isFinite(date.getTime())
-    ? date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) + ` · ${String(date.getHours()).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')}`
+    ? date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) + ` ${String(date.getHours()).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')}`
     : 'Select date & time';
 };
 const normalizePercentageInput = (value: string) => value.replace(/^0+(?=\d)/, '');
