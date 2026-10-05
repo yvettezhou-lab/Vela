@@ -1,4 +1,3 @@
-/* Global iOS Safari form baseline: keep editable controls at 16px to prevent focus zoom. */
 input:not([type='checkbox']):not([type='radio']):not([type='range']),
 textarea,
 select {
@@ -6,17 +5,11 @@ select {
   -webkit-text-size-adjust: 100%;
   min-height: 48px;
 }
-
 textarea { min-height: 96px; }
-
-/* Settings: compact information-dense layout without changing the underlying data model. */
 .vela-settings-header { margin: 0 0 8px; padding: 4px 2px 0; }
 .vela-settings-header h1 { margin: 5px 0 3px; font: 500 27px/1 Georgia,"Times New Roman",serif; color: #23383d; }
 .vela-settings-header > p { margin: 0; color: #7b817d; font: 10px/1.35 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif; }
 .vela-settings-master-data { margin-top: 8px; }
-
-/* Quick Entry structural fallback: the project does not ship Tailwind's utility layer,
-   so layout utilities used by the component are defined here, strictly inside /entry/new. */
 .vela-entry-route .vela-quick-fullscreen form { display:flex !important; flex-direction:column !important; justify-content:flex-start !important; align-items:stretch !important; width:100% !important; min-height:0 !important; margin:0 !important; padding-top:0 !important; gap:0 !important; }
 .vela-entry-route .vela-quick-fullscreen form label { display:block !important; width:100% !important; min-width:0 !important; }
 .vela-entry-route .vela-quick-fullscreen form label.flex { display:flex !important; }
@@ -42,7 +35,6 @@ textarea { min-height: 96px; }
 .vela-entry-route .vela-quick-fullscreen form .quick-entry-journey button[aria-pressed] { min-width:0 !important; width:100% !important; }
 .vela-entry-route .vela-quick-fullscreen form button[aria-pressed='true'] { min-height:48px !important; min-width:96px !important; padding-left:18px !important; padding-right:18px !important; appearance:none !important; -webkit-appearance:none !important; background:#17243a !important; border-color:#17243a !important; color:#fffdf8 !important; box-shadow:0 6px 14px rgba(23,36,58,.16) !important; }
 .vela-entry-route .vela-quick-fullscreen form button[aria-pressed='false'] { min-height:48px !important; min-width:96px !important; padding-left:18px !important; padding-right:18px !important; appearance:none !important; -webkit-appearance:none !important; background:#fbf7ee !important; border-color:rgba(23,36,58,.10) !important; color:#17243a !important; }
-/* Payment Account cards are compact controls, not full-width pressed buttons. */
 .vela-entry-route .vela-quick-fullscreen form .quick-entry-payment-account[aria-pressed] {
   box-sizing: border-box !important;
   width: 52px !important;
@@ -52,10 +44,8 @@ textarea { min-height: 96px; }
   padding-left: 1px !important;
   padding-right: 1px !important;
 }
-
 .vela-entry-route .vela-quick-fullscreen form button[aria-pressed] { touch-action:manipulation; -webkit-tap-highlight-color:transparent; transition:transform .12s ease,opacity .12s ease,background-color .12s ease,color .12s ease,box-shadow .12s ease !important; }
 .vela-entry-route .vela-quick-fullscreen form button[aria-pressed]:active { transform:scale(.96) !important; opacity:.8 !important; }
 .vela-entry-route .vela-quick-fullscreen form div:has(> input[type='date']) { position:relative !important; }
 .vela-entry-route .vela-quick-fullscreen form div:has(> input[type='date']) > svg { position:absolute !important; left:16px !important; top:50% !important; transform:translateY(-50%) !important; z-index:1 !important; pointer-events:none !important; color:#9a7440 !important; }
 .vela-entry-route .vela-quick-fullscreen form div:has(> input[type='date']) > input[type='date'] { padding-left:48px !important; }
-
