@@ -101,8 +101,7 @@ body > .vela-global-quick svg{width:30px!important;height:30px!important;display
   white-space:nowrap!important;
 }
 .vela-app-root > .page .category-tab svg,
-.vela-app-root > .page .category-tab-letter,
-.vela-app-root > .page .category-tab:before{display:none!important}
+
 .vela-app-root > .page .category-tab.active{opacity:1!important}
 .vela-app-root > .page .category-tab.active:after{
   content:''!important;
