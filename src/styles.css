@@ -230,6 +230,14 @@
 .quick-entry-cost-switch.is-on{background:#17243a}
 .quick-entry-cost-switch.is-on span{transform:translateX(16px)}
 
+.quick-entry-allocation-mode{
+  display:grid!important;
+  grid-template-columns:repeat(3,minmax(0,1fr))!important;
+  gap:6px!important;
+  width:100%!important;
+  box-sizing:border-box!important;
+  margin-bottom:8px!important;
+}
 .quick-entry-participants-grid{
   display:grid!important;
   grid-template-columns:repeat(5,minmax(0,1fr))!important;
@@ -237,6 +245,7 @@
   width:100%!important;
   min-width:0!important;
   box-sizing:border-box!important;
+  margin-top:0!important;
 }
 .quick-entry-participants-grid>button{
   width:100%!important;
