@@ -286,7 +286,7 @@ body > .vela-global-quick svg{width:30px!important;height:30px!important;display
   .vela-app-root > .page .topbar h1{font-size:31px!important}
   .vela-app-root > .page .category-tabs{gap:18px!important;margin-bottom:22px!important}
   .vela-app-root > .page .category-tab{font-size:12px!important}
-  .vela-app-root > .page .section{margin-bottom:26px!important}
+  
   .vela-app-root > .page .section + .section{margin-top:30px!important}
 }
 
