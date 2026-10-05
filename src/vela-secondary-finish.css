@@ -1,6 +1,6 @@
-/* Vela secondary-page polish. CSS only: no domain, state, or navigation changes. */
 
-/* Global Quick Entry: React owns this button; keep it above every page layer. */
+
+
 body > .vela-global-quick{
   position:fixed!important;
   right:20px!important;
@@ -25,7 +25,7 @@ body > .vela-global-quick{
 }
 body > .vela-global-quick svg{width:30px!important;height:30px!important;display:block!important}
 
-/* Secondary pages: calm, editorial rhythm rather than dashboard cards. */
+
 .vela-app-root > .page{
   width:100%!important;
   max-width:480px!important;
@@ -59,7 +59,7 @@ body > .vela-global-quick svg{width:30px!important;height:30px!important;display
   color:rgba(15,23,42,.48)!important;
 }
 
-/* Ledger category strip: genuinely text-only; remove every legacy tab visual. */
+
 .vela-app-root > .page .category-tabs{
   display:flex!important;
   align-items:flex-end!important;
@@ -114,7 +114,7 @@ body > .vela-global-quick svg{width:30px!important;height:30px!important;display
   background:#0F172A!important;
 }
 
-/* Section rhythm shared by Balance / Logbook / Atelier. */
+
 .vela-app-root > .page .section{
   margin:0 0 30px!important;
   padding:0!important;
@@ -147,7 +147,7 @@ body > .vela-global-quick svg{width:30px!important;height:30px!important;display
   color:rgba(15,23,42,.48)!important;
 }
 
-/* Rows: fine printed-report separators, generous vertical breathing room. */
+
 .vela-app-root > .page .balance-row,
 .vela-app-root > .page .transfer,
 .vela-app-root > .page .ledger-row,
@@ -194,7 +194,7 @@ body > .vela-global-quick svg{width:30px!important;height:30px!important;display
 .vela-app-root > .page .ledger-right b{font-size:15px!important}
 .vela-app-root > .page .ledger-right small{font-size:9px!important}
 
-/* Balance: let the totals read like a financial statement. */
+
 .vela-app-root > .page .balance-list{margin-top:6px!important}
 .vela-app-root > .page .positive{color:#3f7650!important}
 .vela-app-root > .page .negative{color:#8a5b54!important}
@@ -222,7 +222,7 @@ body > .vela-global-quick svg{width:30px!important;height:30px!important;display
 .vela-app-root > .page .stats-grid small{font:9px ui-sans-serif,system-ui,sans-serif!important;color:rgba(15,23,42,.48)!important}
 .vela-app-root > .page .stats-grid b{font:400 20px ui-serif,Georgia,serif!important;color:#0F172A!important}
 
-/* Logbook: printed report hierarchy. */
+
 .vela-app-root > .page .reflection-total{
   padding:24px 2px 30px!important;
   margin:0!important;
@@ -254,7 +254,7 @@ body > .vela-global-quick svg{width:30px!important;height:30px!important;display
 .vela-app-root > .page .allocation-line span{color:rgba(15,23,42,.70)!important}
 .vela-app-root > .page .allocation-line b{font:500 10px ui-sans-serif,system-ui,sans-serif!important;color:rgba(15,23,42,.62)!important}
 
-/* Atelier: restrained iOS-like list, but using Vela's editorial typography. */
+
 .vela-app-root > .page .settings-list{
   margin:0!important;
   padding:0!important;
@@ -291,9 +291,9 @@ body > .vela-global-quick svg{width:30px!important;height:30px!important;display
 }
 
 
-/* Final visual finish — CSS only. No React/domain/navigation changes. */
 
-/* Ledger: force a genuinely clean text strip and neutralize every legacy tab artifact. */
+
+
 .vela-app-root > .page .category-tabs,
 .vela-app-root > .page .category-tabs *{background:transparent!important;box-shadow:none!important}
 .vela-app-root > .page .category-tab,
@@ -302,7 +302,7 @@ body > .vela-global-quick svg{width:30px!important;height:30px!important;display
 .vela-app-root > .page .category-tab.active{border:0!important;border-left:0!important;border-right:0!important;border-top:0!important;border-radius:0!important;outline:0!important;transform:none!important}
 .vela-app-root > .page .category-tab:before{display:none!important;content:none!important}
 
-/* Balance / Logbook / Atelier: quiet paper cards, without changing their content or behavior. */
+
 .vela-app-root > .page:has(.balance-list) .section,
 .vela-app-root > .page:has(.reflection-total) .section,
 .vela-app-root > .page:has(.settings-list) .settings-list{
@@ -327,7 +327,7 @@ body > .vela-global-quick svg{width:30px!important;height:30px!important;display
   min-height:54px!important;
 }
 
-/* Logbook summary gets the same restrained card treatment while keeping the large number editorial. */
+
 .vela-app-root > .page:has(.reflection-total) .reflection-total{
   background:rgba(255,255,255,.40)!important;
   border:1px solid rgba(15,23,42,.05)!important;
@@ -337,7 +337,7 @@ body > .vela-global-quick svg{width:30px!important;height:30px!important;display
   margin-bottom:26px!important;
 }
 
-/* Atelier: iOS-style grouped list with breathing room, not a full-screen wireframe. */
+
 .vela-app-root > .page:has(.settings-list) .settings-list button{
   min-height:58px!important;
   padding:17px 20px!important;
@@ -345,14 +345,14 @@ body > .vela-global-quick svg{width:30px!important;height:30px!important;display
 }
 .vela-app-root > .page:has(.settings-list) .settings-list button:last-child{border-bottom:0!important}
 
-/* Global iOS Safari zoom guard: every editable control is at least 16px. */
+
 .vela-app-root input,
 .vela-app-root textarea,
 .vela-app-root select{
   font-size:16px!important;
 }
 
-/* Quick Entry full-screen overlay: use the viewport instead of stacking everything at the top. */
+
 .vela-quick-fullscreen{
   width:min(100%,640px)!important;
   height:100dvh!important;
@@ -401,7 +401,7 @@ body > .vela-global-quick svg{width:30px!important;height:30px!important;display
 }
 
 
-/* Cross-page cohesion pass: Journey Manager / New Trip use the same quiet editorial language. */
+
 .vela-trip-manager-route{min-height:100dvh;background:#FAF9F5;color:#0F172A;padding-bottom:calc(104px + env(safe-area-inset-bottom))}
 .vela-trip-manager-main{width:100%;max-width:480px;margin:0 auto;padding:20px 16px 24px;box-sizing:border-box}
 .vela-trip-manager-main>button:first-child{display:inline-flex!important;align-items:center;min-height:40px;padding:0 0 10px!important;color:rgba(15,23,42,.52)!important;font:500 11px/1 ui-sans-serif,system-ui,sans-serif!important;letter-spacing:.02em}
@@ -410,7 +410,7 @@ body > .vela-global-quick svg{width:30px!important;height:30px!important;display
 .vela-trip-manager-main section[aria-label="Trip Manager"]>div:first-child{padding:8px 0 16px!important;margin-bottom:22px!important;border-bottom:1px solid rgba(15,23,42,.10)!important}
 .vela-trip-manager-main section[aria-label="Trip Manager"] h2{margin:5px 0 0!important;font:500 32px/1.08 ui-serif,Georgia,Cambria,"Times New Roman",serif!important;font-style:italic!important;letter-spacing:-.025em!important}
 .vela-trip-manager-main section[aria-label="Trip Manager"] [style*="borderRadius: 14px"]{border-radius:0!important}
-/* New Trip modal: keep form controls tactile, but remove the heavier SaaS-card feel. */
+
 .vela-quick-sheet .trip-creation-modal{max-width:620px!important;border-radius:18px!important;background:#FAF9F5!important;border:1px solid rgba(15,23,42,.10)!important;box-shadow:0 18px 48px rgba(15,23,42,.14)!important}
 .vela-quick-sheet .trip-creation-modal input,.vela-quick-sheet .trip-select-wrap select,.vela-quick-sheet .trip-date-trigger{background:#fffdf8!important;border-color:rgba(15,23,42,.14)!important;color:#0F172A!important;border-radius:9px!important}
 .vela-quick-sheet .trip-creation-submit{background:#0F172A!important;border-radius:10px!important}
@@ -421,7 +421,7 @@ body > .vela-global-quick svg{width:30px!important;height:30px!important;display
 @media(max-width:600px){.vela-trip-manager-main{padding-left:16px;padding-right:16px}.vela-trip-manager-main .trip-manager-edit-sheet{max-height:calc(100dvh - 18px)!important;border-radius:16px!important}}
 
 
-/* Ledger visual reset — Carina-inspired native list treatment. */
+
 .vela-app-root > main.page.vela-secondary-shell:has(.vela-ledger-page){
   max-width:480px!important;
   width:100%!important;
@@ -615,7 +615,7 @@ body > .vela-global-quick svg{width:30px!important;height:30px!important;display
 }
 
 
-/* Ledger editor — native modal, matching Quick Entry sheet proportions. */
+
 .vela-ledger-edit-backdrop{
   position:fixed!important;
   inset:0!important;
