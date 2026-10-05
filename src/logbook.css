@@ -85,20 +85,7 @@
   letter-spacing:-.02em;
   color:#1d2a40;
 }
-.logbook-chart-toggle{
-  flex:0 0 auto;
-  width:20px;
-  height:20px;
-  display:grid;
-  place-items:center;
-  margin-top:1px;
-  padding:0;
-  border:1px solid #d7c9b2;
-  border-radius:50%;
-  background:transparent;
-  color:#a07e43;
-  cursor:pointer;
-}
+
 .logbook-donut-layout{
   display:grid;
   grid-template-columns:108px 1fr;
