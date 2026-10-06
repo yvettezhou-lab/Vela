@@ -4,7 +4,7 @@ export interface SettlementTransaction { fromMemberId: string; toMemberId: strin
 export const calculateFinancialTotals = (ledger: LedgerEntry[]): TripFinancialTotals =>
   ledger.reduce((totals, entry) => {
     if (!entry.includeInCost) return totals;
-    const impact = entry.isRefund ? -entry.cnyEquivalent : entry.cnyEquivalent;
+    const impact = entry.entryDirection === 'income' ? -entry.cnyEquivalent : entry.cnyEquivalent;
     if (entry.isPending) totals.pendingAmount += impact; else totals.financialTotal += impact;
     return totals;
   }, { financialTotal: 0, settledAmount: 0, pendingAmount: 0 });
@@ -13,6 +13,11 @@ export const calculateGroupBalance = (trip: Trip): MemberBalance[] => {
   trip.members.forEach(m => { balances[m.id] = { memberId: m.id, paid: 0, owed: 0, net: 0 }; });
   trip.ledger.forEach(entry => {
     if (entry.isPending) return;
+    if (entry.entryDirection === 'income' && !entry.isRefund) {
+      if (balances[entry.payerId]) balances[entry.payerId].paid += entry.cnyEquivalent;
+      entry.allocations.forEach(alloc => { if (balances[alloc.memberId]) balances[alloc.memberId].owed -= alloc.amount; });
+      return;
+    }
     const impactMultiplier = entry.isRefund ? -1 : 1;
     if (balances[entry.payerId]) balances[entry.payerId].paid += entry.cnyEquivalent * impactMultiplier;
     entry.allocations.forEach(alloc => { if (balances[alloc.memberId]) balances[alloc.memberId].owed += alloc.amount * impactMultiplier; });
