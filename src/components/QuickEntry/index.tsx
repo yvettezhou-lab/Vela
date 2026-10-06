@@ -260,7 +260,6 @@ const QuickEntryContent: React.FC<QuickEntryProps> = ({ onClose, editTripId, ini
   const [entryType, setEntryType] = useState<'standard' | 'transport' | 'prepaid_multi_day'>('standard');
     const [amount, setAmount] = useState('');
   const [refundOf, setRefundOf] = useState('');
-  const [amountPadOpen, setAmountPadOpen] = useState(false);
   const [currency, setCurrency] = useState('CNY');
   const [cnyEquivalent, setCnyEquivalent] = useState('');
   const [deferCny, setDeferCny] = useState(false);
@@ -800,25 +799,51 @@ const QuickEntryContent: React.FC<QuickEntryProps> = ({ onClose, editTripId, ini
                   {LEDGER_CURRENCIES.map((item) => <option key={item} value={item}>{item}</option>)}
                 </select>
               )}
-              <button
-                type="button"
-                className="quick-entry-amount-value"
-                onTouchStart={(event) => {
-                  event.preventDefault();
-                  event.stopPropagation();
-                  setAmountPadOpen(true);
-                }}
-                onClick={(event) => {
-                  event.preventDefault();
-                  event.stopPropagation();
-                  setAmountPadOpen(true);
-                }}
-                aria-label="Amount"
-              >
-                {amount || '0.00'}
-              </button>
+              <details className="quick-entry-amount-keypad-shell">
+                <summary className="quick-entry-amount-value" aria-label="Amount">
+                  {amount || '0.00'}
+                </summary>
+                <div className="quick-entry-amount-keypad" role="dialog" aria-label="Amount keypad">
+                  <div className="quick-entry-amount-keypad-grid">
+                    {[
+                      ['C', 'clear', 'quick-entry-amount-keypad-action'], ['⌫', 'backspace', 'quick-entry-amount-keypad-action'],
+                      ['÷', '/', 'quick-entry-amount-keypad-operator'], ['×', '*', 'quick-entry-amount-keypad-operator'],
+                      ['7', '7', ''], ['8', '8', ''], ['9', '9', ''], ['−', '-', 'quick-entry-amount-keypad-operator'],
+                      ['4', '4', ''], ['5', '5', ''], ['6', '6', ''], ['＋', '+', 'quick-entry-amount-keypad-operator'],
+                      ['1', '1', ''], ['2', '2', ''], ['3', '3', ''], ['=', 'equals', 'quick-entry-amount-keypad-equals'],
+                      ['0', '0', 'quick-entry-amount-keypad-zero'], ['.', '.', ''], ['Done', 'done', 'quick-entry-amount-keypad-done'],
+                    ].map(([label, value, extraClass]) => (
+                      <button key={label} type="button" className={extraClass} onClick={(event) => {
+                        if (value === 'clear') { setAmount(''); return; }
+                        if (value === 'backspace') { setAmount((current) => current.slice(0, -1)); return; }
+                        if (value === 'done') { event.currentTarget.closest('details')?.removeAttribute('open'); return; }
+                        if (value === 'equals') {
+                          setAmount((current) => {
+                            const result = evaluateAmountExpression(current);
+                            return result === null ? current : String(Number(result.toFixed(2)));
+                          });
+                          return;
+                        }
+                        if (value === '.') {
+                          setAmount((current) => {
+                            const currentNumber = current.split(/[+*/-]/).pop() ?? '';
+                            return currentNumber.includes('.') ? current : current + '.';
+                          });
+                          return;
+                        }
+                        setAmount((current) => {
+                          if (['+', '-', '*', '/'].includes(value)) {
+                            if (!current) return value === '-' ? '-' : current;
+                            if (/[+*/-]$/.test(current)) return current;
+                          }
+                          return current + value;
+                        });
+                      }}>{label}</button>
+                    ))}
+                  </div>
+                </div>
+              </details>
             </div>
-          </div>
 
           <label className="quick-entry-primary-field">
             <span>{isIncome ? 'Who Received?' : 'Who Paid?'}</span>
@@ -834,77 +859,6 @@ const QuickEntryContent: React.FC<QuickEntryProps> = ({ onClose, editTripId, ini
             </select>
           </label>
         </div>
-
-        {amountPadOpen && (
-          <div className="quick-entry-amount-keypad" role="dialog" aria-label="Amount keypad">
-            <div className="quick-entry-amount-keypad-grid">
-              {[
-                ['C', 'clear', 'quick-entry-amount-keypad-action'],
-                ['⌫', 'backspace', 'quick-entry-amount-keypad-action'],
-                ['÷', '/', 'quick-entry-amount-keypad-operator'],
-                ['×', '*', 'quick-entry-amount-keypad-operator'],
-                ['7', '7', ''],
-                ['8', '8', ''],
-                ['9', '9', ''],
-                ['−', '-', 'quick-entry-amount-keypad-operator'],
-                ['4', '4', ''],
-                ['5', '5', ''],
-                ['6', '6', ''],
-                ['＋', '+', 'quick-entry-amount-keypad-operator'],
-                ['1', '1', ''],
-                ['2', '2', ''],
-                ['3', '3', ''],
-                ['=', 'equals', 'quick-entry-amount-keypad-equals'],
-                ['0', '0', 'quick-entry-amount-keypad-zero'],
-                ['.', '.', ''],
-                ['Done', 'done', 'quick-entry-amount-keypad-done'],
-              ].map(([label, value, extraClass]) => (
-                <button
-                  key={label}
-                  type="button"
-                  className={extraClass}
-                  onClick={() => {
-                    if (value === 'clear') {
-                      setAmount('');
-                      return;
-                    }
-                    if (value === 'backspace') {
-                      setAmount((current) => current.slice(0, -1));
-                      return;
-                    }
-                    if (value === 'done') {
-                      setAmountPadOpen(false);
-                      return;
-                    }
-                    if (value === 'equals') {
-                      setAmount((current) => {
-                        const result = evaluateAmountExpression(current);
-                        return result === null ? current : String(Number(result.toFixed(2)));
-                      });
-                      return;
-                    }
-                    if (value === '.') {
-                      setAmount((current) => {
-                        const currentNumber = current.split(/[+*/-]/).pop() ?? '';
-                        return currentNumber.includes('.') ? current : current + '.';
-                      });
-                      return;
-                    }
-                    setAmount((current) => {
-                      if (['+', '-', '*', '/'].includes(value)) {
-                        if (!current) return value === '-' ? '-' : current;
-                        if (/[+*/-]$/.test(current)) return current;
-                      }
-                      return current + value;
-                    });
-                  }}
-                >
-                  {label}
-                </button>
-              ))}
-            </div>
-          </div>
-        )}
 
         {!isDomesticTrip && (
           <div className="quick-entry-cny-equivalent-field">
