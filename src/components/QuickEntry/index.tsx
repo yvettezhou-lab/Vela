@@ -723,7 +723,7 @@ const QuickEntryContent: React.FC<QuickEntryProps> = ({ onClose, editTripId, ini
           </div>
         </div>
 
-        <div className="quick-entry-entry-type mt-3 grid grid-cols-3 gap-3 rounded-2xl bg-[#eee5d5] p-1.5">
+        <div className="quick-entry-entry-type">
           {([
             ['standard', 'Standard'],
             ['transport', 'Transport'],
@@ -819,11 +819,11 @@ const QuickEntryContent: React.FC<QuickEntryProps> = ({ onClose, editTripId, ini
         </div>
 
         {entryType === 'transport' && (
-          <div className="mt-5 space-y-3">
+          <div className="quick-entry-transport-section">
             <div className="quick-entry-transport-layout">
               <div className="quick-entry-transport-field">
                 <span>Transport</span>
-                <div className="grid grid-cols-2 gap-2">
+                <div className="quick-entry-transport-options">
                   {([
                     ['flight', '✈️ Flight'],
                     ['train', '🚄 Train'],
@@ -869,16 +869,16 @@ const QuickEntryContent: React.FC<QuickEntryProps> = ({ onClose, editTripId, ini
         )}
 
         {entryType === 'prepaid_multi_day' && (
-          <div className="mt-6 space-y-5">
-            <div className="grid grid-cols-2 gap-5">
+          <div className="quick-entry-prepaid-section">
+            <div className="quick-entry-prepaid-dates">
               <DatePicker pickerId="prepaid-usage-start" openPickerId={openDatePicker} onOpenPicker={setOpenDatePicker} value={usageStart} onChange={(value) => { setUsageStart(value); if (usageEnd && usageEnd < value) setUsageEnd(''); }} label="Usage Start" required minDate={tripDateBounds.minDate} maxDate={tripDateBounds.maxDate} />
               <DatePicker pickerId="prepaid-usage-end" openPickerId={openDatePicker} onOpenPicker={setOpenDatePicker} value={usageEnd} onChange={setUsageEnd} label="Usage End" required minDate={usageStart || tripDateBounds.minDate} maxDate={tripDateBounds.maxDate} openMonthValue={usageStart || tripDateBounds.minDate} />
             </div>
           </div>
         )}
 
-        <div className="mt-5">
-          <span className="mb-2 block text-xs uppercase tracking-[0.14em] text-[#857a6a]">Participants</span>
+        <div className="quick-entry-participants-section">
+          <span className="quick-entry-section-label">Participants</span>
             <div className="quick-entry-allocation-mode">
               {([
                 ['equal', 'Equal Split'],
@@ -924,7 +924,7 @@ const QuickEntryContent: React.FC<QuickEntryProps> = ({ onClose, editTripId, ini
 
         <div className="quick-entry-submit-wrap">
           {error && <div className="quick-entry-submit-error" role="alert" aria-live="assertive">{error}</div>}
-          <button type="submit" className="mt-3 min-h-12 w-full rounded-2xl bg-slate-900 px-5 text-base font-semibold text-white shadow-md shadow-slate-900/20 transition-all duration-200 active:scale-[0.98] active:opacity-80">{isEditing ? 'Save Changes' : 'Save Entry'}</button>
+          <button type="submit" className="quick-entry-submit-button">{isEditing ? 'Save Changes' : 'Save Entry'}</button>
           {isEditing && (
             <button type="button" onClick={handleDeleteEntry} className="mt-2 min-h-11 w-full rounded-2xl border border-red-200 bg-red-50 px-5 text-sm font-semibold text-red-700 transition-all duration-200 active:scale-[0.98] active:opacity-80">
               Delete Entry
