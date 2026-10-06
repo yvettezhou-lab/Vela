@@ -9,6 +9,7 @@
   grid-template-columns:repeat(4,minmax(0,1fr));
   gap:12px;
   align-items:start;
+  margin-bottom:20px!important;
 }
 .quick-entry-planning-trip,
 .quick-entry-planning-paid-button{
@@ -234,6 +235,16 @@
 .quick-entry-cny-equivalent-field>label>span{display:block;margin:0 0 5px;color:#857a6a;font:600 9px/1.1 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;letter-spacing:.14em;text-transform:uppercase}
 .quick-entry-defer-cny{display:block;margin-top:8px;padding:0;border:0;background:transparent;color:#857a6a;font:400 12px/1.2 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
 .quick-entry-defer-cny.is-deferred{color:#17243a;font-weight:600}
+.quick-entry-preset-info{
+  margin:0 0 8px!important;
+  overflow-x:auto!important;
+  white-space:nowrap!important;
+  border-radius:12px!important;
+  background:#fbf7ee!important;
+  padding:8px 12px!important;
+  color:#6f6659!important;
+  font:400 11px/1.45 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif!important;
+}
 
 .quick-entry-category-note-row,
 .quick-entry-transport-layout{
@@ -448,6 +459,14 @@
 .quick-entry-date-picker .trip-date-grid button:active{transform:scale(.96)!important}
 
 .quick-entry-submit-wrap{position:relative;margin-top:8px;padding-top:8px}
+.quick-entry-delete-button{
+  appearance:none!important;-webkit-appearance:none!important;display:block!important;box-sizing:border-box!important;
+  min-height:44px!important;height:44px!important;width:100%!important;margin-top:8px!important;
+  border:1px solid rgba(180,72,72,.32)!important;border-radius:14px!important;background:#fff8f7!important;color:#a84d4d!important;
+  font:600 14px/1 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif!important;padding:0 20px!important;box-shadow:none!important;
+}
+.quick-entry-delete-button:active{background:#fbeceb!important}
+
 .quick-entry-submit-error{margin:0 0 10px;padding:10px 14px;border-radius:12px;background:#f5d8d2;color:#7c3e35;font:600 12px/1.35 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
 
 .quick-entry-submit-wrap>button[type="button"]{
