@@ -290,7 +290,15 @@ const QuickEntryContent: React.FC<QuickEntryProps> = ({ onClose, editTripId, ini
   }, [trips]);
 
   const activeAccounts = targetTrip?.accounts?.filter((account) => account.archived !== true) ?? [];
-  const accounts = activeAccounts.length ? activeAccounts : FALLBACK_ACCOUNTS;
+  const accounts = useMemo(() => {
+    const source = activeAccounts.length ? activeAccounts : FALLBACK_ACCOUNTS;
+    const lastUsedAt = new Map<string, number>();
+    (targetTrip?.ledger ?? []).forEach((entry) => {
+      if (!entry.accountId) return;
+      lastUsedAt.set(entry.accountId, Math.max(lastUsedAt.get(entry.accountId) ?? 0, entry.createdAt ?? 0));
+    });
+    return [...source].sort((a, b) => (lastUsedAt.get(b.id) ?? 0) - (lastUsedAt.get(a.id) ?? 0));
+  }, [activeAccounts, targetTrip]);
   const activeMembers = targetTrip?.members?.filter((member) => member.archived !== true) ?? [];
   const members = activeMembers;
   const payerFrequency = useMemo(() => {
@@ -727,17 +735,12 @@ const QuickEntryContent: React.FC<QuickEntryProps> = ({ onClose, editTripId, ini
           ))}
         </div>
 
-        <div className="quick-entry-amount-row mt-6 grid grid-cols-2 items-end gap-4">
-          <label className="block">
-            <span className="mb-2 block text-xs uppercase tracking-[0.14em] text-[#857a6a]">Amount</span>
-            <div className="flex rounded-xl bg-[#fbf7ee] shadow-[inset_0_0_0_1px_rgba(80,64,42,.10)]">
+        <div className="quick-entry-primary-row">
+          <label className="quick-entry-primary-field">
+            <span>Amount</span>
+            <div className="quick-entry-amount-control">
               {isDomesticTrip && currency.toUpperCase() === 'CNY' ? null : (
-                <select
-                  value={currency}
-                  onChange={(event) => setCurrency(event.currentTarget.value)}
-                  aria-label="Currency"
-                  className="w-[86px] appearance-none rounded-l-xl bg-transparent px-3 text-base font-medium text-[#17243a] outline-none"
-                >
+                <select value={currency} onChange={(event) => setCurrency(event.currentTarget.value)} aria-label="Currency">
                   {LEDGER_CURRENCIES.map((item) => <option key={item} value={item}>{item}</option>)}
                 </select>
               )}
@@ -746,14 +749,8 @@ const QuickEntryContent: React.FC<QuickEntryProps> = ({ onClose, editTripId, ini
                 inputMode="decimal"
                 value={amount}
                 onCompositionStart={() => { amountComposingRef.current = true; }}
-                onCompositionEnd={(event) => {
-                  amountComposingRef.current = false;
-                  setAmount(event.currentTarget.value);
-                }}
-                onChange={(event) => {
-                  if (!amountComposingRef.current) setAmount(event.currentTarget.value);
-                }}
-                className="min-w-0 flex-1 rounded-r-xl bg-transparent px-2 text-base text-[#17243a] outline-none"
+                onCompositionEnd={(event) => { amountComposingRef.current = false; setAmount(event.currentTarget.value); }}
+                onChange={(event) => { if (!amountComposingRef.current) setAmount(event.currentTarget.value); }}
                 placeholder="0.00"
                 required
                 aria-label="Amount"
@@ -761,10 +758,17 @@ const QuickEntryContent: React.FC<QuickEntryProps> = ({ onClose, editTripId, ini
             </div>
           </label>
 
-          <label className="block">
-            <span className="mb-2 block text-xs uppercase tracking-[0.14em] text-[#857a6a]">Who Paid?</span>
-            <select value={payerId} onChange={(event) => setPayerId(event.target.value)} className="w-full min-h-[43px] appearance-none rounded-xl bg-[#fbf7ee] px-3 text-sm font-medium text-[#17243a] shadow-[inset_0_0_0_1px_rgba(80,64,42,.10)] outline-none" aria-label="Who Paid">
+          <label className="quick-entry-primary-field">
+            <span>Who Paid?</span>
+            <select value={payerId} onChange={(event) => setPayerId(event.target.value)} aria-label="Who Paid?">
               {payerFrequency.map((member) => <option key={member.id} value={member.id}>{member.name}</option>)}
+            </select>
+          </label>
+
+          <label className="quick-entry-primary-field">
+            <span>Payment Account</span>
+            <select value={accountId} onChange={(event) => setAccountId(event.target.value)} aria-label="Payment Account">
+              {accounts.map((account) => <option key={account.id} value={account.id}>{account.name}</option>)}
             </select>
           </label>
         </div>
@@ -801,28 +805,14 @@ const QuickEntryContent: React.FC<QuickEntryProps> = ({ onClose, editTripId, ini
           </div>
         )}
 
-        <div className="quick-entry-category-row mt-6 grid min-w-0 gap-4">
-          {entryType !== 'transport' && (
-            <label className="quick-entry-category-field block min-w-0">
-              <span className="mb-2 block text-xs uppercase tracking-[0.14em] text-[#857a6a]">Category</span>
-              <select value={categoryId} onChange={(event) => { const next = event.target.value; setCategoryId(next); setIncludeInCost(categories.find((category) => category.id === next)?.excludeFromStats !== true); }} className="w-full appearance-none rounded-xl bg-[#fbf7ee] px-4 text-base text-[#17243a] shadow-[inset_0_0_0_1px_rgba(80,64,42,.10)] outline-none" required>
-                {categories.map((category) => <option key={category.id} value={category.id}>{category.name}</option>)}
-              </select>
-            </label>
-          )}
-          <div className={`quick-entry-payment-field min-w-0 w-full ${entryType === 'transport' ? 'quick-entry-payment-field-full' : ''}`}>
-            <span className="mb-2 block text-xs uppercase tracking-[0.14em] text-[#857a6a]">Payment Account</span>
-            <div className="quick-entry-payment-accounts">
-              {accounts.map((account) => <button
-                key={account.id}
-                type="button"
-                onClick={() => setAccountId(account.id)}
-                aria-pressed={accountId === account.id}
-                className={`quick-entry-payment-account ${accountId === account.id ? 'is-selected' : ''}`}
-              >{account.name}</button>)}
-            </div>
-          </div>
-        </div>
+        {entryType !== 'transport' && (
+          <label className="quick-entry-category-row">
+            <span>Category</span>
+            <select value={categoryId} onChange={(event) => { const next = event.target.value; setCategoryId(next); setIncludeInCost(categories.find((category) => category.id === next)?.excludeFromStats !== true); }} required aria-label="Category">
+              {categories.map((category) => <option key={category.id} value={category.id}>{category.name}</option>)}
+            </select>
+          </label>
+        )}
 
         <label className="mt-4 block w-[72%]">
           <span className="mb-1.5 block text-xs uppercase tracking-[0.14em] text-[#857a6a]">Note</span>
