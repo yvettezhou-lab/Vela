@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { ChevronDown, Pencil } from 'lucide-react';
 import { AllocationMode, LedgerEntry } from '../../core/domain';
 import { findSegmentByDate, getTripEndDate, getTripStartDate } from '../../core/travelSegment';
-import { getLedgerEntryPaidTimestamp, sortLedgerEntriesByPaidTimestamp } from '../../core/ledger';
+import { formatLedgerPaidTimestamp, getLedgerEntryPaidTimestamp, sortLedgerEntriesByPaidTimestamp } from '../../core/ledger';
 import { useVelaStore } from '../../store/useVelaStore';
 
 const ENTRY_LABELS: Record<LedgerEntry['entryType'], string> = {
@@ -67,8 +67,7 @@ interface LedgerEditDraft {
 export const LedgerView: React.FC = () => {
   const trips = useVelaStore((s) => s.trips);
   const currentTrip = useVelaStore((s) => s.getCurrentTrip());
-  const deleteLedgerEntry = useVelaStore((s) => s.deleteLedgerEntry);
-  const updateLedgerEntry = useVelaStore((s) => s.updateLedgerEntry);
+    const updateLedgerEntry = useVelaStore((s) => s.updateLedgerEntry);
   const [selectedTripId, setSelectedTripId] = useState('');
   const [filter, setFilter] = useState<'all' | 'pending'>('all');
   const [segmentFilterId, setSegmentFilterId] = useState('');
@@ -271,7 +270,7 @@ export const LedgerView: React.FC = () => {
       ? Object.entries(selectedTrip.allocationRules?.percentages ?? {})
           .filter(([memberId, percentage]) => members.some((member) => member.id === memberId) && Number(percentage) > 0)
           .map(([memberId]) => memberId)
-      : editDraft.participantIds.filter((memberId) => selectedTrip.members.some((member) => member.id === memberId));
+      : editDraft.participantIds.filter((memberId) => members.some((member) => member.id === memberId));
     if (!participantIds.length) {
       setEditError('Please select at least one participant.');
       return;
@@ -510,7 +509,7 @@ export const LedgerView: React.FC = () => {
               <div><span>WHO PAID</span><strong>{membersById.get(detailEntry.payerId) ?? detailEntry.payerId}</strong></div>
               <div><span>PAYMENT ACCOUNT</span><strong>{accounts.find((account) => account.id === detailEntry.accountId)?.name ?? '—'}</strong></div>
               <div><span>CATEGORY</span><strong>{categories.find((category) => category.id === detailEntry.categoryId)?.name ?? '—'}</strong></div>
-              <div><span>PAID</span><strong>{formatPaidTimestamp(getLedgerEntryPaidTimestamp(detailEntry))}</strong></div>
+              <div><span>PAID</span><strong>{formatLedgerPaidTimestamp(getLedgerEntryPaidTimestamp(detailEntry))}</strong></div>
               {detailEntry.entryType === 'prepaid_multi_day' && <><div><span>USAGE START</span><strong>{formatDate(detailEntry.usageStart)}</strong></div><div><span>USAGE END</span><strong>{formatDate(detailEntry.usageEnd)}</strong></div></>}
               {detailEntry.entryType === 'transport' && <><div><span>TRANSPORT</span><strong>{TRANSPORT_LABELS[detailEntry.transportMode]}</strong></div><div><span>OUTBOUND</span><strong>{formatDate(detailEntry.outboundDate)}</strong></div>{detailEntry.journeyType === 'round_trip' && <div><span>RETURN</span><strong>{formatDate(detailEntry.returnDate)}</strong></div>}</>}
               <div><span>STATUS</span><strong>{detailEntry.isPending ? 'Pending' : detailEntry.includeInCost ? 'Included in statistics' : 'Excluded from statistics'}</strong></div>
@@ -595,7 +594,7 @@ export const LedgerView: React.FC = () => {
               <label className="block">
                 <span className="mb-1.5 block text-xs uppercase tracking-[0.12em] text-[#857a6a]">Payment Account</span>
                 <select value={editDraft.accountId} onChange={(event) => setEditDraft((draft) => draft ? { ...draft, accountId: event.target.value } : draft)} className="w-full rounded-xl bg-white px-3 py-3 text-sm outline-none ring-1 ring-black/10">
-                  {selectedTrip.accounts.map((account) => <option key={account.id} value={account.id}>{account.name}</option>)}
+                  {accounts.map((account) => <option key={account.id} value={account.id}>{account.name}</option>)}
                 </select>
               </label>
             </div>
@@ -675,7 +674,7 @@ export const LedgerView: React.FC = () => {
               {editDraft.allocationMode === 'preset_percentage' && selectedTrip.allocationRules?.percentages && (
                 <div className="mt-2 rounded-xl bg-[#fbf7ee] px-3 py-2 text-[11px] leading-4 text-[#6f6659]">
                   {Object.entries(selectedTrip.allocationRules.percentages)
-                    .filter(([id, percentage]) => selectedTrip.members.some((member) => member.id === id) && Number(percentage) > 0)
+                    .filter(([id, percentage]) => members.some((member) => member.id === id) && Number(percentage) > 0)
                     .map(([id, percentage]) => `${members.find((member) => member.id === id)?.name ?? id} ${percentage}%`)
                     .join(' · ')}
                 </div>
@@ -717,7 +716,7 @@ export const LedgerView: React.FC = () => {
               {editDraft.allocationMode === 'custom_percentage' && (
                 <div className="mt-2 grid grid-cols-2 gap-2">
                   {editDraft.participantIds.map((memberId) => {
-                    const member = selectedTrip.members.find((item) => item.id === memberId);
+                    const member = members.find((item) => item.id === memberId);
                     if (!member) return null;
                     return (
                       <label key={memberId} className="flex min-h-11 items-center justify-between rounded-xl bg-[#fbf7ee] px-3 shadow-[inset_0_0_0_1px_rgba(80,64,42,.10)]">
