@@ -65,7 +65,7 @@ export default function Home({ onNavigate, onCreateTrip, onManageTrips, onOpenLi
   ) : (
     <div className="vela-current-card" key={trip.id}>
       <button className="vela-current-main" type="button" onClick={() => onNavigate('Ledger')}>
-        <span className="vela-current-copy"><span className="vela-current-label">CURRENT TRIP <i /></span><strong className="vela-current-title">{trip.title.split(' · ').slice(0, 2).join(' · ')}<span>{trip.title.split(' · ').slice(2).join(' · ')}</span></strong><span className="vela-destination"><MapPin size={12} />{getTripDestinations(trip).join(' · ') || 'Choose a destination'}</span><span className="vela-date"><Calendar size={13} />{dateLabel(trip)}</span><span className="vela-summary">{localSummary(trip) || 'Your travel record starts here.'}</span></span>
+        <span className="vela-current-copy"><span className="vela-current-label">CURRENT TRIP <i /></span><strong className="vela-current-title"><span>{trip.title.split(' · ')[0]}</span><span>{trip.title.split(' · ').slice(1).join(' · ')}</span></strong><span className="vela-destination"><MapPin size={12} />{getTripDestinations(trip).join(' · ') || 'Choose a destination'}</span><span className="vela-date"><Calendar size={13} />{dateLabel(trip)}</span><span className="vela-summary">{localSummary(trip) || 'Your travel record starts here.'}</span></span>
         <span className="vela-current-image"><TripCoverImage trip={trip} /></span>
       </button>
       <button className="vela-current-list" type="button" onClick={() => onOpenLists(trip.id)}><ListIcon size={13}/> List</button>
