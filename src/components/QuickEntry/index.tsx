@@ -861,7 +861,7 @@ const QuickEntryContent: React.FC<QuickEntryProps> = ({ onClose, editTripId, ini
           </label>
         </div>
 
-        {amountPadOpen && isTouchInput && (
+        {amountPadOpen && isTouchInput && typeof document !== 'undefined' && createPortal(
           <div
             className="quick-entry-amount-operator-rail"
             style={{ top: `calc(100vh - ${keyboardOffset}px + 8px)` }}
@@ -889,7 +889,8 @@ const QuickEntryContent: React.FC<QuickEntryProps> = ({ onClose, editTripId, ini
                 {label}
               </button>
             ))}
-          </div>
+          </div>,
+          document.body,
         )}
 
         {!isDomesticTrip && (
