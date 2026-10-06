@@ -44,22 +44,21 @@
   display:grid!important;
   grid-template-columns:repeat(3,minmax(0,1fr))!important;
   gap:6px!important;
-  padding:4px!important;
-  border-radius:12px!important;
-  background:#eee5d5!important;
+  padding:0!important;
+  background:transparent!important;
   box-sizing:border-box!important;
 }
 .quick-entry-entry-type-button{
   box-sizing:border-box!important;
   width:100%!important;
-  min-height:42px!important;
-  height:42px!important;
+  min-height:44px!important;
+  height:44px!important;
   padding:0 8px!important;
-  border:1px solid transparent!important;
-  border-radius:10px!important;
+  border:1px solid rgba(23,36,58,.08)!important;
+  border-radius:11px!important;
   background:#fbf7ee!important;
-  color:#6f6659!important;
-  box-shadow:0 1px 2px rgba(15,23,42,.04)!important;
+  color:#17243a!important;
+  box-shadow:none!important;
   appearance:none!important;
   -webkit-appearance:none!important;
   font:500 13px/1.15 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif!important;
@@ -68,7 +67,7 @@
   border-color:#17243a!important;
   background:#17243a!important;
   color:#fffdf8!important;
-  box-shadow:0 6px 14px rgba(23,36,58,.16)!important;
+  box-shadow:none!important;
 }
 .quick-entry-entry-type-button:active,
 .quick-entry-payment-account:active,
@@ -333,9 +332,8 @@
   width:100%!important;
   box-sizing:border-box!important;
   margin:0 0 8px!important;
-  padding:4px!important;
-  border-radius:12px!important;
-  background:#eee5d5!important;
+  padding:0!important;
+  background:transparent!important;
 }
 .quick-entry-participants-grid{
   display:grid!important;
@@ -420,22 +418,31 @@
   font:400 16px/1 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif!important;
 }
 .quick-entry-allocation-mode-button{
-  min-height:36px!important;
+  box-sizing:border-box!important;
+  width:100%!important;
+  min-height:44px!important;
+  height:44px!important;
   padding:0 8px!important;
-  border:1px solid transparent!important;
-  border-radius:10px!important;
-  background:transparent!important;
-  color:#746b5e!important;
-  font:500 12px/1.15 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif!important;
+  border:1px solid rgba(23,36,58,.08)!important;
+  border-radius:11px!important;
+  background:#fbf7ee!important;
+  color:#17243a!important;
+  box-shadow:none!important;
+  appearance:none!important;
+  -webkit-appearance:none!important;
+  font:500 13px/1.15 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif!important;
 }
 .quick-entry-allocation-mode-button.is-selected{
   border-color:#17243a!important;
-  background:#fffdf8!important;
-  color:#17243a!important;
-  box-shadow:0 1px 3px rgba(15,23,42,.08)!important;
+  background:#17243a!important;
+  color:#fffdf8!important;
+  box-shadow:none!important;
 }
 .quick-entry-allocation-mode-button:hover:not(.is-disabled){
-  background:#fbf7ee!important;
+  background:#fff!important;
+}
+.quick-entry-allocation-mode-button.is-selected:hover{
+  background:#17243a!important;
 }
 .quick-entry-allocation-mode-button.is-disabled{
   cursor:not-allowed!important;
@@ -450,7 +457,7 @@
   .vela-quick-fullscreen .quick-entry-planning-row{gap:6px!important;margin-bottom:12px!important}
   .vela-quick-fullscreen .quick-entry-planning-trip,
   .vela-quick-fullscreen .quick-entry-planning-paid-button{padding-left:8px!important;padding-right:8px!important}
-  .vela-quick-fullscreen .quick-entry-entry-type{gap:6px!important;padding:4px!important;margin-top:0!important}
+  .vela-quick-fullscreen .quick-entry-entry-type{gap:6px!important;padding:0!important;margin-top:0!important}
   .vela-quick-fullscreen .quick-entry-amount-row{grid-template-columns:170px minmax(0,1fr)!important;margin-top:10px!important;gap:10px!important}
   .vela-quick-fullscreen .quick-entry-category-row{grid-template-columns:170px minmax(0,1fr)!important;margin-top:10px!important;gap:10px!important}
   .vela-quick-fullscreen .quick-entry-amount-row label>span,
