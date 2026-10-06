@@ -262,6 +262,7 @@ const QuickEntryContent: React.FC<QuickEntryProps> = ({ onClose, editTripId, ini
     const [amount, setAmount] = useState('');
   const [refundOf, setRefundOf] = useState('');
   const [amountPadOpen, setAmountPadOpen] = useState(false);
+  const [isTouchInput, setIsTouchInput] = useState(false);
   const [currency, setCurrency] = useState('CNY');
   const [cnyEquivalent, setCnyEquivalent] = useState('');
   const [deferCny, setDeferCny] = useState(false);
@@ -298,6 +299,14 @@ const QuickEntryContent: React.FC<QuickEntryProps> = ({ onClose, editTripId, ini
   const cnyManualRef = useRef(false);
   const successTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const formRef = useRef<HTMLFormElement | null>(null);
+
+  useEffect(() => {
+    const media = window.matchMedia('(pointer: coarse)');
+    const updateTouchInput = () => setIsTouchInput(media.matches || 'ontouchstart' in window);
+    updateTouchInput();
+    media.addEventListener?.('change', updateTouchInput);
+    return () => media.removeEventListener?.('change', updateTouchInput);
+  }, []);
 
   useEffect(() => {
     const defaultTripId = currentTrip?.id ?? nearestTrips[0]?.id ?? '';
@@ -731,7 +740,7 @@ const QuickEntryContent: React.FC<QuickEntryProps> = ({ onClose, editTripId, ini
         {onClose && <button type="button" onClick={onClose} aria-label="Close Quick Entry" className="vela-quick-close grid min-h-12 min-w-12 place-items-center rounded-full text-[#17243a]"><X size={23} strokeWidth={1.7} /></button>}
       </header>
 
-      <form onSubmit={handleSubmit} className="quick-entry-form">
+      <form onSubmit={handleSubmit} className={`quick-entry-form${amountPadOpen ? ' amount-keypad-open' : ''}`}>
         <div className="quick-entry-planning-row">
           {tripChoices.slice(0, 3).map((trip) => {
             const destinations = (trip.segments ?? [])
@@ -803,10 +812,17 @@ const QuickEntryContent: React.FC<QuickEntryProps> = ({ onClose, editTripId, ini
               )}
               <input
                 type="text"
-                inputMode="decimal"
+                inputMode={isTouchInput ? 'none' : 'decimal'}
                 enterKeyHint="done"
                 autoComplete="off"
+                readOnly={isTouchInput}
                 value={amount}
+                onPointerDown={(event) => {
+                  if (!isTouchInput) return;
+                  event.preventDefault();
+                  setAmountPadOpen(true);
+                }}
+                onFocus={() => { if (isTouchInput) setAmountPadOpen(true); }}
                 onCompositionStart={() => { amountComposingRef.current = true; }}
                 onCompositionEnd={(event) => { amountComposingRef.current = false; setAmount(event.currentTarget.value); }}
                 onChange={(event) => { if (!amountComposingRef.current) setAmount(event.currentTarget.value); }}
@@ -814,19 +830,6 @@ const QuickEntryContent: React.FC<QuickEntryProps> = ({ onClose, editTripId, ini
                 required
                 aria-label="Amount"
               />
-              <button className="quick-entry-amount-calculator" type="button" onMouseDown={(event) => event.preventDefault()} onClick={() => setAmountPadOpen((open) => !open)} aria-expanded={amountPadOpen} aria-label="Calculator">＋−×÷</button>
-              {amountPadOpen && (
-                <div className="quick-entry-amount-operators" aria-label="Amount operators">
-                  {['+','-','×','÷'].map((operator) => (
-                    <button key={operator} type="button" onMouseDown={(event) => event.preventDefault()} onClick={() => {
-                      const value = amount;
-                      const symbol = operator === '×' ? '*' : operator === '÷' ? '/' : operator;
-                      setAmount(value ? value + symbol : symbol === '-' ? '-' : value);
-                    }} aria-label={operator === '×' ? 'Multiply' : operator === '÷' ? 'Divide' : operator}>{operator}</button>
-                  ))}
-                  <button type="button" onMouseDown={(event) => event.preventDefault()} onClick={() => setAmount((value) => value.slice(0, -1))} aria-label="Backspace">⌫</button>
-                </div>
-              )}
             </div>
           </label>
 
@@ -844,6 +847,43 @@ const QuickEntryContent: React.FC<QuickEntryProps> = ({ onClose, editTripId, ini
             </select>
           </label>
         </div>
+
+        {amountPadOpen && isTouchInput && (
+          <div className="quick-entry-amount-keypad" role="dialog" aria-label="Amount calculator keypad">
+            <div className="quick-entry-amount-keypad-head">
+              <span>{amount || '0.00'}</span>
+              <button type="button" onClick={() => setAmountPadOpen(false)}>Done</button>
+            </div>
+            <div className="quick-entry-amount-keypad-grid">
+              {[
+                ['1', '1'], ['2', '2'], ['3', '3'], ['+', '+'],
+                ['4', '4'], ['5', '5'], ['6', '6'], ['−', '-'],
+                ['7', '7'], ['8', '8'], ['9', '9'], ['×', '*'],
+                ['.', '.'], ['0', '0'], ['⌫', 'backspace'], ['÷', '/'],
+              ].map(([label, value]) => (
+                <button
+                  key={label}
+                  type="button"
+                  className={['+', '−', '×', '÷'].includes(label) ? 'is-operator' : ''}
+                  onClick={() => {
+                    if (value === 'backspace') {
+                      setAmount((current) => current.slice(0, -1));
+                      return;
+                    }
+                    setAmount((current) => {
+                      if (value === '.' && current.endsWith('.')) return current;
+                      if (['+', '-', '*', '/'].includes(value) && !current) return value === '-' ? '-' : current;
+                      return current + value;
+                    });
+                  }}
+                  aria-label={label === '⌫' ? 'Backspace' : label}
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
 
         {!isDomesticTrip && (
           <div className="quick-entry-cny-equivalent-field">
