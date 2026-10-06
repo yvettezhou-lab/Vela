@@ -26,3 +26,15 @@ export const compareLedgerEntriesByPaidTimestamp = (a: LedgerEntry, b: LedgerEnt
 
 export const sortLedgerEntriesByPaidTimestamp = (entries: LedgerEntry[]): LedgerEntry[] =>
   [...entries].sort(compareLedgerEntriesByPaidTimestamp);
+
+export const formatLedgerPaidTimestamp = (timestamp: number): string => {
+  const date = new Date(timestamp);
+  if (!Number.isFinite(date.getTime())) return '—';
+  return date.toLocaleString('en-US', {
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric',
+    hour: 'numeric',
+    minute: '2-digit',
+  });
+};
