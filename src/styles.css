@@ -15,8 +15,8 @@
   box-sizing:border-box;
   min-width:0;
   width:100%;
-  min-height:36px!important;
-  height:36px!important;
+  min-height:48px!important;
+  height:48px!important;
   padding:0 8px!important;
   border:1px solid rgba(23,36,58,.08)!important;
   border-radius:12px!important;
@@ -53,7 +53,7 @@
 }
 .quick-entry-planning-paid-button strong{
   color:inherit!important;
-  font-size:16px;
+  font-size:14px;
   font-weight:600;
   white-space:nowrap;
 }
@@ -97,13 +97,13 @@
   display:block!important;
   width:100%!important;
   min-width:0!important;
-  min-height:40px!important;
-  height:40px!important;
-  max-height:40px!important;
+  min-height:48px!important;
+  height:48px!important;
+  max-height:48px!important;
   box-sizing:border-box!important;
   padding:0 8px!important;
   border:1px solid rgba(23,36,58,.10)!important;
-  border-radius:10px!important;
+  border-radius:12px!important;
   background:#fff!important;
   color:#17243a!important;
   font:400 14px/1 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif!important;
@@ -623,7 +623,7 @@
   .vela-quick-fullscreen .quick-entry-primary-field{gap:4px!important}
   .vela-quick-fullscreen .quick-entry-primary-field>span{font-size:8px!important;letter-spacing:.08em!important}
   .vela-quick-fullscreen .quick-entry-primary-field>select{padding:0 5px!important;font-size:14px!important}
-  .vela-quick-fullscreen .quick-entry-amount-control select{width:42px!important;min-width:42px!important;padding-left:6px!important;font-size:10px!important}
+  .vela-quick-fullscreen .quick-entry-amount-control select{width:42px!important;min-width:42px!important;padding-left:6px!important;font-size:14px!important}
   .vela-quick-fullscreen .quick-entry-amount-control input{padding:0 5px!important;font-size:14px!important}
   .vela-quick-fullscreen{
     --quick-entry-secondary-gap:8px;
@@ -635,8 +635,6 @@
   .vela-quick-fullscreen .quick-entry-note-field{gap:4px!important}
   .vela-quick-fullscreen .quick-entry-category-field>span,
   .vela-quick-fullscreen .quick-entry-note-field>span{font-size:8px!important;letter-spacing:.08em!important}
-  .vela-quick-fullscreen .quick-entry-category-field>select,
-  .vela-quick-fullscreen .quick-entry-note-field>textarea{height:42px!important;min-height:42px!important;border-radius:10px!important}
   .vela-quick-fullscreen .quick-entry-category-field>select{padding:0 6px!important;font-size:14px!important}
   .vela-quick-fullscreen .quick-entry-note-field>textarea{padding:0 7px!important;font-size:14px!important}
   .vela-quick-fullscreen .quick-entry-transport-field,
@@ -645,14 +643,13 @@
   .vela-quick-fullscreen .quick-entry-journey-field>span,
   .vela-quick-fullscreen .quick-entry-journey-head>span{font-size:8px!important;letter-spacing:.08em!important}
   .vela-quick-fullscreen .quick-entry-date-picker{gap:4px!important}
-  .vela-quick-fullscreen .quick-entry-date-picker{gap:4px!important}
   .vela-quick-fullscreen .quick-entry-date-picker .trip-date-trigger{min-height:48px!important;height:48px!important}
   .vela-quick-fullscreen .quick-entry-date-picker .trip-date-trigger strong{font-size:14px!important}
   .vela-quick-fullscreen .quick-entry-date-picker>span{font-size:8px!important}
   .vela-quick-fullscreen .quick-entry-date-picker .trip-date-trigger svg{width:13px!important;height:13px!important}
   .vela-quick-fullscreen .quick-entry-cost-compact{min-height:30px!important;margin:8px 0 3px!important;padding:4px 7px 4px 10px!important}
   .vela-quick-fullscreen .quick-entry-submit-wrap{margin-top:6px!important;padding-top:4px!important}
-  .vela-quick-fullscreen .quick-entry-submit-wrap>button[type="submit"]{min-height:44px!important;height:44px!important;border-radius:14px!important;font-size:15px!important}
+  .vela-quick-fullscreen .quick-entry-submit-wrap>button[type="submit"]{min-height:48px!important;height:48px!important;border-radius:12px!important;font-size:14px!important}
   .vela-quick-fullscreen .quick-entry-submit-error{margin-bottom:6px!important;padding:7px 10px!important}
 }
 
@@ -680,7 +677,7 @@
 .vela-entry-route .vela-quick-fullscreen form .relative,.vela-entry-route .vela-quick-fullscreen form .absolute { position:static !important; top:auto !important; right:auto !important; bottom:auto !important; left:auto !important; transform:none !important; }
 .vela-entry-route .vela-quick-fullscreen .vela-quick-close { display:none !important; }
 .vela-entry-route .vela-quick-fullscreen{background:var(--vela-bg)!important;color:var(--vela-ink)!important}
-.vela-quick-fullscreen input:not([type=radio]):not([type=checkbox]),.vela-quick-fullscreen select,.vela-quick-fullscreen textarea{border:1px solid var(--vela-line)!important;border-radius:var(--vela-radius-sm)!important;background:var(--vela-surface)!important;color:var(--vela-ink)!important}
+.vela-quick-fullscreen input:not([type=radio]):not([type=checkbox]),.vela-quick-fullscreen select,.vela-quick-fullscreen textarea{border:1px solid var(--vela-line)!important;border-radius:12px!important;background:var(--vela-surface)!important;color:var(--vela-ink)!important}
 .vela-quick-fullscreen .primary{background:var(--vela-primary)!important;color:#fff!important}.vela-quick-fullscreen .secondary{background:#eef0f1!important;color:var(--vela-ink)!important}
 .vela-quick-backdrop{background:rgba(23,33,43,.24)!important;backdrop-filter:blur(3px)!important}
 .vela-quick-sheet{background:var(--vela-surface)!important;border:1px solid var(--vela-line)!important;border-radius:var(--vela-radius-lg) var(--vela-radius-lg) 0 0!important;box-shadow:0 -12px 40px rgba(23,33,43,.12)!important}
@@ -688,7 +685,7 @@
 .vela-quick-fullscreen > *{flex:1 1 auto!important;min-height:0!important;width:100%!important;max-width:none!important;height:100%!important;margin:0!important;border-radius:0!important;display:flex!important;flex-direction:column!important}
 .vela-quick-fullscreen form{display:flex!important;flex-direction:column!important;gap:16px!important;flex:1 1 auto!important;min-height:0!important;overflow:auto!important}
 .vela-quick-fullscreen form > *{flex:0 0 auto!important}
-.vela-quick-fullscreen input:not([type="radio"]):not([type="checkbox"]),.vela-quick-fullscreen select,.vela-quick-fullscreen textarea{min-height:48px!important;padding-top:12px!important;padding-bottom:12px!important;font-size:16px!important}
+.vela-quick-fullscreen input:not([type="radio"]):not([type="checkbox"]),.vela-quick-fullscreen select,.vela-quick-fullscreen textarea{min-height:48px!important;padding-top:12px!important;padding-bottom:12px!important;font-size:14px!important}
 .vela-quick-fullscreen input[type="radio"],.vela-quick-fullscreen input[type="checkbox"]{font-size:16px!important}
 @media(max-width:600px){
   .vela-quick-fullscreen{width:100%!important}
