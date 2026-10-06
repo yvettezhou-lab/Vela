@@ -1,6 +1,5 @@
 import { getSegmentsByDate, getLedgerEntryDate, getTripPrimaryCurrency } from '../../core/travelSegment';
 import React, { Component, ErrorInfo, ReactNode, useEffect, useMemo, useRef, useState } from 'react';
-import { createPortal } from 'react-dom';
 import { Calendar, ChevronLeft, ChevronRight, X } from 'lucide-react';
 import { useVelaStore } from '../../store/useVelaStore';
 import { TRANSPORT_CATEGORY_ID } from '../../core/validation';
@@ -836,7 +835,7 @@ const QuickEntryContent: React.FC<QuickEntryProps> = ({ onClose, editTripId, ini
           </label>
         </div>
 
-        {amountPadOpen && typeof document !== 'undefined' && createPortal(
+        {amountPadOpen && (
           <div className="quick-entry-amount-keypad" role="dialog" aria-label="Amount keypad">
             <div className="quick-entry-amount-keypad-grid">
               {[
@@ -904,8 +903,7 @@ const QuickEntryContent: React.FC<QuickEntryProps> = ({ onClose, editTripId, ini
                 </button>
               ))}
             </div>
-          </div>,
-          document.body,
+          </div>
         )}
 
         {!isDomesticTrip && (
