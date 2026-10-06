@@ -248,12 +248,6 @@
   align-items:start;
 }
 .quick-entry-journey-button{width:100%;min-width:0}
-.quick-entry-journey-button.is-selected{
-  background:#17243a!important;
-  color:#fffdf8!important;
-  border-color:#17243a!important;
-  box-shadow:0 6px 14px rgba(23,36,58,.16)!important;
-}
 .quick-entry-journey-option .quick-entry-date-picker{margin:0}
 .quick-entry-journey-option .quick-entry-date-picker>span{display:none}
  .quick-entry-date-picker{
