@@ -678,6 +678,13 @@
 
 /* Quick Entry — single component-owned control source. */
 .vela-entry-route .vela-quick-fullscreen form { display:flex !important; flex-direction:column !important; justify-content:flex-start !important; align-items:stretch !important; width:100% !important; min-height:0 !important; margin:0 !important; padding-top:0 !important; gap:0 !important; }
+.vela-entry-route .vela-quick-fullscreen form.quick-entry-form{
+  flex:1 1 auto!important;
+  min-height:0!important;
+  overflow-y:auto!important;
+  box-sizing:border-box!important;
+  padding:0 20px calc(180px + env(safe-area-inset-bottom))!important;
+}
 .vela-entry-route .vela-quick-fullscreen form label { display:block !important; width:100% !important; min-width:0 !important; }
 .vela-entry-route .vela-quick-fullscreen form label.flex { display:flex !important; }
 .vela-entry-route .vela-quick-fullscreen form .grid { display:grid !important; }
