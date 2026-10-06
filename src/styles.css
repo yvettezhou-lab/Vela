@@ -17,18 +17,63 @@
   width:100%;
   min-height:36px!important;
   height:36px!important;
-  max-height:36px!important;
-  padding-top:0!important;
-  padding-bottom:0!important;
+  padding:0 8px!important;
+  border:1px solid rgba(23,36,58,.08)!important;
+  border-radius:12px!important;
+  background:#fbf7ee!important;
+  color:#17243a!important;
+  box-shadow:0 1px 2px rgba(15,23,42,.04)!important;
+  appearance:none!important;
+  -webkit-appearance:none!important;
+  font:500 14px/1.1 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif!important;
 }
 .quick-entry-planning-trip{overflow:hidden}
 .quick-entry-planning-trip span{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.quick-entry-planning-trip.is-selected,
+.quick-entry-planning-paid-button:focus-visible{
+  border-color:#17243a!important;
+  background:#17243a!important;
+  color:#fffdf8!important;
+  box-shadow:0 6px 14px rgba(23,36,58,.16)!important;
+}
 .quick-entry-planning-paid{grid-column:4;position:relative;min-width:0}
-.quick-entry-planning-paid-button{color:#17243a!important}
-.quick-entry-planning-paid-button strong{color:#17243a!important;font-size:16px;font-weight:600;white-space:nowrap}
+.quick-entry-planning-paid-button strong{color:inherit!important;font-size:16px;font-weight:600;white-space:nowrap}
 
-.quick-entry-entry-type{margin-top:14px!important}
-.quick-entry-entry-type button{box-sizing:border-box}
+.quick-entry-entry-type{
+  margin-top:14px!important;
+  display:grid!important;
+  grid-template-columns:repeat(3,minmax(0,1fr))!important;
+  gap:6px!important;
+  padding:4px!important;
+  border-radius:12px!important;
+  background:#eee5d5!important;
+  box-sizing:border-box!important;
+}
+.quick-entry-entry-type-button{
+  box-sizing:border-box!important;
+  width:100%!important;
+  min-height:42px!important;
+  height:42px!important;
+  padding:0 8px!important;
+  border:1px solid transparent!important;
+  border-radius:10px!important;
+  background:#fbf7ee!important;
+  color:#6f6659!important;
+  box-shadow:0 1px 2px rgba(15,23,42,.04)!important;
+  appearance:none!important;
+  -webkit-appearance:none!important;
+  font:500 13px/1.15 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif!important;
+}
+.quick-entry-entry-type-button.is-selected{
+  border-color:#17243a!important;
+  background:#17243a!important;
+  color:#fffdf8!important;
+  box-shadow:0 6px 14px rgba(23,36,58,.16)!important;
+}
+.quick-entry-entry-type-button:active,
+.quick-entry-payment-account:active,
+.quick-entry-transport-button:active,
+.quick-entry-journey-button:active{transform:none!important}
 
 .quick-entry-amount-row{grid-template-columns:170px minmax(0,1fr)}
 .quick-entry-category-row{grid-template-columns:220px minmax(0,1fr)}
@@ -49,8 +94,25 @@
   min-width:52px!important;
   max-width:52px!important;
   flex:0 0 52px!important;
-  padding-left:1px!important;
-  padding-right:1px!important;
+  min-height:40px!important;
+  height:40px!important;
+  padding:0 1px!important;
+  border:1px solid rgba(23,36,58,.08)!important;
+  border-radius:11px!important;
+  background:#fbf7ee!important;
+  color:#17243a!important;
+  box-shadow:0 1px 2px rgba(15,23,42,.04)!important;
+  appearance:none!important;
+  -webkit-appearance:none!important;
+  font:500 10px/1.1 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif!important;
+  overflow-wrap:anywhere!important;
+  white-space:normal!important;
+}
+.quick-entry-payment-account.is-selected{
+  border-color:#17243a!important;
+  background:#17243a!important;
+  color:#fffdf8!important;
+  box-shadow:0 6px 14px rgba(23,36,58,.16)!important;
 }
 
 .quick-entry-date-picker{
@@ -236,6 +298,34 @@
 .quick-entry-cost-switch.is-on{background:#17243a}
 .quick-entry-cost-switch.is-on span{transform:translateX(16px)}
 
+.quick-entry-transport-button,
+.quick-entry-journey-button{
+  box-sizing:border-box!important;
+  width:100%!important;
+  min-height:40px!important;
+  height:40px!important;
+  padding:0 6px!important;
+  border:1px solid rgba(23,36,58,.08)!important;
+  border-radius:10px!important;
+  background:#fbf7ee!important;
+  color:#17243a!important;
+  box-shadow:0 1px 2px rgba(15,23,42,.04)!important;
+  appearance:none!important;
+  -webkit-appearance:none!important;
+  font:500 12px/1.1 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif!important;
+}
+.quick-entry-transport-button.is-selected,
+.quick-entry-journey-button.is-selected{
+  border-color:#17243a!important;
+  background:#17243a!important;
+  color:#fffdf8!important;
+  box-shadow:0 6px 14px rgba(23,36,58,.16)!important;
+}
+.quick-entry-transport-button:hover,
+.quick-entry-journey-button:hover{background:#fff!important}
+.quick-entry-transport-button.is-selected:hover,
+.quick-entry-journey-button.is-selected:hover{background:#17243a!important}
+
 .quick-entry-allocation-mode{
   display:grid!important;
   grid-template-columns:repeat(3,minmax(0,1fr))!important;
@@ -283,6 +373,11 @@
   border-color:#17243a!important;
   background:#17243a!important;
   color:#fffdf8!important;
+}
+.quick-entry-participant-button .quick-entry-participant-percentage{
+  margin-left:3px!important;
+  opacity:.8!important;
+  font-size:11px!important;
 }
 .quick-entry-participant-button:active{transform:none!important}
 .quick-entry-custom-percentages{
@@ -356,7 +451,6 @@
   .vela-quick-fullscreen .quick-entry-planning-trip,
   .vela-quick-fullscreen .quick-entry-planning-paid-button{padding-left:8px!important;padding-right:8px!important}
   .vela-quick-fullscreen .quick-entry-entry-type{gap:6px!important;padding:4px!important;margin-top:0!important}
-  .vela-quick-fullscreen .quick-entry-entry-type button{min-height:42px!important;border-radius:10px!important;font-size:13px!important}
   .vela-quick-fullscreen .quick-entry-amount-row{grid-template-columns:170px minmax(0,1fr)!important;margin-top:10px!important;gap:10px!important}
   .vela-quick-fullscreen .quick-entry-category-row{grid-template-columns:170px minmax(0,1fr)!important;margin-top:10px!important;gap:10px!important}
   .vela-quick-fullscreen .quick-entry-amount-row label>span,
@@ -365,7 +459,6 @@
   .vela-quick-fullscreen .quick-entry-amount-row input,
   .vela-quick-fullscreen .quick-entry-category-row select{min-height:40px!important}
   .vela-quick-fullscreen .quick-entry-payment-accounts{gap:4px!important}
-  .vela-quick-fullscreen .quick-entry-payment-account{overflow-wrap:anywhere!important}
   .vela-quick-fullscreen .quick-entry-date-picker{gap:4px!important}
   .vela-quick-fullscreen .quick-entry-date-picker .trip-date-trigger{min-height:38px!important;height:38px!important}
   .vela-quick-fullscreen .quick-entry-date-picker .trip-date-trigger strong{font-size:11px!important}
