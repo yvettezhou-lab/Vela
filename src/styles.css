@@ -212,11 +212,24 @@
 .quick-entry-primary-field>select{appearance:auto;-webkit-appearance:auto;padding:0 9px;outline:none}
 .quick-entry-amount-control{position:relative;display:flex;align-items:stretch;overflow:visible}
 .quick-entry-amount-control select{width:50px;min-width:50px;border:0;background:transparent;color:#17243a;padding:0 3px 0 9px;font:500 14px/1 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;outline:none}
-.quick-entry-amount-control input{min-width:0;flex:1;width:100%;height:100%;border:0;background:transparent;color:#17243a;padding:0 9px;font:500 14px/1 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;outline:none}
-.quick-entry-amount-calculator{flex:none;width:58px;border:0;border-left:1px solid rgba(23,36,58,.08);background:transparent;color:#857a6a;font:600 11px/1 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;letter-spacing:.04em;cursor:pointer}
-.quick-entry-amount-calculator[aria-expanded="true"]{background:#17243a;color:#fffdf8}
-.quick-entry-amount-control input{pointer-events:none!important;cursor:pointer}
-.quick-entry-amount-control input::placeholder{color:#aaa092}
+.quick-entry-amount-value{
+  min-width:0!important;
+  flex:1!important;
+  width:100%!important;
+  height:100%!important;
+  min-height:46px!important;
+  padding:0 9px!important;
+  border:0!important;
+  border-radius:0!important;
+  background:transparent!important;
+  color:#17243a!important;
+  font:500 14px/1 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif!important;
+  text-align:left!important;
+  outline:none!important;
+  appearance:none!important;
+  -webkit-appearance:none!important;
+  cursor:pointer!important;
+}
 .quick-entry-amount-keypad{
   position:fixed!important;
   left:0!important;
