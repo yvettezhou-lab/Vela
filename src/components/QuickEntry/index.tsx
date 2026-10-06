@@ -852,7 +852,7 @@ const QuickEntryContent: React.FC<QuickEntryProps> = ({ onClose, editTripId, ini
           <label className="quick-entry-category-field">
             <span>Category</span>
             <select value={categoryId} onChange={(event) => { const next = event.target.value; setCategoryId(next); setIncludeInCost(categories.find((category) => category.id === next)?.excludeFromStats !== true); }} required aria-label="Category">
-              {categories.map((category) => <option key={category.id} value={category.id}>{category.name}</option>)}
+              {visibleCategories.map((category) => <option key={category.id} value={category.id}>{category.name}</option>)}
             </select>
           </label>
           <label className="quick-entry-note-field">
