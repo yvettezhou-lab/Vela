@@ -38,7 +38,7 @@
   box-shadow:0 6px 14px rgba(23,36,58,.16)!important;
 }
 .quick-entry-planning-paid{
-  grid-column:3 / 4;
+  grid-column:4 / 5;
   position:relative;
   min-width:0;
   display:flex;
