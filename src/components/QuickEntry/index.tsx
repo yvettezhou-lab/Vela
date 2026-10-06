@@ -871,7 +871,7 @@ const QuickEntryContent: React.FC<QuickEntryProps> = ({ onClose, editTripId, ini
           </label>
         </div>}
 
-{marker.slice("        ".length)}
+{entryType === 'transport' && (}
           <div className="quick-entry-transport-section">
             <div className="quick-entry-transport-layout">
               <div className="quick-entry-transport-field">
