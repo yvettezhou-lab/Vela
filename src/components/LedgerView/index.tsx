@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { ChevronDown, Pencil } from 'lucide-react';
 import { AllocationMode, LedgerEntry } from '../../core/domain';
-import { findSegmentByDate, getLedgerEntryDate, getTripEndDate, getTripStartDate } from '../../core/travelSegment';
+import { findSegmentByDate, getTripEndDate, getTripStartDate } from '../../core/travelSegment';
+import { getLedgerEntryPaidTimestamp, sortLedgerEntriesByPaidTimestamp } from '../../core/ledger';
 import { useVelaStore } from '../../store/useVelaStore';
 
 const ENTRY_LABELS: Record<LedgerEntry['entryType'], string> = {
@@ -15,13 +16,6 @@ const TRANSPORT_LABELS = {
   long_distance_bus: '🚌 Long-distance Bus',
   ferry: '⛴️ Ferry',
 } as const;
-const getPaidTimestamp = (entry: LedgerEntry) => {
-  if (Number.isFinite(entry.paidAt)) return entry.paidAt as number;
-  if ('paymentDate' in entry && Number.isFinite(entry.paymentDate)) return entry.paymentDate as number;
-  if (entry.entryType === 'transport' && Number.isFinite(entry.outboundDate)) return entry.outboundDate;
-  return entry.createdAt;
-};
-
 const entryLabel = (entry: LedgerEntry) => {
   const note = entry.note?.trim();
   if (note) return note;
@@ -103,12 +97,8 @@ export const LedgerView: React.FC = () => {
   const segments = Array.isArray(selectedTrip.segments) ? selectedTrip.segments : [];
   const membersById = new Map(members.map((member) => [member.id, member.name]));
   const categoriesById = new Map(categories.map((category) => [category.id, category.name]));
-  // Newest paid first. Legacy entries fall back to their existing payment/business date.
-  const entries = [...ledger].sort((a, b) => {
-    const paidDiff = getPaidTimestamp(b) - getPaidTimestamp(a);
-    if (paidDiff !== 0) return paidDiff;
-    return (b.createdAt ?? 0) - (a.createdAt ?? 0);
-  });
+  // One source of truth: Ledger order is always derived from the paid timestamp.
+  const entries = sortLedgerEntriesByPaidTimestamp(ledger);
   const filteredByStatus = filter === 'pending' ? entries.filter((entry) => entry.isPending) : entries;
   const filtered = segmentFilterId
     ? filteredByStatus.filter((entry) => entry.segmentId === segmentFilterId)
@@ -129,7 +119,7 @@ export const LedgerView: React.FC = () => {
     if (entry.entryType !== 'prepaid_multi_day') {
       return [{
         entry,
-        displayDate: getPaidTimestamp(entry),
+        displayDate: getLedgerEntryPaidTimestamp(entry),
         displayOriginalAmount: entry.originalAmount,
         displayCnyEquivalent: entry.cnyEquivalent,
         displayId: entry.id,
@@ -187,15 +177,8 @@ export const LedgerView: React.FC = () => {
       const displayDay = new Date(date.getFullYear(), date.getMonth(), date.getDate()).getTime();
       return displayDay <= todayStart;
     })
-    .sort((a, b) => {
-      // The ledger order is driven by the actual paid timestamp.
-      // Prepaid multi-day rows still stay grouped by their usage day.
-      const aSortTime = a.entry.entryType === 'prepaid_multi_day' ? a.displayDate : getPaidTimestamp(a.entry);
-      const bSortTime = b.entry.entryType === 'prepaid_multi_day' ? b.displayDate : getPaidTimestamp(b.entry);
-      const timeDiff = bSortTime - aSortTime;
-      if (timeDiff !== 0) return timeDiff;
-      return (b.entry.createdAt ?? 0) - (a.entry.createdAt ?? 0);
-    });
+    // Preserve the canonical paid-time order established above.
+    ;
 
   const dateGroups = displayEntries.reduce<Array<{ key: string; label: string; entries: LedgerDisplayEntry[] }>>((groups, item) => {
     const key = toDateInputValue(item.displayDate);
@@ -530,7 +513,7 @@ export const LedgerView: React.FC = () => {
               <div><span>WHO PAID</span><strong>{membersById.get(detailEntry.payerId) ?? detailEntry.payerId}</strong></div>
               <div><span>PAYMENT ACCOUNT</span><strong>{accounts.find((account) => account.id === detailEntry.accountId)?.name ?? '—'}</strong></div>
               <div><span>CATEGORY</span><strong>{categories.find((category) => category.id === detailEntry.categoryId)?.name ?? '—'}</strong></div>
-              <div><span>PAID</span><strong>{formatPaidTimestamp(getPaidTimestamp(detailEntry))}</strong></div>
+              <div><span>PAID</span><strong>{formatPaidTimestamp(getLedgerEntryPaidTimestamp(detailEntry))}</strong></div>
               {detailEntry.entryType === 'prepaid_multi_day' && <><div><span>USAGE START</span><strong>{formatDate(detailEntry.usageStart)}</strong></div><div><span>USAGE END</span><strong>{formatDate(detailEntry.usageEnd)}</strong></div></>}
               {detailEntry.entryType === 'transport' && <><div><span>TRANSPORT</span><strong>{TRANSPORT_LABELS[detailEntry.transportMode]}</strong></div><div><span>OUTBOUND</span><strong>{formatDate(detailEntry.outboundDate)}</strong></div>{detailEntry.journeyType === 'round_trip' && <div><span>RETURN</span><strong>{formatDate(detailEntry.returnDate)}</strong></div>}</>}
               <div><span>STATUS</span><strong>{detailEntry.isPending ? 'Pending' : detailEntry.includeInCost ? 'Included in statistics' : 'Excluded from statistics'}</strong></div>
