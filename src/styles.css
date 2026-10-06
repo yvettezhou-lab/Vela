@@ -590,7 +590,7 @@
     --quick-entry-journey-options-gap:5px;
     --quick-entry-journey-option-gap:5px;
     --quick-entry-journey-button-offset:13px;
-    --quick-entry-journey-date-gap:4px;
+    --quick-entry-date-gap:4px;
   }
   .vela-quick-fullscreen .quick-entry-category-field,
   .vela-quick-fullscreen .quick-entry-note-field{gap:4px!important}
