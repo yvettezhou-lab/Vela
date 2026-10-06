@@ -855,20 +855,23 @@ const QuickEntryContent: React.FC<QuickEntryProps> = ({ onClose, editTripId, ini
               {categories.map((category) => <option key={category.id} value={category.id}>{category.name}</option>)}
             </select>
           </label>
-          {isRefundCategory && <label className="quick-entry-refund-field">
-            <span>Refund for</span>
-            <select value={refundOf} onChange={(event) => setRefundOf(event.target.value)} required aria-label="Refund for">
-              <option value="">Select expense</option>
-              {refundOptions.map(({ entry, remaining }) => <option key={entry.id} value={entry.id}>{new Date(entry.paidAt ?? ('paymentDate' in entry ? entry.paymentDate : entry.createdAt)).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })} · {targetTrip?.categories.find((category) => category.id === entry.categoryId)?.name ?? 'Expense'} · ¥{remaining.toFixed(2).replace(/\.00$/, '')} remaining</option>)}
-            </select>
-          </label>}
           <label className="quick-entry-note-field">
             <span>Note</span>
             <textarea value={note} onChange={(event) => setNote(event.target.value)} rows={1} maxLength={200} placeholder="What was this payment for? e.g. Longling dinner" aria-label="Note" />
           </label>
         </div>
 
-        {entryType === 'transport' && (
+        {isRefundCategory && <div className="quick-entry-refund-row">
+          <label className="quick-entry-refund-field">
+            <span>Refund for</span>
+            <select value={refundOf} onChange={(event) => setRefundOf(event.target.value)} required aria-label="Refund for">
+              <option value="">Select expense</option>
+              {refundOptions.map(({ entry, remaining }) => <option key={entry.id} value={entry.id}>{new Date(entry.paidAt ?? ('paymentDate' in entry ? entry.paymentDate : entry.createdAt)).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })} · {targetTrip?.categories.find((category) => category.id === entry.categoryId)?.name ?? 'Expense'} · ¥{remaining.toFixed(2).replace(/\.00$/, '')} remaining</option>)}
+            </select>
+          </label>
+        </div>}
+
+{marker.slice("        ".length)}
           <div className="quick-entry-transport-section">
             <div className="quick-entry-transport-layout">
               <div className="quick-entry-transport-field">
