@@ -877,14 +877,14 @@ const QuickEntryContent: React.FC<QuickEntryProps> = ({ onClose, editTripId, ini
 
         <div className="mt-5">
           <span className="mb-2 block text-xs uppercase tracking-[0.14em] text-[#857a6a]">Participants</span>
-            <div className="quick-entry-allocation-mode grid grid-cols-3 gap-2 rounded-xl bg-[#eee5d5] p-1">
+            <div className="quick-entry-allocation-mode">
               {([
                 ['equal', 'Equal Split'],
                 ['preset_percentage', 'Preset Percentage'],
                 ['custom_percentage', 'Custom Percentage'],
               ] as const).map(([value, label]) => {
                 const disabled = value === 'preset_percentage' && !targetTrip?.allocationRules?.percentages;
-                return <button key={value} type="button" disabled={disabled} onClick={() => setAllocationMode(value)} aria-pressed={allocationMode === value} className={`quick-entry-allocation-mode-button min-h-9 rounded-lg border px-2 text-xs font-medium transition ${allocationMode === value ? 'border-[#17243a] bg-[#fffdf8] text-[#17243a] shadow-sm' : 'border-transparent text-[#746b5e] hover:bg-[#fbf7ee]'} ${disabled ? 'cursor-not-allowed opacity-40' : ''}`}>{label}</button>;
+                return <button key={value} type="button" disabled={disabled} onClick={() => setAllocationMode(value)} aria-pressed={allocationMode === value} className={`quick-entry-allocation-mode-button ${allocationMode === value ? 'is-selected' : ''} ${disabled ? 'is-disabled' : ''}`}>{label}</button>;
               })}
             </div>
           {allocationMode === 'preset_percentage' && targetTrip?.allocationRules?.percentages && (
@@ -895,7 +895,7 @@ const QuickEntryContent: React.FC<QuickEntryProps> = ({ onClose, editTripId, ini
                 .join(' · ')}
             </div>
           )}
-          {allocationMode !== 'preset_percentage' && <div className="quick-entry-participants-grid mt-2">
+          {allocationMode !== 'preset_percentage' && <div className="quick-entry-participants-grid">
             {members.map((member) => {
               const selected = selectedParticipants.has(member.id);
               return (
@@ -907,8 +907,8 @@ const QuickEntryContent: React.FC<QuickEntryProps> = ({ onClose, editTripId, ini
             })}
           </div>}
           {allocationMode === 'custom_percentage' && (
-            <div className="mt-3 grid grid-cols-2 gap-2">
-              {members.filter((member) => selectedParticipants.has(member.id)).map((member) => <label key={member.id} className="flex min-h-12 items-center justify-between rounded-xl bg-[#fbf7ee] px-4 shadow-[inset_0_0_0_1px_rgba(80,64,42,.10)]"><span className="text-sm">{member.name}</span><span className="flex items-center gap-1"><input type="text" inputMode="decimal" value={customPercentages[member.id] ?? ''} onChange={(event) => { const raw = normalizePercentageInput(event.target.value); setCustomPercentages((previous) => ({ ...previous, [member.id]: raw === '' ? 0 : Number(raw) })); }} className="w-16 bg-transparent text-right text-base outline-none" aria-label={`${member.name} percentage`} /><span className="text-sm text-[#857a6a]">%</span></span></label>)}
+            <div className="quick-entry-custom-percentages">
+              {members.filter((member) => selectedParticipants.has(member.id)).map((member) => <label key={member.id} className="quick-entry-custom-percentage"><span>{member.name}</span><span className="quick-entry-custom-percentage-value"><input type="text" inputMode="decimal" value={customPercentages[member.id] ?? ''} onChange={(event) => { const raw = normalizePercentageInput(event.target.value); setCustomPercentages((previous) => ({ ...previous, [member.id]: raw === '' ? 0 : Number(raw) })); }} aria-label={`${member.name} percentage`} /><span>%</span></span></label>)}
             </div>
           )}
         </div>
