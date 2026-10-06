@@ -682,7 +682,7 @@ const QuickEntryContent: React.FC<QuickEntryProps> = ({ onClose, editTripId, ini
                 type="button"
                 onClick={() => setTargetTripId(trip.id)}
                 aria-pressed={targetTripId === trip.id}
-                className={`min-w-0 rounded-2xl border px-3 text-sm font-medium transition ${targetTripId === trip.id ? 'border-[#17243a] bg-[#17243a] text-[#fffdf8] shadow-md' : 'border-black/5 bg-[#fbf7ee] text-[#17243a] shadow-sm hover:bg-white'}`}
+                className={`quick-entry-planning-trip ${targetTripId === trip.id ? 'is-selected' : ''}`}
                
               >
                 <span className="block truncate">{label}</span>
@@ -722,7 +722,7 @@ const QuickEntryContent: React.FC<QuickEntryProps> = ({ onClose, editTripId, ini
             ['transport', 'Transport'],
             ['prepaid_multi_day', 'Prepaid'],
           ] as const).map(([value, label]) => (
-            <button key={value} type="button" onClick={() => setEntryType(value)} aria-pressed={entryType === value} className={`min-h-12 rounded-xl border px-2 text-sm font-medium transition ${entryType === value ? 'border-[#17243a] bg-[#17243a] text-[#fffdf8] shadow-md' : 'border-black/5 bg-[#fbf7ee] text-[#6f6659] shadow-sm hover:bg-white'}`}>
+            <button key={value} type="button" onClick={() => setEntryType(value)} aria-pressed={entryType === value} className={`quick-entry-entry-type-button ${entryType === value ? 'is-selected' : ''}`}>
               {label}
             </button>
           ))}
@@ -819,7 +819,7 @@ const QuickEntryContent: React.FC<QuickEntryProps> = ({ onClose, editTripId, ini
                 type="button"
                 onClick={() => setAccountId(account.id)}
                 aria-pressed={accountId === account.id}
-                className={`quick-entry-payment-account min-h-10 rounded-xl border text-[10px] leading-tight font-medium break-words transition ${accountId === account.id ? 'border-[#17243a] bg-[#17243a] text-[#fffdf8] shadow-md' : 'border-black/5 bg-[#fbf7ee] text-[#17243a] shadow-sm hover:bg-white'}`}
+                className={`quick-entry-payment-account ${accountId === account.id ? 'is-selected' : ''}`}
               >{account.name}</button>)}
             </div>
           </div>
@@ -842,7 +842,7 @@ const QuickEntryContent: React.FC<QuickEntryProps> = ({ onClose, editTripId, ini
                     ['long_distance_bus', '🚌 Coach'],
                     ['ferry', '⛴️ Ferry'],
                   ] as const).map(([value, label]) => (
-                    <button key={value} type="button" onClick={() => { setTransportMode(value); setJourneyType('one_way'); setReturnDate(''); }} aria-pressed={transportMode === value} className={`min-h-10 rounded-xl border px-1 text-xs font-medium transition ${transportMode === value ? 'border-[#17243a] bg-[#17243a] text-[#fffdf8] shadow-md' : 'border-black/5 bg-[#fbf7ee] text-[#17243a] shadow-sm hover:bg-white'}`}>
+                    <button key={value} type="button" onClick={() => { setTransportMode(value); setJourneyType('one_way'); setReturnDate(''); }} aria-pressed={transportMode === value} className={`quick-entry-transport-button ${transportMode === value ? 'is-selected' : ''}`}>
                       {label}
                     </button>
                   ))}
@@ -853,7 +853,7 @@ const QuickEntryContent: React.FC<QuickEntryProps> = ({ onClose, editTripId, ini
                 <div>
                   <span className="mb-1.5 block text-xs uppercase tracking-[0.14em] text-[#857a6a]">Journey</span>
                   <div className="grid grid-cols-1 gap-2">
-                    {([['one_way', 'One Way'], ['round_trip', 'Round Trip']] as const).map(([value, label]) => <button key={value} type="button" onClick={() => setJourneyType(value)} aria-pressed={journeyType === value} className={`min-h-10 rounded-xl border px-3 text-sm font-medium transition ${journeyType === value ? 'border-[#17243a] bg-[#17243a] text-[#fffdf8] shadow-md' : 'border-black/5 bg-[#fbf7ee] text-[#17243a] shadow-sm hover:bg-white'}`}>{label}</button>)}
+                    {([['one_way', 'One Way'], ['round_trip', 'Round Trip']] as const).map(([value, label]) => <button key={value} type="button" onClick={() => setJourneyType(value)} aria-pressed={journeyType === value} className={`quick-entry-journey-button ${journeyType === value ? 'is-selected' : ''}`}>{label}</button>)}
                   </div>
                 </div>
               )}
@@ -901,7 +901,7 @@ const QuickEntryContent: React.FC<QuickEntryProps> = ({ onClose, editTripId, ini
               return (
                 <button key={member.id} type="button" onClick={() => toggleParticipant(member.id)} aria-pressed={selected} className={`quick-entry-participant-button ${selected ? 'is-selected' : ''}`}>
                   {member.name}
-                  {allocationMode === 'custom_percentage' && selected && <span className="ml-2 opacity-80">{customPercentages[member.id] ?? 0}%</span>}
+                  {allocationMode === 'custom_percentage' && selected && <span className="quick-entry-participant-percentage">{customPercentages[member.id] ?? 0}%</span>}
                 </button>
               );
             })}
