@@ -795,7 +795,17 @@ const QuickEntryContent: React.FC<QuickEntryProps> = ({ onClose, editTripId, ini
           <label className="quick-entry-primary-field">
             <span>Amount</span>
             {evaluatedAmount !== null && Number.isFinite(evaluatedAmount) && evaluatedAmount !== 0 && <small className={`quick-entry-amount-preview ${isIncome ? 'is-income' : ''}`}>{isIncome ? 'Income' : 'Total'} {Math.abs(evaluatedAmount).toLocaleString(undefined, { maximumFractionDigits: 2 })}</small>}
-            <div className="quick-entry-amount-control">
+            <div
+              className="quick-entry-amount-control"
+              onPointerDown={(event) => {
+                event.preventDefault();
+                setAmountPadOpen(true);
+              }}
+              onClick={() => setAmountPadOpen(true)}
+              role="button"
+              tabIndex={0}
+              aria-label="Open amount keypad"
+            >
               {isDomesticTrip && currency.toUpperCase() === 'CNY' ? null : (
                 <select value={currency} onChange={(event) => setCurrency(event.currentTarget.value)} aria-label="Currency">
                   {LEDGER_CURRENCIES.map((item) => <option key={item} value={item}>{item}</option>)}
@@ -807,8 +817,7 @@ const QuickEntryContent: React.FC<QuickEntryProps> = ({ onClose, editTripId, ini
                 autoComplete="off"
                 readOnly
                 value={amount}
-                onFocus={() => setAmountPadOpen(true)}
-                onClick={() => setAmountPadOpen(true)}
+                tabIndex={-1}
                 onCompositionStart={() => { amountComposingRef.current = true; }}
                 onCompositionEnd={(event) => { amountComposingRef.current = false; setAmount(event.currentTarget.value); }}
                 onChange={(event) => { if (!amountComposingRef.current) setAmount(event.currentTarget.value); }}
