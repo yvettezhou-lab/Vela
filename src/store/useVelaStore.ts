@@ -7,6 +7,7 @@ import { migrateLegacyPlanToTrip } from '../core/legacyAdapter';
 import { getAutoStartTripId } from '../utils/tripLifecycle';
 import { refreshAutoTripTitles } from '../utils/tripTitle';
 import { findSegmentByDate, getLedgerEntryDate } from '../core/travelSegment';
+import { getLedgerEntryPaidTimestamp } from '../core/ledger';
 import { ensureTripLists, createDefaultTripLists, cloneList, createListFromTemplate, filterDuplicateListItems, listItemKey, TravelListTemplate } from '../utils/travelLists';
 
 const LEGACY_STORAGE_KEY = 'vela.plan.v1';
@@ -38,9 +39,11 @@ const normalizeTrips = (trips: Trip[]): Trip[] => refreshAutoTripTitles(trips.ma
           } as unknown as Trip['ledger'][number];
         })()
       : entry;
-    if (normalizedEntry.segmentId) return normalizedEntry;
-    const segment = findSegmentByDate(trip.segments, getLedgerEntryDate(normalizedEntry));
-    return segment ? { ...normalizedEntry, segmentId: segment.id } : normalizedEntry;
+    const paidAt = getLedgerEntryPaidTimestamp(normalizedEntry);
+    const withCanonicalPaidAt = normalizedEntry.paidAt === paidAt ? normalizedEntry : { ...normalizedEntry, paidAt };
+    if (withCanonicalPaidAt.segmentId) return withCanonicalPaidAt;
+    const segment = findSegmentByDate(trip.segments, getLedgerEntryDate(withCanonicalPaidAt));
+    return segment ? { ...withCanonicalPaidAt, segmentId: segment.id } : withCanonicalPaidAt;
   });
   return { ...trip, ledger };
 }));
