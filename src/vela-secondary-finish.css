@@ -532,7 +532,7 @@ body > .vela-global-quick svg{width:30px!important;height:30px!important;display
   color:#374151;
   font:600 11px/1 -apple-system,BlinkMacSystemFont,"SF Pro Text","PingFang SC",sans-serif;
 }
-.vela-ledger-edit,
+.vela-ledger-edit{background:transparent;color:#9ca3af}
 .vela-ledger-edit:active{background:#f3f4f6;color:#374151}
 .vela-ledger-delete{
   width:34px;
