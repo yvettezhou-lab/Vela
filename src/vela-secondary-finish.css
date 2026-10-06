@@ -478,36 +478,62 @@ body > .vela-global-quick svg{width:30px!important;height:30px!important;display
   background:#fff;
 }
 .vela-ledger-entry:last-child{border-bottom:0}
-.vela-ledger-entry-main{min-width:0;flex:1}
-.vela-ledger-entry-title{display:flex;align-items:center;gap:7px;min-width:0}
-.vela-ledger-entry-title strong{
+.vela-ledger-entry-main{min-width:0;flex:1;width:100%}
+.vela-ledger-entry-content{min-width:0;padding:3px 0}
+.vela-ledger-entry-row{
+  display:grid;
+  grid-template-columns:minmax(0,1fr) auto;
+  align-items:baseline;
+  column-gap:12px;
+  min-width:0;
+}
+.vela-ledger-entry-row strong{
   min-width:0;
   overflow:hidden;
   text-overflow:ellipsis;
   white-space:nowrap;
-  font:600 15px/1.25 -apple-system,BlinkMacSystemFont,"SF Pro Text","PingFang SC",sans-serif;
+  font:600 15px/1.2 -apple-system,BlinkMacSystemFont,"SF Pro Text","PingFang SC",sans-serif;
   color:#111827;
 }
-.vela-ledger-entry-meta{
-  display:block;
-  margin-top:5px;
-  font:12px/1.35 -apple-system,BlinkMacSystemFont,"SF Pro Text","PingFang SC",sans-serif;
-  color:#6b7280;
-}
-.vela-ledger-entry-detail{
-  display:block;
-  margin-top:3px;
-  font:11px/1.35 -apple-system,BlinkMacSystemFont,"SF Pro Text","PingFang SC",sans-serif;
-  color:#9ca3af;
-}
-.vela-ledger-entry-note{
-  display:block;
-  margin-top:5px;
-  color:#374151;
-  font:500 11px/1.4 -apple-system,BlinkMacSystemFont,"SF Pro Text","PingFang SC",sans-serif;
+.vela-ledger-amount-primary{
+  min-width:max-content;
+  justify-self:end;
+  font:600 16px/1.05 -apple-system,BlinkMacSystemFont,"SF Pro Text","PingFang SC",sans-serif;
+  color:#172033;
   white-space:nowrap;
+  font-variant-numeric:tabular-nums;
+}
+.vela-ledger-amount-primary small{
+  font-size:9px;
+  font-weight:500;
+  margin-right:4px;
+  color:#8b8276;
+  vertical-align:baseline;
+}
+.vela-ledger-entry-secondary{
+  margin-top:1px;
+  color:#8b95a3;
+  font:11px/1.25 -apple-system,BlinkMacSystemFont,"SF Pro Text","PingFang SC",sans-serif;
+}
+.vela-ledger-entry-secondary>span:first-child{
+  min-width:0;
   overflow:hidden;
   text-overflow:ellipsis;
+  white-space:nowrap;
+}
+.vela-ledger-amount-cny{
+  min-width:max-content;
+  justify-self:end;
+  color:#8b8276;
+  font-size:12px;
+  white-space:nowrap;
+  font-variant-numeric:tabular-nums;
+}
+.vela-ledger-entry-secondary .vela-ledger-badge{
+  margin-left:6px;
+  vertical-align:middle;
+  font-size:9px!important;
+  padding:2px 5px!important;
 }
 .vela-ledger-badge{
   flex:0 0 auto;
