@@ -228,10 +228,34 @@
 .quick-entry-transport-field>span,
 .quick-entry-journey-field>span{display:block;color:#857a6a;font:600 9px/1.1 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;letter-spacing:.12em;text-transform:uppercase}
 .quick-entry-journey-options{display:grid;gap:var(--quick-entry-journey-options-gap,7px)}
-.quick-entry-journey-option{display:grid;grid-template-columns:minmax(0,var(--quick-entry-journey-button-col,.82fr)) minmax(0,var(--quick-entry-journey-date-col,1.18fr));gap:var(--quick-entry-journey-option-gap,6px);align-items:start}.quick-entry-journey-option>.quick-entry-journey-button{margin-top:0}
-.quick-entry-journey-option.is-selected .quick-entry-journey-button{background:#17243a;color:#fffdf8;border-color:#17243a}
+.quick-entry-journey-head{
+  display:grid;
+  grid-template-columns:minmax(0,var(--quick-entry-journey-button-col,.82fr)) minmax(0,var(--quick-entry-journey-date-col,1.18fr));
+  gap:var(--quick-entry-journey-option-gap,6px);
+  align-items:end;
+}
+.quick-entry-journey-head>span{
+  display:block;
+  color:#857a6a;
+  font:600 9px/1.1 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+  letter-spacing:.12em;
+  text-transform:uppercase;
+}
+.quick-entry-journey-option{
+  display:grid;
+  grid-template-columns:minmax(0,var(--quick-entry-journey-button-col,.82fr)) minmax(0,var(--quick-entry-journey-date-col,1.18fr));
+  gap:var(--quick-entry-journey-option-gap,6px);
+  align-items:start;
+}
 .quick-entry-journey-button{width:100%;min-width:0}
+.quick-entry-journey-button.is-selected{
+  background:#17243a!important;
+  color:#fffdf8!important;
+  border-color:#17243a!important;
+  box-shadow:0 6px 14px rgba(23,36,58,.16)!important;
+}
 .quick-entry-journey-option .quick-entry-date-picker{margin:0}
+.quick-entry-journey-option .quick-entry-date-picker>span{display:none}
  .quick-entry-date-picker{
   display:block;
   position:relative;
@@ -603,7 +627,8 @@
   .vela-quick-fullscreen .quick-entry-transport-field,
   .vela-quick-fullscreen .quick-entry-journey-field{gap:4px!important}
   .vela-quick-fullscreen .quick-entry-transport-field>span,
-  .vela-quick-fullscreen .quick-entry-journey-field>span{font-size:8px!important;letter-spacing:.08em!important}
+  .vela-quick-fullscreen .quick-entry-journey-field>span,
+  .vela-quick-fullscreen .quick-entry-journey-head>span{font-size:8px!important;letter-spacing:.08em!important}
   .vela-quick-fullscreen .quick-entry-date-picker{gap:4px!important}
   .vela-quick-fullscreen .quick-entry-date-picker{gap:4px!important}
   .vela-quick-fullscreen .quick-entry-date-picker .trip-date-trigger{min-height:38px!important;height:38px!important}
