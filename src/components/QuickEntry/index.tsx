@@ -805,19 +805,20 @@ const QuickEntryContent: React.FC<QuickEntryProps> = ({ onClose, editTripId, ini
           </div>
         )}
 
-        {entryType !== 'transport' && (
-          <label className="quick-entry-category-row">
-            <span>Category</span>
-            <select value={categoryId} onChange={(event) => { const next = event.target.value; setCategoryId(next); setIncludeInCost(categories.find((category) => category.id === next)?.excludeFromStats !== true); }} required aria-label="Category">
-              {categories.map((category) => <option key={category.id} value={category.id}>{category.name}</option>)}
-            </select>
+        <div className="quick-entry-category-note-row">
+          {entryType !== 'transport' && (
+            <label className="quick-entry-category-field">
+              <span>Category</span>
+              <select value={categoryId} onChange={(event) => { const next = event.target.value; setCategoryId(next); setIncludeInCost(categories.find((category) => category.id === next)?.excludeFromStats !== true); }} required aria-label="Category">
+                {categories.map((category) => <option key={category.id} value={category.id}>{category.name}</option>)}
+              </select>
+            </label>
+          )}
+          <label className="quick-entry-note-field">
+            <span>Note</span>
+            <textarea value={note} onChange={(event) => setNote(event.target.value)} rows={1} maxLength={200} placeholder="What was this payment for? e.g. Longling dinner" aria-label="Note" />
           </label>
-        )}
-
-        <label className="mt-4 block w-[72%]">
-          <span className="mb-1.5 block text-xs uppercase tracking-[0.14em] text-[#857a6a]">Note</span>
-          <textarea value={note} onChange={(event) => setNote(event.target.value)} rows={1} maxLength={200} placeholder="What was this payment for? e.g. Longling dinner" className="h-12 w-full resize-none rounded-xl bg-[#fbf7ee] px-4 py-2.5 text-sm text-[#17243a] shadow-[inset_0_0_0_1px_rgba(80,64,42,.10)] outline-none placeholder:text-[#aaa092]" aria-label="Note" />
-        </label>
+        </div>
 
         {entryType === 'transport' && (
           <div className="mt-5 space-y-3">
