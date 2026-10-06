@@ -1,11 +1,12 @@
 export type TripStatus = 'planning' | 'traveling' | 'achieve';
 export type AllocationMode = 'equal' | 'preset_percentage' | 'custom_percentage';
 export type EntryDirection = 'expense' | 'income';
+export type EntryDirection = 'expense' | 'income';
 export interface Member { id: string; name: string; archived?: boolean; personalListItems?: string[]; }
 export interface Account { id: string; name: string; archived?: boolean; }
 export interface Category { id: string; name: string; type: string; archived?: boolean; excludeFromStats?: boolean; }
 export interface Allocation { memberId: string; percentage?: number; amount: number; }
-export interface BaseLedgerEntry { id: string; entryDirection: EntryDirection; segmentId?: string; note?: string; categoryId: string; originalAmount: number; originalCurrency: string; cnyEquivalent: number; includeInCost: boolean; isRefund: boolean; refundOf?: string; isPending: boolean; payerId: string; accountId: string; allocationMode: AllocationMode; allocations: Allocation[]; createdAt: number; updatedAt: number; paidAt?: number; }
+export interface BaseLedgerEntry { id: string; entryDirection: EntryDirection; entryDirection: EntryDirection; segmentId?: string; note?: string; categoryId: string; originalAmount: number; originalCurrency: string; cnyEquivalent: number; includeInCost: boolean; isRefund: boolean; refundOf?: string; isPending: boolean; payerId: string; accountId: string; allocationMode: AllocationMode; allocations: Allocation[]; createdAt: number; updatedAt: number; paidAt?: number; }
 export interface StandardEntry extends BaseLedgerEntry { entryType: 'standard'; paymentDate: number; }
 export type TransportMode = 'flight' | 'train' | 'long_distance_bus' | 'ferry';
 export type TransportJourneyType = 'one_way' | 'round_trip';
