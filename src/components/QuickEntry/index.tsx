@@ -694,22 +694,21 @@ const QuickEntryContent: React.FC<QuickEntryProps> = ({ onClose, editTripId, ini
             <button
               type="button"
               onClick={() => setPaidEditorOpen((open) => !open)}
-              className="flex w-full items-center justify-end rounded-2xl border border-black/5 bg-[#fbf7ee] px-4 text-left shadow-[inset_0_0_0_1px_rgba(80,64,42,.10)] transition hover:bg-white"
-             
+              className="quick-entry-planning-paid-button"
               aria-expanded={paidEditorOpen}
               aria-label="Edit paid date and time"
             >
-              <strong className="text-base font-semibold">{formatPaidTimestamp(toPaidTimestamp(paidAtDate, paidAtTime))}</strong>
+              <strong>{formatPaidTimestamp(toPaidTimestamp(paidAtDate, paidAtTime))}</strong>
             </button>
             {paidEditorOpen && (
-              <div className="absolute right-0 top-full z-30 mt-2 grid w-[260px] grid-cols-2 gap-2 rounded-2xl bg-[#fbf7ee] p-3 shadow-xl ring-1 ring-black/10">
-                <label className="block">
-                  <span className="mb-1 block text-[10px] uppercase tracking-[0.12em] text-[#857a6a]">Date</span>
-                  <input type="date" value={paidAtDate} onChange={(event) => { setPaidAtDate(event.target.value); setPaymentDate(event.target.value); }} className="w-full rounded-xl bg-white px-2 py-2 text-sm outline-none ring-1 ring-black/10" />
+              <div className="quick-entry-paid-popover">
+                <label className="quick-entry-paid-field">
+                  <span>Date</span>
+                  <input type="date" value={paidAtDate} onChange={(event) => { setPaidAtDate(event.target.value); setPaymentDate(event.target.value); }} />
                 </label>
-                <label className="block">
-                  <span className="mb-1 block text-[10px] uppercase tracking-[0.12em] text-[#857a6a]">Time</span>
-                  <input type="time" value={paidAtTime} onChange={(event) => setPaidAtTime(event.target.value)} className="w-full rounded-xl bg-white px-2 py-2 text-sm outline-none ring-1 ring-black/10" />
+                <label className="quick-entry-paid-field">
+                  <span>Time</span>
+                  <input type="time" value={paidAtTime} onChange={(event) => setPaidAtTime(event.target.value)} />
                 </label>
               </div>
             )}
