@@ -263,6 +263,7 @@ const QuickEntryContent: React.FC<QuickEntryProps> = ({ onClose, editTripId, ini
   const [refundOf, setRefundOf] = useState('');
   const [amountPadOpen, setAmountPadOpen] = useState(false);
   const [isTouchInput, setIsTouchInput] = useState(false);
+  const [keyboardOffset, setKeyboardOffset] = useState(0);
   const [currency, setCurrency] = useState('CNY');
   const [cnyEquivalent, setCnyEquivalent] = useState('');
   const [deferCny, setDeferCny] = useState(false);
@@ -307,6 +308,23 @@ const QuickEntryContent: React.FC<QuickEntryProps> = ({ onClose, editTripId, ini
     media.addEventListener?.('change', updateTouchInput);
     return () => media.removeEventListener?.('change', updateTouchInput);
   }, []);
+
+  useEffect(() => {
+    if (!isTouchInput) return;
+    const viewport = window.visualViewport;
+    if (!viewport) return;
+    const updateKeyboardOffset = () => {
+      const offset = Math.max(0, window.innerHeight - viewport.height - viewport.offsetTop);
+      setKeyboardOffset(offset);
+    };
+    updateKeyboardOffset();
+    viewport.addEventListener('resize', updateKeyboardOffset);
+    viewport.addEventListener('scroll', updateKeyboardOffset);
+    return () => {
+      viewport.removeEventListener('resize', updateKeyboardOffset);
+      viewport.removeEventListener('scroll', updateKeyboardOffset);
+    };
+  }, [isTouchInput]);
 
   useEffect(() => {
     const defaultTripId = currentTrip?.id ?? nearestTrips[0]?.id ?? '';
@@ -812,16 +830,10 @@ const QuickEntryContent: React.FC<QuickEntryProps> = ({ onClose, editTripId, ini
               )}
               <input
                 type="text"
-                inputMode={isTouchInput ? 'none' : 'decimal'}
+                inputMode="decimal"
                 enterKeyHint="done"
                 autoComplete="off"
-                readOnly={isTouchInput}
                 value={amount}
-                onPointerDown={(event) => {
-                  if (!isTouchInput) return;
-                  event.preventDefault();
-                  setAmountPadOpen(true);
-                }}
                 onFocus={() => { if (isTouchInput) setAmountPadOpen(true); }}
                 onCompositionStart={() => { amountComposingRef.current = true; }}
                 onCompositionEnd={(event) => { amountComposingRef.current = false; setAmount(event.currentTarget.value); }}
@@ -849,39 +861,33 @@ const QuickEntryContent: React.FC<QuickEntryProps> = ({ onClose, editTripId, ini
         </div>
 
         {amountPadOpen && isTouchInput && (
-          <div className="quick-entry-amount-keypad" role="dialog" aria-label="Amount calculator keypad">
-            <div className="quick-entry-amount-keypad-head">
-              <span>{amount || '0.00'}</span>
-              <button type="button" onClick={() => setAmountPadOpen(false)}>Done</button>
-            </div>
-            <div className="quick-entry-amount-keypad-grid">
-              {[
-                ['1', '1'], ['2', '2'], ['3', '3'], ['+', '+'],
-                ['4', '4'], ['5', '5'], ['6', '6'], ['−', '-'],
-                ['7', '7'], ['8', '8'], ['9', '9'], ['×', '*'],
-                ['.', '.'], ['0', '0'], ['⌫', 'backspace'], ['÷', '/'],
-              ].map(([label, value]) => (
-                <button
-                  key={label}
-                  type="button"
-                  className={['+', '−', '×', '÷'].includes(label) ? 'is-operator' : ''}
-                  onClick={() => {
-                    if (value === 'backspace') {
-                      setAmount((current) => current.slice(0, -1));
-                      return;
-                    }
-                    setAmount((current) => {
-                      if (value === '.' && current.endsWith('.')) return current;
-                      if (['+', '-', '*', '/'].includes(value) && !current) return value === '-' ? '-' : current;
-                      return current + value;
-                    });
-                  }}
-                  aria-label={label === '⌫' ? 'Backspace' : label}
-                >
-                  {label}
-                </button>
-              ))}
-            </div>
+          <div
+            className="quick-entry-amount-operator-rail"
+            style={{ bottom: `calc(${keyboardOffset}px + env(safe-area-inset-bottom) + 8px)` }}
+            role="toolbar"
+            aria-label="Amount operators"
+          >
+            {[
+              ['＋', '+'],
+              ['−', '-'],
+              ['×', '*'],
+              ['÷', '/'],
+            ].map(([label, value]) => (
+              <button
+                key={label}
+                type="button"
+                onMouseDown={(event) => event.preventDefault()}
+                onClick={() => {
+                  setAmount((current) => {
+                    if (!current && value !== '-') return current;
+                    return current + value;
+                  });
+                }}
+                aria-label={label}
+              >
+                {label}
+              </button>
+            ))}
           </div>
         )}
 
