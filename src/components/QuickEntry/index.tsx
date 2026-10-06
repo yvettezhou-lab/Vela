@@ -789,7 +789,9 @@ const QuickEntryContent: React.FC<QuickEntryProps> = ({ onClose, editTripId, ini
               )}
               <input
                 type="text"
-                inputMode="decimal"
+                inputMode="text"
+                enterKeyHint="done"
+                autoComplete="off"
                 value={amount}
                 onCompositionStart={() => { amountComposingRef.current = true; }}
                 onCompositionEnd={(event) => { amountComposingRef.current = false; setAmount(event.currentTarget.value); }}
