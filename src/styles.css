@@ -294,7 +294,7 @@
   min-height:48px!important;
   height:48px!important;
   border:1px solid rgba(67,76,70,.2);
-  border-radius:10px;
+  border-radius:12px;
   background:#f7f3e9;
   color:#25383c;
   padding:0 8px;
@@ -414,8 +414,8 @@
 .quick-entry-submit-error{margin:0 0 10px;padding:10px 14px;border-radius:12px;background:#f5d8d2;color:#7c3e35;font:600 12px/1.35 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
 .quick-entry-submit-wrap>button[type="submit"]{
   appearance:none!important;-webkit-appearance:none!important;display:block!important;box-sizing:border-box!important;
-  min-height:48px!important;height:48px!important;width:100%!important;border:0!important;border-radius:16px!important;
-  background:#0f172a!important;color:#fff!important;font:600 16px/1 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif!important;
+  min-height:48px!important;height:48px!important;width:100%!important;border:0!important;border-radius:12px!important;
+  background:#0f172a!important;color:#fff!important;font:600 14px/1 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif!important;
   padding:0 20px!important;box-shadow:0 6px 14px rgba(15,23,42,.20)!important;
 }
 .quick-entry-submit-wrap>button[type="button"]{
