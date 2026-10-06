@@ -675,7 +675,7 @@ const QuickEntryContent: React.FC<QuickEntryProps> = ({ onClose, editTripId, ini
         {onClose && <button type="button" onClick={onClose} aria-label="Close Quick Entry" className="vela-quick-close grid min-h-12 min-w-12 place-items-center rounded-full text-[#17243a]"><X size={23} strokeWidth={1.7} /></button>}
       </header>
 
-      <form onSubmit={handleSubmit} className="flex-1 overflow-y-auto px-5 pb-[calc(180px+env(safe-area-inset-bottom))] pt-2">
+      <form onSubmit={handleSubmit} className="quick-entry-form">
         <div className="quick-entry-planning-row mb-5">
           {tripChoices.slice(0, 1).map((trip) => {
             const destinations = (trip.segments ?? [])
