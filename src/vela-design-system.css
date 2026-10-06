@@ -52,7 +52,7 @@ button,input,select,textarea{font-family:-apple-system,BlinkMacSystemFont,"SF Pr
 .vela-entry-route{background:var(--vela-bg)!important;min-height:100dvh!important}
 .vela-entry-route .vela-quick-fullscreen{background:var(--vela-bg)!important;color:var(--vela-ink)!important}
 .vela-quick-fullscreen input:not([type=radio]):not([type=checkbox]),.vela-quick-fullscreen select,.vela-quick-fullscreen textarea{border:1px solid var(--vela-line)!important;border-radius:var(--vela-radius-sm)!important;background:var(--vela-surface)!important;color:var(--vela-ink)!important}
-.vela-quick-fullscreen button{border-radius:var(--vela-radius-sm)!important}
+
 .vela-quick-fullscreen .primary{background:var(--vela-primary)!important;color:#fff!important}.vela-quick-fullscreen .secondary{background:#eef0f1!important;color:var(--vela-ink)!important}
 .vela-quick-backdrop{background:rgba(23,33,43,.24)!important;backdrop-filter:blur(3px)!important}
 .vela-quick-sheet{background:var(--vela-surface)!important;border:1px solid var(--vela-line)!important;border-radius:var(--vela-radius-lg) var(--vela-radius-lg) 0 0!important;box-shadow:0 -12px 40px rgba(23,33,43,.12)!important}
