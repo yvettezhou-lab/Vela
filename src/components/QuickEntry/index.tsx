@@ -811,20 +811,14 @@ const QuickEntryContent: React.FC<QuickEntryProps> = ({ onClose, editTripId, ini
                   {LEDGER_CURRENCIES.map((item) => <option key={item} value={item}>{item}</option>)}
                 </select>
               )}
-              <input
-                type="text"
-                inputMode="none"
-                autoComplete="off"
-                readOnly
-                value={amount}
-                tabIndex={-1}
-                onCompositionStart={() => { amountComposingRef.current = true; }}
-                onCompositionEnd={(event) => { amountComposingRef.current = false; setAmount(event.currentTarget.value); }}
-                onChange={(event) => { if (!amountComposingRef.current) setAmount(event.currentTarget.value); }}
-                placeholder="0.00"
-                required
+              <button
+                type="button"
+                className="quick-entry-amount-value"
+                onClick={() => setAmountPadOpen(true)}
                 aria-label="Amount"
-              />
+              >
+                {amount || '0.00'}
+              </button>
             </div>
           </div>
 
