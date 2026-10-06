@@ -45,6 +45,12 @@
 }
 .quick-entry-payment-account{
   box-sizing:border-box;
+  width:52px!important;
+  min-width:52px!important;
+  max-width:52px!important;
+  flex:0 0 52px!important;
+  padding-left:1px!important;
+  padding-right:1px!important;
 }
 
 .quick-entry-date-picker{
@@ -251,6 +257,7 @@
 }
 .quick-entry-participant-button{
   width:auto!important;
+  flex:0 0 auto!important;
   min-width:0!important;
   box-sizing:border-box!important;
   min-height:44px!important;
