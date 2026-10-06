@@ -614,3 +614,43 @@
   .vela-quick-fullscreen .quick-entry-submit-wrap>button[type="submit"]{min-height:44px!important;height:44px!important;border-radius:14px!important;font-size:15px!important}
   .vela-quick-fullscreen .quick-entry-submit-error{margin-bottom:6px!important;padding:7px 10px!important}
 }
+
+
+/* Quick Entry — single component-owned control source. */
+.vela-entry-route .vela-quick-fullscreen form { display:flex !important; flex-direction:column !important; justify-content:flex-start !important; align-items:stretch !important; width:100% !important; min-height:0 !important; margin:0 !important; padding-top:0 !important; gap:0 !important; }
+.vela-entry-route .vela-quick-fullscreen form label { display:block !important; width:100% !important; min-width:0 !important; }
+.vela-entry-route .vela-quick-fullscreen form label.flex { display:flex !important; }
+.vela-entry-route .vela-quick-fullscreen form .grid { display:grid !important; }
+.vela-entry-route .vela-quick-fullscreen form .grid-cols-2 { grid-template-columns:repeat(2,minmax(0,1fr)) !important; }
+.vela-entry-route .vela-quick-fullscreen form .grid-cols-3 { grid-template-columns:repeat(3,minmax(0,1fr)) !important; }
+.vela-entry-route .vela-quick-fullscreen form .grid-cols-4 { grid-template-columns:repeat(4,minmax(0,1fr)) !important; }
+.vela-entry-route .vela-quick-fullscreen form .flex { display:flex !important; }
+.vela-entry-route .vela-quick-fullscreen form .flex-1 { flex:1 1 0% !important; }
+.vela-entry-route .vela-quick-fullscreen form .min-w-0 { min-width:0 !important; }
+.vela-entry-route .vela-quick-fullscreen form .w-full { width:100% !important; }
+.vela-entry-route .vela-quick-fullscreen form .col-span-2 { grid-column:span 2 / span 2 !important; }
+.vela-entry-route .vela-quick-fullscreen form .items-center { align-items:center !important; }
+.vela-entry-route .vela-quick-fullscreen form .justify-between { justify-content:space-between !important; }
+.vela-entry-route .vela-quick-fullscreen form .flex-wrap { flex-wrap:wrap !important; }
+.vela-entry-route .vela-quick-fullscreen form .space-y-5 > * + * { margin-top:10px !important; }
+.vela-entry-route .vela-quick-fullscreen form .gap-5 { gap:10px !important; }
+.vela-entry-route .vela-quick-fullscreen form .gap-3 { gap:8px !important; }
+.vela-entry-route .vela-quick-fullscreen form .gap-1\\.5 { gap:4px !important; }
+.vela-entry-route .vela-quick-fullscreen form .relative,.vela-entry-route .vela-quick-fullscreen form .absolute { position:static !important; top:auto !important; right:auto !important; bottom:auto !important; left:auto !important; transform:none !important; }
+.vela-entry-route .vela-quick-fullscreen .vela-quick-close { display:none !important; }
+.vela-entry-route .vela-quick-fullscreen{background:var(--vela-bg)!important;color:var(--vela-ink)!important}
+.vela-quick-fullscreen input:not([type=radio]):not([type=checkbox]),.vela-quick-fullscreen select,.vela-quick-fullscreen textarea{border:1px solid var(--vela-line)!important;border-radius:var(--vela-radius-sm)!important;background:var(--vela-surface)!important;color:var(--vela-ink)!important}
+.vela-quick-fullscreen .primary{background:var(--vela-primary)!important;color:#fff!important}.vela-quick-fullscreen .secondary{background:#eef0f1!important;color:var(--vela-ink)!important}
+.vela-quick-backdrop{background:rgba(23,33,43,.24)!important;backdrop-filter:blur(3px)!important}
+.vela-quick-sheet{background:var(--vela-surface)!important;border:1px solid var(--vela-line)!important;border-radius:var(--vela-radius-lg) var(--vela-radius-lg) 0 0!important;box-shadow:0 -12px 40px rgba(23,33,43,.12)!important}
+.vela-quick-fullscreen{width:min(100%,640px)!important;height:100dvh!important;max-height:100dvh!important;overflow:hidden!important;display:flex!important;flex-direction:column!important}
+.vela-quick-fullscreen > *{flex:1 1 auto!important;min-height:0!important;width:100%!important;max-width:none!important;height:100%!important;margin:0!important;border-radius:0!important;display:flex!important;flex-direction:column!important}
+.vela-quick-fullscreen form{display:flex!important;flex-direction:column!important;gap:16px!important;flex:1 1 auto!important;min-height:0!important;overflow:auto!important}
+.vela-quick-fullscreen form > *{flex:0 0 auto!important}
+.vela-quick-fullscreen input:not([type="radio"]):not([type="checkbox"]),.vela-quick-fullscreen select,.vela-quick-fullscreen textarea{min-height:48px!important;padding-top:12px!important;padding-bottom:12px!important;font-size:16px!important}
+.vela-quick-fullscreen input[type="radio"],.vela-quick-fullscreen input[type="checkbox"]{font-size:16px!important}
+@media(max-width:600px){
+  .vela-quick-fullscreen{width:100%!important}
+  .vela-entry-route .vela-quick-fullscreen{width:100%!important;max-width:none!important;overflow-x:hidden!important}
+  .vela-entry-route .vela-quick-fullscreen form{padding-bottom:calc(128px + env(safe-area-inset-bottom))!important}
+}
