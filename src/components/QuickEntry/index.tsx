@@ -263,7 +263,6 @@ const QuickEntryContent: React.FC<QuickEntryProps> = ({ onClose, editTripId, ini
   const [refundOf, setRefundOf] = useState('');
   const [amountPadOpen, setAmountPadOpen] = useState(false);
   const [isTouchInput, setIsTouchInput] = useState(false);
-  const [keyboardOffset, setKeyboardOffset] = useState(0);
   const [currency, setCurrency] = useState('CNY');
   const [cnyEquivalent, setCnyEquivalent] = useState('');
   const [deferCny, setDeferCny] = useState(false);
@@ -309,22 +308,6 @@ const QuickEntryContent: React.FC<QuickEntryProps> = ({ onClose, editTripId, ini
     return () => media.removeEventListener?.('change', updateTouchInput);
   }, []);
 
-  useEffect(() => {
-    if (!isTouchInput) return;
-    const viewport = window.visualViewport;
-    if (!viewport) return;
-    const updateKeyboardOffset = () => {
-      const offset = Math.max(0, window.innerHeight - viewport.height - viewport.offsetTop);
-      setKeyboardOffset(offset);
-    };
-    updateKeyboardOffset();
-    viewport.addEventListener('resize', updateKeyboardOffset);
-    viewport.addEventListener('scroll', updateKeyboardOffset);
-    return () => {
-      viewport.removeEventListener('resize', updateKeyboardOffset);
-      viewport.removeEventListener('scroll', updateKeyboardOffset);
-    };
-  }, [isTouchInput]);
 
   useEffect(() => {
     const defaultTripId = currentTrip?.id ?? nearestTrips[0]?.id ?? '';
@@ -863,7 +846,6 @@ const QuickEntryContent: React.FC<QuickEntryProps> = ({ onClose, editTripId, ini
         {amountPadOpen && isTouchInput && (
           <div
             className="quick-entry-amount-operator-rail"
-            style={{ bottom: `calc(${keyboardOffset}px + env(safe-area-inset-bottom) + 8px)` }}
             role="toolbar"
             aria-label="Amount operators"
           >
