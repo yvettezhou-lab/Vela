@@ -822,9 +822,9 @@ const QuickEntryContent: React.FC<QuickEntryProps> = ({ onClose, editTripId, ini
 
         {entryType === 'transport' && (
           <div className="mt-5 space-y-3">
-            <div className="grid grid-cols-2 gap-3 items-start">
-              <div>
-                <span className="mb-1.5 block text-xs uppercase tracking-[0.14em] text-[#857a6a]">Transport</span>
+            <div className="quick-entry-transport-layout">
+              <div className="quick-entry-transport-field">
+                <span>Transport</span>
                 <div className="grid grid-cols-2 gap-2">
                   {([
                     ['flight', '✈️ Flight'],
@@ -840,18 +840,26 @@ const QuickEntryContent: React.FC<QuickEntryProps> = ({ onClose, editTripId, ini
               </div>
 
               {transportMode === 'flight' && (
-                <div>
-                  <span className="mb-1.5 block text-xs uppercase tracking-[0.14em] text-[#857a6a]">Journey</span>
+                <div className="quick-entry-journey-field">
+                  <span>Journey</span>
                   <div className="grid grid-cols-1 gap-2">
                     {([['one_way', 'One Way'], ['round_trip', 'Round Trip']] as const).map(([value, label]) => <button key={value} type="button" onClick={() => setJourneyType(value)} aria-pressed={journeyType === value} className={`quick-entry-journey-button ${journeyType === value ? 'is-selected' : ''}`}>{label}</button>)}
                   </div>
+                  <div className={`quick-entry-transport-dates ${journeyType === 'round_trip' && transportMode !== 'long_distance_bus' ? 'is-round-trip' : ''}`}>
+                    <DatePicker pickerId="transport-outbound" openPickerId={openDatePicker} onOpenPicker={setOpenDatePicker} value={outboundDate} onChange={(value) => { setOutboundDate(value); if (returnDate && returnDate < value) setReturnDate(''); }} label="Outbound" required minDate={tripDateBounds.minDate} maxDate={tripDateBounds.maxDate} />
+                    {journeyType === 'round_trip' && transportMode !== 'long_distance_bus' && <DatePicker pickerId="transport-return" openPickerId={openDatePicker} onOpenPicker={setOpenDatePicker} value={returnDate} onChange={setReturnDate} label="Return" required minDate={outboundDate || tripDateBounds.minDate} maxDate={tripDateBounds.maxDate} openMonthValue={outboundDate || tripDateBounds.minDate} />}
+                  </div>
                 </div>
               )}
-            </div>
 
-            <div className={journeyType === 'round_trip' && transportMode !== 'long_distance_bus' ? 'grid grid-cols-3 gap-3' : 'grid grid-cols-2 gap-3'}>
-              <DatePicker pickerId="transport-outbound" openPickerId={openDatePicker} onOpenPicker={setOpenDatePicker} value={outboundDate} onChange={(value) => { setOutboundDate(value); if (returnDate && returnDate < value) setReturnDate(''); }} label="Outbound" required minDate={tripDateBounds.minDate} maxDate={tripDateBounds.maxDate} />
-              {journeyType === 'round_trip' && transportMode !== 'long_distance_bus' && <DatePicker pickerId="transport-return" openPickerId={openDatePicker} onOpenPicker={setOpenDatePicker} value={returnDate} onChange={setReturnDate} label="Return" required minDate={outboundDate || tripDateBounds.minDate} maxDate={tripDateBounds.maxDate} openMonthValue={outboundDate || tripDateBounds.minDate} />}
+              {transportMode !== 'flight' && (
+                <div className="quick-entry-journey-field quick-entry-journey-field-nonflight">
+                  <span>Date</span>
+                  <div className="quick-entry-transport-dates">
+                    <DatePicker pickerId="transport-outbound" openPickerId={openDatePicker} onOpenPicker={setOpenDatePicker} value={outboundDate} onChange={(value) => { setOutboundDate(value); if (returnDate && returnDate < value) setReturnDate(''); }} label="Outbound" required minDate={tripDateBounds.minDate} maxDate={tripDateBounds.maxDate} />
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         )}
