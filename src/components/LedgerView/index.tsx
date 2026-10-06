@@ -184,8 +184,12 @@ export const LedgerView: React.FC = () => {
       return displayDay <= todayStart;
     })
     .sort((a, b) => {
-      const dateDiff = b.displayDate - a.displayDate;
-      if (dateDiff !== 0) return dateDiff;
+      // The ledger order is driven by the actual paid timestamp.
+      // Prepaid multi-day rows still stay grouped by their usage day.
+      const aSortTime = a.entry.entryType === 'prepaid_multi_day' ? a.displayDate : getPaidTimestamp(a.entry);
+      const bSortTime = b.entry.entryType === 'prepaid_multi_day' ? b.displayDate : getPaidTimestamp(b.entry);
+      const timeDiff = bSortTime - aSortTime;
+      if (timeDiff !== 0) return timeDiff;
       return (b.entry.createdAt ?? 0) - (a.entry.createdAt ?? 0);
     });
 
@@ -469,7 +473,7 @@ export const LedgerView: React.FC = () => {
                             <strong>{entryLabel(entry)}</strong>
                             <span className="vela-ledger-amount-primary">
                               {entry.originalCurrency !== 'CNY' && <small>{entry.originalCurrency}</small>}
-                              {item.displayOriginalAmount.toFixed(2)}
+                              {Number.isFinite(Number(item.displayOriginalAmount)) ? Number(item.displayOriginalAmount).toFixed(2) : '0.00'}
                             </span>
                           </div>
                           <div className="vela-ledger-entry-row vela-ledger-entry-secondary">
@@ -479,7 +483,7 @@ export const LedgerView: React.FC = () => {
                               {!entry.includeInCost && <span className="vela-ledger-badge muted">Excluded</span>}
                             </span>
                             {entry.originalCurrency !== 'CNY' && (
-                              <span className="vela-ledger-amount-cny">≈ CNY {entry.isPending ? 'Pending' : item.displayCnyEquivalent.toFixed(2)}</span>
+                              <span className="vela-ledger-amount-cny">≈ CNY {entry.isPending ? 'Pending' : Number.isFinite(Number(item.displayCnyEquivalent)) ? Number(item.displayCnyEquivalent).toFixed(2) : '0.00'}</span>
                             )}
                           </div>
                         </div>
