@@ -365,7 +365,7 @@
   .vela-quick-fullscreen .quick-entry-amount-row input,
   .vela-quick-fullscreen .quick-entry-category-row select{min-height:40px!important}
   .vela-quick-fullscreen .quick-entry-payment-accounts{gap:4px!important}
-  .vela-quick-fullscreen .quick-entry-payment-account{flex:0 0 52px!important;width:52px!important;min-width:52px!important;max-width:52px!important;padding-left:1px!important;padding-right:1px!important;overflow-wrap:anywhere!important}
+  .vela-quick-fullscreen .quick-entry-payment-account{overflow-wrap:anywhere!important}
   .vela-quick-fullscreen .quick-entry-date-picker{gap:4px!important}
   .vela-quick-fullscreen .quick-entry-date-picker .trip-date-trigger{min-height:38px!important;height:38px!important}
   .vela-quick-fullscreen .quick-entry-date-picker .trip-date-trigger strong{font-size:11px!important}
