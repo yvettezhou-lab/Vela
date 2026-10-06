@@ -796,7 +796,7 @@ const QuickEntryContent: React.FC<QuickEntryProps> = ({ onClose, editTripId, ini
                     if (!cnyEquivalentComposingRef.current) setCnyEquivalent(event.currentTarget.value);
                   }
                 }}
-                className="w-full rounded-xl bg-[#fbf7ee] px-4 text-base text-[#17243a] shadow-[inset_0_0_0_1px_rgba(80,64,42,.10)] outline-none read-only:text-[#857a6a]"
+                className="quick-entry-cny-equivalent-input"
                 placeholder={deferCny ? 'Later' : (fxRate ? 'Auto' : 'Enter manually')}
                 aria-label="CNY Equivalent"
               />
