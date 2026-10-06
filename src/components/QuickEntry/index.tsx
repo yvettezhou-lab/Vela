@@ -247,6 +247,7 @@ const QuickEntryContent: React.FC<QuickEntryProps> = ({ onClose, editTripId, ini
   const isDomesticTrip = Boolean(targetTrip?.segments?.length) && targetTrip.segments.every((segment) => segment.destinations?.length > 0 && segment.destinations.every((destination) => ['china', '中国'].includes(destination.country.trim().toLowerCase())));
   const [entryType, setEntryType] = useState<'standard' | 'transport' | 'prepaid_multi_day'>('standard');
     const [amount, setAmount] = useState('');
+  const [refundOf, setRefundOf] = useState('');
   const [currency, setCurrency] = useState('CNY');
   const [cnyEquivalent, setCnyEquivalent] = useState('');
   const [deferCny, setDeferCny] = useState(false);
@@ -310,7 +311,12 @@ const QuickEntryContent: React.FC<QuickEntryProps> = ({ onClose, editTripId, ini
     const tripCategories = targetTrip?.categories?.filter((category) => category.archived !== true) ?? [];
     if (!tripCategories.length || !commonCategories?.length) return tripCategories;
     const commonOrder = new Map(commonCategories.filter((category) => category.archived !== true).map((category, index) => [category.name.trim().toLowerCase(), index]));
-    return [...tripCategories].sort((a, b) => {
+    const builtIns = [
+      { id: 'cat_income', name: 'Income', type: 'income' },
+      { id: 'cat_refund', name: 'Refund', type: 'income' },
+    ];
+    const withBuiltIns = [...tripCategories, ...builtIns.filter((builtIn) => !tripCategories.some((category) => category.id === builtIn.id))];
+    return [...withBuiltIns].sort((a, b) => {
       const ai = commonOrder.get(a.name.trim().toLowerCase());
       const bi = commonOrder.get(b.name.trim().toLowerCase());
       if (ai !== undefined && bi !== undefined) return ai - bi;
@@ -319,6 +325,33 @@ const QuickEntryContent: React.FC<QuickEntryProps> = ({ onClose, editTripId, ini
       return 0;
     });
   })();
+
+  const evaluatedAmount = useMemo(() => evaluateAmountExpression(amount), [amount]);
+  const isIncome = evaluatedAmount !== null && evaluatedAmount < 0;
+  const isRefundCategory = categoryId === 'cat_refund';
+  const visibleCategories = categories.filter((category) => isIncome ? (category.id === 'cat_income' || category.id === 'cat_refund') : category.id !== 'cat_income' && category.id !== 'cat_refund');
+  const refundOptions = useMemo(() => {
+    if (!targetTrip) return [];
+    return targetTrip.ledger.filter((entry) => entry.entryDirection !== 'income' && !entry.isRefund).map((entry) => {
+      const refunded = targetTrip.ledger.filter((item) => item.isRefund && item.refundOf === entry.id).reduce((sum, item) => sum + item.cnyEquivalent, 0);
+      const current = initialEntry?.refundOf === entry.id ? initialEntry.cnyEquivalent : 0;
+      return { entry, remaining: Math.max(0, entry.cnyEquivalent - refunded + current) };
+    }).filter((item) => item.remaining > 0.001);
+  }, [targetTrip, initialEntry]);
+
+  useEffect(() => {
+    if (isIncome) {
+      if (categoryId !== 'cat_income' && categoryId !== 'cat_refund') setCategoryId('cat_income');
+    } else if (categoryId === 'cat_income' || categoryId === 'cat_refund') {
+      const expenseCategory = categories.find((category) => category.id !== 'cat_income' && category.id !== 'cat_refund');
+      setCategoryId(expenseCategory?.id ?? '');
+      setRefundOf('');
+    }
+  }, [isIncome]);
+
+  useEffect(() => {
+    if (categoryId !== 'cat_refund') setRefundOf('');
+  }, [categoryId]);
 
   const tripDateBounds = (() => {
     if (!targetTrip?.segments?.length) return { minDate: undefined as string | undefined, maxDate: undefined as string | undefined };
@@ -335,11 +368,12 @@ const QuickEntryContent: React.FC<QuickEntryProps> = ({ onClose, editTripId, ini
   useEffect(() => {
     if (!initialEntry || !targetTrip || targetTrip.id !== editTripId) return;
     setEntryType(initialEntry.entryType);
-    setAmount(String(initialEntry.originalAmount));
+    setAmount(String((initialEntry.entryDirection === 'income' || initialEntry.isRefund) ? -initialEntry.originalAmount : initialEntry.originalAmount));
     setCurrency(initialEntry.originalCurrency);
     setCnyEquivalent(String(initialEntry.cnyEquivalent));
     setDeferCny(initialEntry.isPending);
     setCategoryId(initialEntry.categoryId);
+    setRefundOf(initialEntry.refundOf ?? '');
     setIncludeInCost(initialEntry.includeInCost);
     setAccountId(initialEntry.accountId);
     setNote(initialEntry.note ?? '');
@@ -438,11 +472,11 @@ const QuickEntryContent: React.FC<QuickEntryProps> = ({ onClose, editTripId, ini
     if (deferCny) return;
     if (cnyManualRef.current) return;
     const numericAmount = evaluateAmountExpression(amount);
-    if (numericAmount === null || !Number.isFinite(numericAmount) || numericAmount <= 0 || !fxRate) {
+    if (numericAmount === null || !Number.isFinite(numericAmount) || numericAmount === 0 || !fxRate) {
       if (!amount) setCnyEquivalent('');
       return;
     }
-    setCnyEquivalent(formatCny(numericAmount * fxRate));
+    setCnyEquivalent(formatCny(Math.abs(numericAmount) * fxRate));
   }, [amount, fxRate, deferCny]);
 
   const toggleParticipant = (id: string) => {
@@ -556,13 +590,19 @@ const QuickEntryContent: React.FC<QuickEntryProps> = ({ onClose, editTripId, ini
     event.preventDefault();
     setError(null);
     try {
-      const originalAmount = evaluateAmountExpression(amount);
-      const cnyTotal = deferCny ? 0 : (cnyEquivalent === '' ? originalAmount : Number(cnyEquivalent));
-      if (originalAmount === null || !Number.isFinite(originalAmount) || originalAmount <= 0) throw new Error('Amount must be greater than 0.');
+      const rawAmount = evaluateAmountExpression(amount);
+      const isIncomeEntry = rawAmount !== null && rawAmount < 0;
+      const originalAmount = rawAmount === null ? null : Math.abs(rawAmount);
+      const cnyTotal = deferCny ? 0 : (cnyEquivalent === '' ? originalAmount : Math.abs(Number(cnyEquivalent)));
+      if (originalAmount === null || !Number.isFinite(originalAmount) || originalAmount <= 0) throw new Error('Amount must be a valid non-zero amount.');
       if (!deferCny && (!Number.isFinite(cnyTotal) || cnyTotal <= 0)) throw new Error('CNY Equivalent must be greater than 0.');
-      if (!payerId) throw new Error('Payer is required.');
+      if (!payerId) throw new Error(isIncomeEntry ? 'Receiver is required.' : 'Payer is required.');
       if (!accountId) throw new Error('Payment account is required.');
       if (entryType !== 'transport' && !categoryId) throw new Error('Category is required.');
+      if (isIncomeEntry && categoryId !== 'cat_income' && categoryId !== 'cat_refund') throw new Error('Income entries must use Income or Refund category.');
+      if (!isIncomeEntry && (categoryId === 'cat_income' || categoryId === 'cat_refund')) throw new Error('Expense entries cannot use Income or Refund category.');
+      if (categoryId === 'cat_refund' && !refundOf) throw new Error('Refund must be linked to an expense.');
+      if (categoryId === 'cat_refund' && !refundOptions.some((option) => option.entry.id === refundOf && cnyTotal <= option.remaining + 0.001)) throw new Error('Refund exceeds the remaining refundable amount.');
 
       const allocations = buildAllocations(cnyTotal);
       const paidAt = toPaidTimestamp(paidAtDate, paidAtTime);
@@ -577,7 +617,9 @@ const QuickEntryContent: React.FC<QuickEntryProps> = ({ onClose, editTripId, ini
         originalCurrency: currency.trim().toUpperCase(),
         cnyEquivalent: cnyTotal,
         includeInCost,
-        isRefund: false,
+        entryDirection: isIncomeEntry ? 'income' : 'expense',
+        isRefund: categoryId === 'cat_refund',
+        ...(categoryId === 'cat_refund' && refundOf ? { refundOf } : {}),
         isPending: deferCny,
         payerId,
         accountId,
@@ -738,6 +780,7 @@ const QuickEntryContent: React.FC<QuickEntryProps> = ({ onClose, editTripId, ini
         <div className="quick-entry-primary-row">
           <label className="quick-entry-primary-field">
             <span>Amount</span>
+            {evaluatedAmount !== null && Number.isFinite(evaluatedAmount) && evaluatedAmount !== 0 && <small className={`quick-entry-amount-preview ${isIncome ? 'is-income' : ''}`}>{isIncome ? 'Income' : 'Total'} {Math.abs(evaluatedAmount).toLocaleString(undefined, { maximumFractionDigits: 2 })}</small>}
             <div className="quick-entry-amount-control">
               {isDomesticTrip && currency.toUpperCase() === 'CNY' ? null : (
                 <select value={currency} onChange={(event) => setCurrency(event.currentTarget.value)} aria-label="Currency">
@@ -759,7 +802,7 @@ const QuickEntryContent: React.FC<QuickEntryProps> = ({ onClose, editTripId, ini
           </label>
 
           <label className="quick-entry-primary-field">
-            <span>Who Paid?</span>
+            <span>{isIncome ? 'Who Received?' : 'Who Paid?'}</span>
             <select value={payerId} onChange={(event) => setPayerId(event.target.value)} aria-label="Who Paid?">
               {payerFrequency.map((member) => <option key={member.id} value={member.id}>{member.name}</option>)}
             </select>
@@ -812,6 +855,13 @@ const QuickEntryContent: React.FC<QuickEntryProps> = ({ onClose, editTripId, ini
               {categories.map((category) => <option key={category.id} value={category.id}>{category.name}</option>)}
             </select>
           </label>
+          {isRefundCategory && <label className="quick-entry-refund-field">
+            <span>Refund for</span>
+            <select value={refundOf} onChange={(event) => setRefundOf(event.target.value)} required aria-label="Refund for">
+              <option value="">Select expense</option>
+              {refundOptions.map(({ entry, remaining }) => <option key={entry.id} value={entry.id}>{new Date(entry.paidAt ?? ('paymentDate' in entry ? entry.paymentDate : entry.createdAt)).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })} · {targetTrip?.categories.find((category) => category.id === entry.categoryId)?.name ?? 'Expense'} · ¥{remaining.toFixed(2).replace(/\.00$/, '')} remaining</option>)}
+            </select>
+          </label>}
           <label className="quick-entry-note-field">
             <span>Note</span>
             <textarea value={note} onChange={(event) => setNote(event.target.value)} rows={1} maxLength={200} placeholder="What was this payment for? e.g. Longling dinner" aria-label="Note" />
