@@ -6,7 +6,7 @@ type Breakdown = 'category' | 'segment' | 'account' | 'person';
 const COLORS = ['#a9874b','#718a72','#5f6f82','#ad8250','#8e8476','#6f665a','#a79a87','#9c7b48'];
 const money = (n:number) => '¥' + new Intl.NumberFormat(undefined,{maximumFractionDigits:0}).format(Math.abs(n));
 const dateOf = (e:LedgerEntry) => e.entryType === 'transport' ? e.outboundDate : e.paymentDate;
-const spend = (e:LedgerEntry) => e.isRefund ? -e.cnyEquivalent : e.cnyEquivalent;
+const spend = (e:LedgerEntry) => e.entryDirection === 'income' ? -e.cnyEquivalent : e.cnyEquivalent;
 const countsInStats=(_t:Trip,e:LedgerEntry)=>e.includeInCost&&!e.isPending;
 const Chart = ({items,mode,onToggle}:{items:{label:string;value:number;color?:string}[];mode:'donut'|'bar';onToggle:()=>void}) => {
  const total=items.reduce((s,i)=>s+i.value,0), r=43, circ=2*Math.PI*r; let o=0;
@@ -23,7 +23,7 @@ export default function LogbookAnalytics({trip}:{trip:Trip|null}){
  const category=useMemo(()=>{const m=new Map<string,number>();rows.forEach(e=>{const n=trip?.categories.find(c=>c.id===e.categoryId)?.name??'Uncategorized';m.set(n,(m.get(n)??0)+spend(e));});return [...m].filter(([,v])=>v>0).sort((a,b)=>b[1]-a[1]).slice(0,7).map(([label,value],i)=>({label,value,color:COLORS[i%COLORS.length]}));},[rows,trip]);
  const segment=useMemo(()=>{const m=new Map<string,number>();rows.forEach(e=>{const s=trip?findSegmentByDate(trip.segments,dateOf(e)):undefined;const label=s?.destinations.map(d=>d.city||d.country).filter(Boolean).join(' · ')||s?.primaryCurrency||'Unassigned';m.set(label,(m.get(label)??0)+spend(e));});return [...m].filter(([,v])=>v>0).sort((a,b)=>b[1]-a[1]).map(([label,value],i)=>({label,value,color:COLORS[i%COLORS.length]}));},[rows,trip]);
  const account=useMemo(()=>{const m=new Map<string,number>();rows.forEach(e=>{const n=trip?.accounts.find(a=>a.id===e.accountId)?.name??'Unknown account';m.set(n,(m.get(n)??0)+spend(e));});return [...m].filter(([,v])=>v>0).sort((a,b)=>b[1]-a[1]).slice(0,7).map(([label,value],i)=>({label,value,color:COLORS[i%COLORS.length]}));},[rows,trip]);
- const person=useMemo(()=>{const m=new Map<string,number>();rows.forEach(e=>{const allocations=e.allocations.length?e.allocations:[{memberId:e.payerId,amount:spend(e)}];allocations.forEach(x=>{const n=trip?.members.find(p=>p.id===x.memberId)?.name??'Unknown';m.set(n,(m.get(n)??0)+(e.isRefund?-x.amount:x.amount));});});return [...m].filter(([,v])=>v>0).sort((a,b)=>b[1]-a[1]).map(([label,value],i)=>({label,value,color:COLORS[i%COLORS.length]}));},[rows,trip]);
+ const person=useMemo(()=>{const m=new Map<string,number>();rows.forEach(e=>{const allocations=e.allocations.length?e.allocations:[{memberId:e.payerId,amount:spend(e)}];allocations.forEach(x=>{const n=trip?.members.find(p=>p.id===x.memberId)?.name??'Unknown';m.set(n,(m.get(n)??0)+(e.entryDirection==='income'?-x.amount:x.amount));});});return [...m].filter(([,v])=>v>0).sort((a,b)=>b[1]-a[1]).map(([label,value],i)=>({label,value,color:COLORS[i%COLORS.length]}));},[rows,trip]);
  const items=view==='category'?category:view==='segment'?segment:view==='account'?account:person;
  const title=view==='category'?'Spending by category':view==='segment'?'Spending by destination':view==='account'?'Spending by account':'Allocated cost by person';
  const tabs:[Breakdown,string][]=[['category','Category'],['segment','Journey'],['account','Account'],['person','Person']];
