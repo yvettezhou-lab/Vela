@@ -848,7 +848,7 @@ const QuickEntryContent: React.FC<QuickEntryProps> = ({ onClose, editTripId, ini
                     <div className={`quick-entry-journey-option ${journeyType === 'round_trip' ? 'is-selected' : ''}`}>
                       <button type="button" onClick={() => setJourneyType('round_trip')} aria-pressed={journeyType === 'round_trip'} className="quick-entry-journey-button">Round Trip</button>
                       <div className="quick-entry-return-date">
-                        {journeyType === 'round_trip' && <DatePicker pickerId="transport-return" openPickerId={openDatePicker} onOpenPicker={setOpenDatePicker} value={returnDate} onChange={setReturnDate} label="Return" required minDate={outboundDate || tripDateBounds.minDate} maxDate={tripDateBounds.maxDate} openMonthValue={outboundDate || tripDateBounds.minDate} />}
+                        <DatePicker pickerId="transport-return" openPickerId={openDatePicker} onOpenPicker={setOpenDatePicker} value={returnDate} onChange={setReturnDate} label="Return" required minDate={outboundDate || tripDateBounds.minDate} maxDate={tripDateBounds.maxDate} openMonthValue={outboundDate || tripDateBounds.minDate} />
                       </div>
                     </div>
                   </div>
