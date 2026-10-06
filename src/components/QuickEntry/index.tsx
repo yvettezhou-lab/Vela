@@ -826,6 +826,7 @@ const QuickEntryContent: React.FC<QuickEntryProps> = ({ onClose, editTripId, ini
                 aria-label="Amount"
               />
             </div>
+          </div>
 
           <label className="quick-entry-primary-field">
             <span>{isIncome ? 'Who Received?' : 'Who Paid?'}</span>
