@@ -806,14 +806,12 @@ const QuickEntryContent: React.FC<QuickEntryProps> = ({ onClose, editTripId, ini
         )}
 
         <div className="quick-entry-category-note-row">
-          {entryType !== 'transport' && (
-            <label className="quick-entry-category-field">
-              <span>Category</span>
-              <select value={categoryId} onChange={(event) => { const next = event.target.value; setCategoryId(next); setIncludeInCost(categories.find((category) => category.id === next)?.excludeFromStats !== true); }} required aria-label="Category">
-                {categories.map((category) => <option key={category.id} value={category.id}>{category.name}</option>)}
-              </select>
-            </label>
-          )}
+          <label className="quick-entry-category-field">
+            <span>Category</span>
+            <select value={categoryId} onChange={(event) => { const next = event.target.value; setCategoryId(next); setIncludeInCost(categories.find((category) => category.id === next)?.excludeFromStats !== true); }} required aria-label="Category">
+              {categories.map((category) => <option key={category.id} value={category.id}>{category.name}</option>)}
+            </select>
+          </label>
           <label className="quick-entry-note-field">
             <span>Note</span>
             <textarea value={note} onChange={(event) => setNote(event.target.value)} rows={1} maxLength={200} placeholder="What was this payment for? e.g. Longling dinner" aria-label="Note" />
