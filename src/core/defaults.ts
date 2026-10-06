@@ -8,6 +8,8 @@ export const DEFAULT_CATEGORIES: Category[] = [
   { id: 'cat_shopping', name: 'Shopping', type: 'expense' },
   { id: 'cat_other', name: 'Other', type: 'expense' },
   { id: 'cat_cash_exchange', name: 'Cash / Exchange', type: 'expense', excludeFromStats: true },
+  { id: 'cat_income', name: 'Income', type: 'income' },
+  { id: 'cat_refund', name: 'Refund', type: 'income' },
 ];
 
 export const getDefaultCategories = (): Category[] => DEFAULT_CATEGORIES.map((category) => ({ ...category }));
