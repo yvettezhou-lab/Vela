@@ -250,22 +250,21 @@
 .quick-entry-journey-button{width:100%;min-width:0}
 .quick-entry-journey-option .quick-entry-date-picker{margin:0}
 .quick-entry-journey-option .quick-entry-date-picker>span{display:none}
- .quick-entry-date-picker{
-  display:block;
+.quick-entry-date-picker{
+  display:grid;
+  gap:5px;
   position:relative;
   min-width:0;
   overflow:visible;
 }
 .quick-entry-date-picker>span{
-  position:absolute;
-  left:0;
-  top:-14px;
+  position:static;
   display:block;
   font-size:8px;
   font-weight:700;
   letter-spacing:.16em;
   color:#8d806d;
-  line-height:1;
+  line-height:1.1;
 }
 .quick-entry-date-picker .trip-date-trigger{
   box-sizing:border-box;
