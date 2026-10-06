@@ -38,14 +38,14 @@
   box-shadow:0 6px 14px rgba(23,36,58,.16)!important;
 }
 .quick-entry-planning-paid{
-  grid-column:3 / 5;
+  grid-column:3 / 4;
   position:relative;
   min-width:0;
   display:flex;
-  justify-content:flex-end;
+  justify-content:stretch;
 }
 .quick-entry-planning-paid-button{
-  width:184px!important;
+  width:100%!important;
   max-width:100%!important;
   display:flex!important;
   align-items:center!important;
