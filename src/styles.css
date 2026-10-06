@@ -257,6 +257,24 @@
   align-items:center;
 }
 .quick-entry-note-field>textarea::placeholder{color:#aaa092}
+.quick-entry-transport-layout{
+  display:grid;
+  grid-template-columns:minmax(0,.9fr) minmax(0,1.5fr);
+  gap:14px;
+  align-items:start;
+}
+.quick-entry-transport-field,
+.quick-entry-journey-field{min-width:0;display:grid;gap:5px}
+.quick-entry-transport-field>span,
+.quick-entry-journey-field>span{display:block;color:#857a6a;font:600 9px/1.1 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;letter-spacing:.12em;text-transform:uppercase}
+.quick-entry-transport-dates{
+  display:grid;
+  grid-template-columns:minmax(0,1fr);
+  gap:7px;
+  margin-top:6px;
+}
+.quick-entry-transport-dates.is-round-trip{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}
+.quick-entry-journey-field-nonflight .quick-entry-transport-dates{margin-top:0}
 .quick-entry-date-picker{
   display:grid;
   gap:7px;
@@ -621,6 +639,12 @@
   .vela-quick-fullscreen .quick-entry-note-field>textarea{height:42px!important;min-height:42px!important;border-radius:10px!important}
   .vela-quick-fullscreen .quick-entry-category-field>select{padding:0 6px!important;font-size:12px!important}
   .vela-quick-fullscreen .quick-entry-note-field>textarea{padding:0 7px!important;font-size:12px!important}
+  .vela-quick-fullscreen .quick-entry-transport-layout{grid-template-columns:minmax(0,.9fr) minmax(0,1.5fr)!important;gap:8px!important}
+  .vela-quick-fullscreen .quick-entry-transport-field,
+  .vela-quick-fullscreen .quick-entry-journey-field{gap:4px!important}
+  .vela-quick-fullscreen .quick-entry-transport-field>span,
+  .vela-quick-fullscreen .quick-entry-journey-field>span{font-size:8px!important;letter-spacing:.08em!important}
+  .vela-quick-fullscreen .quick-entry-transport-dates{gap:5px!important;margin-top:5px!important}
   .vela-quick-fullscreen .quick-entry-date-picker{gap:4px!important}
   .vela-quick-fullscreen .quick-entry-date-picker .trip-date-trigger{min-height:38px!important;height:38px!important}
   .vela-quick-fullscreen .quick-entry-date-picker .trip-date-trigger strong{font-size:11px!important}
