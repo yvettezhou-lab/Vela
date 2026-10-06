@@ -97,8 +97,12 @@ export const LedgerView: React.FC = () => {
     );
   }
 
-  const membersById = new Map(selectedTrip.members.map((member) => [member.id, member.name]));
-  const categoriesById = new Map(selectedTrip.categories.map((category) => [category.id, category.name]));
+  const members = Array.isArray(selectedTrip.members) ? selectedTrip.members : [];
+  const categories = Array.isArray(selectedTrip.categories) ? selectedTrip.categories : [];
+  const accounts = Array.isArray(selectedTrip.accounts) ? selectedTrip.accounts : [];
+  const segments = Array.isArray(selectedTrip.segments) ? selectedTrip.segments : [];
+  const membersById = new Map(members.map((member) => [member.id, member.name]));
+  const categoriesById = new Map(categories.map((category) => [category.id, category.name]));
   // Newest paid first. Legacy entries fall back to their existing payment/business date.
   const entries = [...ledger].sort((a, b) => {
     const paidDiff = getPaidTimestamp(b) - getPaidTimestamp(a);
@@ -285,7 +289,7 @@ export const LedgerView: React.FC = () => {
 
     const participantIds = editDraft.allocationMode === 'preset_percentage'
       ? Object.entries(selectedTrip.allocationRules?.percentages ?? {})
-          .filter(([memberId, percentage]) => selectedTrip.members.some((member) => member.id === memberId) && Number(percentage) > 0)
+          .filter(([memberId, percentage]) => members.some((member) => member.id === memberId) && Number(percentage) > 0)
           .map(([memberId]) => memberId)
       : editDraft.participantIds.filter((memberId) => selectedTrip.members.some((member) => member.id === memberId));
     if (!participantIds.length) {
@@ -440,7 +444,7 @@ export const LedgerView: React.FC = () => {
         <button type="button" className={filter === 'pending' && !segmentFilterId ? 'active' : ''} onClick={() => { setFilter('pending'); setSegmentFilterId(''); }}>
           Pending CNY{pendingCount ? ` · ${pendingCount}` : ''}
         </button>
-        {selectedTrip.segments.map((segment) => {
+        {segments.map((segment) => {
           const label = segment.destinations.map((destination) => destination.city || destination.country).filter(Boolean).join(' · ') || 'Segment';
           return (
             <button key={segment.id} type="button" className={segmentFilterId === segment.id ? 'active' : ''} onClick={() => { setSegmentFilterId(segment.id); setFilter('all'); }}>
@@ -524,8 +528,8 @@ export const LedgerView: React.FC = () => {
             <div className="vela-ledger-detail-grid">
               <div><span>TYPE</span><strong>{ENTRY_LABELS[detailEntry.entryType]}</strong></div>
               <div><span>WHO PAID</span><strong>{membersById.get(detailEntry.payerId) ?? detailEntry.payerId}</strong></div>
-              <div><span>PAYMENT ACCOUNT</span><strong>{selectedTrip.accounts.find((account) => account.id === detailEntry.accountId)?.name ?? '—'}</strong></div>
-              <div><span>CATEGORY</span><strong>{selectedTrip.categories.find((category) => category.id === detailEntry.categoryId)?.name ?? '—'}</strong></div>
+              <div><span>PAYMENT ACCOUNT</span><strong>{accounts.find((account) => account.id === detailEntry.accountId)?.name ?? '—'}</strong></div>
+              <div><span>CATEGORY</span><strong>{categories.find((category) => category.id === detailEntry.categoryId)?.name ?? '—'}</strong></div>
               <div><span>PAID</span><strong>{formatPaidTimestamp(getPaidTimestamp(detailEntry))}</strong></div>
               {detailEntry.entryType === 'prepaid_multi_day' && <><div><span>USAGE START</span><strong>{formatDate(detailEntry.usageStart)}</strong></div><div><span>USAGE END</span><strong>{formatDate(detailEntry.usageEnd)}</strong></div></>}
               {detailEntry.entryType === 'transport' && <><div><span>TRANSPORT</span><strong>{TRANSPORT_LABELS[detailEntry.transportMode]}</strong></div><div><span>OUTBOUND</span><strong>{formatDate(detailEntry.outboundDate)}</strong></div>{detailEntry.journeyType === 'round_trip' && <div><span>RETURN</span><strong>{formatDate(detailEntry.returnDate)}</strong></div>}</>}
@@ -605,7 +609,7 @@ export const LedgerView: React.FC = () => {
               <label className="block">
                 <span className="mb-1.5 block text-xs uppercase tracking-[0.12em] text-[#857a6a]">Who Paid?</span>
                 <select value={editDraft.payerId} onChange={(event) => setEditDraft((draft) => draft ? { ...draft, payerId: event.target.value } : draft)} className="w-full rounded-xl bg-white px-3 py-3 text-sm outline-none ring-1 ring-black/10">
-                  {selectedTrip.members.map((member) => <option key={member.id} value={member.id}>{member.name}</option>)}
+                  {members.map((member) => <option key={member.id} value={member.id}>{member.name}</option>)}
                 </select>
               </label>
               <label className="block">
@@ -620,7 +624,7 @@ export const LedgerView: React.FC = () => {
               <label className="mt-3 block">
                 <span className="mb-1.5 block text-xs uppercase tracking-[0.12em] text-[#857a6a]">Category</span>
                 <select value={editDraft.categoryId} onChange={(event) => setEditDraft((draft) => draft ? { ...draft, categoryId: event.target.value } : draft)} className="w-full rounded-xl bg-white px-3 py-3 text-sm outline-none ring-1 ring-black/10">
-                  {selectedTrip.categories.map((category) => <option key={category.id} value={category.id}>{category.name}</option>)}
+                  {categories.map((category) => <option key={category.id} value={category.id}>{category.name}</option>)}
                 </select>
               </label>
             )}
@@ -692,14 +696,14 @@ export const LedgerView: React.FC = () => {
                 <div className="mt-2 rounded-xl bg-[#fbf7ee] px-3 py-2 text-[11px] leading-4 text-[#6f6659]">
                   {Object.entries(selectedTrip.allocationRules.percentages)
                     .filter(([id, percentage]) => selectedTrip.members.some((member) => member.id === id) && Number(percentage) > 0)
-                    .map(([id, percentage]) => `${selectedTrip.members.find((member) => member.id === id)?.name ?? id} ${percentage}%`)
+                    .map(([id, percentage]) => `${members.find((member) => member.id === id)?.name ?? id} ${percentage}%`)
                     .join(' · ')}
                 </div>
               )}
 
               {editDraft.allocationMode !== 'preset_percentage' && (
                 <div className="mt-2 grid grid-cols-3 gap-1.5">
-                  {selectedTrip.members.filter((member) => member.archived !== true).map((member) => {
+                  {members.filter((member) => member.archived !== true).map((member) => {
                     const selected = editDraft.participantIds.includes(member.id);
                     return (
                       <button
