@@ -50,12 +50,6 @@ button,input,select,textarea{font-family:-apple-system,BlinkMacSystemFont,"SF Pr
 .vela-global-nav button{color:#9aa1a7!important}.vela-global-nav button.active{color:var(--vela-ink)!important}.vela-global-nav button.active svg{color:var(--vela-accent)!important}
 .vela-global-quick{background:var(--vela-primary)!important;box-shadow:0 8px 24px rgba(23,33,43,.16)!important}
 .vela-entry-route{background:var(--vela-bg)!important;min-height:100dvh!important}
-.vela-entry-route .vela-quick-fullscreen{background:var(--vela-bg)!important;color:var(--vela-ink)!important}
-.vela-quick-fullscreen input:not([type=radio]):not([type=checkbox]),.vela-quick-fullscreen select,.vela-quick-fullscreen textarea{border:1px solid var(--vela-line)!important;border-radius:var(--vela-radius-sm)!important;background:var(--vela-surface)!important;color:var(--vela-ink)!important}
-
-.vela-quick-fullscreen .primary{background:var(--vela-primary)!important;color:#fff!important}.vela-quick-fullscreen .secondary{background:#eef0f1!important;color:var(--vela-ink)!important}
-.vela-quick-backdrop{background:rgba(23,33,43,.24)!important;backdrop-filter:blur(3px)!important}
-.vela-quick-sheet{background:var(--vela-surface)!important;border:1px solid var(--vela-line)!important;border-radius:var(--vela-radius-lg) var(--vela-radius-lg) 0 0!important;box-shadow:0 -12px 40px rgba(23,33,43,.12)!important}
 .vela-settings-header h1{font-family:ui-serif,Georgia,serif!important;font-weight:500!important;color:var(--vela-ink)!important}
 .vela-settings-header p{color:var(--vela-muted)!important}
 @media(max-width:600px){.vela-app-root > .page,.vela-app-root > main.page{padding:20px 16px calc(108px + env(safe-area-inset-bottom))!important}.vela-app-root > .page .topbar h1{font-size:29px!important}.vela-app-root > .page .section{margin-bottom:26px!important}.vela-app-root > .page .category-tabs{gap:18px!important}}
@@ -113,12 +107,6 @@ html,body,#root{width:100%;min-width:0;overflow-x:hidden}
     overscroll-behavior-x:contain;
   }
   .vela-entry-route{width:100%!important;max-width:none!important;overflow-x:hidden!important}
-  .vela-entry-route .vela-quick-fullscreen{
-    width:100%!important;max-width:none!important;overflow-x:hidden!important;
-  }
-  .vela-entry-route .vela-quick-fullscreen form{
-    padding-bottom:calc(128px + env(safe-area-inset-bottom))!important;
-  }
 }
 .vela-cost-toggle{
   display:grid!important;
