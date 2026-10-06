@@ -128,8 +128,8 @@
 .quick-entry-entry-type-button{
   box-sizing:border-box!important;
   width:100%!important;
-  min-height:44px!important;
-  height:44px!important;
+  min-height:48px!important;
+  height:48px!important;
   padding:0 8px!important;
   border:1px solid rgba(23,36,58,.08)!important;
   border-radius:11px!important;
@@ -269,8 +269,8 @@
 .quick-entry-date-picker .trip-date-trigger{
   box-sizing:border-box;
   width:100%;
-  min-height:40px!important;
-  height:40px!important;
+  min-height:48px!important;
+  height:48px!important;
   border:1px solid rgba(67,76,70,.2);
   border-radius:10px;
   background:#f7f3e9;
@@ -439,8 +439,8 @@
 .quick-entry-journey-button{
   box-sizing:border-box!important;
   width:100%!important;
-  min-height:40px!important;
-  height:40px!important;
+  min-height:48px!important;
+  height:48px!important;
   padding:0 6px!important;
   border:1px solid rgba(23,36,58,.08)!important;
   border-radius:10px!important;
@@ -624,7 +624,7 @@
   .vela-quick-fullscreen .quick-entry-journey-head>span{font-size:8px!important;letter-spacing:.08em!important}
   .vela-quick-fullscreen .quick-entry-date-picker{gap:4px!important}
   .vela-quick-fullscreen .quick-entry-date-picker{gap:4px!important}
-  .vela-quick-fullscreen .quick-entry-date-picker .trip-date-trigger{min-height:38px!important;height:38px!important}
+  .vela-quick-fullscreen .quick-entry-date-picker .trip-date-trigger{min-height:48px!important;height:48px!important}
   .vela-quick-fullscreen .quick-entry-date-picker .trip-date-trigger strong{font-size:11px!important}
   .vela-quick-fullscreen .quick-entry-date-picker>span{font-size:7px!important}
   .vela-quick-fullscreen .quick-entry-date-picker .trip-date-trigger svg{width:13px!important;height:13px!important}
