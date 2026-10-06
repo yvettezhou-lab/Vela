@@ -261,6 +261,7 @@ const QuickEntryContent: React.FC<QuickEntryProps> = ({ onClose, editTripId, ini
   const [entryType, setEntryType] = useState<'standard' | 'transport' | 'prepaid_multi_day'>('standard');
     const [amount, setAmount] = useState('');
   const [refundOf, setRefundOf] = useState('');
+  const [amountPadOpen, setAmountPadOpen] = useState(false);
   const [currency, setCurrency] = useState('CNY');
   const [cnyEquivalent, setCnyEquivalent] = useState('');
   const [deferCny, setDeferCny] = useState(false);
@@ -813,16 +814,19 @@ const QuickEntryContent: React.FC<QuickEntryProps> = ({ onClose, editTripId, ini
                 required
                 aria-label="Amount"
               />
-              <div className="quick-entry-amount-operators" aria-label="Amount operators">
-                {['+','-','×','÷'].map((operator) => (
-                  <button key={operator} type="button" onMouseDown={(event) => event.preventDefault()} onClick={() => {
-                    const value = amount;
-                    const symbol = operator === '×' ? '*' : operator === '÷' ? '/' : operator;
-                    setAmount(value ? value + symbol : symbol === '-' ? '-' : value);
-                  }} aria-label={operator === '×' ? 'Multiply' : operator === '÷' ? 'Divide' : operator}>{operator}</button>
-                ))}
-                <button type="button" onMouseDown={(event) => event.preventDefault()} onClick={() => setAmount((value) => value.slice(0, -1))} aria-label="Backspace">⌫</button>
-              </div>
+              <button className="quick-entry-amount-calculator" type="button" onMouseDown={(event) => event.preventDefault()} onClick={() => setAmountPadOpen((open) => !open)} aria-expanded={amountPadOpen} aria-label="Calculator">＋−×÷</button>
+              {amountPadOpen && (
+                <div className="quick-entry-amount-operators" aria-label="Amount operators">
+                  {['+','-','×','÷'].map((operator) => (
+                    <button key={operator} type="button" onMouseDown={(event) => event.preventDefault()} onClick={() => {
+                      const value = amount;
+                      const symbol = operator === '×' ? '*' : operator === '÷' ? '/' : operator;
+                      setAmount(value ? value + symbol : symbol === '-' ? '-' : value);
+                    }} aria-label={operator === '×' ? 'Multiply' : operator === '÷' ? 'Divide' : operator}>{operator}</button>
+                  ))}
+                  <button type="button" onMouseDown={(event) => event.preventDefault()} onClick={() => setAmount((value) => value.slice(0, -1))} aria-label="Backspace">⌫</button>
+                </div>
+              )}
             </div>
           </label>
 
