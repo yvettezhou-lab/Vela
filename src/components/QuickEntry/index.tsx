@@ -774,7 +774,7 @@ const QuickEntryContent: React.FC<QuickEntryProps> = ({ onClose, editTripId, ini
         </div>
 
         {!isDomesticTrip && (
-          <div className="mt-4 max-w-[50%]">
+          <div className="quick-entry-cny-equivalent-field">
             <label className="block">
               <span className="mb-2 block text-xs uppercase tracking-[0.14em] text-[#857a6a]">CNY Equivalent</span>
               <input
@@ -800,7 +800,7 @@ const QuickEntryContent: React.FC<QuickEntryProps> = ({ onClose, editTripId, ini
                 placeholder={deferCny ? 'Later' : (fxRate ? 'Auto' : 'Enter manually')}
                 aria-label="CNY Equivalent"
               />
-              {currency.trim().toUpperCase() !== 'CNY' && <button type="button" onClick={() => { setDeferCny(v => !v); if (!deferCny) setCnyEquivalent(''); }} className={`mt-2 text-xs ${deferCny ? 'text-[#17243a] font-semibold' : 'text-[#857a6a]'}`}>{deferCny ? '✓ Enter CNY later' : 'Enter CNY later'}</button>}
+              {currency.trim().toUpperCase() !== 'CNY' && <button type="button" onClick={() => { setDeferCny(v => !v); if (!deferCny) setCnyEquivalent(''); }} className={`quick-entry-defer-cny ${deferCny ? 'is-deferred' : ''}`}>{deferCny ? '✓ Enter CNY later' : 'Enter CNY later'}</button>}
             </label>
           </div>
         )}
