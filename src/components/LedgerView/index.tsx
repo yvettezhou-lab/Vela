@@ -115,6 +115,45 @@ export const LedgerView: React.FC = () => {
   };
 
   const expandForDailyDisplay = (entry: LedgerEntry): LedgerDisplayEntry[] => {
+    if (entry.entryType === 'transport' && entry.journeyType === 'round_trip' && Number.isFinite(entry.returnDate)) {
+      const outboundDay = new Date(entry.outboundDate);
+      const returnDay = new Date(entry.returnDate);
+      const outboundKey = new Date(outboundDay.getFullYear(), outboundDay.getMonth(), outboundDay.getDate()).getTime();
+      const returnKey = new Date(returnDay.getFullYear(), returnDay.getMonth(), returnDay.getDate()).getTime();
+
+      if (outboundKey === returnKey) {
+        return [{
+          entry,
+          displayDate: outboundKey,
+          displayOriginalAmount: entry.originalAmount,
+          displayCnyEquivalent: entry.cnyEquivalent,
+          displayId: entry.id,
+        }];
+      }
+
+      const originalCents = Math.round(entry.originalAmount * 100);
+      const cnyCents = Math.round(entry.cnyEquivalent * 100);
+      const firstOriginal = Math.floor(originalCents / 2);
+      const firstCny = Math.floor(cnyCents / 2);
+
+      return [
+        {
+          entry,
+          displayDate: outboundKey,
+          displayOriginalAmount: firstOriginal / 100,
+          displayCnyEquivalent: firstCny / 100,
+          displayId: entry.id + '__round_outbound',
+        },
+        {
+          entry,
+          displayDate: returnKey,
+          displayOriginalAmount: (originalCents - firstOriginal) / 100,
+          displayCnyEquivalent: (cnyCents - firstCny) / 100,
+          displayId: entry.id + '__round_return',
+        },
+      ];
+    }
+
     if (entry.entryType !== 'prepaid_multi_day') {
       return [{
         entry,
