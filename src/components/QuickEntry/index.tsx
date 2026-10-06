@@ -804,7 +804,7 @@ const QuickEntryContent: React.FC<QuickEntryProps> = ({ onClose, editTripId, ini
               <button
                 type="button"
                 className="quick-entry-amount-value"
-                onPointerDown={(event) => {
+                onTouchStart={(event) => {
                   event.preventDefault();
                   event.stopPropagation();
                   setAmountPadOpen(true);
