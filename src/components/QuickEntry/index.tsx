@@ -677,7 +677,7 @@ const QuickEntryContent: React.FC<QuickEntryProps> = ({ onClose, editTripId, ini
 
       <form onSubmit={handleSubmit} className="quick-entry-form">
         <div className="quick-entry-planning-row">
-          {tripChoices.slice(0, 1).map((trip) => {
+          {tripChoices.slice(0, 3).map((trip) => {
             const destinations = (trip.segments ?? [])
               .flatMap((segment) => segment.destinations ?? [])
               .map((destination) => destination.city?.trim())
