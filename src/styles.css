@@ -232,7 +232,6 @@
 .quick-entry-journey-option.is-selected .quick-entry-journey-button{background:#17243a;color:#fffdf8;border-color:#17243a}
 .quick-entry-journey-button{width:100%;min-width:0}
 .quick-entry-journey-option .quick-entry-date-picker{margin:0}
-.quick-entry-return-date{min-width:0}
  .quick-entry-date-picker{
   display:grid;
   gap:var(--quick-entry-date-gap,7px);
