@@ -171,14 +171,11 @@ export const LedgerView: React.FC = () => {
     const now = new Date();
     return new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
   })();
-  const displayEntries = filtered.flatMap(expandForDailyDisplay)
-    .filter((item) => {
-      const date = new Date(item.displayDate);
-      const displayDay = new Date(date.getFullYear(), date.getMonth(), date.getDate()).getTime();
-      return displayDay <= todayStart;
-    })
-    // Preserve the canonical paid-time order established above.
-    ;
+  const displayEntries = filtered.flatMap(expandForDailyDisplay).filter((item) => {
+    const date = new Date(item.displayDate);
+    const displayDay = new Date(date.getFullYear(), date.getMonth(), date.getDate()).getTime();
+    return displayDay <= todayStart;
+  });
 
   const dateGroups = displayEntries.reduce<Array<{ key: string; label: string; entries: LedgerDisplayEntry[] }>>((groups, item) => {
     const key = toDateInputValue(item.displayDate);
