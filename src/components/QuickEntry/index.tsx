@@ -52,45 +52,58 @@ const normalizePercentageInput = (value: string) => value.replace(/^0+(?=\d)/, '
 const formatCny = (value: number) => (Number.isFinite(value) ? value.toFixed(2).replace(/\.00$/, '') : '');
 const evaluateAmountExpression = (input: string): number | null => {
   const expression = input.replace(/\s+/g, '');
-  if (!expression) return null;
-  if (!/^[0-9.+*/()\-]+$/.test(expression)) return null;
-  const tokens = expression.match(/(?:\d+(?:\.\d*)?|\.\d+)|[()+\-*/]/g);
-  if (!tokens || tokens.join('') !== expression) return null;
-  const values: number[] = [];
-  const operators: string[] = [];
-  const precedence: Record<string, number> = { '+': 1, '-': 1, '*': 2, '/': 2 };
-  const apply = () => {
-    const op = operators.pop();
-    const b = values.pop();
-    const a = values.pop();
-    if (!op || a === undefined || b === undefined) throw new Error('Invalid amount expression');
-    if (op === '/' && b === 0) throw new Error('Cannot divide by zero');
-    values.push(op === '+' ? a + b : op === '-' ? a - b : op === '*' ? a * b : a / b);
+  if (!expression || !/^[0-9.+*/()\-]+$/.test(expression)) return null;
+  let index = 0;
+  const parseNumber = (): number | null => {
+    const start = index;
+    while (index < expression.length && /[0-9.]/.test(expression[index])) index += 1;
+    if (start === index) return null;
+    const value = Number(expression.slice(start, index));
+    return Number.isFinite(value) ? value : null;
   };
-  try {
-    for (const token of tokens) {
-      if (/^[0-9.]/.test(token)) {
-        const value = Number(token);
-        if (!Number.isFinite(value)) return null;
-        values.push(value);
-      } else if (token === '(') {
-        operators.push(token);
-      } else if (token === ')') {
-        while (operators.length && operators[operators.length - 1] !== '(') apply();
-        if (operators.pop() !== '(') return null;
-      } else {
-        while (operators.length && operators[operators.length - 1] !== '(' && precedence[operators[operators.length - 1]] >= precedence[token]) apply();
-        operators.push(token);
-      }
+  const parseFactor = (): number | null => {
+    let sign = 1;
+    while (expression[index] === '+' || expression[index] === '-') {
+      if (expression[index] === '-') sign *= -1;
+      index += 1;
     }
-    while (operators.length) {
-      if (operators[operators.length - 1] === '(') return null;
-      apply();
+    let value: number | null;
+    if (expression[index] === '(') {
+      index += 1;
+      value = parseExpression();
+      if (expression[index] !== ')') return null;
+      index += 1;
+    } else {
+      value = parseNumber();
     }
-    return values.length === 1 && Number.isFinite(values[0]) ? values[0] : null;
-  } catch {
-    return null;
+    return value === null ? null : sign * value;
+  };
+  const parseTerm = (): number | null => {
+    let value = parseFactor();
+    if (value === null) return null;
+    while (expression[index] === '*' || expression[index] === '/') {
+      const op = expression[index++];
+      const rhs = parseFactor();
+      if (rhs === null || (op === '/' && rhs === 0)) return null;
+      value = op === '*' ? value * rhs : value / rhs;
+      if (!Number.isFinite(value)) return null;
+    }
+    return value;
+  };
+  function parseExpression(): number | null {
+    let value = parseTerm();
+    if (value === null) return null;
+    while (expression[index] === '+' || expression[index] === '-') {
+      const op = expression[index++];
+      const rhs = parseTerm();
+      if (rhs === null) return null;
+      value = op === '+' ? value + rhs : value - rhs;
+      if (!Number.isFinite(value)) return null;
+    }
+    return value;
   }
+  const result = parseExpression();
+  return result !== null && index === expression.length && Number.isFinite(result) ? result : null;
 };
 
 interface DatePickerProps {
@@ -372,7 +385,7 @@ const QuickEntryContent: React.FC<QuickEntryProps> = ({ onClose, editTripId, ini
     setCurrency(initialEntry.originalCurrency);
     setCnyEquivalent(String(initialEntry.cnyEquivalent));
     setDeferCny(initialEntry.isPending);
-    setCategoryId(initialEntry.categoryId);
+    setCategoryId(initialEntry.entryDirection === 'income' ? (initialEntry.isRefund ? 'cat_refund' : 'cat_income') : initialEntry.categoryId);
     setRefundOf(initialEntry.refundOf ?? '');
     setIncludeInCost(initialEntry.includeInCost);
     setAccountId(initialEntry.accountId);
