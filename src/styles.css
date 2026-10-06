@@ -222,7 +222,6 @@
 .quick-entry-amount-operator-rail{
   position:fixed!important;
   right:10px!important;
-  bottom:calc(env(safe-area-inset-bottom) + 8px)!important;
   z-index:10000!important;
   display:flex!important;
   flex-direction:column!important;
