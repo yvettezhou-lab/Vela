@@ -36,8 +36,82 @@
   color:#fffdf8!important;
   box-shadow:0 6px 14px rgba(23,36,58,.16)!important;
 }
-.quick-entry-planning-paid{grid-column:4;position:relative;min-width:0}
-.quick-entry-planning-paid-button strong{color:inherit!important;font-size:16px;font-weight:600;white-space:nowrap}
+.quick-entry-planning-paid{
+  grid-column:3 / 5;
+  position:relative;
+  min-width:0;
+  display:flex;
+  justify-content:flex-end;
+}
+.quick-entry-planning-paid-button{
+  width:184px!important;
+  max-width:100%!important;
+  display:flex!important;
+  align-items:center!important;
+  justify-content:center!important;
+  cursor:pointer!important;
+}
+.quick-entry-planning-paid-button strong{
+  color:inherit!important;
+  font-size:16px;
+  font-weight:600;
+  white-space:nowrap;
+}
+.quick-entry-planning-paid-button[aria-expanded="true"]{
+  border-color:#17243a!important;
+  background:#17243a!important;
+  color:#fffdf8!important;
+}
+.quick-entry-paid-popover{
+  position:absolute;
+  top:calc(100% + 8px);
+  right:0;
+  z-index:30;
+  display:grid;
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:8px;
+  width:260px;
+  max-width:calc(100vw - 32px);
+  box-sizing:border-box;
+  padding:12px;
+  border:1px solid rgba(23,36,58,.08);
+  border-radius:14px;
+  background:#fbf7ee;
+  box-shadow:0 10px 24px rgba(23,36,58,.12);
+}
+.quick-entry-paid-field{
+  display:block!important;
+  min-width:0!important;
+  width:100%!important;
+  margin:0!important;
+}
+.quick-entry-paid-field>span{
+  display:block!important;
+  margin:0 0 4px!important;
+  color:#857a6a!important;
+  font:500 10px/1.1 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif!important;
+  letter-spacing:.08em!important;
+  text-transform:uppercase!important;
+}
+.quick-entry-paid-field input{
+  display:block!important;
+  width:100%!important;
+  min-width:0!important;
+  min-height:40px!important;
+  height:40px!important;
+  box-sizing:border-box!important;
+  padding:0 8px!important;
+  border:1px solid rgba(23,36,58,.10)!important;
+  border-radius:10px!important;
+  background:#fff!important;
+  color:#17243a!important;
+  font:400 14px/1 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif!important;
+  outline:none!important;
+}
+.quick-entry-paid-field input:focus{
+  border-color:#17243a!important;
+  box-shadow:0 0 0 1px #17243a!important;
+}
 
 .quick-entry-entry-type{
   margin-top:14px!important;
@@ -455,8 +529,9 @@
   .vela-quick-fullscreen>header h2{font-size:29px!important;line-height:1!important}
   .vela-quick-fullscreen>form{padding-top:4px!important;padding-left:14px!important;padding-right:14px!important;padding-bottom:calc(96px + env(safe-area-inset-bottom))!important}
   .vela-quick-fullscreen .quick-entry-planning-row{gap:6px!important;margin-bottom:12px!important}
-  .vela-quick-fullscreen .quick-entry-planning-trip,
-  .vela-quick-fullscreen .quick-entry-planning-paid-button{padding-left:8px!important;padding-right:8px!important}
+  .vela-quick-fullscreen .quick-entry-planning-trip{padding-left:8px!important;padding-right:8px!important}
+  .vela-quick-fullscreen .quick-entry-planning-paid-button{width:184px!important}
+  .vela-quick-fullscreen .quick-entry-paid-popover{width:260px!important;max-width:calc(100vw - 28px)!important}
   .vela-quick-fullscreen .quick-entry-entry-type{gap:6px!important;padding:0!important;margin-top:0!important}
   .vela-quick-fullscreen .quick-entry-amount-row{grid-template-columns:170px minmax(0,1fr)!important;margin-top:10px!important;gap:10px!important}
   .vela-quick-fullscreen .quick-entry-category-row{grid-template-columns:170px minmax(0,1fr)!important;margin-top:10px!important;gap:10px!important}
