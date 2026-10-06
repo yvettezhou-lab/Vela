@@ -804,7 +804,16 @@ const QuickEntryContent: React.FC<QuickEntryProps> = ({ onClose, editTripId, ini
               <button
                 type="button"
                 className="quick-entry-amount-value"
-                onClick={() => setAmountPadOpen(true)}
+                onPointerDown={(event) => {
+                  event.preventDefault();
+                  event.stopPropagation();
+                  setAmountPadOpen(true);
+                }}
+                onClick={(event) => {
+                  event.preventDefault();
+                  event.stopPropagation();
+                  setAmountPadOpen(true);
+                }}
                 aria-label="Amount"
               >
                 {amount || '0.00'}
