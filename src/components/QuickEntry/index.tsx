@@ -676,7 +676,7 @@ const QuickEntryContent: React.FC<QuickEntryProps> = ({ onClose, editTripId, ini
       </header>
 
       <form onSubmit={handleSubmit} className="quick-entry-form">
-        <div className="quick-entry-planning-row mb-5">
+        <div className="quick-entry-planning-row">
           {tripChoices.slice(0, 1).map((trip) => {
             const destinations = (trip.segments ?? [])
               .flatMap((segment) => segment.destinations ?? [])
@@ -776,7 +776,7 @@ const QuickEntryContent: React.FC<QuickEntryProps> = ({ onClose, editTripId, ini
         {!isDomesticTrip && (
           <div className="quick-entry-cny-equivalent-field">
             <label className="block">
-              <span className="mb-2 block text-xs uppercase tracking-[0.14em] text-[#857a6a]">CNY Equivalent</span>
+              <span>CNY Equivalent</span>
               <input
                 type="text"
                 inputMode="decimal"
@@ -890,7 +890,7 @@ const QuickEntryContent: React.FC<QuickEntryProps> = ({ onClose, editTripId, ini
               })}
             </div>
           {allocationMode === 'preset_percentage' && targetTrip?.allocationRules?.percentages && (
-            <div className="mb-2 overflow-x-auto whitespace-nowrap rounded-xl bg-[#fbf7ee] px-3 py-2 text-[11px] leading-4 text-[#6f6659]">
+            <div className="quick-entry-preset-info">
               Using this journey's preset allocation:{Object.entries(targetTrip.allocationRules.percentages)
                 .filter(([id, percentage]) => members.some((member) => member.id === id) && Number(percentage) > 0)
                 .map(([id, percentage]) => `${members.find((member) => member.id === id)?.name ?? id} ${percentage}%`)
@@ -926,7 +926,7 @@ const QuickEntryContent: React.FC<QuickEntryProps> = ({ onClose, editTripId, ini
           {error && <div className="quick-entry-submit-error" role="alert" aria-live="assertive">{error}</div>}
           <button type="submit" className="quick-entry-submit-button">{isEditing ? 'Save Changes' : 'Save Entry'}</button>
           {isEditing && (
-            <button type="button" onClick={handleDeleteEntry} className="mt-2 min-h-11 w-full rounded-2xl border border-red-200 bg-red-50 px-5 text-sm font-semibold text-red-700 transition-all duration-200 active:scale-[0.98] active:opacity-80">
+            <button type="button" onClick={handleDeleteEntry} className="quick-entry-delete-button">
               Delete Entry
             </button>
           )}
