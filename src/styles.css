@@ -151,46 +151,93 @@
 .quick-entry-transport-button:active,
 .quick-entry-journey-button:active{transform:none!important}
 
-.quick-entry-amount-row{grid-template-columns:170px minmax(0,1fr)}
-.quick-entry-category-row{grid-template-columns:220px minmax(0,1fr)}
-.quick-entry-payment-field-full{grid-column:1/-1}
-
-.quick-entry-payment-accounts{
+.quick-entry-primary-row{
+  display:grid;
+  grid-template-columns:minmax(0,1.05fr) minmax(0,1fr) minmax(0,1fr);
+  gap:10px;
+  margin-top:24px;
+  align-items:end;
+}
+.quick-entry-primary-field{display:grid;gap:5px;min-width:0}
+.quick-entry-primary-field>span,
+.quick-entry-category-row>span{
+  display:block;
+  color:#857a6a;
+  font:600 9px/1.1 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+  letter-spacing:.12em;
+  text-transform:uppercase;
+}
+.quick-entry-primary-field>select,
+.quick-entry-amount-control{
+  box-sizing:border-box;
+  width:100%;
+  min-width:0;
+  height:48px;
+  min-height:48px;
+  border:1px solid rgba(23,36,58,.10);
+  border-radius:12px;
+  background:#fbf7ee;
+  color:#17243a;
+  box-shadow:inset 0 0 0 1px rgba(80,64,42,.04);
+  font:500 14px/1 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+}
+.quick-entry-primary-field>select{
+  appearance:auto;
+  -webkit-appearance:auto;
+  padding:0 9px;
+  outline:none;
+}
+.quick-entry-amount-control{
   display:flex;
   align-items:stretch;
-  gap:4px;
-  width:fit-content;
+  overflow:hidden;
+}
+.quick-entry-amount-control select{
+  width:50px;
+  min-width:50px;
+  border:0;
+  background:transparent;
+  color:#17243a;
+  padding:0 3px 0 9px;
+  font:500 12px/1 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+  outline:none;
+}
+.quick-entry-amount-control input{
   min-width:0;
-  max-width:100%;
-  overflow:visible;
+  flex:1;
+  width:100%;
+  border:0;
+  background:transparent;
+  color:#17243a;
+  padding:0 9px;
+  font:500 15px/1 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+  outline:none;
 }
-.quick-entry-payment-account{
+.quick-entry-amount-control input::placeholder{color:#aaa092}
+.quick-entry-category-row{
+  display:grid;
+  grid-template-columns:minmax(0,1fr);
+  gap:5px;
+  min-width:0;
+  margin-top:16px;
+}
+.quick-entry-category-row>select{
   box-sizing:border-box;
-  width:52px!important;
-  min-width:52px!important;
-  max-width:52px!important;
-  flex:0 0 52px!important;
-  min-height:40px!important;
-  height:40px!important;
-  padding:0 1px!important;
-  border:1px solid rgba(23,36,58,.08)!important;
-  border-radius:11px!important;
-  background:#fbf7ee!important;
-  color:#17243a!important;
-  box-shadow:0 1px 2px rgba(15,23,42,.04)!important;
-  appearance:none!important;
-  -webkit-appearance:none!important;
-  font:500 10px/1.1 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif!important;
-  overflow-wrap:anywhere!important;
-  white-space:normal!important;
+  width:100%;
+  min-width:0;
+  height:48px;
+  min-height:48px;
+  appearance:auto;
+  -webkit-appearance:auto;
+  border:1px solid rgba(23,36,58,.10);
+  border-radius:12px;
+  background:#fbf7ee;
+  color:#17243a;
+  padding:0 10px;
+  font:500 14px/1 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+  box-shadow:inset 0 0 0 1px rgba(80,64,42,.04);
+  outline:none;
 }
-.quick-entry-payment-account.is-selected{
-  border-color:#17243a!important;
-  background:#17243a!important;
-  color:#fffdf8!important;
-  box-shadow:0 6px 14px rgba(23,36,58,.16)!important;
-}
-
 .quick-entry-date-picker{
   display:grid;
   gap:7px;
@@ -536,14 +583,17 @@
   .vela-quick-fullscreen .quick-entry-planning-paid-button{width:184px!important}
   .vela-quick-fullscreen .quick-entry-paid-popover{width:260px!important;max-width:calc(100vw - 28px)!important}
   .vela-quick-fullscreen .quick-entry-entry-type{gap:6px!important;padding:0!important;margin-top:0!important}
-  .vela-quick-fullscreen .quick-entry-amount-row{grid-template-columns:170px minmax(0,1fr)!important;margin-top:10px!important;gap:10px!important}
-  .vela-quick-fullscreen .quick-entry-category-row{grid-template-columns:170px minmax(0,1fr)!important;margin-top:10px!important;gap:10px!important}
-  .vela-quick-fullscreen .quick-entry-amount-row label>span,
-  .vela-quick-fullscreen .quick-entry-category-row label>span{margin-bottom:4px!important;font-size:10px!important;letter-spacing:.1em!important}
-  .vela-quick-fullscreen .quick-entry-amount-row select,
-  .vela-quick-fullscreen .quick-entry-amount-row input,
-  .vela-quick-fullscreen .quick-entry-category-row select{min-height:40px!important}
-  .vela-quick-fullscreen .quick-entry-payment-accounts{gap:4px!important}
+  .vela-quick-fullscreen .quick-entry-primary-row{grid-template-columns:minmax(0,1.05fr) minmax(0,1fr) minmax(0,1fr)!important;gap:6px!important;margin-top:12px!important}
+  .vela-quick-fullscreen .quick-entry-primary-field{gap:4px!important}
+  .vela-quick-fullscreen .quick-entry-primary-field>span,
+  .vela-quick-fullscreen .quick-entry-category-row>span{font-size:8px!important;letter-spacing:.08em!important}
+  .vela-quick-fullscreen .quick-entry-primary-field>select,
+  .vela-quick-fullscreen .quick-entry-amount-control,
+  .vela-quick-fullscreen .quick-entry-category-row>select{height:42px!important;min-height:42px!important;border-radius:10px!important}
+  .vela-quick-fullscreen .quick-entry-primary-field>select{padding:0 5px!important;font-size:12px!important}
+  .vela-quick-fullscreen .quick-entry-amount-control select{width:42px!important;min-width:42px!important;padding-left:6px!important;font-size:10px!important}
+  .vela-quick-fullscreen .quick-entry-amount-control input{padding:0 5px!important;font-size:13px!important}
+  .vela-quick-fullscreen .quick-entry-category-row{margin-top:12px!important}
   .vela-quick-fullscreen .quick-entry-date-picker{gap:4px!important}
   .vela-quick-fullscreen .quick-entry-date-picker .trip-date-trigger{min-height:38px!important;height:38px!important}
   .vela-quick-fullscreen .quick-entry-date-picker .trip-date-trigger strong{font-size:11px!important}
