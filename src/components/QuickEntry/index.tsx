@@ -792,7 +792,7 @@ const QuickEntryContent: React.FC<QuickEntryProps> = ({ onClose, editTripId, ini
         </div>
 
         <div className="quick-entry-primary-row">
-          <label className="quick-entry-primary-field">
+          <div className="quick-entry-primary-field">
             <span>Amount</span>
             {evaluatedAmount !== null && Number.isFinite(evaluatedAmount) && evaluatedAmount !== 0 && <small className={`quick-entry-amount-preview ${isIncome ? 'is-income' : ''}`}>{isIncome ? 'Income' : 'Total'} {Math.abs(evaluatedAmount).toLocaleString(undefined, { maximumFractionDigits: 2 })}</small>}
             <div
@@ -826,7 +826,6 @@ const QuickEntryContent: React.FC<QuickEntryProps> = ({ onClose, editTripId, ini
                 aria-label="Amount"
               />
             </div>
-          </label>
 
           <label className="quick-entry-primary-field">
             <span>{isIncome ? 'Who Received?' : 'Who Paid?'}</span>
