@@ -802,7 +802,7 @@ const QuickEntryContent: React.FC<QuickEntryProps> = ({ onClose, editTripId, ini
               )}
               <input
                 type="text"
-                inputMode="text"
+                inputMode="decimal"
                 enterKeyHint="done"
                 autoComplete="off"
                 value={amount}
@@ -813,6 +813,16 @@ const QuickEntryContent: React.FC<QuickEntryProps> = ({ onClose, editTripId, ini
                 required
                 aria-label="Amount"
               />
+              <div className="quick-entry-amount-operators" aria-label="Amount operators">
+                {['+','-','×','÷'].map((operator) => (
+                  <button key={operator} type="button" onMouseDown={(event) => event.preventDefault()} onClick={() => {
+                    const value = amount;
+                    const symbol = operator === '×' ? '*' : operator === '÷' ? '/' : operator;
+                    setAmount(value ? value + symbol : symbol === '-' ? '-' : value);
+                  }} aria-label={operator === '×' ? 'Multiply' : operator === '÷' ? 'Divide' : operator}>{operator}</button>
+                ))}
+                <button type="button" onMouseDown={(event) => event.preventDefault()} onClick={() => setAmount((value) => value.slice(0, -1))} aria-label="Backspace">⌫</button>
+              </div>
             </div>
           </label>
 
