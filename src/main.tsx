@@ -33,7 +33,21 @@ const NAV_ITEMS = [
   { label: 'Logbook', icon: Compass, tab: 'Logbook' },
   { label: 'Engine', icon: Settings, tab: 'Engine' },
 ] as const;
-const VelaConstellationIcon = () => <svg width="32" height="32" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M6 18l6-10 6 4" stroke="#FAF9F5" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round" strokeDasharray="2 4" /><circle cx="6" cy="18" r="1.5" fill="#FAF9F5" /><circle cx="12" cy="8" r="1.5" fill="#FAF9F5" /><circle cx="18" cy="12" r="1.5" fill="#FAF9F5" /></svg>;
+const VelaConstellationIcon = () => (
+  <svg width="32" height="32" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+    <path
+      d="M6 18l6-10 6 4"
+      stroke="#FAF9F5"
+      strokeWidth="1.2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      strokeDasharray="2 4"
+    />
+    <circle cx="6" cy="18" r="1.5" fill="#FAF9F5" />
+    <circle cx="12" cy="8" r="1.5" fill="#FAF9F5" />
+    <circle cx="18" cy="12" r="1.5" fill="#FAF9F5" />
+  </svg>
+);
 const GlobalNav: React.FC<{
   activeNav: Tab;
   onNavigate: (next: Tab) => void;
@@ -88,7 +102,6 @@ const App: React.FC = () => {
   );
 
   // App lifecycle: re-evaluate date-based trip status after hydration and changes.
-  // App lifecycle
   useEffect(() => {
     // Re-evaluate date-based lifecycle whenever persisted trips hydrate or change.
     useVelaStore.getState().evaluateAutoStart();
