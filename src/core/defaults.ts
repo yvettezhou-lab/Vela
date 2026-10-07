@@ -1,4 +1,4 @@
-import { Category } from './domain';
+import { Account, Category } from './domain';
 
 export const DEFAULT_CATEGORIES: Category[] = [
   { id: 'cat_food', name: 'Food', type: 'expense' },
@@ -12,4 +12,21 @@ export const DEFAULT_CATEGORIES: Category[] = [
   { id: 'cat_refund', name: 'Refund', type: 'income' },
 ];
 
-export const getDefaultCategories = (): Category[] => DEFAULT_CATEGORIES.map((category) => ({ ...category }));
+export const DEFAULT_TRIP_ACCOUNTS: Account[] = [
+  { id: 'default-account-cash', name: 'Cash' },
+  { id: 'default-account-credit-card', name: 'Credit Card' },
+];
+
+export const DEFAULT_COMMON_ACCOUNTS: Account[] = [
+  { id: 'common-account-cash', name: 'Cash' },
+  { id: 'common-account-credit-card', name: 'Credit Card' },
+];
+
+export const getDefaultCategories = (): Category[] =>
+  DEFAULT_CATEGORIES.map((category) => ({ ...category }));
+
+export const getDefaultTripAccounts = (): Account[] =>
+  DEFAULT_TRIP_ACCOUNTS.map((account) => ({ ...account }));
+
+export const getDefaultCommonAccounts = (): Account[] =>
+  DEFAULT_COMMON_ACCOUNTS.map((account) => ({ ...account }));
