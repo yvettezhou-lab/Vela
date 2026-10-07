@@ -1,5 +1,5 @@
 import { JourneyCheckResolution, Trip } from './domain';
-import { getTripStartDate } from './travelSegment';
+import { getTripStartDate, toDayStart } from './travelSegment';
 
 export type JourneyCheckCheckpoint =
   | '7d'
@@ -15,21 +15,12 @@ export type JourneyCheckIssue = {
   toDate: number;
 };
 
-const dayStart = (timestamp: number) => {
-  const date = new Date(timestamp);
-  return new Date(
-    date.getFullYear(),
-    date.getMonth(),
-    date.getDate(),
-  ).getTime();
-};
-
 export const getJourneyCheckCheckpoint = (
   trip: Trip,
   now = Date.now(),
 ): JourneyCheckCheckpoint | null => {
   if (trip.status === 'achieve' || !trip.segments.length) return null;
-  const days = Math.ceil((dayStart(getTripStartDate(trip)) - dayStart(now)) / 86400000);
+  const days = Math.ceil((toDayStart(getTripStartDate(trip)) - toDayStart(now)) / 86400000);
   if (days <= 1 && days >= 0) return '1d';
   if (days <= 3 && days > 1) return '3d';
   if (days <= 7 && days > 3) return '7d';
@@ -127,9 +118,9 @@ export const getUnresolvedFutureJourneyIssues = (
   trip: Trip,
   now = Date.now(),
 ): JourneyCheckIssue[] => {
-  const today = dayStart(now);
+  const today = toDayStart(now);
   return getJourneyCheckIssues(trip).filter((issue) =>
-    dayStart(issue.toDate) >= today &&
+    toDayStart(issue.toDate) >= today &&
     trip.journeyCheck?.resolutions?.[issue.id] !== 'self_drive' &&
     trip.journeyCheck?.resolutions?.[issue.id] !== 'local_transport'
   );
