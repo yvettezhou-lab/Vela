@@ -1,22 +1,93 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { BookOpen, Compass, Home as HomeIcon, Scale, Settings } from 'lucide-react';
 import { createRoot } from 'react-dom/client';
-import './styles.css'; import './vela-polish.css'; import './vela-secondary-finish.css'; import './vela-home-shell.css'; import './global-ux.css'; import './logbook.css'; import './vela-design-system.css';
-import HomePage from './Home'; import TemplateEditor from './components/TemplateEditor'; import TripManager from './components/TripManager'; import DataManagement from './components/DataManagement'; import MasterData from './components/MasterData'; import { TripCreation } from './components/TripCreation'; import { QuickEntry } from './components/QuickEntry'; import { LedgerView } from './components/LedgerView'; import { SettlementMatrix } from './components/SettlementMatrix'; import LogbookView from './components/Logbook'; import TravelLists from './components/TravelLists';
-import { calculateAnnualTotals } from './utils/reflectionEngine'; import { useVelaStore } from './store/useVelaStore';
+import { BookOpen, Compass, Home as HomeIcon, Scale, Settings } from 'lucide-react';
+
+import './styles.css';
+import './vela-design-system.css';
+import './vela-polish.css';
+import './vela-secondary-finish.css';
+import './vela-home-shell.css';
+import './global-ux.css';
+import './logbook.css';
+
+import HomePage from './Home';
+import DataManagement from './components/DataManagement';
+import { LedgerView } from './components/LedgerView';
+import LogbookView from './components/Logbook';
+import MasterData from './components/MasterData';
+import { QuickEntry } from './components/QuickEntry';
+import { SettlementMatrix } from './components/SettlementMatrix';
+import TemplateEditor from './components/TemplateEditor';
+import TravelLists from './components/TravelLists';
+import { TripCreation } from './components/TripCreation';
+import TripManager from './components/TripManager';
+
+import { calculateAnnualTotals } from './utils/reflectionEngine';
+import { useVelaStore } from './store/useVelaStore';
 
 type Tab = 'Home' | 'Ledger' | 'Balance' | 'Logbook' | 'Engine';
-const nav = [{ label: 'Home', icon: HomeIcon }, { label: 'Ledger', icon: BookOpen }, { label: 'Settlement', icon: Scale }, { label: 'Logbook', icon: Compass }, { label: 'Engine', icon: Settings }] as const;
+const NAV_ITEMS = [
+  { label: 'Home', icon: HomeIcon, tab: 'Home' },
+  { label: 'Ledger', icon: BookOpen, tab: 'Ledger' },
+  { label: 'Settlement', icon: Scale, tab: 'Balance' },
+  { label: 'Logbook', icon: Compass, tab: 'Logbook' },
+  { label: 'Engine', icon: Settings, tab: 'Engine' },
+] as const;
 const VelaConstellationIcon = () => <svg width="32" height="32" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M6 18l6-10 6 4" stroke="#FAF9F5" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round" strokeDasharray="2 4" /><circle cx="6" cy="18" r="1.5" fill="#FAF9F5" /><circle cx="12" cy="8" r="1.5" fill="#FAF9F5" /><circle cx="18" cy="12" r="1.5" fill="#FAF9F5" /></svg>;
-const GlobalNav: React.FC<{ activeNav: Tab; onNavigate: (next: Tab) => void }> = ({ activeNav, onNavigate }) => <nav className="vela-global-nav" aria-label="Primary navigation">{nav.map(({ label, icon: Icon }) => { const tab = label === 'Settlement' ? 'Balance' : label; return <button key={label} type="button" className={activeNav === tab ? 'active' : ''} onClick={() => onNavigate(tab as Tab)}><Icon size={18} strokeWidth={1.7} /><span>{label}</span></button>; })}</nav>;
+const GlobalNav: React.FC<{
+  activeNav: Tab;
+  onNavigate: (next: Tab) => void;
+}> = ({ activeNav, onNavigate }) => (
+  <nav className="vela-global-nav" aria-label="Primary navigation">
+    {NAV_ITEMS.map(({ label, icon: Icon, tab }) => (
+      <button
+        key={label}
+        type="button"
+        className={activeNav === tab ? 'active' : ''}
+        onClick={() => onNavigate(tab)}
+      >
+        <Icon size={18} strokeWidth={1.7} />
+        <span>{label}</span>
+      </button>
+    ))}
+  </nav>
+);
 
 const App: React.FC = () => {
-  const [activeNav, setActiveNav] = useState<Tab>('Home'); const [route, setRoute] = useState(() => window.location.pathname); const [creationOpen, setCreationOpen] = useState(false);
-  const trips = useVelaStore((state) => state.trips); const currentYear = new Date().getFullYear();
-  const achieveTrips = useMemo(() => trips.filter((trip) => trip.status === 'achieve'), [trips]); const activeTrip = useMemo(() => trips.find((trip) => trip.status === 'traveling') ?? null, [trips]); const planningTrips = useMemo(() => trips.filter((trip) => trip.status === 'planning'), [trips]);
-  const annualReflection = useMemo(() => calculateAnnualTotals(achieveTrips, activeTrip, planningTrips, currentYear), [achieveTrips, activeTrip, planningTrips, currentYear]); const reflectionTrips = useMemo(() => activeTrip ? [...achieveTrips, activeTrip] : achieveTrips, [achieveTrips, activeTrip]);
-  // Re-evaluate date-based trip lifecycle whenever persisted trips hydrate or change.
-  // This keeps a trip from remaining in Planning after its start date arrives.
+  // App state
+  const [activeNav, setActiveNav] = useState<Tab>('Home');
+  const [route, setRoute] = useState(() => window.location.pathname);
+  const [creationOpen, setCreationOpen] = useState(false);
+  // Derived trip data
+  const trips = useVelaStore((state) => state.trips);
+  const currentYear = new Date().getFullYear();
+  const achieveTrips = useMemo(
+    () => trips.filter((trip) => trip.status === 'achieve'),
+    [trips],
+  );
+  const activeTrip = useMemo(
+    () => trips.find((trip) => trip.status === 'traveling') ?? null,
+    [trips],
+  );
+  const planningTrips = useMemo(
+    () => trips.filter((trip) => trip.status === 'planning'),
+    [trips],
+  );
+  const annualReflection = useMemo(
+    () => calculateAnnualTotals(
+      achieveTrips,
+      activeTrip,
+      planningTrips,
+      currentYear,
+    ),
+    [achieveTrips, activeTrip, planningTrips, currentYear],
+  );
+  const reflectionTrips = useMemo(
+    () => (activeTrip ? [...achieveTrips, activeTrip] : achieveTrips),
+    [achieveTrips, activeTrip],
+  );
+
+  // App lifecycle: re-evaluate date-based trip status after hydration and changes.
   useEffect(() => {
     useVelaStore.getState().evaluateAutoStart();
   }, [trips]);
@@ -30,7 +101,61 @@ const App: React.FC = () => {
     return () => navigator.serviceWorker.removeEventListener('controllerchange', onControllerChange);
   }, []);
   useEffect(() => { const onPopState = () => setRoute(window.location.pathname); const onHashChange = () => { if (window.location.hash === '#Settlement') { setRoute('/'); setActiveNav('Balance'); window.scrollTo({ top: 0 }); } }; window.addEventListener('popstate', onPopState); window.addEventListener('hashchange', onHashChange); return () => { window.removeEventListener('popstate', onPopState); window.removeEventListener('hashchange', onHashChange); }; }, []);
-  const openLists = (tripId: string, listId?: string) => { window.history.pushState({}, '', `/lists/${tripId}${listId ? `/${listId}` : ''}`); setRoute(window.location.pathname); setActiveNav('Home'); window.scrollTo({ top: 0 }); }; const closeLists = () => { window.history.pushState({}, '', '/'); setRoute('/'); setActiveNav('Home'); window.scrollTo({ top: 0 }); }; const openQuickEntry = () => { window.history.pushState({}, '', '/entry/new'); setRoute('/entry/new'); }; const closeQuickEntry = () => { window.history.pushState({}, '', '/'); setRoute('/'); }; const openTripManager = () => { window.history.pushState({}, '', '/trips'); setRoute('/trips'); setCreationOpen(false); window.scrollTo({ top: 0 }); }; const closeTripManager = () => { window.history.pushState({}, '', '/'); setRoute('/'); setActiveNav('Home'); window.scrollTo({ top: 0 }); }; const handleNavigate = (next: Tab) => { if (window.location.pathname !== '/') window.history.pushState({}, '', '/'); setRoute('/'); setCreationOpen(false); setActiveNav(next); window.scrollTo({ top: 0 }); }; const handleCreated = () => { setActiveNav('Home'); setCreationOpen(false); };
+  // Navigation actions
+  const openLists = (tripId: string, listId?: string) => {
+    const path = '/lists/' + tripId + (listId ? '/' + listId : '');
+    window.history.pushState({}, '', path);
+    setRoute(path);
+    setActiveNav('Home');
+    window.scrollTo({ top: 0 });
+  };
+
+  const closeLists = () => {
+    window.history.pushState({}, '', '/');
+    setRoute('/');
+    setActiveNav('Home');
+    window.scrollTo({ top: 0 });
+  };
+
+  const openQuickEntry = () => {
+    window.history.pushState({}, '', '/entry/new');
+    setRoute('/entry/new');
+  };
+
+  const closeQuickEntry = () => {
+    window.history.pushState({}, '', '/');
+    setRoute('/');
+  };
+
+  const openTripManager = () => {
+    window.history.pushState({}, '', '/trips');
+    setRoute('/trips');
+    setCreationOpen(false);
+    window.scrollTo({ top: 0 });
+  };
+
+  const closeTripManager = () => {
+    window.history.pushState({}, '', '/');
+    setRoute('/');
+    setActiveNav('Home');
+    window.scrollTo({ top: 0 });
+  };
+
+  const handleNavigate = (next: Tab) => {
+    if (window.location.pathname !== '/') {
+      window.history.pushState({}, '', '/');
+    }
+    setRoute('/');
+    setCreationOpen(false);
+    setActiveNav(next);
+    window.scrollTo({ top: 0 });
+  };
+
+  const handleCreated = () => {
+    setActiveNav('Home');
+    setCreationOpen(false);
+  };
+
   const listMatch = route.match(/^\/lists\/([^/]+)(?:\/([^/]+))?$/); if (listMatch) return <div className="vela-entry-route"><TravelLists tripId={decodeURIComponent(listMatch[1])} listId={listMatch[2] ? decodeURIComponent(listMatch[2]) : null} onClose={closeLists} /></div>;
   const editMatch = route.match(/^\/entry\/edit\/([^/]+)\/([^/]+)$/);
   if (route === '/entry/new') return <div className="vela-entry-route"><QuickEntry onClose={closeQuickEntry} /><GlobalNav activeNav={activeNav} onNavigate={handleNavigate} /></div>;
