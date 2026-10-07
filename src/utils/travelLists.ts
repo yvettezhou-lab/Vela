@@ -187,7 +187,8 @@ const addMatchingPersonalLists = (
     .filter(
       (member) =>
         member.archived !== true &&
-        member.personalListItems?.length &&
+        Array.isArray(member.personalListItems) &&
+        member.personalListItems.length > 0 &&
         tripMemberNames.has(member.name.trim().toLowerCase()),
     )
     .forEach((member) => {
@@ -195,7 +196,8 @@ const addMatchingPersonalLists = (
       const key = name.trim().toLowerCase();
       if (existingNames.has(key)) return;
 
-      const titles = member.personalListItems!
+      const titles = member.personalListItems
+        .filter((item): item is string => typeof item === 'string')
         .map((item) => item.trim())
         .filter(Boolean);
       if (!titles.length) return;
