@@ -820,6 +820,12 @@
   --quick-entry-label-letter-spacing:.12em;
 }
 .vela-entry-route .vela-quick-fullscreen{
+  width:min(100%,640px)!important;
+  height:100dvh!important;
+  max-height:100dvh!important;
+  overflow:hidden!important;
+  display:flex!important;
+  flex-direction:column!important;
   background:var(--vela-bg)!important;
   color:var(--vela-ink)!important;
 }
