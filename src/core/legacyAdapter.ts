@@ -43,25 +43,301 @@ export const migrateLegacyPlanToTrip = (legacyData: unknown): Trip => {
       return parser(item);
     });
   };
-const members = parseArray(legacyData.members, m => ({ id: requireLegacyString(m.id, 'Member ID'), name: requireLegacyString(m.name, 'Member Name') }));
-const accounts = parseArray(legacyData.accounts, a => ({ id: requireLegacyString(a.id, 'Account ID'), name: requireLegacyString(a.name, 'Account Name') }));
-const mappedCategoryIds = new Set<string>();
-const categories = parseArray(legacyData.categories, c => { const rawId = requireLegacyString(c.id, 'Category ID'); const mappedId = rawId === 'Transport' ? TRANSPORT_CATEGORY_ID : rawId; if (mappedCategoryIds.has(mappedId)) throw new Error(`Migration Error: Duplicate mapped category ID: ${mappedId}`); mappedCategoryIds.add(mappedId); return { id: mappedId, name: requireLegacyString(c.name, 'Category Name'), type: requireLegacyString(c.type, 'Category Type') }; });
-const ledger = parseArray(legacyData.entries, oldEntry => {
-const amount = Number(oldEntry.amount); const cnyEquivalent = Number(oldEntry.cnyAmount !== undefined ? oldEntry.cnyAmount : oldEntry.amount); if (!Number.isFinite(amount) || amount <= 0) throw new Error(`Migration Error: Invalid entry amount ${oldEntry.amount}`); if (!Number.isFinite(cnyEquivalent) || cnyEquivalent < 0) throw new Error(`Migration Error: Invalid entry cnyAmount ${oldEntry.cnyAmount}`); if (!Array.isArray(oldEntry.allocations)) throw new Error(`Migration Error: Entry ${oldEntry.id} is missing allocations`);
-const allocations = parseArray(oldEntry.allocations, a => { const aAmount = Number(a.amount); if (!Number.isFinite(aAmount) || aAmount < 0) throw new Error(`Migration Error: Invalid allocation amount ${a.amount}`); return { memberId: requireLegacyString(a.memberId, 'Allocation Member ID'), percentage: a.percentage !== undefined ? Number(a.percentage) : undefined, amount: aAmount }; });
-const createdAt = Number(oldEntry.createdAt); if (!Number.isFinite(createdAt)) throw new Error(`Migration Error: Missing historical createdAt for entry ${oldEntry.id}`); const hasUpdatedAt = 'updatedAt' in oldEntry && oldEntry.updatedAt !== undefined && oldEntry.updatedAt !== null; const updatedAt = hasUpdatedAt ? Number(oldEntry.updatedAt) : createdAt; if (!Number.isFinite(updatedAt)) throw new Error(`Migration Error: Invalid historical updatedAt for entry ${oldEntry.id}`);
-let allocationMode: AllocationMode; if (oldEntry.allocationMode === undefined || oldEntry.allocationMode === 'equal' || oldEntry.allocationMode === 'Default') allocationMode = 'equal'; else if (oldEntry.allocationMode === 'custom' || oldEntry.allocationMode === 'custom_percentage') allocationMode = 'custom_percentage'; else throw new Error(`Migration Error: Unknown allocationMode '${oldEntry.allocationMode}'`);
-const rawCategoryId = requireLegacyString(oldEntry.categoryId, 'Category ID'); const mappedCategoryId = rawCategoryId === 'Transport' ? TRANSPORT_CATEGORY_ID : rawCategoryId;
-const baseData = { id: requireLegacyString(oldEntry.id, 'Entry ID'), categoryId: mappedCategoryId, originalAmount: amount, originalCurrency: requireLegacyString(oldEntry.currency, 'Original Currency'), cnyEquivalent, isRefund: parseLegacyBoolean(oldEntry.isRefund, 'isRefund'), isPending: parseLegacyBoolean(oldEntry.isPending, 'isPending'), payerId: requireLegacyString(oldEntry.payerId, 'Payer ID'), accountId: requireLegacyString(oldEntry.accountId, 'Account ID'), allocationMode, allocations, createdAt, updatedAt };
-if (oldEntry.type === 'flight') { const outboundDate = Number(oldEntry.date); if (!Number.isFinite(outboundDate)) throw new Error('Migration Error: Missing valid outbound date for flight'); if (oldEntry.returnDate !== undefined && oldEntry.returnDate !== null) { const returnDate = Number(oldEntry.returnDate); if (!Number.isFinite(returnDate)) throw new Error('Migration Error: Invalid return date for flight'); return { ...baseData, entryType: 'transport', transportMode: 'flight', journeyType: 'round_trip', outboundDate, returnDate }; } return { ...baseData, entryType: 'transport', transportMode: 'flight', journeyType: 'one_way', outboundDate }; }
-if (oldEntry.type === 'prepaid_multi_day') { const paymentDate = Number(oldEntry.date), usageStart = Number(oldEntry.usageStart), usageEnd = Number(oldEntry.usageEnd); if (!Number.isFinite(paymentDate) || !Number.isFinite(usageStart) || !Number.isFinite(usageEnd)) throw new Error(`Migration Error: Invalid prepaid multi-day dates for entry ${oldEntry.id}`); return { ...baseData, entryType: 'prepaid_multi_day', paymentDate, usageStart, usageEnd }; }
-const paymentDate = Number(oldEntry.date); if (!Number.isFinite(paymentDate)) throw new Error(`Migration Error: Invalid payment date for entry ${oldEntry.id}`); return { ...baseData, entryType: 'standard', paymentDate };
-});
-let status: TripStatus; const s = String(legacyData.status).toLowerCase(); if (s === 'planning') status = 'planning'; else if (s === 'traveling') status = 'traveling'; else if (['achieve', 'past', 'settling', 'completed'].includes(s)) status = 'achieve'; else throw new Error(`Migration Error: Unknown or missing Trip status '${legacyData.status}'`);
-const tCreated = Number(legacyData.createdAt); const hasTUpdated = 'updatedAt' in legacyData && legacyData.updatedAt !== undefined && legacyData.updatedAt !== null; const tUpdated = hasTUpdated ? Number(legacyData.updatedAt) : tCreated; if (!Number.isFinite(tCreated) || !Number.isFinite(tUpdated)) throw new Error('Migration Error: Missing or invalid critical historical Trip dates');
-const startDate = Number(legacyData.startDate), endDate = Number(legacyData.endDate); if (!Number.isFinite(startDate) || !Number.isFinite(endDate)) throw new Error('Migration Error: Missing or invalid Trip dates');
-const tripId = requireLegacyString(legacyData.id, 'Trip ID'); const legacyDestination = typeof legacyData.destination === 'string' ? legacyData.destination.trim() : ''; const destinations = legacyDestination ? [{ country: '', city: legacyDestination }] : [];
-const rawTrip = { id: tripId, title: requireLegacyString(legacyData.title, 'Trip title'), segments: [{ id: `${tripId}-segment-1`, destinations, startDate, endDate, primaryCurrency: requireLegacyString(legacyData.currency, 'Trip Currency') }], status, coverImage: typeof legacyData.coverImage === 'string' ? legacyData.coverImage : undefined, members, accounts, categories, ledger, createdAt: tCreated, updatedAt: tUpdated };
-try { return DomainValidator.validateEntireTrip(rawTrip, []); } catch (error: unknown) { const msg = error instanceof Error ? error.message : String(error); throw new Error(`Migration Error: Migrated data failed strict validation. Reason: ${msg}`); }
+
+  const members = parseArray(legacyData.members, (member) => ({
+    id: requireLegacyString(member.id, 'Member ID'),
+    name: requireLegacyString(member.name, 'Member Name'),
+  }));
+
+  const accounts = parseArray(legacyData.accounts, (account) => ({
+    id: requireLegacyString(account.id, 'Account ID'),
+    name: requireLegacyString(account.name, 'Account Name'),
+  }));
+
+  const mappedCategoryIds = new Set<string>();
+  const categories = parseArray(legacyData.categories, (category) => {
+    const rawId = requireLegacyString(category.id, 'Category ID');
+    const mappedId =
+      rawId === 'Transport' ? TRANSPORT_CATEGORY_ID : rawId;
+
+    if (mappedCategoryIds.has(mappedId)) {
+      throw new Error(
+        `Migration Error: Duplicate mapped category ID: ${mappedId}`,
+      );
+    }
+
+    mappedCategoryIds.add(mappedId);
+
+    return {
+      id: mappedId,
+      name: requireLegacyString(category.name, 'Category Name'),
+      type: requireLegacyString(category.type, 'Category Type'),
+    };
+  });
+
+  const ledger = parseArray(legacyData.entries, (oldEntry) => {
+    const amount = Number(oldEntry.amount);
+    const cnyEquivalent = Number(
+      oldEntry.cnyAmount !== undefined
+        ? oldEntry.cnyAmount
+        : oldEntry.amount,
+    );
+
+    if (!Number.isFinite(amount) || amount <= 0) {
+      throw new Error(
+        `Migration Error: Invalid entry amount ${oldEntry.amount}`,
+      );
+    }
+    if (!Number.isFinite(cnyEquivalent) || cnyEquivalent < 0) {
+      throw new Error(
+        `Migration Error: Invalid entry cnyAmount ${oldEntry.cnyAmount}`,
+      );
+    }
+    if (!Array.isArray(oldEntry.allocations)) {
+      throw new Error(
+        `Migration Error: Entry ${oldEntry.id} is missing allocations`,
+      );
+    }
+
+    const allocations = parseArray(oldEntry.allocations, (allocation) => {
+      const allocationAmount = Number(allocation.amount);
+      if (!Number.isFinite(allocationAmount) || allocationAmount < 0) {
+        throw new Error(
+          `Migration Error: Invalid allocation amount ${allocation.amount}`,
+        );
+      }
+
+      return {
+        memberId: requireLegacyString(
+          allocation.memberId,
+          'Allocation Member ID',
+        ),
+        percentage:
+          allocation.percentage !== undefined
+            ? Number(allocation.percentage)
+            : undefined,
+        amount: allocationAmount,
+      };
+    });
+
+    const createdAt = Number(oldEntry.createdAt);
+    if (!Number.isFinite(createdAt)) {
+      throw new Error(
+        `Migration Error: Missing historical createdAt for entry ${oldEntry.id}`,
+      );
+    }
+
+    const hasUpdatedAt =
+      'updatedAt' in oldEntry &&
+      oldEntry.updatedAt !== undefined &&
+      oldEntry.updatedAt !== null;
+    const updatedAt = hasUpdatedAt
+      ? Number(oldEntry.updatedAt)
+      : createdAt;
+
+    if (!Number.isFinite(updatedAt)) {
+      throw new Error(
+        `Migration Error: Invalid historical updatedAt for entry ${oldEntry.id}`,
+      );
+    }
+
+    let allocationMode: AllocationMode;
+    if (
+      oldEntry.allocationMode === undefined ||
+      oldEntry.allocationMode === 'equal' ||
+      oldEntry.allocationMode === 'Default'
+    ) {
+      allocationMode = 'equal';
+    } else if (
+      oldEntry.allocationMode === 'custom' ||
+      oldEntry.allocationMode === 'custom_percentage'
+    ) {
+      allocationMode = 'custom_percentage';
+    } else {
+      throw new Error(
+        `Migration Error: Unknown allocationMode '${oldEntry.allocationMode}'`,
+      );
+    }
+
+    const rawCategoryId = requireLegacyString(
+      oldEntry.categoryId,
+      'Category ID',
+    );
+    const mappedCategoryId =
+      rawCategoryId === 'Transport' ? TRANSPORT_CATEGORY_ID : rawCategoryId;
+
+    const baseData = {
+      id: requireLegacyString(oldEntry.id, 'Entry ID'),
+      categoryId: mappedCategoryId,
+      originalAmount: amount,
+      originalCurrency: requireLegacyString(
+        oldEntry.currency,
+        'Original Currency',
+      ),
+      cnyEquivalent,
+      isRefund: parseLegacyBoolean(oldEntry.isRefund, 'isRefund'),
+      isPending: parseLegacyBoolean(oldEntry.isPending, 'isPending'),
+      payerId: requireLegacyString(oldEntry.payerId, 'Payer ID'),
+      accountId: requireLegacyString(oldEntry.accountId, 'Account ID'),
+      allocationMode,
+      allocations,
+      createdAt,
+      updatedAt,
+    };
+
+    if (oldEntry.type === 'flight') {
+      const outboundDate = Number(oldEntry.date);
+      if (!Number.isFinite(outboundDate)) {
+        throw new Error(
+          'Migration Error: Missing valid outbound date for flight',
+        );
+      }
+
+      if (oldEntry.returnDate !== undefined && oldEntry.returnDate !== null) {
+        const returnDate = Number(oldEntry.returnDate);
+        if (!Number.isFinite(returnDate)) {
+          throw new Error(
+            'Migration Error: Invalid return date for flight',
+          );
+        }
+
+        return {
+          ...baseData,
+          entryType: 'transport',
+          transportMode: 'flight',
+          journeyType: 'round_trip',
+          outboundDate,
+          returnDate,
+        };
+      }
+
+      return {
+        ...baseData,
+        entryType: 'transport',
+        transportMode: 'flight',
+        journeyType: 'one_way',
+        outboundDate,
+      };
+    }
+
+    if (oldEntry.type === 'prepaid_multi_day') {
+      const paymentDate = Number(oldEntry.date);
+      const usageStart = Number(oldEntry.usageStart);
+      const usageEnd = Number(oldEntry.usageEnd);
+
+      if (
+        !Number.isFinite(paymentDate) ||
+        !Number.isFinite(usageStart) ||
+        !Number.isFinite(usageEnd)
+      ) {
+        throw new Error(
+          `Migration Error: Invalid prepaid multi-day dates for entry ${oldEntry.id}`,
+        );
+      }
+
+      return {
+        ...baseData,
+        entryType: 'prepaid_multi_day',
+        paymentDate,
+        usageStart,
+        usageEnd,
+      };
+    }
+
+    const paymentDate = Number(oldEntry.date);
+    if (!Number.isFinite(paymentDate)) {
+      throw new Error(
+        `Migration Error: Invalid payment date for entry ${oldEntry.id}`,
+      );
+    }
+
+    return {
+      ...baseData,
+      entryType: 'standard',
+      paymentDate,
+    };
+  });
+
+  const statusValue = String(legacyData.status).toLowerCase();
+  let status: TripStatus;
+  if (statusValue === 'planning') {
+    status = 'planning';
+  } else if (statusValue === 'traveling') {
+    status = 'traveling';
+  } else if (
+    ['achieve', 'past', 'settling', 'completed'].includes(statusValue)
+  ) {
+    status = 'achieve';
+  } else {
+    throw new Error(
+      `Migration Error: Unknown or missing Trip status '${legacyData.status}'`,
+    );
+  }
+
+  const tripCreatedAt = Number(legacyData.createdAt);
+  const hasTripUpdatedAt =
+    'updatedAt' in legacyData &&
+    legacyData.updatedAt !== undefined &&
+    legacyData.updatedAt !== null;
+  const tripUpdatedAt = hasTripUpdatedAt
+    ? Number(legacyData.updatedAt)
+    : tripCreatedAt;
+
+  if (!Number.isFinite(tripCreatedAt) || !Number.isFinite(tripUpdatedAt)) {
+    throw new Error(
+      'Migration Error: Missing or invalid critical historical Trip dates',
+    );
+  }
+
+  const startDate = Number(legacyData.startDate);
+  const endDate = Number(legacyData.endDate);
+  if (!Number.isFinite(startDate) || !Number.isFinite(endDate)) {
+    throw new Error('Migration Error: Missing or invalid Trip dates');
+  }
+
+  const tripId = requireLegacyString(legacyData.id, 'Trip ID');
+  const legacyDestination =
+    typeof legacyData.destination === 'string'
+      ? legacyData.destination.trim()
+      : '';
+  const destinations = legacyDestination
+    ? [{ country: '', city: legacyDestination }]
+    : [];
+
+  const rawTrip = {
+    id: tripId,
+    title: requireLegacyString(legacyData.title, 'Trip title'),
+    segments: [
+      {
+        id: `${tripId}-segment-1`,
+        destinations,
+        startDate,
+        endDate,
+        primaryCurrency: requireLegacyString(
+          legacyData.currency,
+          'Trip Currency',
+        ),
+      },
+    ],
+    status,
+    coverImage:
+      typeof legacyData.coverImage === 'string'
+        ? legacyData.coverImage
+        : undefined,
+    members,
+    accounts,
+    categories,
+    ledger,
+    createdAt: tripCreatedAt,
+    updatedAt: tripUpdatedAt,
+  };
+
+  try {
+    return DomainValidator.validateEntireTrip(rawTrip, []);
+  } catch (error: unknown) {
+    const message = error instanceof Error ? error.message : String(error);
+    throw new Error(
+      `Migration Error: Migrated data failed strict validation. Reason: ${message}`,
+    );
+  }
 };
