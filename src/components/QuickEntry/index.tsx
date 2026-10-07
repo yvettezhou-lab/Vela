@@ -1,6 +1,14 @@
 import React, { Component, ErrorInfo, ReactNode, useEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { X } from 'lucide-react';
+import {
+  QuickEntryCategoryNoteSection,
+  QuickEntryEntryTypeSection,
+  QuickEntryPayerAccountSection,
+  QuickEntryPlanningSection,
+  QuickEntryStatisticsToggle,
+  QuickEntrySubmitSection,
+} from './QuickEntryFormSections';
 
 import {
   AllocationMode,
@@ -577,64 +585,22 @@ const QuickEntryContent: React.FC<QuickEntryProps> = ({ onClose, editTripId, ini
       </header>
 
       <form onSubmit={handleSubmit} className="quick-entry-form">
-        <div className="quick-entry-planning-row">
-          {tripChoices.slice(0, 3).map((trip) => {
-            const destinations = (trip.segments ?? [])
-              .flatMap((segment) => segment.destinations ?? [])
-              .map((destination) => destination.city?.trim())
-              .filter(Boolean)
-              .slice(0, 2);
-            const label = destinations.join(' · ') || trip.title;
-            return (
-              <button
-                key={trip.id}
-                type="button"
-                onClick={() => setTargetTripId(trip.id)}
-                aria-pressed={targetTripId === trip.id}
-                className={`quick-entry-planning-trip ${targetTripId === trip.id ? 'is-selected' : ''}`}
-               
-              >
-                <span className="block truncate">{label}</span>
-              </button>
-            );
-          })}
+        <QuickEntryPlanningSection
+          tripChoices={tripChoices}
+          targetTripId={targetTripId}
+          paidEditorOpen={paidEditorOpen}
+          paidAtDate={paidAtDate}
+          paidAtTime={paidAtTime}
+          setTargetTripId={setTargetTripId}
+          setPaidEditorOpen={setPaidEditorOpen}
+          setPaidAtDate={setPaidAtDate}
+          setPaymentDate={setPaymentDate}
+          setPaidAtTime={setPaidAtTime}
+          formatPaidTimestamp={formatPaidTimestamp}
+          toPaidTimestamp={toPaidTimestamp}
+        />
 
-          <div className="quick-entry-planning-paid">
-            <button
-              type="button"
-              onClick={() => setPaidEditorOpen((open) => !open)}
-              className="quick-entry-planning-paid-button"
-              aria-expanded={paidEditorOpen}
-              aria-label="Edit paid date and time"
-            >
-              <strong>{formatPaidTimestamp(toPaidTimestamp(paidAtDate, paidAtTime))}</strong>
-            </button>
-            {paidEditorOpen && (
-              <div className="quick-entry-paid-popover">
-                <label className="quick-entry-paid-field">
-                  <span>Date</span>
-                  <input type="date" value={paidAtDate} onChange={(event) => { setPaidAtDate(event.target.value); setPaymentDate(event.target.value); }} />
-                </label>
-                <label className="quick-entry-paid-field">
-                  <span>Time</span>
-                  <input type="time" value={paidAtTime} onChange={(event) => setPaidAtTime(event.target.value)} />
-                </label>
-              </div>
-            )}
-          </div>
-        </div>
-
-        <div className="quick-entry-entry-type">
-          {([
-            ['standard', 'Standard'],
-            ['transport', 'Transport'],
-            ['prepaid_multi_day', 'Prepaid'],
-          ] as const).map(([value, label]) => (
-            <button key={value} type="button" onClick={() => setEntryType(value)} aria-pressed={entryType === value} className={`quick-entry-entry-type-button ${entryType === value ? 'is-selected' : ''}`}>
-              {label}
-            </button>
-          ))}
-        </div>
+        <QuickEntryEntryTypeSection entryType={entryType} setEntryType={setEntryType} />
 
         <div className="quick-entry-primary-row">
           <QuickEntryAmountSection
@@ -647,19 +613,15 @@ const QuickEntryContent: React.FC<QuickEntryProps> = ({ onClose, editTripId, ini
             setAmount={setAmount}
           />
 
-          <label className="quick-entry-primary-field">
-            <span>{isIncome ? 'Who Received?' : 'Who Paid?'}</span>
-            <select value={payerId} onChange={(event) => setPayerId(event.target.value)} aria-label={isIncome ? "Who Received?" : "Who Paid?"}>
-              {payerOptions.map((member) => <option key={member.id} value={member.id}>{member.name}</option>)}
-            </select>
-          </label>
-
-          <label className="quick-entry-primary-field">
-            <span>Payment Account</span>
-            <select value={accountId} onChange={(event) => setAccountId(event.target.value)} aria-label="Payment Account">
-              {accounts.map((account) => <option key={account.id} value={account.id}>{account.name}</option>)}
-            </select>
-          </label>
+          <QuickEntryPayerAccountSection
+            isIncome={isIncome}
+            payerId={payerId}
+            accountId={accountId}
+            payerOptions={payerOptions}
+            accounts={accounts}
+            setPayerId={setPayerId}
+            setAccountId={setAccountId}
+          />
         </div>
 
         {!isDomesticTrip && (
@@ -675,18 +637,15 @@ const QuickEntryContent: React.FC<QuickEntryProps> = ({ onClose, editTripId, ini
           />
         )}
 
-        <div className="quick-entry-category-note-row">
-          <label className="quick-entry-category-field">
-            <span>Category</span>
-            <select value={categoryId} onChange={(event) => { const next = event.target.value; setCategoryId(next); setIncludeInCost(categories.find((category) => category.id === next)?.excludeFromStats !== true); }} required aria-label="Category">
-              {visibleCategories.map((category) => <option key={category.id} value={category.id}>{category.name}</option>)}
-            </select>
-          </label>
-          <label className="quick-entry-note-field">
-            <span>Note</span>
-            <textarea value={note} onChange={(event) => setNote(event.target.value)} rows={1} maxLength={200} placeholder="What was this payment for? e.g. Longling dinner" aria-label="Note" />
-          </label>
-        </div>
+        <QuickEntryCategoryNoteSection
+          categoryId={categoryId}
+          note={note}
+          visibleCategories={visibleCategories}
+          categories={categories}
+          setCategoryId={setCategoryId}
+          setIncludeInCost={setIncludeInCost}
+          setNote={setNote}
+        />
 
         {isRefundCategory && (
           <QuickEntryRefundSection
@@ -737,60 +696,18 @@ const QuickEntryContent: React.FC<QuickEntryProps> = ({ onClose, editTripId, ini
           setCustomPercentages={setCustomPercentages}
         />
 
-        <div className="quick-entry-cost-compact">
-          <span className="quick-entry-section-label">Participants</span>
-            <div className="quick-entry-allocation-mode">
-              {([
-                ['equal', 'Equal Split'],
-                ['preset_percentage', 'Preset Percentage'],
-                ['custom_percentage', 'Custom Percentage'],
-              ] as const).map(([value, label]) => {
-                const disabled = value === 'preset_percentage' && !targetTrip?.allocationRules?.percentages;
-                return <button key={value} type="button" disabled={disabled} onClick={() => setAllocationMode(value)} aria-pressed={allocationMode === value} className={`quick-entry-allocation-mode-button ${allocationMode === value ? 'is-selected' : ''} ${disabled ? 'is-disabled' : ''}`}>{label}</button>;
-              })}
-            </div>
-          {allocationMode === 'preset_percentage' && targetTrip?.allocationRules?.percentages && (
-            <div className="quick-entry-preset-info">
-              Using this journey's preset allocation:{Object.entries(targetTrip.allocationRules.percentages)
-                .filter(([id, percentage]) => members.some((member) => member.id === id) && Number(percentage) > 0)
-                .map(([id, percentage]) => `${members.find((member) => member.id === id)?.name ?? id} ${percentage}%`)
-                .join(' · ')}
-            </div>
-          )}
-          {allocationMode !== 'preset_percentage' && <div className="quick-entry-participants-grid">
-            {members.map((member) => {
-              const selected = selectedParticipants.has(member.id);
-              return (
-                <button key={member.id} type="button" onClick={() => toggleParticipant(member.id)} aria-pressed={selected} className={`quick-entry-participant-button ${selected ? 'is-selected' : ''}`}>
-                  {member.name}
-                  {allocationMode === 'custom_percentage' && selected && <span className="quick-entry-participant-percentage">{customPercentages[member.id] ?? 0}%</span>}
-                </button>
-              );
-            })}
-          </div>}
-          {allocationMode === 'custom_percentage' && (
-            <div className="quick-entry-custom-percentages">
-              {members.filter((member) => selectedParticipants.has(member.id)).map((member) => <label key={member.id} className="quick-entry-custom-percentage"><span>{member.name}</span><span className="quick-entry-custom-percentage-value"><input type="text" inputMode="decimal" value={customPercentages[member.id] ?? ''} onChange={(event) => { const raw = normalizePercentageInput(event.target.value); setCustomPercentages((previous) => ({ ...previous, [member.id]: raw === '' ? 0 : Number(raw) })); }} aria-label={`${member.name} percentage`} /><span>%</span></span></label>)}
-            </div>
-          )}
-        </div>
 
-        <div className="quick-entry-cost-compact">
-          <span>Include in Statistics</span>
-          <button type="button" role="switch" aria-checked={includeInCost} onClick={() => setIncludeInCost((value) => !value)} className={`quick-entry-cost-switch ${includeInCost ? 'is-on' : ''}`} aria-label={includeInCost ? 'Included in statistics, tap to exclude' : 'Excluded from statistics, tap to include'}>
-            <span />
-          </button>
-        </div>
 
-        <div className="quick-entry-submit-wrap">
-          {error && <div className="quick-entry-submit-error" role="alert" aria-live="assertive">{error}</div>}
-          <button type="submit" className="quick-entry-submit-button">{isEditing ? 'Save Changes' : 'Save Entry'}</button>
-          {isEditing && (
-            <button type="button" onClick={handleDeleteEntry} className="quick-entry-delete-button">
-              Delete Entry
-            </button>
-          )}
-        </div>
+        <QuickEntryStatisticsToggle
+          includeInCost={includeInCost}
+          setIncludeInCost={setIncludeInCost}
+        />
+
+        <QuickEntrySubmitSection
+          isEditing={isEditing}
+          error={error}
+          handleDeleteEntry={handleDeleteEntry}
+        />
         {success && typeof document !== 'undefined' && createPortal(
           <div className="quick-entry-success-backdrop" role="presentation">
             <div className="quick-entry-success-modal" role="status" aria-live="polite">
