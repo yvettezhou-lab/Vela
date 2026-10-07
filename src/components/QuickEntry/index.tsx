@@ -173,6 +173,7 @@ const QuickEntryContent: React.FC<QuickEntryProps> = ({ onClose, editTripId, ini
   );
 
   const evaluatedAmount = useMemo(() => evaluateAmountExpression(amount), [amount]);
+  const normalizedCurrency = currency.trim().toUpperCase();
   const isIncome = evaluatedAmount !== null && evaluatedAmount < 0;
   const isRefundCategory = categoryId === 'cat_refund';
   const visibleCategories = categories.filter((category) => isIncome ? (category.id === 'cat_income' || category.id === 'cat_refund') : category.id !== 'cat_income' && category.id !== 'cat_refund');
@@ -288,7 +289,6 @@ const QuickEntryContent: React.FC<QuickEntryProps> = ({ onClose, editTripId, ini
   }, [targetTrip]);
 
   useEffect(() => {
-    const normalizedCurrency = currency.trim().toUpperCase();
     cnyManualRef.current = false;
     if (!normalizedCurrency) {
       setFxRate(null);
@@ -318,7 +318,7 @@ const QuickEntryContent: React.FC<QuickEntryProps> = ({ onClose, editTripId, ini
       });
 
     return () => controller.abort();
-  }, [currency]);
+  }, [normalizedCurrency]);
 
   useEffect(() => {
     if (deferCny) return;
@@ -627,17 +627,17 @@ const QuickEntryContent: React.FC<QuickEntryProps> = ({ onClose, editTripId, ini
                 type="text"
                 inputMode="decimal"
                 value={cnyEquivalent}
-                readOnly={currency.trim().toUpperCase() === 'CNY'}
+                readOnly={normalizedCurrency === 'CNY'}
                 onCompositionStart={() => { cnyEquivalentComposingRef.current = true; }}
                 onCompositionEnd={(event) => {
                   cnyEquivalentComposingRef.current = false;
-                  if (currency.trim().toUpperCase() !== 'CNY') {
+                  if (normalizedCurrency !== 'CNY') {
                     cnyManualRef.current = true;
                     setCnyEquivalent(event.currentTarget.value);
                   }
                 }}
                 onChange={(event) => {
-                  if (currency.trim().toUpperCase() !== 'CNY') {
+                  if (normalizedCurrency !== 'CNY') {
                     cnyManualRef.current = true;
                     if (!cnyEquivalentComposingRef.current) setCnyEquivalent(event.currentTarget.value);
                   }
@@ -646,7 +646,7 @@ const QuickEntryContent: React.FC<QuickEntryProps> = ({ onClose, editTripId, ini
                 placeholder={deferCny ? 'Later' : (fxRate ? 'Auto' : 'Enter manually')}
                 aria-label="CNY Equivalent"
               />
-              {currency.trim().toUpperCase() !== 'CNY' && <button type="button" onClick={() => { setDeferCny(v => !v); if (!deferCny) setCnyEquivalent(''); }} className={`quick-entry-defer-cny ${deferCny ? 'is-deferred' : ''}`}>{deferCny ? '✓ Enter CNY later' : 'Enter CNY later'}</button>}
+              {normalizedCurrency !== 'CNY' && <button type="button" onClick={() => { setDeferCny(v => !v); if (!deferCny) setCnyEquivalent(''); }} className={`quick-entry-defer-cny ${deferCny ? 'is-deferred' : ''}`}>{deferCny ? '✓ Enter CNY later' : 'Enter CNY later'}</button>}
             </label>
           </div>
         )}
