@@ -174,6 +174,9 @@ const addMatchingPersonalLists = (
   trip: Trip,
   commonMembers: Member[],
 ): TripList[] => {
+  const existingNames = new Set(
+    lists.map((list) => list.name.trim().toLowerCase()),
+  );
   const tripMemberNames = new Set(
     (trip.members ?? [])
       .filter((member) => member.archived !== true)
@@ -188,20 +191,25 @@ const addMatchingPersonalLists = (
         tripMemberNames.has(member.name.trim().toLowerCase()),
     )
     .forEach((member) => {
+      const name = `${member.name} · Personal`;
+      const key = name.trim().toLowerCase();
+      if (existingNames.has(key)) return;
+
       const titles = member.personalListItems!
         .map((item) => item.trim())
         .filter(Boolean);
-      if (titles.length) {
-        lists.push(
-          makeListWithCompletion(
-            trip.id,
-            `${member.name} · Personal`,
-            titles,
-            lists.length,
-            lists,
-          ),
-        );
-      }
+      if (!titles.length) return;
+
+      lists.push(
+        makeListWithCompletion(
+          trip.id,
+          name,
+          titles,
+          lists.length,
+          lists,
+        ),
+      );
+      existingNames.add(key);
     });
 
   return lists;
@@ -349,14 +357,7 @@ export const dedupeTripLists = (lists: TripList[]): TripList[] => {
 
 export const ensureTripLists = (trip: Trip, commonMembers: Member[] = []): Trip => {
   let lists = trip.lists?.length ? dedupeTripLists(trip.lists) : createDefaultTripLists(trip, commonMembers);
-  const existingNames = new Set(lists.map((list) => list.name.trim().toLowerCase()));
-  const personalLists = addMatchingPersonalLists([], trip, commonMembers);
-  personalLists.forEach((list) => {
-    const name = list.name.trim().toLowerCase();
-    if (existingNames.has(name)) return;
-    lists = [...lists, { ...list, sortOrder: lists.length }];
-    existingNames.add(name);
-  });
+  lists = addMatchingPersonalLists(lists, trip, commonMembers);
   return trip.lists === lists ? trip : { ...trip, lists };
 };
 
