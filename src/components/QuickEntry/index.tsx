@@ -28,19 +28,17 @@ import {
   getNearestTrips,
   getRefundOptions,
   getTripDateBounds,
-  domesticTrip,
+  isDomesticTrip,
 } from './quickEntryHelpers';
 import { useVelaStore } from '../../store/useVelaStore';
 
 import './styles.css';
-import { AmountKeypad, evaluateAmountExpression } from './AmountKeypad';
+import { evaluateAmountExpression } from './AmountKeypad';
 import {
-  LEDGER_CURRENCIES,
   QuickEntryAmountSection,
   QuickEntryCnySection,
   QuickEntryRefundSection,
 } from './QuickEntryMoneySections';
-import { DatePicker } from './DatePicker';
 import {
   QuickEntrySegmentSwitchModal,
   QuickEntrySuccessModal,
@@ -97,7 +95,6 @@ const formatPaidTimestamp = (timestamp: number) => {
     : 'Select date & time';
 };
 
-const normalizePercentageInput = (value: string) => value.replace(/^0+(?=\d)/, '');
 const formatCny = (value: number) =>
   Number.isFinite(value) ? value.toFixed(2).replace(/\.00$/, '') : '';
 
