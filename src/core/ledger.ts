@@ -1,8 +1,22 @@
+
 import type { LedgerEntry } from './domain';
+
+/**
+ * Canonical signed impact of a ledger entry on financial totals.
+ * Expense is positive; income/refund is negative.
+ */
+export const getLedgerFinancialImpact = (entry: LedgerEntry): number =>
+  entry.entryDirection === 'income' ? -entry.cnyEquivalent : entry.cnyEquivalent;
+
+export const getLedgerOriginalAmountImpact = (entry: LedgerEntry): number =>
+  entry.entryDirection === 'income' ? -entry.originalAmount : entry.originalAmount;
 
 const isFiniteTimestamp = (value: unknown): value is number =>
   typeof value === 'number' && Number.isFinite(value);
 
+/**
+ * Canonical paid timestamp, with legacy fallbacks for older entries.
+ */
 export const getLedgerEntryPaidTimestamp = (entry: LedgerEntry): number => {
   if (isFiniteTimestamp(entry.paidAt)) return entry.paidAt;
 
