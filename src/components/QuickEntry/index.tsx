@@ -4,6 +4,7 @@ import { Calendar, ChevronLeft, ChevronRight, X } from 'lucide-react';
 import { useVelaStore } from '../../store/useVelaStore';
 import { TRANSPORT_CATEGORY_ID } from '../../core/validation';
 import { Allocation, AllocationMode, LedgerEntry, TravelSegment, TransportMode, TransportJourneyType } from '../../core/domain';
+import './styles.css';
 
 const generateId = () =>
   typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function'
