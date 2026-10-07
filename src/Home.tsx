@@ -1,6 +1,7 @@
 import React, { useMemo, useEffect } from 'react';
-import { ChevronRight, Plus, X } from 'lucide-react';
+import { ChevronRight, Plus } from 'lucide-react';
 import { Trip } from './core/domain';
+import { HomeJourneyCheck } from './HomeJourneyCheck';
 import { HomeTripCard } from './HomeTripCard';
 import { formatTripDate, getTripLocalSummary } from './homeHelpers';
 import { useVelaStore } from './store/useVelaStore';
@@ -87,23 +88,13 @@ export default function Home({ onNavigate, onCreateTrip, onManageTrips, onOpenLi
     <section className="vela-home-list"><div className="vela-list-heading"><span>PLANNING NEXT</span><button type="button" onClick={() => onNavigate('Ledger')}>View all <ChevronRight size={13} /></button></div><div className="vela-planning-stack">{planning.length ? planning.map((trip) => card(trip, true)) : <div className="vela-list-empty">YOUR NEXT JOURNEY AWAITS.</div>}</div></section>
     <section className="vela-home-list vela-recent-list"><div className="vela-list-heading"><span>RECENT JOURNEYS</span><button type="button" onClick={() => onNavigate('Logbook')}>View all <ChevronRight size={13} /></button></div>{recent.length ? recent.map((trip) => card(trip, true)) : <div className="vela-list-empty">NO COMPLETED JOURNEYS YET.</div>}</section>
   
-    {journeyCheckOpen && journeyTrip && <div className="vela-journey-check-backdrop" role="dialog" aria-modal="true" aria-label="Journey Check">
-      <div className="vela-journey-check-modal">
-        <button type="button" className="vela-journey-check-close" onClick={() => setJourneyCheckOpen(false)} aria-label="Close"><X size={17}/></button>
-        <small>JOURNEY CHECK</small>
-        <h2>出发前，把行程接起来。</h2>
-        <p>Vela 检查了各段目的地之间是否有交通衔接。没有记录的段落，可以现在指定方式，也可以稍后处理。</p>
-        <div className="vela-journey-check-list">
-          {activeJourneyIssues.map((issue) => <div className="vela-journey-check-item" key={issue.id}>
-            <strong>{issue.from} → {issue.to}</strong>
-            <span>这两站之间没有明确的行程衔接</span>
-            <div><button type="button" onClick={() => resolveJourneyIssue(issue.id, 'self_drive')}>🚗 自驾</button><button type="button" onClick={() => resolveJourneyIssue(issue.id, 'local_transport')}>🚕 当地交通</button><button type="button" onClick={() => resolveJourneyIssue(issue.id, 'later')}>⏳ 稍后</button></div>
-          </div>)}
-        </div>
-        {!activeJourneyIssues.length && <div className="vela-journey-check-done">✓ 行程衔接已经处理好了。</div>}
-        <button type="button" className="vela-journey-check-dismiss" onClick={() => setJourneyCheckOpen(false)}>先看看，不处理</button>
-      </div>
-    </div>}
+    {journeyCheckOpen && journeyTrip && (
+      <HomeJourneyCheck
+        issues={activeJourneyIssues}
+        onResolve={resolveJourneyIssue}
+        onClose={() => setJourneyCheckOpen(false)}
+      />
+    )}
   </main>;
   
 }
