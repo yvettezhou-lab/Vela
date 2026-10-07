@@ -1,4 +1,5 @@
 import React, { Component, ErrorInfo, ReactNode, useEffect, useMemo, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { X } from 'lucide-react';
 
 import { AllocationMode, LedgerEntry, TravelSegment, TransportMode, TransportJourneyType } from '../../core/domain';
@@ -60,13 +61,14 @@ const formatPaidTimestamp = (timestamp: number) => {
 };
 
 const normalizePercentageInput = (value: string) => value.replace(/^0+(?=\d)/, '');
-const formatCny = (value: number) => (Number.isFinite(value) ? value.toFixed(2).replace(/\.00$/, '') : '');export interface QuickEntryProps {
+const formatCny = (value: number) =>
+  Number.isFinite(value) ? value.toFixed(2).replace(/\.00$/, '') : '';
+
+export interface QuickEntryProps {
   onClose?: () => void;
   editTripId?: string;
   initialEntry?: LedgerEntry | null;
 }
-
-const LEDGER_CURRENCIES = ['CNY', 'MYR', 'SGD', 'THB', 'IDR', 'PHP', 'JPY', 'KRW', 'USD', 'EUR', 'GBP', 'AUD', 'HKD', 'ARS', 'AFN', 'ALL', 'DZD', 'BRL', 'KHR', 'CAD', 'CZK', 'DKK', 'EGP', 'HUF', 'ISK', 'INR', 'ILS', 'JOD', 'KZT', 'LAK', 'MVR', 'MXN', 'MNT', 'MAD', 'MMK', 'NPR', 'NZD', 'NOK', 'PLN', 'RUB', 'SAR', 'ZAR', 'TWD', 'LKR', 'SEK', 'CHF', 'TRY', 'AED', 'VND'];
 
 const QuickEntryContent: React.FC<QuickEntryProps> = ({ onClose, editTripId, initialEntry }) => {
   const trips = useVelaStore((state) => state.trips);
@@ -591,6 +593,7 @@ const QuickEntryContent: React.FC<QuickEntryProps> = ({ onClose, editTripId, ini
               )}
               <AmountKeypad value={amount} onChange={setAmount} />
             </div>
+          </div>
 
           <label className="quick-entry-primary-field">
             <span>{isIncome ? 'Who Received?' : 'Who Paid?'}</span>
