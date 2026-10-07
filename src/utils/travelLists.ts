@@ -286,7 +286,31 @@ export const ensureTripLists = (trip: Trip, commonMembers: Member[] = []): Trip 
 
 export const cloneList = (source: TripList, tripId: string, sortOrder: number, existingLists: TripList[] = []): TripList => {
   const t = now(); const listId = id();
-  const titles = filterDuplicateListItems(existingLists, source.items.slice().sort((a,b)=>a.sortOrder-b.sortOrder).map((item) => item.title)); return { id:listId, tripId, name:source.name, sortOrder, createdAt:t, updatedAt:t, items:titles.map((title,index)=>({ id:id(), listId, title, completed:false, sortOrder:index, createdAt:t, updatedAt:t })) };
+  const titles = filterDuplicateListItems(
+    existingLists,
+    source.items
+      .slice()
+      .sort((a, b) => a.sortOrder - b.sortOrder)
+      .map((item) => item.title),
+  );
+
+  return {
+    id: listId,
+    tripId,
+    name: source.name,
+    sortOrder,
+    createdAt: t,
+    updatedAt: t,
+    items: titles.map((title, index) => ({
+      id: id(),
+      listId,
+      title,
+      completed: false,
+      sortOrder: index,
+      createdAt: t,
+      updatedAt: t,
+    })),
+  };
 };
 
 export const listStats = (list: TripList) => ({ total:list.items.length, completed:list.items.filter(item=>item.completed).length });
