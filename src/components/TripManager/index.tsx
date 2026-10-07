@@ -132,7 +132,6 @@ const styles: Record<string, React.CSSProperties> = {
   container: { padding: 20, border: '1px solid #d7d4ca', borderRadius: 14, background: '#fff', color: '#172033', boxSizing: 'border-box' },
   searchField: { display: 'flex', alignItems: 'center', gap: 8, minHeight: 40, marginBottom: 20, padding: '0 10px', borderBottom: '1px solid #d7d4ca', boxSizing: 'border-box' },
   searchIcon: { fontSize: 18, lineHeight: 1, opacity: 0.48 },
-  searchFieldInput: {},
   clearSearch: { border: 0, background: 'transparent', padding: '4px 2px', color: '#62656b', cursor: 'pointer', fontSize: 18, lineHeight: 1 },
   searchEmpty: { padding: '8px 0 18px', color: '#7b7d82', fontSize: 13 },
   header: { display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 12, marginBottom: 18 }, eyebrow: { fontSize: 10, letterSpacing: '0.16em', opacity: 0.55 }, title: { margin: '3px 0 0', fontSize: 24 }, count: { fontSize: 12, opacity: 0.6 },
