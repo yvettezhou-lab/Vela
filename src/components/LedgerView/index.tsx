@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { ChevronDown, Pencil } from 'lucide-react';
 import { AllocationMode, LedgerEntry } from '../../core/domain';
+import { buildAllocationsByMode } from '../../core/allocation';
 import { findSegmentByDate, getTripEndDate, getTripStartDate } from '../../core/travelSegment';
 import { formatLedgerPaidTimestamp, getLedgerEntryPaidTimestamp, sortLedgerEntriesByPaidTimestamp } from '../../core/ledger';
 import { useVelaStore } from '../../store/useVelaStore';
@@ -315,45 +316,17 @@ export const LedgerView: React.FC = () => {
       return;
     }
 
-    let allocations: LedgerEntry['allocations'] = [];
-    if (editDraft.allocationMode === 'preset_percentage') {
-      const percentages = selectedTrip.allocationRules?.percentages ?? {};
-      const total = participantIds.reduce((sum, memberId) => sum + Number(percentages[memberId] ?? 0), 0);
-      if (Math.abs(total - 100) > 0.01) {
-        setEditError('This Journey preset allocation must total 100%.');
-        return;
-      }
-      allocations = participantIds.map((memberId) => ({ memberId, amount: 0, percentage: Number(percentages[memberId] ?? 0) }));
-    } else if (editDraft.allocationMode === 'custom_percentage') {
-      const percentages = Object.fromEntries(participantIds.map((memberId) => [memberId, Number(editDraft.percentages[memberId] ?? 0)]));
-      const total = participantIds.reduce((sum, memberId) => sum + Number(percentages[memberId] ?? 0), 0);
-      if (Math.abs(total - 100) > 0.01) {
-        setEditError('Custom percentages must total 100%.');
-        return;
-      }
-      allocations = participantIds.map((memberId) => ({ memberId, amount: 0, percentage: Number(percentages[memberId] ?? 0) }));
-    } else {
-      allocations = participantIds.map((memberId) => ({ memberId, amount: 0 }));
+    const percentages = editDraft.allocationMode === 'preset_percentage'
+      ? selectedTrip.allocationRules?.percentages ?? {}
+      : Object.fromEntries(participantIds.map((memberId) => [memberId, Number(editDraft.percentages[memberId] ?? 0)]));
+    const percentageTotal = participantIds.reduce((sum, memberId) => sum + Number(percentages[memberId] ?? 0), 0);
+    if (editDraft.allocationMode !== 'equal' && Math.abs(percentageTotal - 100) > 0.01) {
+      setEditError(editDraft.allocationMode === 'preset_percentage'
+        ? 'This Journey preset allocation must total 100%.'
+        : 'Custom percentages must total 100%.');
+      return;
     }
-
-    const totalCents = Math.round(cnyEquivalent * 100);
-    const baseCents = allocations.length ? Math.floor(totalCents / allocations.length) : 0;
-    const remainderCents = allocations.length ? totalCents - baseCents * allocations.length : 0;
-    if (editDraft.allocationMode === 'equal') {
-      allocations.forEach((allocation, index) => {
-        allocation.amount = (baseCents + (index < remainderCents ? 1 : 0)) / 100;
-      });
-    } else {
-      let usedCents = 0;
-      allocations.forEach((allocation, index) => {
-        const percentage = allocation.percentage ?? 0;
-        const amountCents = index === allocations.length - 1
-          ? totalCents - usedCents
-          : Math.floor(totalCents * percentage / 100);
-        allocation.amount = amountCents / 100;
-        usedCents += amountCents;
-      });
-    }
+    const allocations = buildAllocationsByMode(cnyEquivalent, participantIds, editDraft.allocationMode, percentages);
 
     try {
       updateLedgerEntry(selectedTrip.id, entry.id, {
