@@ -232,11 +232,17 @@ const QuickEntryContent: React.FC<QuickEntryProps> = ({ onClose, editTripId, ini
   const normalizedCurrency = currency.trim().toUpperCase();
   const isIncome = evaluatedAmount !== null && evaluatedAmount < 0;
   const isRefundCategory = categoryId === 'cat_refund';
-  const visibleCategories = categories.filter((category) => isIncome ? (category.id === 'cat_income' || category.id === 'cat_refund') : category.id !== 'cat_income' && category.id !== 'cat_refund');
+  const visibleCategories = categories.filter((category) =>
+    isIncome
+      ? category.id === 'cat_income' || category.id === 'cat_refund'
+      : category.id !== 'cat_income' && category.id !== 'cat_refund',
+  );
   const refundOptions = useMemo(() => {
     if (!targetTrip) return [];
     return targetTrip.ledger.filter((entry) => entry.entryDirection !== 'income' && !entry.isRefund).map((entry) => {
-      const refunded = targetTrip.ledger.filter((item) => item.isRefund && item.refundOf === entry.id).reduce((sum, item) => sum + item.cnyEquivalent, 0);
+      const refunded = targetTrip.ledger
+        .filter((item) => item.isRefund && item.refundOf === entry.id)
+        .reduce((sum, item) => sum + item.cnyEquivalent, 0);
       const current = initialEntry?.refundOf === entry.id ? initialEntry.cnyEquivalent : 0;
       return { entry, remaining: Math.max(0, entry.cnyEquivalent - refunded + current) };
     }).filter((item) => item.remaining > 0.001);
@@ -263,11 +269,24 @@ const QuickEntryContent: React.FC<QuickEntryProps> = ({ onClose, editTripId, ini
   }, [isIncome, categoryId, categories, refundOf]);
 
   const tripDateBounds = (() => {
-    if (!targetTrip?.segments?.length) return { minDate: undefined as string | undefined, maxDate: undefined as string | undefined };
+    if (!targetTrip?.segments?.length) {
+      return {
+        minDate: undefined as string | undefined,
+        maxDate: undefined as string | undefined,
+      };
+    }
     const starts = targetTrip.segments.map((segment) => segment.startDate).filter(Number.isFinite);
     const ends = targetTrip.segments.map((segment) => segment.endDate).filter(Number.isFinite);
-    if (!starts.length || !ends.length) return { minDate: undefined as string | undefined, maxDate: undefined as string | undefined };
-    return { minDate: toDateValue(new Date(Math.min(...starts))), maxDate: toDateValue(new Date(Math.max(...ends))) };
+    if (!starts.length || !ends.length) {
+      return {
+        minDate: undefined as string | undefined,
+        maxDate: undefined as string | undefined,
+      };
+    }
+    return {
+      minDate: toDateValue(new Date(Math.min(...starts))),
+      maxDate: toDateValue(new Date(Math.max(...ends))),
+    };
   })();
 
   useEffect(() => () => {
@@ -277,12 +296,24 @@ const QuickEntryContent: React.FC<QuickEntryProps> = ({ onClose, editTripId, ini
   useEffect(() => {
     if (!initialEntry || !targetTrip || targetTrip.id !== editTripId) return;
     setEntryType(initialEntry.entryType);
-    setAmount(String((initialEntry.entryDirection === 'income' || initialEntry.isRefund) ? -initialEntry.originalAmount : initialEntry.originalAmount));
+    setAmount(
+      String(
+        initialEntry.entryDirection === 'income' || initialEntry.isRefund
+          ? -initialEntry.originalAmount
+          : initialEntry.originalAmount,
+      ),
+    );
     cnyManualRef.current = true;
     setCurrency(initialEntry.originalCurrency);
     setCnyEquivalent(String(initialEntry.cnyEquivalent));
     setDeferCny(initialEntry.isPending);
-    setCategoryId(initialEntry.entryDirection === 'income' ? (initialEntry.isRefund ? 'cat_refund' : 'cat_income') : initialEntry.categoryId);
+    setCategoryId(
+      initialEntry.entryDirection === 'income'
+        ? initialEntry.isRefund
+          ? 'cat_refund'
+          : 'cat_income'
+        : initialEntry.categoryId,
+    );
     setRefundOf(initialEntry.refundOf ?? '');
     setIncludeInCost(initialEntry.includeInCost);
     setAccountId(initialEntry.accountId);
@@ -290,7 +321,14 @@ const QuickEntryContent: React.FC<QuickEntryProps> = ({ onClose, editTripId, ini
     setPayerId(initialEntry.payerId);
     setAllocationMode(initialEntry.allocationMode);
     setSelectedParticipants(new Set(initialEntry.allocations.map((allocation) => allocation.memberId)));
-    setCustomPercentages(Object.fromEntries(initialEntry.allocations.map((allocation) => [allocation.memberId, allocation.percentage ?? 0])));
+    setCustomPercentages(
+      Object.fromEntries(
+        initialEntry.allocations.map((allocation) => [
+          allocation.memberId,
+          allocation.percentage ?? 0,
+        ]),
+      ),
+    );
     const legacyPaidAt = initialEntry.paidAt
       ?? ('paymentDate' in initialEntry ? initialEntry.paymentDate : undefined)
       ?? ('outboundDate' in initialEntry ? initialEntry.outboundDate : undefined)
@@ -324,8 +362,16 @@ const QuickEntryContent: React.FC<QuickEntryProps> = ({ onClose, editTripId, ini
       setIncludeInCost(defaultCategory?.excludeFromStats !== true);
       return nextCategoryId;
     });
-    setAccountId((current) => current && accounts.some((account) => account.id === current) ? current : accounts[0]?.id ?? '');
-    setPayerId((current) => current && members.some((member) => member.id === current) ? current : members[0]?.id ?? '');
+    setAccountId((current) =>
+      current && accounts.some((account) => account.id === current)
+        ? current
+        : accounts[0]?.id ?? '',
+    );
+    setPayerId((current) =>
+      current && members.some((member) => member.id === current)
+        ? current
+        : members[0]?.id ?? '',
+    );
     const lastUsedCurrency = [...targetTrip.ledger]
       .sort((a, b) => b.createdAt - a.createdAt)
       .map((entry) => entry.originalCurrency?.trim().toUpperCase())
@@ -472,7 +518,16 @@ const QuickEntryContent: React.FC<QuickEntryProps> = ({ onClose, editTripId, ini
       if (isIncomeEntry && categoryId !== 'cat_income' && categoryId !== 'cat_refund') throw new Error('Income entries must use Income or Refund category.');
       if (!isIncomeEntry && (categoryId === 'cat_income' || categoryId === 'cat_refund')) throw new Error('Expense entries cannot use Income or Refund category.');
       if (categoryId === 'cat_refund' && !refundOf) throw new Error('Refund must be linked to an expense.');
-      if (categoryId === 'cat_refund' && !refundOptions.some((option) => option.entry.id === refundOf && cnyTotal <= option.remaining + 0.001)) throw new Error('Refund exceeds the remaining refundable amount.');
+      if (
+        categoryId === 'cat_refund' &&
+        !refundOptions.some(
+          (option) =>
+            option.entry.id === refundOf &&
+            cnyTotal <= option.remaining + 0.001,
+        )
+      ) {
+        throw new Error('Refund exceeds the remaining refundable amount.');
+      }
 
       const allocations = buildAllocations(cnyTotal);
       const paidAt = toPaidTimestamp(paidAtDate, paidAtTime);
@@ -514,7 +569,15 @@ const QuickEntryContent: React.FC<QuickEntryProps> = ({ onClose, editTripId, ini
           const returnTimestamp = toDateTimestamp(returnDate);
           if (!Number.isFinite(returnTimestamp)) throw new Error('Return date is required.');
           if (returnTimestamp < outbound) throw new Error('Return date cannot be before outbound date.');
-          finalEntry = { ...baseData, entryType: 'transport', transportMode, journeyType: 'round_trip', outboundDate: outbound, returnDate: returnTimestamp, paymentDate: paidDateOnly };
+          finalEntry = {
+            ...baseData,
+            entryType: 'transport',
+            transportMode,
+            journeyType: 'round_trip',
+            outboundDate: outbound,
+            returnDate: returnTimestamp,
+            paymentDate: paidDateOnly,
+          };
         } else {
           finalEntry = { ...baseData, entryType: 'transport', transportMode, journeyType: 'one_way', outboundDate: outbound, paymentDate: paidDateOnly };
         }
@@ -659,7 +722,7 @@ const QuickEntryContent: React.FC<QuickEntryProps> = ({ onClose, editTripId, ini
           />
         )}
 
-{entryType === 'transport' && (
+        {entryType === 'transport' && (
           <QuickEntryTransportSection
             transportMode={transportMode}
             journeyType={journeyType}
@@ -698,7 +761,6 @@ const QuickEntryContent: React.FC<QuickEntryProps> = ({ onClose, editTripId, ini
           toggleParticipant={toggleParticipant}
           setCustomPercentages={setCustomPercentages}
         />
-
 
 
         <QuickEntryStatisticsToggle
