@@ -3,7 +3,10 @@ import type {
   Trip,
   TripFinancialTotals,
 } from './domain';
-import { getLedgerFinancialImpact } from './ledger';
+import {
+  getLedgerFinancialImpact,
+  isLedgerEntryIncludedInCost,
+} from './ledger';
 
 export interface MemberBalance {
   memberId: string;
@@ -27,7 +30,7 @@ export const calculateFinancialTotals = (
 ): TripFinancialTotals =>
   ledger.reduce(
     (totals, entry) => {
-      if (!entry.includeInCost) return totals;
+      if (!isLedgerEntryIncludedInCost(entry)) return totals;
 
       const impact = getLedgerFinancialImpact(entry);
 
