@@ -1,37 +1,78 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import { Trip, TripStatus, Member, Account, Category, TripList } from '../core/domain';
-import { getDefaultCategories, getDefaultCommonAccounts, getDefaultTripAccounts } from '../core/defaults';
-import { DomainValidator, isRecord } from '../core/validation';
-import { migrateLegacyPlanToTrip } from '../core/legacyAdapter';
-import { getAutoStartTripId } from '../utils/tripLifecycle';
-import { refreshAutoTripTitles } from '../utils/tripTitle';
-import { findSegmentByDate, getLedgerEntryDate } from '../core/travelSegment';
-import { getLedgerEntryPaidTimestamp } from '../core/ledger';
-import { ensureTripLists, createDefaultTripLists, cloneList, createListFromTemplate, filterDuplicateListItems, listItemKey, TravelListTemplate } from '../utils/travelLists';
 
-const LEGACY_STORAGE_KEY = 'vela.plan.v1';
+import type {
+  Account,
+  Category,
+  Member,
+  Trip,
+  TripList,
+  TripStatus,
+} from '../core/domain';
+import { getDefaultCategories, getDefaultCommonAccounts, getDefaultTripAccounts } from '../core/defaults';
+import { migrateLegacyPlanToTrip } from '../core/legacyAdapter';
+import { getLedgerEntryPaidTimestamp } from '../core/ledger';
+import { findSegmentByDate, getLedgerEntryDate } from '../core/travelSegment';
+import { DomainValidator, isRecord } from '../core/validation';
+
+import { ensureTripLists, createDefaultTripLists, cloneList, createListFromTemplate, listItemKey } from '../utils/travelLists';
+import type { TravelListTemplate } from '../utils/travelLists';
+import { getAutoStartTripId } from '../utils/tripLifecycle';
+import { refreshAutoTriconst LEGACY_STORAGE_KEY = 'vela.plan.v1';
+
+// -----------------------------------------------------------------------------
+// Trip normalization
+// -----------------------------------------------------------------------------
+
 const withDefaultCategories = (trip: Trip): Trip => {
   const defaults = getDefaultCategories();
-  const categories = trip.categories.map((category) => category.id === 'cat_cash_exchange' ? { ...category, excludeFromStats: true } : category);
+  const categories = trip.categories.map((category) =>
+    category.id === 'cat_cash_exchange'
+      ? { ...category, excludeFromStats: true }
+      : category,
+  );
   const existing = new Set(categories.map((category) => category.id));
   const missing = defaults.filter((category) => !existing.has(category.id));
-  const mergedCategories = missing.length ? [...categories, ...missing] : categories;
-  const categoryById = new Map(mergedCategories.map((category) => [category.id, category]));
-  const ledger = trip.ledger.map((entry) => entry.includeInCost === undefined
-    ? { ...entry, includeInCost: categoryById.get(entry.categoryId)?.excludeFromStats !== true }
-    : entry);
-  return { ...trip, categories: mergedCategories, ledger }; 
+  const mergedCategories =
+    missing.length > 0 ? [...categories, ...missing] : categories;
+
+  const categoryById = new Map(
+    mergedCategories.map((category) => [category.id, category]),
+  );
+
+  const ledger = trip.ledger.map((entry) =>
+    entry.includeInCost === undefined
+      ? {
+          ...entry,
+          includeInCost:
+            categoryById.get(entry.categoryId)?.excludeFromStats !== true,
+        }
+      : entry,
+  );
+
+  return {
+    ...trip,
+    categories: mergedCategories,
+    ledger,
+  };
 };
+
 const withDefaultAccounts = (trip: Trip): Trip => ({
   ...trip,
-  accounts: trip.accounts.length > 0 ? trip.accounts : getDefaultTripAccounts(),
+  accounts:
+    trip.accounts.length > 0
+      ? trip.accounts
+      : getDefaultTripAccounts(),
 });
-const normalizeTrips = (trips: Trip[]): Trip[] => refreshAutoTripTitles(trips.map((rawTrip) => {
-  const trip = ensureTripLists(withDefaultAccounts(withDefaultCategories(rawTrip)));
-  const ledger = trip.ledger.map((entry) => {
-    const rawEntry = entry as unknown as Record<string, unknown>;
-    const normalizedEntry = rawEntry.entryType === 'flight'
+
+const normalizeLedgerEntry = (
+  trip: Trip,
+  entry: Trip['ledger'][number],
+): Trip['ledger'][number] => {
+  const rawEntry = entry as unknown as Record<string, unknown>;
+
+  const normalizedEntry =
+    rawEntry.entryType === 'flight'
       ? (() => {
           const { flightType, ...rest } = rawEntry;
           return {
@@ -42,46 +83,160 @@ const normalizeTrips = (trips: Trip[]): Trip[] => refreshAutoTripTitles(trips.ma
           } as unknown as Trip['ledger'][number];
         })()
       : entry;
-    const paidAt = getLedgerEntryPaidTimestamp(normalizedEntry);
-    const withCanonicalPaidAt = normalizedEntry.paidAt === paidAt ? normalizedEntry : { ...normalizedEntry, paidAt };
-    if (withCanonicalPaidAt.segmentId) return withCanonicalPaidAt;
-    const segment = findSegmentByDate(trip.segments, getLedgerEntryDate(withCanonicalPaidAt));
-    return segment ? { ...withCanonicalPaidAt, segmentId: segment.id } : withCanonicalPaidAt;
-  });
-  return { ...trip, ledger };
-}));
+
+  const paidAt = getLedgerEntryPaidTimestamp(normalizedEntry);
+  const withCanonicalPaidAt =
+    normalizedEntry.paidAt === paidAt
+      ? normalizedEntry
+      : { ...normalizedEntry, paidAt };
+
+  if (withCanonicalPaidAt.segmentId) {
+    return withCanonicalPaidAt;
+  }
+
+  const segment = findSegmentByDate(
+    trip.segments,
+    getLedgerEntryDate(withCanonicalPaidAt),
+  );
+
+  return segment
+    ? { ...withCanonicalPaidAt, segmentId: segment.id }
+    : withCanonicalPaidAt;
+};
+
+const normalizeTrip = (rawTrip: Trip): Trip => {
+  const trip = ensureTripLists(
+    withDefaultAccounts(withDefaultCategories(rawTrip)),
+  );
+
+  return {
+    ...trip,
+    ledger: trip.ledger.map((entry) => normalizeLedgerEntry(trip, entry)),
+  };
+};
+
+const normalizeTrips = (trips: Trip[]): Trip[] =>
+  refreshAutoTripTitles(trips.map(normalizeTrip));
+
+// -----------------------------------------------------------------------------
+// Persisted-state migration
+// -----------------------------------------------------------------------------
 
 const migratePersistedTrip = (rawTrip: unknown): Trip => {
-  if (!isRecord(rawTrip)) throw new Error('Persisted Trip is not an object');
-  if (Array.isArray(rawTrip.segments)) return rawTrip as unknown as Trip;
+  if (!isRecord(rawTrip)) {
+    throw new Error('Persisted Trip is not an object');
+  }
+
+  if (Array.isArray(rawTrip.segments)) {
+    return rawTrip as unknown as Trip;
+  }
 
   // V1.0 persisted trips used flat dates/currency/destination fields.
-  // Wrap those fields into the first TravelSegment while preserving the
-  // already-normalized ledger/member/account/category data byte-for-byte.
   const startDate = Number(rawTrip.startDate);
   const endDate = Number(rawTrip.endDate);
-  const currency = typeof rawTrip.localCurrency === 'string' ? rawTrip.localCurrency.trim() : '';
-  const destination = typeof rawTrip.destination === 'string' ? rawTrip.destination.trim() : '';
-  if (!Number.isFinite(startDate) || !Number.isFinite(endDate) || startDate > endDate || !currency) {
+  const currency =
+    typeof rawTrip.localCurrency === 'string'
+      ? rawTrip.localCurrency.trim()
+      : '';
+  const destination =
+    typeof rawTrip.destination === 'string'
+      ? rawTrip.destination.trim()
+      : '';
+
+  if (
+    !Number.isFinite(startDate) ||
+    !Number.isFinite(endDate) ||
+    startDate > endDate ||
+    !currency
+  ) {
     throw new Error('Persisted Trip has invalid legacy segment fields');
   }
 
   return DomainValidator.validateEntireTrip({
     ...rawTrip,
-    segments: [{
-      id: `${String(rawTrip.id)}-segment-1`,
-      destinations: destination ? [{ country: '', city: destination }] : [],
-      startDate,
-      endDate,
-      primaryCurrency: currency,
-    }],
+    segments: [
+      {
+        id: `${String(rawTrip.id)}-segment-1`,
+        destinations: destination
+          ? [{ country: '', city: destination }]
+          : [],
+        startDate,
+        endDate,
+        primaryCurrency: currency,
+      },
+    ],
   });
 };
 
 const migratePersistedState = (persistedState: unknown): unknown => {
-  if (!isRecord(persistedState) || !Array.isArray(persistedState.trips)) return persistedState;
+  if (
+    !isRecord(persistedState) ||
+    !Array.isArray(persistedState.trips)
+  ) {
+    return persistedState;
+  }
+
   const trips = persistedState.trips.map(migratePersistedTrip);
-  return { ...persistedState, trips };
+  return {
+    ...persistedState,
+    trips,
+  };
+};
+
+const migrateLegacyStorageIfNeeded = (currentTrips: Trip[]): Trip[] => {
+  if (
+    typeof window === 'undefined' ||
+    currentTrips.length > 0
+  ) {
+    return currentTrips;
+  }
+
+  const raw = window.localStorage.getItem(LEGACY_STORAGE_KEY);
+  if (!raw) return currentTrips;
+
+  let legacyData: unknown;
+
+  try {
+    legacyData = JSON.parse(raw);
+  } catch (error) {
+    console.error(
+      'Vela legacy migration skipped: invalid JSON.',
+      error,
+    );
+    return currentTrips;
+  }
+
+  try {
+    return [migrateLegacyPlanToTrip(legacyData)];
+  } catch (error) {
+    console.error(
+      'Vela legacy migration failed; legacy data remains untouched.',
+      error,
+    );
+    return currentTrips;
+  }
+};
+
+// -----------------------------------------------------------------------------
+// Master-data helpers
+// -----------------------------------------------------------------------------
+
+const replaceMasterData = (
+  trip: Trip,
+  type: MasterDataType,
+  id: string | null,
+  item: MasterDataItem,
+): Trip => {
+  const collection = trip[type];
+  const next = id
+    ? collection.map((entry) => (entry.id === id ? item : entry))
+    : [...collection, item];
+
+  return {
+    ...trip,
+    [type]: next,
+    updatedAt: Date.now(),
+  } as Trip;
 };
 
 export type MasterDataType = 'members' | 'categories' | 'accounts';
@@ -98,11 +253,23 @@ interface VelaState {
   updateTrip: (tripId: string, trip: Trip) => void;
   updateTripDates: (tripId: string, startDate: number, endDate: number) => void;
   evaluateAutoStart: (now?: number) => void;
+  // ---------------------------------------------------------------------------
+  // Ledger
+  // ---------------------------------------------------------------------------
+
   addLedgerEntry: (tripId: string, rawEntry: unknown) => void;
   updateLedgerEntry: (tripId: string, entryId: string, fullReconstructedEntry: unknown) => void;
   deleteLedgerEntry: (tripId: string, entryId: string) => void;
+  // ---------------------------------------------------------------------------
+  // Trip master data
+  // ---------------------------------------------------------------------------
+
   updateMasterData: (tripId: string, type: MasterDataType, id: string | null, item: MasterDataItem) => void;
   archiveMasterData: (tripId: string, type: MasterDataType, id: string) => void;
+  // ---------------------------------------------------------------------------
+  // Common master data management
+  // ---------------------------------------------------------------------------
+
   addCommonCategory: (name: string) => void;
   renameCommonCategory: (id: string, name: string) => void;
   deleteCommonCategory: (id: string) => void;
@@ -115,8 +282,16 @@ interface VelaState {
   addCommonAccount: (name: string) => void;
   renameCommonAccount: (id: string, name: string) => void;
   deleteCommonAccount: (id: string) => void;
+  // ---------------------------------------------------------------------------
+  // Current-trip lookup
+  // ---------------------------------------------------------------------------
+
   getCurrentTrip: () => Trip | null;
   addList: (tripId: string, name: string, source?: TripList) => void;
+  // ---------------------------------------------------------------------------
+  // Travel lists
+  // ---------------------------------------------------------------------------
+
   addListTemplate: (tripId: string, template: TravelListTemplate) => void;
   ensureTripListsForTrip: (tripId: string) => void;
   addListFromTrip: (targetTripId: string, sourceTripId: string, listIds: string[]) => void;
@@ -143,9 +318,16 @@ const replaceMasterData = (trip: Trip, type: MasterDataType, id: string | null, 
 export const useVelaStore = create<VelaState>()(persist((set, get) => ({
   trips: [],
   commonMembers: [],
+
+  // ---------------------------------------------------------------------------
+  // Common master data defaults
+  // ---------------------------------------------------------------------------
   commonCategories: getDefaultCategories(),
   commonAccounts: getDefaultCommonAccounts(),
-  addTrip: (rawTrip) => { const validated = DomainValidator.validateEntireTrip(rawTrip, get().trips); const tripWithLists = ensureTripLists(validated, get().commonMembers); const strictTrip = withDefaultAccounts(withDefaultCategories(tripWithLists)); const refreshedTrips = refreshAutoTripTitles([...get().trips, strictTrip]); set({ trips: refreshedTrips }); get().evaluateAutoStart(); },
+
+  // ---------------------------------------------------------------------------
+  // Trip lifecycle
+  // --------------------------------------------------------------------------- (rawTrip) => { const validated = DomainValidator.validateEntireTrip(rawTrip, get().trips); const tripWithLists = ensureTripLists(validated, get().commonMembers); const strictTrip = withDefaultAccounts(withDefaultCategories(tripWithLists)); const refreshedTrips = refreshAutoTripTitles([...get().trips, strictTrip]); set({ trips: refreshedTrips }); get().evaluateAutoStart(); },
   updateTrip: (tripId, trip) => { const trips = get().trips; if (!trips.some((item) => item.id === tripId)) throw new Error(`Store Error: Trip ${tripId} not found`); const strictTrip = ensureTripLists(DomainValidator.validateEntireTrip({ ...trip, id: tripId, updatedAt: Date.now() }, trips.filter((item) => item.id !== tripId)), get().commonMembers); const refreshedTrips = refreshAutoTripTitles(trips.map((item) => item.id === tripId ? strictTrip : item)); set({ trips: refreshedTrips }); },
   updateTripStatus: (tripId, newStatus) => { const trips = get().trips; const trip = trips.find((t) => t.id === tripId); if (!trip) throw new Error(`Store Error: Trip ${tripId} not found`); DomainValidator.validateTripStatus(trips, tripId, newStatus, trip.status); if (newStatus !== 'planning' && newStatus !== 'traveling' && newStatus !== 'achieve') throw new Error(`Store Error: Invalid status ${newStatus}`); set({ trips: trips.map((t) => t.id === tripId ? { ...t, status: newStatus as TripStatus, updatedAt: Date.now() } : t) }); },
   updateTripDates: (tripId, startDate, endDate) => { if (!Number.isFinite(startDate) || !Number.isFinite(endDate)) throw new Error('Store Error: Trip dates must be finite numbers'); if (startDate > endDate) throw new Error('Store Error: Start date cannot be after end date'); const trips = get().trips; const trip = trips.find((t) => t.id === tripId); if (!trip) throw new Error(`Store Error: Trip ${tripId} not found`); if (trip.segments.length === 0) throw new Error(`Store Error: Trip ${tripId} has no TravelSegment`); const updatedSegments = trip.segments.map((segment, index) => index === 0 ? { ...segment, startDate, endDate } : segment); const strictTrip = DomainValidator.validateEntireTrip({ ...trip, segments: updatedSegments, updatedAt: Date.now() }, trips.filter((t) => t.id !== tripId)); const refreshedTrips = refreshAutoTripTitles(trips.map((item) => item.id === tripId ? strictTrip : item)); set({ trips: refreshedTrips }); get().evaluateAutoStart(); },
@@ -231,7 +413,14 @@ export const useVelaStore = create<VelaState>()(persist((set, get) => ({
   },
   deleteListItem: (tripId,listId,itemId) => { const trips=get().trips; set({trips:trips.map(trip=>trip.id===tripId?{...trip,lists:trip.lists.map(list=>list.id===listId?{...list,items:list.items.filter(item=>item.id!==itemId).map((item,index)=>({...item,sortOrder:index})),updatedAt:Date.now()}:list),updatedAt:Date.now()}:trip)}); },
   getCurrentTrip: () => { const trips = get().trips; const traveling = trips.find((t) => t.status === 'traveling'); if (traveling) return traveling; return trips.filter((t) => t.status === 'planning').sort((a, b) => b.updatedAt - a.updatedAt)[0] ?? null; },
-}), { name: 'vela-core-v2', version: 1, migrate: (persistedState, _version) => {
+}), {
+  // ---------------------------------------------------------------------------
+  // Persistence and migration
+  // ---------------------------------------------------------------------------
+
+  name: 'vela-core-v2',
+  version: 1,
+  migrate: (persistedState, _version) => {
       const migrated = migratePersistedState(persistedState);
       if (!isRecord(migrated)) return migrated;
       const trips = Array.isArray(migrated.trips) ? migrated.trips as Trip[] : [];
@@ -245,8 +434,30 @@ export const useVelaStore = create<VelaState>()(persist((set, get) => ({
       const accountMap = new Map<string, Account>();
       for (const account of [...existingAccounts, ...trips.flatMap((trip) => trip.accounts)]) if (!accountMap.has(account.name.trim().toLowerCase())) accountMap.set(account.name.trim().toLowerCase(), { id: crypto.randomUUID(), name: account.name.trim() });
       return { ...migrated, commonMembers: [...memberMap.values()].filter((item) => item.name), commonCategories: [...categoryMap.values()].filter((item) => item.name), commonAccounts: [...accountMap.values()].filter((item) => item.name) };
-    }, onRehydrateStorage: () => (state, error) => { if (error || !state) return; const migratedTrips = migrateLegacyStorageIfNeeded(state.trips); const normalizedTrips = normalizeTrips(migratedTrips);
-      const members = state.commonMembers ?? [];
-      const accounts = state.commonAccounts?.length ? state.commonAccounts : Array.from(new Map(normalizedTrips.flatMap((trip) => trip.accounts).map((account) => [account.name.trim().toLowerCase(), { id: crypto.randomUUID(), name: account.name.trim() }])).values());
-      useVelaStore.setState({ trips: normalizedTrips, commonMembers: members, commonAccounts: accounts });
-      useVelaStore.getState().evaluateAutoStart(); } }));
+    },
+
+  onRehydrateStorage: () => (state, error) => { if (error || !state) return; const migratedTrips = migrateLegacyStorageIfNeeded(state.trips); const normalizedTrips = normalizeTrips(migratedTrips);
+    const members = state.commonMembers ?? [];
+    const accounts = state.commonAccounts?.length
+      ? state.commonAccounts
+      : Array.from(
+          new Map(
+            normalizedTrips
+              .flatMap((trip) => trip.accounts)
+              .map((account) => [
+                account.name.trim().toLowerCase(),
+                {
+                  id: crypto.randomUUID(),
+                  name: account.name.trim(),
+                },
+              ]),
+          ).values(),
+        );
+    useVelaStore.setState({
+      trips: normalizedTrips,
+      commonMembers: members,
+      commonAccounts: accounts,
+    });
+    useVelaStore.getState().evaluateAutoStart();
+  },
+}));
