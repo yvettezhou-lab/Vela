@@ -154,19 +154,58 @@ export const filterDuplicateListItems = (existingLists: TripList[], titles: stri
   return result;
 };
 
-const makeListWithCompletion = (tripId: string, name: string, titles: string[], sortOrder: number, existingLists: TripList[] = []): TripList => {
+const makeListWithCompletion = (
+  tripId: string,
+  name: string,
+  titles: string[],
+  sortOrder: number,
+  existingLists: TripList[] = [],
+): TripList => {
   const existingCompletion = new Map<string, boolean>();
-  existingLists.forEach((list) => list.items.forEach((item) => {
-    const key = listItemKey(item.title);
-    if (key && item.completed) existingCompletion.set(key, true);
-  }));
+
+  existingLists.forEach((list) => {
+    list.items.forEach((item) => {
+      const key = listItemKey(item.title);
+      if (key && item.completed) existingCompletion.set(key, true);
+    });
+  });
+
   const list = makeList(tripId, name, titles, sortOrder);
-  return { ...list, items: list.items.map((item) => ({ ...item, completed: existingCompletion.get(listItemKey(item.title)) === true })) };
+  return {
+    ...list,
+    items: list.items.map((item) => ({
+      ...item,
+      completed: existingCompletion.get(listItemKey(item.title)) === true,
+    })),
+  };
 };
 
-const makeList = (tripId: string, name: string, titles: string[], sortOrder: number): TripList => {
-  const t = now(); const listId = id();
-  return { id:listId, tripId, name, sortOrder, createdAt:t, updatedAt:t, items:titles.map((title,index) => ({ id:id(), listId:listId, title, completed:false, sortOrder:index, createdAt:t, updatedAt:t })) };
+const makeList = (
+  tripId: string,
+  name: string,
+  titles: string[],
+  sortOrder: number,
+): TripList => {
+  const t = now();
+  const listId = id();
+
+  return {
+    id: listId,
+    tripId,
+    name,
+    sortOrder,
+    createdAt: t,
+    updatedAt: t,
+    items: titles.map((title, index) => ({
+      id: id(),
+      listId,
+      title,
+      completed: false,
+      sortOrder: index,
+      createdAt: t,
+      updatedAt: t,
+    })),
+  };
 };
 
 export const isDomesticTrip = (trip: Trip): boolean => {
