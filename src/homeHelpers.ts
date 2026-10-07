@@ -1,5 +1,8 @@
 import { calculateFinancialTotals } from './core/calculations';
-import { getLedgerOriginalAmountImpact } from './core/ledger';
+import {
+  getLedgerOriginalAmountImpact,
+  isLedgerEntryIncludedInCost,
+} from './core/ledger';
 import {
   getTripEndDate,
   getTripPrimaryCurrency,
@@ -29,7 +32,7 @@ export const getTripDayCount = (trip: Trip) => {
 
 export const getTripLocalSummary = (trip: Trip) => {
   const statsLedger = trip.ledger.filter(
-    (entry) => entry.includeInCost && !entry.isPending,
+    isLedgerEntryIncludedInCost,
   );
   const local = statsLedger.reduce(
     (sum, entry) => sum + getLedgerOriginalAmountImpact(entry),
