@@ -801,7 +801,6 @@
 
 
 /* Quick Entry — single component-owned control source. */
-.vela-entry-route .vela-quick-fullscreen form { display:flex !important; flex-direction:column !important; justify-content:flex-start !important; align-items:stretch !important; width:100% !important; min-height:0 !important; margin:0 !important; padding-top:0 !important; gap:0 !important; }
 .vela-entry-route .vela-quick-fullscreen form.quick-entry-form{
   display:flex!important;
   flex:1 1 auto!important;
@@ -816,13 +815,6 @@
   box-sizing:border-box!important;
   padding:0 20px calc(180px + env(safe-area-inset-bottom))!important;
 }
-.vela-quick-fullscreen{
-  --quick-entry-control-height:48px;
-  --quick-entry-control-radius:12px;
-  --quick-entry-label-gap:5px;
-  --quick-entry-label-font-size:9px;
-  --quick-entry-label-letter-spacing:.12em;
-}
 .vela-entry-route .vela-quick-fullscreen{
   width:min(100%,640px)!important;
   height:100dvh!important;
@@ -834,9 +826,4 @@
   color:var(--vela-ink)!important;
 }
 
-.vela-quick-fullscreen .primary{background:var(--vela-primary)!important;color:#fff!important}.vela-quick-fullscreen .secondary{background:#eef0f1!important;color:var(--vela-ink)!important}
-.vela-quick-backdrop{background:rgba(23,33,43,.24)!important;backdrop-filter:blur(3px)!important}
-.vela-quick-sheet{background:var(--vela-surface)!important;border:1px solid var(--vela-line)!important;border-radius:var(--vela-radius-lg) var(--vela-radius-lg) 0 0!important;box-shadow:0 -12px 40px rgba(23,33,43,.12)!important}
-.vela-quick-fullscreen{width:min(100%,640px)!important;height:100dvh!important;max-height:100dvh!important;overflow:hidden!important;display:flex!important;flex-direction:column!important}
-.vela-quick-fullscreen > *{flex:1 1 auto!important;min-height:0!important;width:100%!important;max-width:none!important;height:100%!important;margin:0!important;border-radius:0!important;display:flex!important;flex-direction:column!important}
 /* Redundant generic fullscreen-form rules removed: Quick Entry form ownership is above. */
