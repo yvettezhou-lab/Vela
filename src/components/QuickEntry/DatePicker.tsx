@@ -107,14 +107,6 @@ export const DatePicker: React.FC<DatePickerProps> = ({ value, onChange, label, 
       {open && (
         <div className="trip-date-popover" role="dialog" aria-label={`${label} calendar`}>
           <div className="trip-date-month">
-      <button
-        type="button"
-        className={`trip-date-trigger${open ? ' is-open' : ''}`}
-        onClick={openPicker}
-        aria-expanded={open}
-        aria-haspopup="dialog"
-      >
-            <strong>{viewMonth.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}</strong>
             <button
               type="button"
               onClick={() =>
@@ -125,6 +117,18 @@ export const DatePicker: React.FC<DatePickerProps> = ({ value, onChange, label, 
               aria-label="Previous month"
             >
               <ChevronLeft size={18} />
+            </button>
+            <strong>{viewMonth.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}</strong>
+            <button
+              type="button"
+              onClick={() =>
+                setViewMonth(
+                  new Date(viewMonth.getFullYear(), viewMonth.getMonth() + 1, 1),
+                )
+              }
+              aria-label="Next month"
+            >
+              <ChevronRight size={18} />
             </button>
           </div>
           <div className="trip-date-week">
