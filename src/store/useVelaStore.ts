@@ -43,6 +43,22 @@ const mapTrip = (
   updater: (trip: Trip) => Trip,
 ): Trip[] => trips.map((trip) => (trip.id === tripId ? updater(trip) : trip));
 
+const collectUniqueMasterData = <T extends { name: string }, R extends { name: string }>(
+  items: T[],
+  createItem: (item: T) => R,
+): R[] => {
+  const map = new Map<string, R>();
+
+  for (const item of items) {
+    const key = item.name.trim().toLowerCase();
+    if (!map.has(key)) {
+      map.set(key, createItem(item));
+    }
+  }
+
+  return [...map.values()].filter((item) => item.name);
+};
+
 
 // -----------------------------------------------------------------------------
 // Trip normalization
@@ -1267,22 +1283,58 @@ export const useVelaStore = create<VelaState>()(persist((set, get) => ({
   name: 'vela-core-v2',
   version: 1,
   migrate: (persistedState, _version) => {
-      const migrated = migratePersistedState(persistedState);
-      if (!isRecord(migrated)) return migrated;
-      const trips = Array.isArray(migrated.trips) ? migrated.trips as Trip[] : [];
-      const existingMembers = isRecord(migrated) && Array.isArray(migrated.commonMembers) ? migrated.commonMembers as Member[] : [];
-      const existingCategories = isRecord(migrated) && Array.isArray(migrated.commonCategories) ? migrated.commonCategories as Category[] : [];
-      const existingAccounts = isRecord(migrated) && Array.isArray(migrated.commonAccounts) ? migrated.commonAccounts as Account[] : [];
-      const memberMap = new Map<string, Member>();
-      for (const member of [...existingMembers, ...trips.flatMap((trip) => trip.members)]) if (!memberMap.has(member.name.trim().toLowerCase())) memberMap.set(member.name.trim().toLowerCase(), { id: crypto.randomUUID(), name: member.name.trim() });
-      const categoryMap = new Map<string, Category>();
-      for (const category of [...existingCategories, ...trips.flatMap((trip) => trip.categories)]) if (!categoryMap.has(category.name.trim().toLowerCase())) categoryMap.set(category.name.trim().toLowerCase(), { ...category, id: category.id || crypto.randomUUID(), name: category.name.trim() });
-      const accountMap = new Map<string, Account>();
-      for (const account of [...existingAccounts, ...trips.flatMap((trip) => trip.accounts)]) if (!accountMap.has(account.name.trim().toLowerCase())) accountMap.set(account.name.trim().toLowerCase(), { id: crypto.randomUUID(), name: account.name.trim() });
-      return { ...migrated, commonMembers: [...memberMap.values()].filter((item) => item.name), commonCategories: [...categoryMap.values()].filter((item) => item.name), commonAccounts: [...accountMap.values()].filter((item) => item.name) };
-    },
+    const migrated = migratePersistedState(persistedState);
+    if (!isRecord(migrated)) return migrated;
 
-  onRehydrateStorage: () => (state, error) => { if (error || !state) return; const migratedTrips = migrateLegacyStorageIfNeeded(state.trips); const normalizedTrips = normalizeTrips(migratedTrips);
+    const trips = Array.isArray(migrated.trips)
+      ? (migrated.trips as Trip[])
+      : [];
+    const existingMembers = Array.isArray(migrated.commonMembers)
+      ? (migrated.commonMembers as Member[])
+      : [];
+    const existingCategories = Array.isArray(migrated.commonCategories)
+      ? (migrated.commonCategories as Category[])
+      : [];
+    const existingAccounts = Array.isArray(migrated.commonAccounts)
+      ? (migrated.commonAccounts as Account[])
+      : [];
+
+    const commonMembers = collectUniqueMasterData(
+      [...existingMembers, ...trips.flatMap((trip) => trip.members)],
+      (member) => ({
+        id: crypto.randomUUID(),
+        name: member.name.trim(),
+      }),
+    );
+    const commonCategories = collectUniqueMasterData(
+      [...existingCategories, ...trips.flatMap((trip) => trip.categories)],
+      (category) => ({
+        ...category,
+        id: category.id || crypto.randomUUID(),
+        name: category.name.trim(),
+      }),
+    );
+    const commonAccounts = collectUniqueMasterData(
+      [...existingAccounts, ...trips.flatMap((trip) => trip.accounts)],
+      (account) => ({
+        id: crypto.randomUUID(),
+        name: account.name.trim(),
+      }),
+    );
+
+    return {
+      ...migrated,
+      commonMembers,
+      commonCategories,
+      commonAccounts,
+    };
+  },
+
+  onRehydrateStorage: () => (state, error) => {
+    if (error || !state) return;
+
+    const migratedTrips = migrateLegacyStorageIfNeeded(state.trips);
+    const normalizedTrips = normalizeTrips(migratedTrips);
     const members = state.commonMembers ?? [];
     const accounts = state.commonAccounts?.length
       ? state.commonAccounts
