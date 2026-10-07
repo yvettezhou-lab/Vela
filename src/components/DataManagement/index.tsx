@@ -1,9 +1,9 @@
 import { useRef, useState, type ChangeEvent } from 'react';
 import { Database, Download, Upload } from 'lucide-react';
-import { DomainValidator } from '../../core/validation';
-import { getDefaultCategories, getDefaultCommonAccounts, getDefaultTripAccounts } from '../../core/defaults';
-import { useVelaStore } from '../../store/useVelaStore';
 import type { Account, Member, Trip } from '../../core/domain';
+import { getDefaultCategories, getDefaultCommonAccounts, getDefaultTripAccounts } from '../../core/defaults';
+import { DomainValidator } from '../../core/validation';
+import { useVelaStore } from '../../store/useVelaStore';
 import { ensureTripLists } from '../../utils/travelLists';
 import './dataManagement.css';
 
@@ -19,6 +19,7 @@ type ExportPayload = {
 const isRecord = (value: unknown): value is Record<string, unknown> =>
   typeof value === 'object' && value !== null && !Array.isArray(value);
 
+// Import normalization uses the same trip defaults as the store.
 const normalizeTrip = (trip: Trip): Trip => ensureTripLists({
   ...trip,
   categories: trip.categories.length > 0 ? trip.categories : getDefaultCategories(),
