@@ -17,6 +17,7 @@ import type {
 import {
   findSegmentByDate,
   getLedgerEntryDate,
+  toDayStart,
   validateLedgerEntryDates,
 } from './travelSegment';
 
@@ -186,13 +187,8 @@ const parseSegments = (raw: unknown): TravelSegment[] => {
   }
 
   const ordered = [...segments].sort((a, b) => a.startDate - b.startDate);
-  const dayStart = (timestamp: number) => {
-    const date = new Date(timestamp);
-    return new Date(date.getFullYear(), date.getMonth(), date.getDate()).getTime();
-  };
-
   for (let index = 1; index < ordered.length; index += 1) {
-    if (dayStart(ordered[index].startDate) < dayStart(ordered[index - 1].endDate)) {
+    if (toDayStart(ordered[index].startDate) < toDayStart(ordered[index - 1].endDate)) {
       throw new Error(
         `Domain Violation: TravelSegment date ranges cannot overlap (${ordered[index - 1].id} and ${ordered[index].id})`,
       );
