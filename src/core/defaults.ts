@@ -1,4 +1,4 @@
-import { Account, Category } from './domain';
+import type { Account, Category } from './domain';
 
 export const DEFAULT_CATEGORIES: Category[] = [
   { id: 'cat_food', name: 'Food', type: 'expense' },
