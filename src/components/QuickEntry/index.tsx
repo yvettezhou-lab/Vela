@@ -633,8 +633,8 @@ const QuickEntryContent: React.FC<QuickEntryProps> = ({ onClose, editTripId, ini
 
           <label className="quick-entry-primary-field">
             <span>{isIncome ? 'Who Received?' : 'Who Paid?'}</span>
-            <select value={payerId} onChange={(event) => setPayerId(event.target.value)} aria-label="Who Paid?">
-              {payerFrequency.map((member) => <option key={member.id} value={member.id}>{member.name}</option>)}
+            <select value={payerId} onChange={(event) => setPayerId(event.target.value)} aria-label={isIncome ? "Who Received?" : "Who Paid?"}>
+              {payerOptions.map((member) => <option key={member.id} value={member.id}>{member.name}</option>)}
             </select>
           </label>
 
