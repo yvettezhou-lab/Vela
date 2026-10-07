@@ -88,7 +88,21 @@ export const DatePicker: React.FC<DatePickerProps> = ({ value, onChange, label, 
   };
 
   return (
-    <div ref={pickerRef} className={`trip-date-picker quick-entry-date-picker${label === 'Return' || label === 'Usage End' ? ' quick-entry-date-picker-end' : ''}${label === 'Usage Start' || label === 'Usage End' ? ' quick-entry-date-picker-above' : ''}`}>
+    <div
+      ref={pickerRef}
+      className={[
+        'trip-date-picker',
+        'quick-entry-date-picker',
+        label === 'Return' || label === 'Usage End'
+          ? 'quick-entry-date-picker-end'
+          : '',
+        label === 'Usage Start' || label === 'Usage End'
+          ? 'quick-entry-date-picker-above'
+          : '',
+      ]
+        .filter(Boolean)
+        .join(' ')}
+    >
       <span>{label}</span>
       <button type="button" className={`trip-date-trigger${open ? ' is-open' : ''}`} onClick={openPicker} aria-expanded={open} aria-haspopup="dialog">
         <Calendar size={15} />
@@ -114,7 +128,21 @@ export const DatePicker: React.FC<DatePickerProps> = ({ value, onChange, label, 
               const isToday = dateValue === today;
               const outOfRange = (minDate && dateValue < minDate) || (maxDate && dateValue > maxDate);
               return (
-                <button key={dateValue} type="button" onClick={() => !outOfRange && chooseDate(date)} disabled={Boolean(outOfRange)} aria-label={dateValue} aria-pressed={selected} className={`trip-date-day ${selected ? 'selected' : isToday ? 'today' : ''}${outOfRange ? ' disabled' : ''}`}>
+                <button
+                  key={dateValue}
+                  type="button"
+                  onClick={() => !outOfRange && chooseDate(date)}
+                  disabled={Boolean(outOfRange)}
+                  aria-label={dateValue}
+                  aria-pressed={selected}
+                  className={[
+                    'trip-date-day',
+                    selected ? 'selected' : isToday ? 'today' : '',
+                    outOfRange ? 'disabled' : '',
+                  ]
+                    .filter(Boolean)
+                    .join(' ')}
+                >
                   {date.getDate()}
                 </button>
               );
