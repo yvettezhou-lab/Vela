@@ -341,7 +341,18 @@ export const useVelaStore = create<VelaState>()(persist((set, get) => ({
   // ---------------------------------------------------------------------------
   // Trip lifecycle
   // ---------------------------------------------------------------------------
-  addTrip: (rawTrip) => {  addLedgerEntry: (tripId, rawEntry) => {
+  addTrip: (rawTrip) => {
+    const validated = DomainValidator.validateEntireTrip(rawTrip, get().trips);
+    const tripWithLists = ensureTripLists(validated, get().commonMembers);
+    const strictTrip = withDefaultAccounts(withDefaultCategories(tripWithLists));
+    const refreshedTrips = refreshAutoTripTitles([
+      ...get().trips,
+      strictTrip,
+    ]);
+    set({ trips: refreshedTrips });
+    get().evaluateAutoStart();
+  },
+  addLedgerEntry: (tripId, rawEntry) => {
     const trips = get().trips;
     const tripIndex = trips.findIndex((item) => item.id === tripId);
     if (tripIndex === -1) {
