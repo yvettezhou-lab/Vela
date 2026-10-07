@@ -24,7 +24,10 @@ const dayStart = (timestamp: number) => {
   ).getTime();
 };
 
-export const getJourneyCheckCheckpoint = (trip: Trip, now = Date.now()): JourneyCheckCheckpoint | null => {
+export const getJourneyCheckCheckpoint = (
+  trip: Trip,
+  now = Date.now(),
+): JourneyCheckCheckpoint | null => {
   if (trip.status === 'achieve' || !trip.segments.length) return null;
   const days = Math.ceil((dayStart(getTripStartDate(trip)) - dayStart(now)) / 86400000);
   if (days <= 1 && days >= 0) return '1d';
@@ -49,7 +52,13 @@ export const getJourneyCheckIssues = (trip: Trip): JourneyCheckIssue[] => {
   for (let i = 0; i < stops.length - 1; i++) {
     const from = stops[i];
     const to = stops[i + 1];
-    if (!from.label || !to.label || from.label.trim().toLowerCase() === to.label.trim().toLowerCase()) continue;
+    if (
+      !from.label ||
+      !to.label ||
+      from.label.trim().toLowerCase() === to.label.trim().toLowerCase()
+    ) {
+      continue;
+    }
     issues.push({
       id: `route:${from.segmentId}:${to.segmentId}:${i}`,
       from: from.label,
@@ -98,16 +107,26 @@ export const setJourneyCheckResolution = (
     },
   },
 });
-export const getTravelingDailyCheckpoint = (trip: Trip, now = Date.now()): JourneyCheckCheckpoint | null => {
+export const getTravelingDailyCheckpoint = (
+  trip: Trip,
+  now = Date.now(),
+): JourneyCheckCheckpoint | null => {
   if (trip.status !== 'traveling' || !trip.segments.length) return null;
   const today = new Date(now);
   const hour = today.getHours();
-  if (hour >= 6 && hour < 12) return `traveling:${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}:morning`;
-  if (hour >= 20) return `traveling:${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}:evening`;
+  if (hour >= 6 && hour < 12) {
+    return `traveling:${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}:morning`;
+  }
+  if (hour >= 20) {
+    return `traveling:${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}:evening`;
+  }
   return null;
 };
 
-export const getUnresolvedFutureJourneyIssues = (trip: Trip, now = Date.now()): JourneyCheckIssue[] => {
+export const getUnresolvedFutureJourneyIssues = (
+  trip: Trip,
+  now = Date.now(),
+): JourneyCheckIssue[] => {
   const today = dayStart(now);
   return getJourneyCheckIssues(trip).filter((issue) =>
     dayStart(issue.toDate) >= today &&
