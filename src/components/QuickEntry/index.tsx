@@ -2,10 +2,20 @@ import React, { Component, ErrorInfo, ReactNode, useEffect, useMemo, useRef, use
 import { createPortal } from 'react-dom';
 import { X } from 'lucide-react';
 
-import { AllocationMode, LedgerEntry, TravelSegment, TransportMode, TransportJourneyType } from '../../core/domain';
+import {
+  AllocationMode,
+  LedgerEntry,
+  TravelSegment,
+  TransportJourneyType,
+  TransportMode,
+} from '../../core/domain';
 import { buildAllocationsByMode } from '../../core/allocation';
 import { TRANSPORT_CATEGORY_ID } from '../../core/validation';
-import { getSegmentsByDate, getLedgerEntryDate, getTripPrimaryCurrency } from '../../core/travelSegment';
+import {
+  getLedgerEntryDate,
+  getSegmentsByDate,
+  getTripPrimaryCurrency,
+} from '../../core/travelSegment';
 import { useVelaStore } from '../../store/useVelaStore';
 
 import './styles.css';
@@ -17,7 +27,57 @@ const generateId = () =>
     ? crypto.randomUUID()
     : `entry_${Math.random().toString(36).slice(2, 11)}`;
 
-const LEDGER_CURRENCIES = ['CNY', 'MYR', 'SGD', 'THB', 'IDR', 'PHP', 'JPY', 'KRW', 'USD', 'EUR', 'GBP', 'AUD', 'HKD', 'ARS', 'AFN', 'ALL', 'DZD', 'BRL', 'KHR', 'CAD', 'CZK', 'DKK', 'EGP', 'HUF', 'ISK', 'INR', 'ILS', 'JOD', 'KZT', 'LAK', 'MVR', 'MXN', 'MNT', 'MAD', 'MMK', 'NPR', 'NZD', 'NOK', 'PLN', 'RUB', 'SAR', 'ZAR', 'TWD', 'LKR', 'SEK', 'CHF', 'TRY', 'AED', 'VND'];
+const LEDGER_CURRENCIES = [
+  'CNY',
+  'MYR',
+  'SGD',
+  'THB',
+  'IDR',
+  'PHP',
+  'JPY',
+  'KRW',
+  'USD',
+  'EUR',
+  'GBP',
+  'AUD',
+  'HKD',
+  'ARS',
+  'AFN',
+  'ALL',
+  'DZD',
+  'BRL',
+  'KHR',
+  'CAD',
+  'CZK',
+  'DKK',
+  'EGP',
+  'HUF',
+  'ISK',
+  'INR',
+  'ILS',
+  'JOD',
+  'KZT',
+  'LAK',
+  'MVR',
+  'MXN',
+  'MNT',
+  'MAD',
+  'MMK',
+  'NPR',
+  'NZD',
+  'NOK',
+  'PLN',
+  'RUB',
+  'SAR',
+  'ZAR',
+  'TWD',
+  'LKR',
+  'SEK',
+  'CHF',
+  'TRY',
+  'AED',
+  'VND',
+];
 
 const toDateTimestamp = (value: string) => {
   const timestamp = new Date(`${value}T00:00:00`).getTime();
