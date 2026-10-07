@@ -1,10 +1,11 @@
 import { Trip, LedgerEntry, TripFinancialTotals } from './domain';
+import { getLedgerFinancialImpact } from './ledger';
 export interface MemberBalance { memberId: string; paid: number; owed: number; net: number; }
 export interface SettlementTransaction { fromMemberId: string; toMemberId: string; amount: number; }
 export const calculateFinancialTotals = (ledger: LedgerEntry[]): TripFinancialTotals =>
   ledger.reduce((totals, entry) => {
     if (!entry.includeInCost) return totals;
-    const impact = entry.entryDirection === 'income' ? -entry.cnyEquivalent : entry.cnyEquivalent;
+    const impact = getLedgerFinancialImpact(entry);
     if (entry.isPending) totals.pendingAmount += impact; else totals.financialTotal += impact;
     return totals;
   }, { financialTotal: 0, settledAmount: 0, pendingAmount: 0 });
