@@ -824,5 +824,6 @@
   background:var(--vela-bg)!important;
   color:var(--vela-ink)!important;
 }
+.vela-entry-route .vela-quick-fullscreen .vela-quick-close{display:none!important}
 
 /* Redundant generic fullscreen-form rules removed: Quick Entry form ownership is above. */
