@@ -140,10 +140,13 @@ const QuickEntryContent: React.FC<QuickEntryProps> = ({ onClose, editTripId, ini
   }, [activeAccounts, targetTrip]);
   const activeMembers = targetTrip?.members?.filter((member) => member.archived !== true) ?? [];
   const members = activeMembers;
-  const payerFrequency = useMemo(() => {
-    const counts = new Map<string, number>();
-    trips.forEach((trip) => (trip.ledger ?? []).forEach((entry) => counts.set(entry.payerId, (counts.get(entry.payerId) ?? 0) + 1)));
-    return [...members].sort((a, b) => (counts.get(b.id) ?? 0) - (counts.get(a.id) ?? 0));
+  const payerOptions = useMemo(() => {
+    const lastUsedAt = new Map<string, number>();
+    trips.forEach((trip) => (trip.ledger ?? []).forEach((entry) => {
+      if (!entry.payerId) return;
+      lastUsedAt.set(entry.payerId, Math.max(lastUsedAt.get(entry.payerId) ?? 0, entry.createdAt ?? 0));
+    }));
+    return [...members].sort((a, b) => (lastUsedAt.get(b.id) ?? 0) - (lastUsedAt.get(a.id) ?? 0));
   }, [members, trips]);
   const categories = (() => {
     const tripCategories = targetTrip?.categories?.filter((category) => category.archived !== true) ?? [];
