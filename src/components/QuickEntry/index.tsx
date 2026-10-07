@@ -17,12 +17,7 @@ import {
   TransportMode,
 } from '../../core/domain';
 import { buildAllocationsByMode } from '../../core/allocation';
-import { TRANSPORT_CATEGORY_ID } from '../../core/validation';
-import {
-  getLedgerEntryDate,
-  getSegmentsByDate,
-  getTripPrimaryCurrency,
-} from '../../core/travelSegment';
+import { getTripPrimaryCurrency } from '../../core/travelSegment';
 import {
   getLastUsedIds,
   getNearestTrips,
@@ -48,11 +43,12 @@ import {
   QuickEntryPrepaidSection,
   QuickEntryTransportSection,
 } from './QuickEntrySections';
-
-const generateId = () =>
-  typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function'
-    ? crypto.randomUUID()
-    : `entry_${Math.random().toString(36).slice(2, 11)}`;
+import {
+  buildQuickEntryBaseData,
+  buildQuickEntry,
+  generateEntryId,
+  getSegmentHandoff,
+} from './quickEntrySubmission';
 
 const toDateTimestamp = (value: string) => {
   const timestamp = new Date(`${value}T00:00:00`).getTime();
@@ -467,19 +463,49 @@ const QuickEntryContent: React.FC<QuickEntryProps> = ({ onClose, editTripId, ini
   const handleSubmit = (event: React.FormEvent) => {
     event.preventDefault();
     setError(null);
+
     try {
       const rawAmount = evaluateAmountExpression(amount);
       const isIncomeEntry = rawAmount !== null && rawAmount < 0;
       const originalAmount = rawAmount === null ? null : Math.abs(rawAmount);
-      const cnyTotal = deferCny ? 0 : (cnyEquivalent === '' ? originalAmount : Math.abs(Number(cnyEquivalent)));
-      if (originalAmount === null || !Number.isFinite(originalAmount) || originalAmount <= 0) throw new Error('Amount must be a valid non-zero amount.');
-      if (!deferCny && (!Number.isFinite(cnyTotal) || cnyTotal <= 0)) throw new Error('CNY Equivalent must be greater than 0.');
+      const cnyTotal =
+        deferCny
+          ? 0
+          : cnyEquivalent === ''
+            ? originalAmount
+            : Math.abs(Number(cnyEquivalent));
+
+      if (
+        originalAmount === null ||
+        !Number.isFinite(originalAmount) ||
+        originalAmount <= 0
+      ) {
+        throw new Error('Amount must be a valid non-zero amount.');
+      }
+      if (!deferCny && (!Number.isFinite(cnyTotal) || cnyTotal <= 0)) {
+        throw new Error('CNY Equivalent must be greater than 0.');
+      }
       if (!payerId) throw new Error(isIncomeEntry ? 'Receiver is required.' : 'Payer is required.');
       if (!accountId) throw new Error('Payment account is required.');
-      if (entryType !== 'transport' && !categoryId) throw new Error('Category is required.');
-      if (isIncomeEntry && categoryId !== 'cat_income' && categoryId !== 'cat_refund') throw new Error('Income entries must use Income or Refund category.');
-      if (!isIncomeEntry && (categoryId === 'cat_income' || categoryId === 'cat_refund')) throw new Error('Expense entries cannot use Income or Refund category.');
-      if (categoryId === 'cat_refund' && !refundOf) throw new Error('Refund must be linked to an expense.');
+      if (entryType !== 'transport' && !categoryId) {
+        throw new Error('Category is required.');
+      }
+      if (
+        isIncomeEntry &&
+        categoryId !== 'cat_income' &&
+        categoryId !== 'cat_refund'
+      ) {
+        throw new Error('Income entries must use Income or Refund category.');
+      }
+      if (
+        !isIncomeEntry &&
+        (categoryId === 'cat_income' || categoryId === 'cat_refund')
+      ) {
+        throw new Error('Expense entries cannot use Income or Refund category.');
+      }
+      if (categoryId === 'cat_refund' && !refundOf) {
+        throw new Error('Refund must be linked to an expense.');
+      }
       if (
         categoryId === 'cat_refund' &&
         !refundOptions.some(
@@ -493,83 +519,55 @@ const QuickEntryContent: React.FC<QuickEntryProps> = ({ onClose, editTripId, ini
 
       const allocations = buildAllocations(cnyTotal);
       const paidAt = toPaidTimestamp(paidAtDate, paidAtTime);
-      if (!Number.isFinite(paidAt)) throw new Error('Paid date and time are required.');
+      if (!Number.isFinite(paidAt)) {
+        throw new Error('Paid date and time are required.');
+      }
       const paidDateOnly = toDateTimestamp(paidAtDate);
-      if (!Number.isFinite(paidDateOnly)) throw new Error('Paid date is required.');
+      if (!Number.isFinite(paidDateOnly)) {
+        throw new Error('Paid date is required.');
+      }
+
       const now = Date.now();
-      const baseData = {
-        id: initialEntry?.id ?? `entry_${generateId()}`,
-        categoryId: entryType === 'transport' ? TRANSPORT_CATEGORY_ID : categoryId,
+      const baseData = buildQuickEntryBaseData({
+        initialEntry,
+        categoryId: entryType === 'transport' ? 'cat_transport' : categoryId,
         originalAmount,
-        originalCurrency: currency.trim().toUpperCase(),
-        cnyEquivalent: cnyTotal,
+        currency,
+        cnyTotal,
         includeInCost,
-        entryDirection: isIncomeEntry ? 'income' : 'expense',
-        isRefund: categoryId === 'cat_refund',
-        ...(categoryId === 'cat_refund' && refundOf ? { refundOf } : {}),
-        isPending: deferCny,
+        isIncomeEntry,
+        refundOf,
+        deferCny,
         payerId,
         accountId,
-        ...(note.trim() ? { note: note.trim() } : {}),
+        note,
         allocationMode,
         allocations,
-        createdAt: initialEntry?.createdAt ?? now,
-        updatedAt: now,
         paidAt,
-      };
+        now,
+      });
 
-      let finalEntry: LedgerEntry;
-      if (entryType === 'standard') {
-        const date = toDateTimestamp(paymentDate);
-        if (!Number.isFinite(date)) throw new Error('Payment date is required.');
-        finalEntry = { ...baseData, entryType: 'standard', paymentDate: paidDateOnly };
-      } else if (entryType === 'transport') {
-        const outbound = toDateTimestamp(outboundDate);
-        if (!Number.isFinite(outbound)) throw new Error('Outbound date is required.');
-        if (journeyType === 'round_trip') {
-          if (transportMode === 'long_distance_bus') throw new Error('Long-distance bus tickets are one-way only.');
-          const returnTimestamp = toDateTimestamp(returnDate);
-          if (!Number.isFinite(returnTimestamp)) throw new Error('Return date is required.');
-          if (returnTimestamp < outbound) throw new Error('Return date cannot be before outbound date.');
-          finalEntry = {
-            ...baseData,
-            entryType: 'transport',
-            transportMode,
-            journeyType: 'round_trip',
-            outboundDate: outbound,
-            returnDate: returnTimestamp,
-            paymentDate: paidDateOnly,
-          };
-        } else {
-          finalEntry = { ...baseData, entryType: 'transport', transportMode, journeyType: 'one_way', outboundDate: outbound, paymentDate: paidDateOnly };
-        }
-      } else {
-        const payment = toDateTimestamp(paymentDate);
-        const start = toDateTimestamp(usageStart);
-        const end = toDateTimestamp(usageEnd);
-        if (!Number.isFinite(payment)) throw new Error('Payment date is required.');
-        if (!Number.isFinite(start) || !Number.isFinite(end)) throw new Error('Usage dates are required.');
-        if (end < start) throw new Error('Usage end cannot be before usage start.');
-        finalEntry = { ...baseData, entryType: 'prepaid_multi_day', paymentDate: paidDateOnly, usageStart: start, usageEnd: end };
-      }
+      const finalEntry = buildQuickEntry({
+        entryType,
+        baseData,
+        paidDateOnly,
+        paymentDate,
+        outboundDate,
+        returnDate,
+        usageStart,
+        usageEnd,
+        transportMode,
+        journeyType,
+        toDateTimestamp,
+      });
 
       if (!targetTrip) throw new Error('Journey is required.');
 
-      const contextDate = getLedgerEntryDate(finalEntry);
-      const daySegments = getSegmentsByDate(targetTrip.segments, contextDate);
-      const sameDayEntries = targetTrip.ledger
-        .filter((entry) => {
-          const entryDate = getLedgerEntryDate(entry);
-          return Number.isFinite(entryDate) && toDateValue(new Date(entryDate)) === toDateValue(new Date(contextDate));
-        })
-        .sort((a, b) => b.createdAt - a.createdAt);
-      const lastSegmentId = sameDayEntries.find((entry) => entry.segmentId)?.segmentId;
-      const currentSegmentIndex = lastSegmentId
-        ? daySegments.findIndex((segment) => segment.id === lastSegmentId)
-        : 0;
-      const safeCurrentIndex = currentSegmentIndex >= 0 ? currentSegmentIndex : 0;
-      const currentSegment = daySegments[safeCurrentIndex];
-      const nextSegment = daySegments[safeCurrentIndex + 1];
+      const { currentSegment, nextSegment } = getSegmentHandoff({
+        targetTrip,
+        entry: finalEntry,
+        toDateValue,
+      });
 
       if (currentSegment && nextSegment) {
         setPendingSegmentSwitch({
@@ -584,7 +582,11 @@ const QuickEntryContent: React.FC<QuickEntryProps> = ({ onClose, editTripId, ini
       saveEntry(targetTrip.id, finalEntry, currentSegment?.id);
     } catch (submissionError: unknown) {
       setSuccess(false);
-      setError(submissionError instanceof Error ? submissionError.message : String(submissionError));
+      setError(
+        submissionError instanceof Error
+          ? submissionError.message
+          : String(submissionError),
+      );
     }
   };
 
