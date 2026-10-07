@@ -155,7 +155,18 @@ const normalizeTrip = (rawTrip: Trip): Trip => {
 };
 
 const normalizeTrips = (trips: Trip[]): Trip[] =>
-  refreshAutoTripTitles(trips.map(normalizeTrip));
+  trips.map((rawTrip, index) => {
+    try {
+      const normalized = normalizeTrip(rawTrip);
+      return refreshAutoTripTitles([normalized])[0] ?? normalized;
+    } catch (error) {
+      console.error(
+        `Vela persisted trip normalization skipped for trip ${index}; preserving stored data.`,
+        error,
+      );
+      return rawTrip;
+    }
+  });
 
 // -----------------------------------------------------------------------------
 // Persisted-state migration
