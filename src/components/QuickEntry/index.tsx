@@ -632,7 +632,16 @@ const QuickEntryContent: React.FC<QuickEntryProps> = ({ onClose, editTripId, ini
         <div className="w-full max-w-xl rounded-2xl bg-[#fbf7ee] p-6 shadow-sm ring-1 ring-black/5">
           <div className="flex items-center justify-between">
             <h2 className="text-2xl font-normal">Quick Entry</h2>
-            {onClose && <button type="button" onClick={onClose} aria-label="Close Quick Entry" className="grid min-h-12 min-w-12 items-center justify-center rounded-full"><X size={22} /></button>}
+            {onClose && (
+              <button
+                type="button"
+                onClick={onClose}
+                aria-label="Close Quick Entry"
+                className="grid min-h-12 min-w-12 items-center justify-center rounded-full"
+              >
+                <X size={22} />
+              </button>
+            )}
           </div>
           <p className="mt-5 text-[#766957]">Create a planning or active journey first.</p>
         </div>
@@ -647,7 +656,16 @@ const QuickEntryContent: React.FC<QuickEntryProps> = ({ onClose, editTripId, ini
           <p className="mb-1 text-[11px] uppercase tracking-[0.2em] text-[#9a7440]">Vela · Record</p>
           <h2 className="text-[34px] font-normal leading-none">{isEditing ? 'Edit Entry' : 'Quick Entry'}</h2>
         </div>
-        {onClose && <button type="button" onClick={onClose} aria-label="Close Quick Entry" className="vela-quick-close grid min-h-12 min-w-12 place-items-center rounded-full text-[#17243a]"><X size={23} strokeWidth={1.7} /></button>}
+        {onClose && (
+          <button
+            type="button"
+            onClick={onClose}
+            aria-label="Close Quick Entry"
+            className="vela-quick-close grid min-h-12 min-w-12 place-items-center rounded-full text-[#17243a]"
+          >
+            <X size={23} strokeWidth={1.7} />
+          </button>
+        )}
       </header>
 
       <form onSubmit={handleSubmit} className="quick-entry-form">
