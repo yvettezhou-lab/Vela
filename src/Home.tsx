@@ -1,10 +1,9 @@
 import { getTripDestinations } from './core/travelSegment';
 import React, { useMemo, useEffect } from 'react';
-import { Calendar, ChevronRight, List as ListIcon, MapPin, Plus, X } from 'lucide-react';
+import { ChevronRight, Plus, X } from 'lucide-react';
 import { Trip } from './core/domain';
 import { formatTripDate, getTripLocalSummary } from './homeHelpers';
 import { useVelaStore } from './store/useVelaStore';
-import { useTripCover } from './hooks/useTripCover';
 import {
   getJourneyCheckCheckpoint,
   getJourneyCheckIssues,
@@ -25,47 +24,6 @@ type HomeProps = {
   onOpenLists: (tripId: string) => void;
 };
 
-const TripCoverImage: React.FC<{ trip: Trip }> = ({ trip }) => {
-  const src = useTripCover(trip.coverImage);
-  if (!src) return <span className="vela-trip-cover-placeholder" aria-hidden="true"><img src="/favicon.svg" alt="" /></span>;
-  return <img src={src} alt="" />;
-};
-
-export default function Home({ onNavigate, onCreateTrip, onManageTrips, onOpenLists }: HomeProps) {
-  const trips = useVelaStore((state) => state.trips);
-  const updateTrip = useVelaStore((state) => state.updateTrip);
-  const [journeyCheckOpen, setJourneyCheckOpen] = React.useState(false);
-  const [journeyCheckTripId, setJourneyCheckTripId] = React.useState<string | null>(null);
-  const [journeyCheckIssues, setJourneyCheckIssues] = React.useState<ReturnType<typeof getJourneyCheckIssues>>([]);
-  useEffect(() => {
-    if (journeyCheckOpen) return;
-    const candidates = trips
-      .map((trip) => {
-        const checkpoint = trip.status === 'traveling'
-          ? getTravelingDailyCheckpoint(trip)
-          : getJourneyCheckCheckpoint(trip);
-        const issues = trip.status === 'traveling'
-          ? getUnresolvedFutureJourneyIssues(trip)
-          : getJourneyCheckIssues(trip).filter((issue) => trip.journeyCheck?.resolutions?.[issue.id] !== 'self_drive' && trip.journeyCheck?.resolutions?.[issue.id] !== 'local_transport');
-        return { trip, checkpoint, issues };
-      })
-      .filter(({ trip, checkpoint, issues }) => checkpoint && issues.length && !hasJourneyCheckBeenShown(trip, checkpoint));
-
-    const candidate = candidates[0];
-    if (!candidate?.checkpoint) return;
-    updateTrip(candidate.trip.id, markJourneyCheckShown(candidate.trip, candidate.checkpoint));
-    setJourneyCheckTripId(candidate.trip.id);
-    setJourneyCheckIssues(candidate.issues);
-    setJourneyCheckOpen(true);
-  }, [trips, updateTrip, journeyCheckOpen]);
-
-  const { current, planning, recent } = useMemo(() => {
-    const traveling = trips.find((trip) => trip.status === 'traveling');
-    const planningTrips = trips.filter((trip) => trip.status === 'planning').sort((a, b) => b.updatedAt - a.updatedAt);
-    const achieved = trips.filter((trip) => trip.status === 'achieve').sort((a, b) => b.updatedAt - a.updatedAt);
-    return { current: traveling || null, planning: planningTrips.slice(0, 3), recent: achieved.slice(0, 3) };
-  }, [trips]);
-
   const card = (trip: Trip, compact = false) => compact ? (
     <div className="vela-trip-row" key={trip.id}>
       <button className="vela-trip-row-main" type="button" onClick={() => onNavigate('Ledger')}>
@@ -83,6 +41,21 @@ export default function Home({ onNavigate, onCreateTrip, onManageTrips, onOpenLi
       </button>
       <button className="vela-current-list" type="button" onClick={() => onOpenLists(trip.id)}><ListIcon size={13}/> List</button>
     </div>
+  );
+
+  const activeTripCount = trips.filter((trip) => trip.status === 'planning' || trip.status === 'traveling').length;
+  const tripLabel = activeTripCount === 1 ? 'TRIP' : 'TRIPS';
+
+  const journeyTrip = journeyCheckTripId ? trips.find((trip) => trip.id === journeyCheckTripId) ?? null : null;
+  const activeJourneyIssues = journeyTrip ? getJourneyCheckIssues(journeyTrip).filter((issue) => journeyTrip.journeyCheck?.resolutions?.[issue.id] !== 'self_drive' && journeyTrip.journeyCheck?.resolutions?.[issue.id] !== 'local_transport') : journeyCheckIssues;
+  const resolveJourneyIssue = (issueId: string, resolution: 'self_drive' | 'local_t  const card = (trip: Trip, compact = false) => (
+    <HomeTripCard
+      key={trip.id}
+      trip={trip}
+      compact={compact}
+      onNavigate={() => onNavigate('Ledger')}
+      onOpenLists={() => onOpenLists(trip.id)}
+    />
   );
 
   const activeTripCount = trips.filter((trip) => trip.status === 'planning' || trip.status === 'traveling').length;
