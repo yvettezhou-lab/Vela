@@ -88,19 +88,61 @@ const App: React.FC = () => {
   );
 
   // App lifecycle: re-evaluate date-based trip status after hydration and changes.
+  // App lifecycle
   useEffect(() => {
+    // Re-evaluate date-based lifecycle whenever persisted trips hydrate or change.
     useVelaStore.getState().evaluateAutoStart();
   }, [trips]);
+
   useEffect(() => {
     if (!('serviceWorker' in navigator)) return;
+
     const hadController = Boolean(navigator.serviceWorker.controller);
     let reloaded = false;
-    const onControllerChange = () => { if (hadController && !reloaded) { reloaded = true; window.location.reload(); } };
-    navigator.serviceWorker.addEventListener('controllerchange', onControllerChange);
-    navigator.serviceWorker.register('/sw.js', { scope: '/', updateViaCache: 'none' }).then((registration) => registration.update()).catch(() => undefined);
-    return () => navigator.serviceWorker.removeEventListener('controllerchange', onControllerChange);
+
+    const onControllerChange = () => {
+      if (!hadController || reloaded) return;
+      reloaded = true;
+      window.location.reload();
+    };
+
+    navigator.serviceWorker.addEventListener(
+      'controllerchange',
+      onControllerChange,
+    );
+
+    navigator.serviceWorker
+      .register('/sw.js', { scope: '/', updateViaCache: 'none' })
+      .then((registration) => registration.update())
+      .catch(() => undefined);
+
+    return () =>
+      navigator.serviceWorker.removeEventListener(
+        'controllerchange',
+        onControllerChange,
+      );
   }, []);
-  useEffect(() => { const onPopState = () => setRoute(window.location.pathname); const onHashChange = () => { if (window.location.hash === '#Settlement') { setRoute('/'); setActiveNav('Balance'); window.scrollTo({ top: 0 }); } }; window.addEventListener('popstate', onPopState); window.addEventListener('hashchange', onHashChange); return () => { window.removeEventListener('popstate', onPopState); window.removeEventListener('hashchange', onHashChange); }; }, []);
+
+  useEffect(() => {
+    const onPopState = () => setRoute(window.location.pathname);
+
+    const onHashChange = () => {
+      if (window.location.hash !== '#Settlement') return;
+
+      window.history.pushState({}, '', '/');
+      setRoute('/');
+      setActiveNav('Balance');
+      window.scrollTo({ top: 0 });
+    };
+
+    window.addEventListener('popstate', onPopState);
+    window.addEventListener('hashchange', onHashChange);
+
+    return () => {
+      window.removeEventListener('popstate', onPopState);
+      window.removeEventListener('hashchange', onHashChange);
+    };
+  }, []);
   // Navigation actions
   const openLists = (tripId: string, listId?: string) => {
     const path = '/lists/' + tripId + (listId ? '/' + listId : '');
@@ -156,19 +198,157 @@ const App: React.FC = () => {
     setCreationOpen(false);
   };
 
-  const listMatch = route.match(/^\/lists\/([^/]+)(?:\/([^/]+))?$/); if (listMatch) return <div className="vela-entry-route"><TravelLists tripId={decodeURIComponent(listMatch[1])} listId={listMatch[2] ? decodeURIComponent(listMatch[2]) : null} onClose={closeLists} /></div>;
+  // Route rendering
+  const listMatch = route.match(/^\/lists\/([^/]+)(?:\/([^/]+))?$/);
+
+  if (listMatch) {
+    return (
+      <div className="vela-entry-route">
+        <TravelLists
+          tripId={decodeURIComponent(listMatch[1])}
+          listId={listMatch[2] ? decodeURIComponent(listMatch[2]) : null}
+          onClose={closeLists}
+        />
+      </div>
+    );
+  }
+
   const editMatch = route.match(/^\/entry\/edit\/([^/]+)\/([^/]+)$/);
-  if (route === '/entry/new') return <div className="vela-entry-route"><QuickEntry onClose={closeQuickEntry} /><GlobalNav activeNav={activeNav} onNavigate={handleNavigate} /></div>;
+
+  if (route === '/entry/new') {
+    return (
+      <div className="vela-entry-route">
+        <QuickEntry onClose={closeQuickEntry} />
+        <GlobalNav activeNav={activeNav} onNavigate={handleNavigate} />
+      </div>
+    );
+  }
+
   if (editMatch) {
     const editTripId = decodeURIComponent(editMatch[1]);
     const editEntryId = decodeURIComponent(editMatch[2]);
     const editTrip = trips.find((trip) => trip.id === editTripId);
-    const editEntry = editTrip?.ledger.find((entry) => entry.id === editEntryId) ?? null;
-    if (!editTrip || !editEntry) return <div className="vela-entry-route"><QuickEntry onClose={closeQuickEntry} /><GlobalNav activeNav={activeNav} onNavigate={handleNavigate} /></div>;
-    return <div className="vela-entry-route"><QuickEntry editTripId={editTripId} initialEntry={editEntry} onClose={closeQuickEntry} /><GlobalNav activeNav={activeNav} onNavigate={handleNavigate} /></div>;
+    const editEntry =
+      editTrip?.ledger.find((entry) => entry.id === editEntryId) ?? null;
+
+    if (!editTrip || !editEntry) {
+      return (
+        <div className="vela-entry-route">
+          <QuickEntry onClose={closeQuickEntry} />
+          <GlobalNav activeNav={activeNav} onNavigate={handleNavigate} />
+        </div>
+      );
+    }
+
+    return (
+      <div className="vela-entry-route">
+        <QuickEntry
+          editTripId={editTripId}
+          initialEntry={editEntry}
+          onClose={closeQuickEntry}
+        />
+        <GlobalNav activeNav={activeNav} onNavigate={handleNavigate} />
+      </div>
+    );
   }
-  if (route === '/trips') return <div className="vela-trip-manager-route"><main className="vela-trip-manager-main"><button type="button" onClick={closeTripManager} style={{ border: 0, background: 'transparent', color: '#62656b', padding: '4px 0 14px', cursor: 'pointer', font: '600 11px/1 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif' }}>← Home</button><TripManager /></main><GlobalNav activeNav="Home" onNavigate={handleNavigate} /></div>;
-  const content = activeNav === 'Home' ? <HomePage onNavigate={handleNavigate} onCreateTrip={() => setCreationOpen(true)} onManageTrips={openTripManager} onOpenLists={openLists} /> : activeNav === 'Ledger' ? <main className="page vela-secondary-shell"><LedgerView /></main> : activeNav === 'Balance' ? <SettlementMatrix /> : activeNav === 'Logbook' ? <LogbookView annualReflection={annualReflection} activeTrip={activeTrip} reflectionTrips={reflectionTrips} /> : <main className="page vela-secondary-shell"><header className="vela-settings-header"><span className="vela-settings-eyebrow">ENGINE / SETTINGS</span><h1>Engine</h1><p>How Vela works by default.</p></header><div className="vela-settings-master-data"><MasterData /></div><TemplateEditor /><DataManagement /></main>;
-  return <div className="vela-app-root">{content}<GlobalNav activeNav={activeNav} onNavigate={handleNavigate} /><button type="button" className="vela-global-quick" aria-label="Add Quick Entry" onClick={openQuickEntry}><VelaConstellationIcon /></button>{creationOpen && <div className="vela-quick-backdrop" onMouseDown={(event) => { if (event.target === event.currentTarget) setCreationOpen(false); }}><div className="vela-quick-sheet"><TripCreation onClose={() => setCreationOpen(false)} onCreated={handleCreated} /></div></div>}</div>;
+
+  if (route === '/trips') {
+    return (
+      <div className="vela-trip-manager-route">
+        <main className="vela-trip-manager-main">
+          <button
+            type="button"
+            onClick={closeTripManager}
+            style={{
+              border: 0,
+              background: 'transparent',
+              color: '#62656b',
+              padding: '4px 0 14px',
+              cursor: 'pointer',
+              font: '600 11px/1 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif',
+            }}
+          >
+            ← Home
+          </button>
+          <TripManager />
+        </main>
+        <GlobalNav activeNav="Home" onNavigate={handleNavigate} />
+      </div>
+    );
+  }
+
+  // Primary navigation content
+  const content =
+    activeNav === 'Home' ? (
+      <HomePage
+        onNavigate={handleNavigate}
+        onCreateTrip={() => setCreationOpen(true)}
+        onManageTrips={openTripManager}
+        onOpenLists={openLists}
+      />
+    ) : activeNav === 'Ledger' ? (
+      <main className="page vela-secondary-shell">
+        <LedgerView />
+      </main>
+    ) : activeNav === 'Balance' ? (
+      <SettlementMatrix />
+    ) : activeNav === 'Logbook' ? (
+      <LogbookView
+        annualReflection={annualReflection}
+        activeTrip={activeTrip}
+        reflectionTrips={reflectionTrips}
+      />
+    ) : (
+      <main className="page vela-secondary-shell">
+        <header className="vela-settings-header">
+          <span className="vela-settings-eyebrow">ENGINE / SETTINGS</span>
+          <h1>Engine</h1>
+          <p>How Vela works by default.</p>
+        </header>
+        <div className="vela-settings-master-data">
+          <MasterData />
+        </div>
+        <TemplateEditor />
+        <DataManagement />
+      </main>
+    );
+  // App shell
+  return (
+    <div className="vela-app-root">
+      {content}
+
+      <GlobalNav
+        activeNav={activeNav}
+        onNavigate={handleNavigate}
+      />
+
+      <button
+        type="button"
+        className="vela-global-quick"
+        aria-label="Add Quick Entry"
+        onClick={openQuickEntry}
+      >
+        <VelaConstellationIcon />
+      </button>
+
+      {creationOpen && (
+        <div
+          className="vela-quick-backdrop"
+          onMouseDown={(event) => {
+            if (event.target === event.currentTarget) {
+              setCreationOpen(false);
+            }
+          }}
+        >
+          <div className="vela-quick-sheet">
+            <TripCreation
+              onClose={() => setCreationOpen(false)}
+              onCreated={handleCreated}
+            />
+          </div>
+        </div>
+      )}
+    </div>
+  );
 };
 createRoot(document.getElementById('root')!).render(<App />);
