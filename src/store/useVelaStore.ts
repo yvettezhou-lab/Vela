@@ -32,6 +32,18 @@ import { refreshAutoTripTitles } from '../utils/tripTitle';
 
 const LEGACY_STORAGE_KEY = 'vela.plan.v1';
 
+const getTripLists = (trip: Trip, commonMembers: Member[]): TripList[] =>
+  Array.isArray(trip.lists)
+    ? trip.lists
+    : createDefaultTripLists(trip, commonMembers);
+
+const mapTrip = (
+  trips: Trip[],
+  tripId: string,
+  updater: (trip: Trip) => Trip,
+): Trip[] => trips.map((trip) => (trip.id === tripId ? updater(trip) : trip));
+
+
 // -----------------------------------------------------------------------------
 // Trip normalization
 // -----------------------------------------------------------------------------
