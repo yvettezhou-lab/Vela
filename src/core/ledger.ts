@@ -4,6 +4,9 @@ import type { LedgerEntry } from './domain';
  * Canonical signed impact of a ledger entry on financial totals.
  * Expense is positive; income/refund is negative.
  */
+export const isLedgerEntryIncludedInCost = (entry: LedgerEntry): boolean =>
+  entry.includeInCost && !entry.isPending;
+
 export const getLedgerFinancialImpact = (entry: LedgerEntry): number =>
   entry.entryDirection === 'income'
     ? -entry.cnyEquivalent
