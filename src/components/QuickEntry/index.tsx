@@ -530,7 +530,7 @@ const QuickEntryContent: React.FC<QuickEntryProps> = ({ onClose, editTripId, ini
       const now = Date.now();
       const baseData = buildQuickEntryBaseData({
         initialEntry,
-        categoryId: entryType === 'transport' ? 'cat_transport' : categoryId,
+        categoryId,
         originalAmount,
         currency,
         cnyTotal,
