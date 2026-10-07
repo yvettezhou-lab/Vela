@@ -3,7 +3,6 @@ import { ChevronRight, Plus } from 'lucide-react';
 import { Trip } from './core/domain';
 import { HomeJourneyCheck } from './HomeJourneyCheck';
 import { HomeTripCard } from './HomeTripCard';
-import { formatTripDate, getTripLocalSummary } from './homeHelpers';
 import { useVelaStore } from './store/useVelaStore';
 import {
   getJourneyCheckCheckpoint,
@@ -25,29 +24,52 @@ type HomeProps = {
   onOpenLists: (tripId: string) => void;
 };
 
-export default function Home({ onNavigate, onCreateTrip, onManageTrips, onOpenLists }: HomeProps) {
+export default function Home({
+  onNavigate,
+  onCreateTrip,
+  onManageTrips,
+  onOpenLists,
+}: HomeProps) {
   const trips = useVelaStore((state) => state.trips);
   const updateTrip = useVelaStore((state) => state.updateTrip);
   const [journeyCheckOpen, setJourneyCheckOpen] = React.useState(false);
   const [journeyCheckTripId, setJourneyCheckTripId] = React.useState<string | null>(null);
-  const [journeyCheckIssues, setJourneyCheckIssues] = React.useState<ReturnType<typeof getJourneyCheckIssues>>([]);
+  const [journeyCheckIssues, setJourneyCheckIssues] =
+    React.useState<ReturnType<typeof getJourneyCheckIssues>>([]);
   useEffect(() => {
     if (journeyCheckOpen) return;
+
     const candidates = trips
       .map((trip) => {
-        const checkpoint = trip.status === 'traveling'
-          ? getTravelingDailyCheckpoint(trip)
-          : getJourneyCheckCheckpoint(trip);
-        const issues = trip.status === 'traveling'
-          ? getUnresolvedFutureJourneyIssues(trip)
-          : getJourneyCheckIssues(trip).filter((issue) => trip.journeyCheck?.resolutions?.[issue.id] !== 'self_drive' && trip.journeyCheck?.resolutions?.[issue.id] !== 'local_transport');
+        const checkpoint =
+          trip.status === 'traveling'
+            ? getTravelingDailyCheckpoint(trip)
+            : getJourneyCheckCheckpoint(trip);
+        const issues =
+          trip.status === 'traveling'
+            ? getUnresolvedFutureJourneyIssues(trip)
+            : getJourneyCheckIssues(trip).filter(
+                (issue) =>
+                  trip.journeyCheck?.resolutions?.[issue.id] !== 'self_drive' &&
+                  trip.journeyCheck?.resolutions?.[issue.id] !== 'local_transport',
+              );
+
         return { trip, checkpoint, issues };
       })
-      .filter(({ trip, checkpoint, issues }) => checkpoint && issues.length && !hasJourneyCheckBeenShown(trip, checkpoint));
+      .filter(
+        ({ trip, checkpoint, issues }) =>
+          checkpoint &&
+          issues.length &&
+          !hasJourneyCheckBeenShown(trip, checkpoint),
+      );
 
     const candidate = candidates[0];
     if (!candidate?.checkpoint) return;
-    updateTrip(candidate.trip.id, markJourneyCheckShown(candidate.trip, candidate.checkpoint));
+
+    updateTrip(
+      candidate.trip.id,
+      markJourneyCheckShown(candidate.trip, candidate.checkpoint),
+    );
     setJourneyCheckTripId(candidate.trip.id);
     setJourneyCheckIssues(candidate.issues);
     setJourneyCheckOpen(true);
@@ -55,8 +77,12 @@ export default function Home({ onNavigate, onCreateTrip, onManageTrips, onOpenLi
 
   const { current, planning, recent } = useMemo(() => {
     const traveling = trips.find((trip) => trip.status === 'traveling');
-    const planningTrips = trips.filter((trip) => trip.status === 'planning').sort((a, b) => b.updatedAt - a.updatedAt);
-    const achieved = trips.filter((trip) => trip.status === 'achieve').sort((a, b) => b.updatedAt - a.updatedAt);
+    const planningTrips = trips
+      .filter((trip) => trip.status === 'planning')
+      .sort((a, b) => b.updatedAt - a.updatedAt);
+    const achieved = trips
+      .filter((trip) => trip.status === 'achieve')
+      .sort((a, b) => b.updatedAt - a.updatedAt);
     return { current: traveling || null, planning: planningTrips.slice(0, 3), recent: achieved.slice(0, 3) };
   }, [trips]);
 
@@ -70,16 +96,28 @@ export default function Home({ onNavigate, onCreateTrip, onManageTrips, onOpenLi
     />
   );
 
-  const activeTripCount = trips.filter((trip) => trip.status === 'planning' || trip.status === 'traveling').length;
+  const activeTripCount = trips.filter(
+    (trip) => trip.status === 'planning' || trip.status === 'traveling',
+  ).length;
   const tripLabel = activeTripCount === 1 ? 'TRIP' : 'TRIPS';
 
-  const journeyTrip = journeyCheckTripId ? trips.find((trip) => trip.id === journeyCheckTripId) ?? null : null;
-  const activeJourneyIssues = journeyTrip ? getJourneyCheckIssues(journeyTrip).filter((issue) => journeyTrip.journeyCheck?.resolutions?.[issue.id] !== 'self_drive' && journeyTrip.journeyCheck?.resolutions?.[issue.id] !== 'local_transport') : journeyCheckIssues;
+  const journeyTrip = journeyCheckTripId
+    ? trips.find((trip) => trip.id === journeyCheckTripId) ?? null
+    : null;
+  const activeJourneyIssues = journeyTrip
+    ? getJourneyCheckIssues(journeyTrip).filter(
+        (issue) =>
+          journeyTrip.journeyCheck?.resolutions?.[issue.id] !== 'self_drive' &&
+          journeyTrip.journeyCheck?.resolutions?.[issue.id] !== 'local_transport',
+      )
+    : journeyCheckIssues;
   const resolveJourneyIssue = (issueId: string, resolution: 'self_drive' | 'local_transport' | 'later') => {
     if (!journeyTrip) return;
     const next = setJourneyCheckResolution(journeyTrip, issueId, resolution);
     updateTrip(journeyTrip.id, next);
-    if (resolution === 'later' || activeJourneyIssues.length <= 1) setJourneyCheckOpen(false);
+    if (resolution === 'later' || activeJourneyIssues.length <= 1) {
+      setJourneyCheckOpen(false);
+    }
   };
 
   return <main className="vela-home">
