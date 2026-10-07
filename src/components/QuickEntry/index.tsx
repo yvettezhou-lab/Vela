@@ -1,5 +1,4 @@
 import React, { Component, ErrorInfo, ReactNode, useEffect, useMemo, useRef, useState } from 'react';
-import { createPortal } from 'react-dom';
 import { X } from 'lucide-react';
 import {
   QuickEntryCategoryNoteSection,
@@ -35,6 +34,10 @@ import {
   QuickEntryRefundSection,
 } from './QuickEntryMoneySections';
 import { DatePicker } from './DatePicker';
+import {
+  QuickEntrySegmentSwitchModal,
+  QuickEntrySuccessModal,
+} from './QuickEntryOverlays';
 import {
   QuickEntryAllocationSection,
   QuickEntryPrepaidSection,
@@ -708,50 +711,15 @@ const QuickEntryContent: React.FC<QuickEntryProps> = ({ onClose, editTripId, ini
           error={error}
           handleDeleteEntry={handleDeleteEntry}
         />
-        {success && typeof document !== 'undefined' && createPortal(
-          <div className="quick-entry-success-backdrop" role="presentation">
-            <div className="quick-entry-success-modal" role="status" aria-live="polite">
-              <div className="quick-entry-success-check"><span>✓</span></div>
-              <strong>Recorded</strong>
-              <span>Your record has been saved.</span>
-            </div>
-          </div>,
-          document.body,
-        )}
+        {success && <QuickEntrySuccessModal />}
       </form>
 
       {pendingSegmentSwitch && (
-        <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/25 p-4 sm:items-center" role="dialog" aria-modal="true" aria-labelledby="segment-switch-title">
-          <div className="w-full max-w-sm rounded-3xl bg-[#fbf7ee] p-5 text-[#17243a] shadow-2xl">
-            <p className="text-xs uppercase tracking-[0.16em] text-[#857a6a]">Journey handoff</p>
-            <h3 id="segment-switch-title" className="mt-2 text-xl font-medium">Switch to {pendingSegmentSwitch.nextSegment.destinations.map((destination) => destination.city || destination.country).filter(Boolean).join(' · ') || 'next segment'}?</h3>
-            <p className="mt-2 text-sm leading-6 text-[#766957]">No keeps this entry in the current segment. You’ll be asked again next time until you switch.</p>
-            <div className="mt-5 grid grid-cols-2 gap-3">
-              <button
-                type="button"
-                onClick={() => {
-                  const pending = pendingSegmentSwitch;
-                  setPendingSegmentSwitch(null);
-                  saveEntry(pending.tripId, pending.entry, pending.currentSegmentId);
-                }}
-                className="min-h-12 rounded-2xl border border-black/10 bg-white px-4 text-sm font-semibold text-[#17243a]"
-              >
-                No
-              </button>
-              <button
-                type="button"
-                onClick={() => {
-                  const pending = pendingSegmentSwitch;
-                  setPendingSegmentSwitch(null);
-                  saveEntry(pending.tripId, pending.entry, pending.nextSegment.id);
-                }}
-                className="min-h-12 rounded-2xl bg-slate-900 px-4 text-sm font-semibold text-white"
-              >
-                Yes
-              </button>
-            </div>
-          </div>
-        </div>
+        <QuickEntrySegmentSwitchModal
+          pendingSegmentSwitch={pendingSegmentSwitch}
+          saveEntry={saveEntry}
+          onClose={() => setPendingSegmentSwitch(null)}
+        />
       )}
     </section>
   );
