@@ -25,17 +25,13 @@ import {
   cloneList,
   createListFromTemplate,
   listItemKey,
+  listAllowsSharedItems,
 } from '../utils/travelLists';
 import type { TravelListTemplate } from '../utils/travelLists';
 import { getAutoStartTripId } from '../utils/tripLifecycle';
 import { refreshAutoTripTitles } from '../utils/tripTitle';
 
 const LEGACY_STORAGE_KEY = 'vela.plan.v1';
-
-const getTripLists = (trip: Trip, commonMembers: Member[]): TripList[] =>
-  Array.isArray(trip.lists)
-    ? trip.lists
-    : createDefaultTripLists(trip, commonMembers);
 
 const mapTrip = (
   trips: Trip[],
@@ -1156,9 +1152,7 @@ export const useVelaStore = create<VelaState>()(persist((set, get) => ({
     if (!target) throw new Error('List not found');
 
     const key = listItemKey(clean);
-    const targetAllowsShared =
-      target.name.trim().toLowerCase() === 'medicine' ||
-      target.name.trim().toLowerCase().endsWith(' · personal');
+    const targetAllowsShared = listAllowsSharedItems(target);
     const duplicate = lists.some(
       (list) =>
         list.id !== listId &&
