@@ -1,4 +1,4 @@
-import { LedgerEntry, Trip, TravelSegment } from '../../core/domain';
+import { LedgerEntry, Trip } from '../../core/domain';
 
 export const getNearestTrips = (trips: Trip[]) => {
   const eligibleTrips = trips.filter(
