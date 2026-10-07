@@ -1,14 +1,5 @@
 import type { Trip } from '../core/domain';
-import { getTripStartDate } from '../core/travelSegment';
-
-const getLocalCalendarStart = (timestamp: number): number => {
-  const date = new Date(timestamp);
-  return new Date(
-    date.getFullYear(),
-    date.getMonth(),
-    date.getDate(),
-  ).getTime();
-};
+import { getTripStartDate, toDayStart } from '../core/travelSegment';
 
 /**
  * Selects the planning trip that is eligible to auto-start
@@ -20,13 +11,13 @@ export const getAutoStartTripId = (
 ): string | null => {
   if (trips.some((trip) => trip.status === 'traveling')) return null;
 
-  const today = getLocalCalendarStart(now);
+  const today = toDayStart(now);
 
   return trips
     .filter(
       (trip) =>
         trip.status === 'planning' &&
-        getLocalCalendarStart(getTripStartDate(trip)) <= today,
+        toDayStart(getTripStartDate(trip)) <= today,
     )
     .sort(
       (a, b) =>
