@@ -1,6 +1,6 @@
 import type { LedgerEntry, TravelSegment } from './domain';
 
-const toDayStart = (timestamp: number): number => {
+export const toDayStart = (timestamp: number): number => {
   const date = new Date(timestamp);
   return new Date(date.getFullYear(), date.getMonth(), date.getDate()).getTime();
 };
