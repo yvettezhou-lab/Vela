@@ -1,7 +1,7 @@
 import { useRef, useState, type ChangeEvent } from 'react';
 import { Database, Download, Upload } from 'lucide-react';
 import { DomainValidator } from '../../core/validation';
-import { getDefaultCategories } from '../../core/defaults';
+import { getDefaultCategories, getDefaultCommonAccounts, getDefaultTripAccounts } from '../../core/defaults';
 import { useVelaStore } from '../../store/useVelaStore';
 import type { Account, Member, Trip } from '../../core/domain';
 import { ensureTripLists } from '../../utils/travelLists';
@@ -22,10 +22,7 @@ const isRecord = (value: unknown): value is Record<string, unknown> =>
 const normalizeTrip = (trip: Trip): Trip => ensureTripLists({
   ...trip,
   categories: trip.categories.length > 0 ? trip.categories : getDefaultCategories(),
-  accounts: trip.accounts.length > 0 ? trip.accounts : [
-    { id: 'default-account-cash', name: 'Cash' },
-    { id: 'default-account-credit-card', name: 'Credit Card' },
-  ],
+  accounts: trip.accounts.length > 0 ? trip.accounts : getDefaultTripAccounts(),
   members: trip.members.length > 0 ? trip.members : [{ id: 'default-member-me', name: 'Me' }],
 });
 
@@ -87,7 +84,7 @@ export const DataManagement = () => {
       useVelaStore.setState({
         trips: parsed,
         commonMembers: importedState?.commonMembers?.length ? importedState.commonMembers : [{ id: 'common-member-me', name: 'Me' }],
-        commonAccounts: importedState?.commonAccounts?.length ? importedState.commonAccounts : [{ id: 'common-account-cash', name: 'Cash' }, { id: 'common-account-credit-card', name: 'Credit Card' }],
+        commonAccounts: importedState?.commonAccounts?.length ? importedState.commonAccounts : getDefaultCommonAccounts(),
       });
       setStatus(`Imported ${parsed.length} ${parsed.length === 1 ? 'journey' : 'journeys'}.`);
     } catch (error) {
