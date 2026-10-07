@@ -321,26 +321,6 @@ const parseLists = (raw: unknown, tripId: string): TripList[] => {
   });
 };
 
-const validateLedgerEntryDates = (
-  segments: TravelSegment[],
-  entry: LedgerEntry,
-): void => {
-  const relevantDates =
-    entry.entryType === 'transport'
-      ? entry.journeyType === 'round_trip'
-        ? [entry.outboundDate, entry.returnDate]
-        : [entry.outboundDate]
-      : entry.entryType === 'prepaid_multi_day'
-        ? [entry.usageStart, entry.usageEnd]
-        : [entry.paymentDate];
-
-  for (const date of relevantDates) {
-    if (!findSegmentByDate(segments, date)) {
-      throw new Error('Ledger Error: Entry date must fall within a TravelSegment date range');
-    }
-  }
-};
-
 const parseAllocationRules = (
   raw: unknown,
 ): Trip['allocationRules'] => {
