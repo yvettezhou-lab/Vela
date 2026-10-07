@@ -1,18 +1,22 @@
-import { getSegmentsByDate, getLedgerEntryDate, getTripPrimaryCurrency } from '../../core/travelSegment';
 import React, { Component, ErrorInfo, ReactNode, useEffect, useMemo, useRef, useState } from 'react';
 import { X } from 'lucide-react';
-import { useVelaStore } from '../../store/useVelaStore';
-import { TRANSPORT_CATEGORY_ID } from '../../core/validation';
+
 import { AllocationMode, LedgerEntry, TravelSegment, TransportMode, TransportJourneyType } from '../../core/domain';
 import { buildAllocationsByMode } from '../../core/allocation';
+import { TRANSPORT_CATEGORY_ID } from '../../core/validation';
+import { getSegmentsByDate, getLedgerEntryDate, getTripPrimaryCurrency } from '../../core/travelSegment';
+import { useVelaStore } from '../../store/useVelaStore';
+
 import './styles.css';
-import { DatePicker } from './DatePicker';
 import { AmountKeypad, evaluateAmountExpression } from './AmountKeypad';
+import { DatePicker } from './DatePicker';
 
 const generateId = () =>
   typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function'
     ? crypto.randomUUID()
     : `entry_${Math.random().toString(36).slice(2, 11)}`;
+
+const LEDGER_CURRENCIES = ['CNY', 'MYR', 'SGD', 'THB', 'IDR', 'PHP', 'JPY', 'KRW', 'USD', 'EUR', 'GBP', 'AUD', 'HKD', 'ARS', 'AFN', 'ALL', 'DZD', 'BRL', 'KHR', 'CAD', 'CZK', 'DKK', 'EGP', 'HUF', 'ISK', 'INR', 'ILS', 'JOD', 'KZT', 'LAK', 'MVR', 'MXN', 'MNT', 'MAD', 'MMK', 'NPR', 'NZD', 'NOK', 'PLN', 'RUB', 'SAR', 'ZAR', 'TWD', 'LKR', 'SEK', 'CHF', 'TRY', 'AED', 'VND'];
 
 const toDateTimestamp = (value: string) => {
   const timestamp = new Date(`${value}T00:00:00`).getTime();
@@ -31,6 +35,7 @@ const currentTimeValue = () => {
   const date = new Date();
   return `${String(date.getHours()).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')}`;
 };
+
 const toPaidTimestamp = (dateValue: string, timeValue: string) => {
   if (!/^\d{4}-\d{2}-\d{2}$/.test(dateValue) || !/^\d{2}:\d{2}$/.test(timeValue)) return NaN;
   const [year, month, day] = dateValue.split('-').map(Number);
@@ -38,6 +43,7 @@ const toPaidTimestamp = (dateValue: string, timeValue: string) => {
   const date = new Date(year, month - 1, day, hour, minute, 0, 0);
   return Number.isFinite(date.getTime()) ? date.getTime() : NaN;
 };
+
 const paidParts = (timestamp: number) => {
   const date = new Date(timestamp);
   return {
@@ -45,15 +51,16 @@ const paidParts = (timestamp: number) => {
     time: `${String(date.getHours()).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')}`,
   };
 };
+
 const formatPaidTimestamp = (timestamp: number) => {
   const date = new Date(timestamp);
   return Number.isFinite(date.getTime())
     ? date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) + ` ${String(date.getHours()).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')}`
     : 'Select date & time';
 };
+
 const normalizePercentageInput = (value: string) => value.replace(/^0+(?=\d)/, '');
-const formatCny = (value: number) => (Number.isFinite(value) ? value.toFixed(2).replace(/\.00$/, '') : '');
-export interface QuickEntryProps {
+const formatCny = (value: number) => (Number.isFinite(value) ? value.toFixed(2).replace(/\.00$/, '') : '');export interface QuickEntryProps {
   onClose?: () => void;
   editTripId?: string;
   initialEntry?: LedgerEntry | null;
@@ -77,21 +84,31 @@ const QuickEntryContent: React.FC<QuickEntryProps> = ({ onClose, editTripId, ini
       return aStart - bStart;
     });
   const tripChoices = currentTrip ? [currentTrip, ...nearestTrips].slice(0, 4) : nearestTrips.slice(0, 4);
+  // Journey context
   const [targetTripId, setTargetTripId] = useState('');
   const [openDatePicker, setOpenDatePicker] = useState<string | null>(null);
   const targetTrip = eligibleTrips.find((trip) => trip.id === targetTripId) ?? null;
   const isDomesticTrip = Boolean(targetTrip?.segments?.length) && targetTrip.segments.every((segment) => segment.destinations?.length > 0 && segment.destinations.every((destination) => ['china', '中国'].includes(destination.country.trim().toLowerCase())));
+
+  // Entry identity and amount
   const [entryType, setEntryType] = useState<'standard' | 'transport' | 'prepaid_multi_day'>('standard');
-    const [amount, setAmount] = useState('');
-  const [refundOf, setRefundOf] = useState('');
+  const [amount, setAmount] = useState('');
   const [currency, setCurrency] = useState('CNY');
   const [cnyEquivalent, setCnyEquivalent] = useState('');
   const [deferCny, setDeferCny] = useState(false);
+
+  // Classification and settlement
   const [categoryId, setCategoryId] = useState('');
+  const [refundOf, setRefundOf] = useState('');
   const [includeInCost, setIncludeInCost] = useState(true);
   const [accountId, setAccountId] = useState('');
-  const [note, setNote] = useState('');
   const [payerId, setPayerId] = useState('');
+  const [allocationMode, setAllocationMode] = useState<AllocationMode>('equal');
+  const [selectedParticipants, setSelectedParticipants] = useState<Set<string>>(new Set());
+  const [customPercentages, setCustomPercentages] = useState<Record<string, number>>({});
+
+  // Notes and dates
+  const [note, setNote] = useState('');
   const [paymentDate, setPaymentDate] = useState(todayValue);
   const [paidAtDate, setPaidAtDate] = useState(todayValue);
   const [paidAtTime, setPaidAtTime] = useState(currentTimeValue);
@@ -100,11 +117,12 @@ const QuickEntryContent: React.FC<QuickEntryProps> = ({ onClose, editTripId, ini
   const [returnDate, setReturnDate] = useState('');
   const [usageStart, setUsageStart] = useState('');
   const [usageEnd, setUsageEnd] = useState('');
+
+  // Transport
   const [transportMode, setTransportMode] = useState<TransportMode>('flight');
   const [journeyType, setJourneyType] = useState<TransportJourneyType>('one_way');
-  const [allocationMode, setAllocationMode] = useState<AllocationMode>('equal');
-  const [selectedParticipants, setSelectedParticipants] = useState<Set<string>>(new Set());
-  const [customPercentages, setCustomPercentages] = useState<Record<string, number>>({});
+
+  // UI / async state
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
   const [pendingSegmentSwitch, setPendingSegmentSwitch] = useState<{
@@ -114,6 +132,7 @@ const QuickEntryContent: React.FC<QuickEntryProps> = ({ onClose, editTripId, ini
     nextSegment: TravelSegment;
   } | null>(null);
   const [fxRate, setFxRate] = useState<number | null>(null);
+
   const cnyEquivalentComposingRef = useRef(false);
   const cnyManualRef = useRef(false);
   const successTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
