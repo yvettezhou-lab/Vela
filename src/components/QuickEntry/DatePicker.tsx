@@ -1,12 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Calendar, ChevronLeft, ChevronRight } from 'lucide-react';
-
-const toDateValue = (date: Date) => {
-  const year = date.getFullYear();
-  const month = `${date.getMonth() + 1}`.padStart(2, '0');
-  const day = `${date.getDate()}`.padStart(2, '0');
-  return `${year}-${month}-${day}`;
-};
+import { toDateValue } from '../../utils/date';
 
 interface DatePickerProps {
   value: string;
