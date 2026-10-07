@@ -3,7 +3,7 @@ import React from 'react';
 import { LedgerEntry } from '../../core/domain';
 import { AmountKeypad } from './AmountKeypad';
 
-const LEDGER_CURRENCIES = [
+export const LEDGER_CURRENCIES = [
   'CNY',
   'MYR',
   'SGD',
