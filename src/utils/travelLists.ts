@@ -154,6 +154,59 @@ export const filterDuplicateListItems = (existingLists: TripList[], titles: stri
   return result;
 };
 
+const createListItems = (
+  listId: string,
+  titles: string[],
+  timestamp: number,
+) =>
+  titles.map((title, index) => ({
+    id: id(),
+    listId,
+    title,
+    completed: false,
+    sortOrder: index,
+    createdAt: timestamp,
+    updatedAt: timestamp,
+  }));
+
+const addMatchingPersonalLists = (
+  lists: TripList[],
+  trip: Trip,
+  commonMembers: Member[],
+): TripList[] => {
+  const tripMemberNames = new Set(
+    (trip.members ?? [])
+      .filter((member) => member.archived !== true)
+      .map((member) => member.name.trim().toLowerCase()),
+  );
+
+  commonMembers
+    .filter(
+      (member) =>
+        member.archived !== true &&
+        member.personalListItems?.length &&
+        tripMemberNames.has(member.name.trim().toLowerCase()),
+    )
+    .forEach((member) => {
+      const titles = member.personalListItems!
+        .map((item) => item.trim())
+        .filter(Boolean);
+      if (titles.length) {
+        lists.push(
+          makeListWithCompletion(
+            trip.id,
+            `${member.name} · Personal`,
+            titles,
+            lists.length,
+            lists,
+          ),
+        );
+      }
+    });
+
+  return lists;
+};
+
 const makeListWithCompletion = (
   tripId: string,
   name: string,
@@ -196,15 +249,7 @@ const makeList = (
     sortOrder,
     createdAt: t,
     updatedAt: t,
-    items: titles.map((title, index) => ({
-      id: id(),
-      listId,
-      title,
-      completed: false,
-      sortOrder: index,
-      createdAt: t,
-      updatedAt: t,
-    })),
+    items: createListItems(listId, titles, t),
   };
 };
 
@@ -231,12 +276,7 @@ export const createDefaultTripLists = (trip: Trip, commonMembers: Member[] = [])
     lists.length,
   ));
   lists.push(makeList(trip.id, 'Medicine', getTemplateItems('medicine', MEDICINE_ITEMS), lists.length));
-  const tripMemberNames = new Set((trip.members ?? []).filter((member) => member.archived !== true).map((member) => member.name.trim().toLowerCase()));
-  commonMembers.filter((member) => member.archived !== true && member.personalListItems?.length && tripMemberNames.has(member.name.trim().toLowerCase())).forEach((member) => {
-    const titles = member.personalListItems!.map((item) => item.trim()).filter(Boolean);
-    if (titles.length) lists.push(makeListWithCompletion(trip.id, `${member.name} · Personal`, titles, lists.length, lists));
-  });
-  return lists;
+  return addMatchingPersonalLists(lists, trip, commonMembers);
 };
 
 
@@ -268,7 +308,7 @@ export const saveTravelListTemplateItems = (templateId: string, items: string[])
 export const createListFromTemplate = (tripId: string, template: TravelListTemplate, sortOrder: number, existingLists: TripList[] = []): TripList =>
   makeList(tripId, template.name, filterDuplicateListItems(existingLists, getTravelListTemplateItems(template)), sortOrder);
 
-const listAllowsSharedItems = (list: TripList): boolean => {
+export const listAllowsSharedItems = (list: TripList): boolean => {
   const name = list.name.trim().toLowerCase();
   return name === 'medicine' || name.endsWith(' · personal');
 };
@@ -310,15 +350,12 @@ export const dedupeTripLists = (lists: TripList[]): TripList[] => {
 export const ensureTripLists = (trip: Trip, commonMembers: Member[] = []): Trip => {
   let lists = trip.lists?.length ? dedupeTripLists(trip.lists) : createDefaultTripLists(trip, commonMembers);
   const existingNames = new Set(lists.map((list) => list.name.trim().toLowerCase()));
-  const tripMemberNames = new Set((trip.members ?? []).filter((member) => member.archived !== true).map((member) => member.name.trim().toLowerCase()));
-  commonMembers.filter((member) => member.archived !== true && member.personalListItems?.length && tripMemberNames.has(member.name.trim().toLowerCase())).forEach((member) => {
-    const name = `${member.name} · Personal`;
-    if (existingNames.has(name.toLowerCase())) return;
-    const titles = member.personalListItems!.map((item) => item.trim()).filter(Boolean);
-    if (titles.length) {
-      lists = [...lists, makeListWithCompletion(trip.id, name, titles, lists.length, lists)];
-      existingNames.add(name.toLowerCase());
-    }
+  const personalLists = addMatchingPersonalLists([], trip, commonMembers);
+  personalLists.forEach((list) => {
+    const name = list.name.trim().toLowerCase();
+    if (existingNames.has(name)) return;
+    lists = [...lists, { ...list, sortOrder: lists.length }];
+    existingNames.add(name);
   });
   return trip.lists === lists ? trip : { ...trip, lists };
 };
@@ -340,15 +377,7 @@ export const cloneList = (source: TripList, tripId: string, sortOrder: number, e
     sortOrder,
     createdAt: t,
     updatedAt: t,
-    items: titles.map((title, index) => ({
-      id: id(),
-      listId,
-      title,
-      completed: false,
-      sortOrder: index,
-      createdAt: t,
-      updatedAt: t,
-    })),
+    items: createListItems(listId, titles, t),
   };
 };
 
