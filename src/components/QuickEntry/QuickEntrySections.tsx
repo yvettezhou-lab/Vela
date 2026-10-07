@@ -29,7 +29,7 @@ interface QuickEntryTransportSectionProps {
   setJourneyType: (value: TransportJourneyType) => void;
 }
 
-const QuickEntryTransportSection: React.FC<QuickEntryTransportSectionProps> = ({
+export const QuickEntryTransportSection: React.FC<QuickEntryTransportSectionProps> = ({
   transportMode,
   journeyType,
   openDatePicker,
@@ -162,7 +162,7 @@ interface QuickEntryPrepaidSectionProps {
   tripDateBounds: { minDate?: string; maxDate?: string };
 }
 
-const QuickEntryPrepaidSection: React.FC<QuickEntryPrepaidSectionProps> = ({
+export const QuickEntryPrepaidSection: React.FC<QuickEntryPrepaidSectionProps> = ({
   openDatePicker,
   setOpenDatePicker,
   usageStart,
@@ -215,7 +215,7 @@ interface QuickEntryAllocationSectionProps {
   setCustomPercentages: React.Dispatch<React.SetStateAction<Record<string, number>>>;
 }
 
-const QuickEntryAllocationSection: React.FC<QuickEntryAllocationSectionProps> = ({
+export const QuickEntryAllocationSection: React.FC<QuickEntryAllocationSectionProps> = ({
   allocationMode,
   setAllocationMode,
   targetTripHasPreset,
