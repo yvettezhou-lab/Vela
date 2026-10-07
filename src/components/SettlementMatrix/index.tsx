@@ -1,3 +1,4 @@
+import './styles.css';
 import React, { useMemo, useState } from 'react';
 import { ChevronDown, Download, Scale } from 'lucide-react';
 import { useVelaStore } from '../../store/useVelaStore';
