@@ -1,4 +1,8 @@
-import { LedgerEntry, Trip, TripFinancialTotals } from './domain';
+import type {
+  LedgerEntry,
+  Trip,
+  TripFinancialTotals,
+} from './domain';
 import { getLedgerFinancialImpact } from './ledger';
 
 export interface MemberBalance {
@@ -18,12 +22,15 @@ export interface SettlementTransaction {
 // Financial totals
 // -----------------------------------------------------------------------------
 
-export const calculateFinancialTotals = (ledger: LedgerEntry[]): TripFinancialTotals =>
+export const calculateFinancialTotals = (
+  ledger: LedgerEntry[],
+): TripFinancialTotals =>
   ledger.reduce(
     (totals, entry) => {
       if (!entry.includeInCost) return totals;
 
       const impact = getLedgerFinancialImpact(entry);
+
       if (entry.isPending) {
         totals.pendingAmount += impact;
       } else {
@@ -74,12 +81,14 @@ export const calculateGroupBalance = (trip: Trip): MemberBalance[] => {
     const impactMultiplier = entry.isRefund ? -1 : 1;
 
     if (balances[entry.payerId]) {
-      balances[entry.payerId].paid += entry.cnyEquivalent * impactMultiplier;
+      balances[entry.payerId].paid +=
+        entry.cnyEquivalent * impactMultiplier;
     }
 
     entry.allocations.forEach((allocation) => {
       if (balances[allocation.memberId]) {
-        balances[allocation.memberId].owed += allocation.amount * impactMultiplier;
+        balances[allocation.memberId].owed +=
+          allocation.amount * impactMultiplier;
       }
     });
   });
@@ -94,15 +103,24 @@ export const calculateGroupBalance = (trip: Trip): MemberBalance[] => {
 // Settlement transactions
 // -----------------------------------------------------------------------------
 
-export const calculateSettlements = (balances: MemberBalance[]): SettlementTransaction[] => {
+export const calculateSettlements = (
+  balances: MemberBalance[],
+): SettlementTransaction[] => {
   const transactions: SettlementTransaction[] = [];
-  const debtors = balances.filter((balance) => balance.net < -0.01).sort((a, b) => a.net - b.net);
-  const creditors = balances.filter((balance) => balance.net > 0.01).sort((a, b) => b.net - a.net);
+  const debtors = balances
+    .filter((balance) => balance.net < -0.01)
+    .sort((a, b) => a.net - b.net);
+  const creditors = balances
+    .filter((balance) => balance.net > 0.01)
+    .sort((a, b) => b.net - a.net);
 
   let debtorIndex = 0;
   let creditorIndex = 0;
 
-  while (debtorIndex < debtors.length && creditorIndex < creditors.length) {
+  while (
+    debtorIndex < debtors.length &&
+    creditorIndex < creditors.length
+  ) {
     const debtor = debtors[debtorIndex];
     const creditor = creditors[creditorIndex];
     const amount = Math.min(Math.abs(debtor.net), creditor.net);
