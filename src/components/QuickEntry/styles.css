@@ -768,7 +768,6 @@
   .vela-quick-fullscreen>header{padding-top:max(10px,env(safe-area-inset-top))!important;padding-bottom:8px!important}
   .vela-quick-fullscreen>header p{margin-bottom:0!important;font-size:9px!important;line-height:1.1!important}
   .vela-quick-fullscreen>header h2{font-size:29px!important;line-height:1!important}
-  .vela-quick-fullscreen>form{padding-top:4px!important;padding-left:14px!important;padding-right:14px!important;padding-bottom:calc(96px + env(safe-area-inset-bottom))!important}
   .vela-quick-fullscreen .quick-entry-planning-row{gap:6px!important;margin-bottom:12px!important}
   .vela-quick-fullscreen .quick-entry-planning-trip{padding-left:8px!important;padding-right:8px!important}
   .vela-quick-fullscreen .quick-entry-paid-popover{width:260px!important;max-width:calc(100vw - 28px)!important}
