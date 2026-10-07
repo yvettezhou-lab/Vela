@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { Trip, TripStatus, Member, Account, Category, TripList } from '../core/domain';
-import { getDefaultCategories } from '../core/defaults';
+import { getDefaultCategories, getDefaultCommonAccounts, getDefaultTripAccounts } from '../core/defaults';
 import { DomainValidator, isRecord } from '../core/validation';
 import { migrateLegacyPlanToTrip } from '../core/legacyAdapter';
 import { getAutoStartTripId } from '../utils/tripLifecycle';
@@ -23,7 +23,10 @@ const withDefaultCategories = (trip: Trip): Trip => {
     : entry);
   return { ...trip, categories: mergedCategories, ledger }; 
 };
-const withDefaultAccounts = (trip: Trip): Trip => ({ ...trip, accounts: trip.accounts.length > 0 ? trip.accounts : [{ id: 'default-account-cash', name: 'Cash' }, { id: 'default-account-credit-card', name: 'Credit Card' }] });
+const withDefaultAccounts = (trip: Trip): Trip => ({
+  ...trip,
+  accounts: trip.accounts.length > 0 ? trip.accounts : getDefaultTripAccounts(),
+});
 const normalizeTrips = (trips: Trip[]): Trip[] => refreshAutoTripTitles(trips.map((rawTrip) => {
   const trip = ensureTripLists(withDefaultAccounts(withDefaultCategories(rawTrip)));
   const ledger = trip.ledger.map((entry) => {
@@ -141,7 +144,7 @@ export const useVelaStore = create<VelaState>()(persist((set, get) => ({
   trips: [],
   commonMembers: [],
   commonCategories: getDefaultCategories(),
-  commonAccounts: [{ id: 'common-account-cash', name: 'Cash' }, { id: 'common-account-credit-card', name: 'Credit Card' }],
+  commonAccounts: getDefaultCommonAccounts(),
   addTrip: (rawTrip) => { const validated = DomainValidator.validateEntireTrip(rawTrip, get().trips); const tripWithLists = ensureTripLists(validated, get().commonMembers); const strictTrip = withDefaultAccounts(withDefaultCategories(tripWithLists)); const refreshedTrips = refreshAutoTripTitles([...get().trips, strictTrip]); set({ trips: refreshedTrips }); get().evaluateAutoStart(); },
   updateTrip: (tripId, trip) => { const trips = get().trips; if (!trips.some((item) => item.id === tripId)) throw new Error(`Store Error: Trip ${tripId} not found`); const strictTrip = ensureTripLists(DomainValidator.validateEntireTrip({ ...trip, id: tripId, updatedAt: Date.now() }, trips.filter((item) => item.id !== tripId)), get().commonMembers); const refreshedTrips = refreshAutoTripTitles(trips.map((item) => item.id === tripId ? strictTrip : item)); set({ trips: refreshedTrips }); },
   updateTripStatus: (tripId, newStatus) => { const trips = get().trips; const trip = trips.find((t) => t.id === tripId); if (!trip) throw new Error(`Store Error: Trip ${tripId} not found`); DomainValidator.validateTripStatus(trips, tripId, newStatus, trip.status); if (newStatus !== 'planning' && newStatus !== 'traveling' && newStatus !== 'achieve') throw new Error(`Store Error: Invalid status ${newStatus}`); set({ trips: trips.map((t) => t.id === tripId ? { ...t, status: newStatus as TripStatus, updatedAt: Date.now() } : t) }); },
