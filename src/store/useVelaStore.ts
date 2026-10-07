@@ -39,6 +39,9 @@ const mapTrip = (
   updater: (trip: Trip) => Trip,
 ): Trip[] => trips.map((trip) => (trip.id === tripId ? updater(trip) : trip));
 
+const withoutTrip = (trips: Trip[], tripId: string): Trip[] =>
+  trips.filter((trip) => trip.id !== tripId);
+
 const collectUniqueMasterData = <T extends { name: string }, R extends { name: string }>(
   items: T[],
   createItem: (item: T) => R,
@@ -321,7 +324,7 @@ interface VelaState {
         ...baseTrip,
         ledger: [...baseTrip.ledger, currencyResolvedEntry],
       },
-      trips.filter((item) => item.id !== tripId),
+      withoutTrip(trips, tripId),
     );
 
     set((state) => ({
@@ -370,7 +373,7 @@ interface VelaState {
           entry.id === entryId ? currencyResolvedEntry : entry,
         ),
       },
-      trips.filter((item) => item.id !== tripId),
+      withoutTrip(trips, tripId),
     );
 
     set((state) => ({
@@ -466,7 +469,7 @@ export const useVelaStore = create<VelaState>()(persist((set, get) => ({
     const strictTrip = ensureTripLists(
       DomainValidator.validateEntireTrip(
         { ...trip, id: tripId, updatedAt: Date.now() },
-        trips.filter((item) => item.id !== tripId),
+        withoutTrip(trips, tripId),
       ),
       get().commonMembers,
     );
@@ -531,7 +534,7 @@ export const useVelaStore = create<VelaState>()(persist((set, get) => ({
     );
     const strictTrip = DomainValidator.validateEntireTrip(
       { ...trip, segments: updatedSegments, updatedAt: Date.now() },
-      trips.filter((item) => item.id !== tripId),
+      withoutTrip(trips, tripId),
     );
     const refreshedTrips = refreshAutoTripTitles(
       mapTrip(trips, tripId, () => strictTrip),
@@ -594,7 +597,7 @@ export const useVelaStore = create<VelaState>()(persist((set, get) => ({
         ...baseTrip,
         ledger: [...baseTrip.ledger, currencyResolvedEntry],
       },
-      trips.filter((item) => item.id !== tripId),
+      withoutTrip(trips, tripId),
     );
 
     set((state) => ({
@@ -647,7 +650,7 @@ export const useVelaStore = create<VelaState>()(persist((set, get) => ({
           entry.id === entryId ? currencyResolvedEntry : entry,
         ),
       },
-      trips.filter((item) => item.id !== tripId),
+      withoutTrip(trips, tripId),
     );
 
     set((state) => ({
