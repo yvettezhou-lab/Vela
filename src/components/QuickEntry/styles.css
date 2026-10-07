@@ -421,7 +421,7 @@
   gap:var(--quick-entry-journey-option-gap,6px);
   align-items:start;
 }
-.quick-entry-journey-button{width:100%;min-width:0}
+.quick-entry-journey-button{min-width:0}
 .quick-entry-journey-option .quick-entry-date-picker{margin:0}
 .quick-entry-journey-option .quick-entry-date-picker>span{display:none}
 .quick-entry-date-picker{
