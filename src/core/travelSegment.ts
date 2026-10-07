@@ -5,9 +5,14 @@ const toDayStart = (timestamp: number): number => {
   return new Date(date.getFullYear(), date.getMonth(), date.getDate()).getTime();
 };
 
-export const getSegmentsByDate = (segments: TravelSegment[], date: number): TravelSegment[] => {
+export const getSegmentsByDate = (
+  segments: TravelSegment[],
+  date: number,
+): TravelSegment[] => {
   if (!Number.isFinite(date)) return [];
+
   const day = toDayStart(date);
+
   return segments
     .filter((segment) => {
       const startDay = toDayStart(segment.startDate);
@@ -17,12 +22,23 @@ export const getSegmentsByDate = (segments: TravelSegment[], date: number): Trav
     .sort((a, b) => a.startDate - b.startDate);
 };
 
-export const findSegmentByDate = (segments: TravelSegment[], date: number): TravelSegment | undefined =>
-  getSegmentsByDate(segments, date)[0];
+export const findSegmentByDate = (
+  segments: TravelSegment[],
+  date: number,
+): TravelSegment | undefined => getSegmentsByDate(segments, date)[0];
 
 export const getLedgerEntryDate = (entry: LedgerEntry): number => {
-  if (entry.entryType === 'transport' || (entry as unknown as { entryType?: string }).entryType === 'flight') return entry.outboundDate;
-  if (entry.entryType === 'prepaid_multi_day') return entry.usageStart;
+  if (
+    entry.entryType === 'transport' ||
+    (entry as unknown as { entryType?: string }).entryType === 'flight'
+  ) {
+    return entry.outboundDate;
+  }
+
+  if (entry.entryType === 'prepaid_multi_day') {
+    return entry.usageStart;
+  }
+
   return entry.paymentDate;
 };
 
@@ -32,22 +48,36 @@ export const getLedgerEntryRelevantDates = (entry: LedgerEntry): number[] => {
       ? [entry.outboundDate, entry.returnDate]
       : [entry.outboundDate];
   }
+
   if ((entry as unknown as { entryType?: string }).entryType === 'flight') {
-    const legacy = entry as unknown as { flightType?: string; outboundDate: number; returnDate?: number };
-    return legacy.flightType === 'round_trip' && Number.isFinite(legacy.returnDate)
+    const legacy = entry as unknown as {
+      flightType?: string;
+      outboundDate: number;
+      returnDate?: number;
+    };
+
+    return legacy.flightType === 'round_trip' &&
+      Number.isFinite(legacy.returnDate)
       ? [legacy.outboundDate, legacy.returnDate]
       : [legacy.outboundDate];
   }
+
   if (entry.entryType === 'prepaid_multi_day') {
     return [entry.usageStart, entry.usageEnd];
   }
+
   return [entry.paymentDate];
 };
 
-export const validateLedgerEntryDates = (segments: TravelSegment[], entry: LedgerEntry): void => {
+export const validateLedgerEntryDates = (
+  segments: TravelSegment[],
+  entry: LedgerEntry,
+): void => {
   for (const date of getLedgerEntryRelevantDates(entry)) {
     if (!findSegmentByDate(segments, date)) {
-      throw new Error('Ledger Error: Entry date must fall within a TravelSegment date range');
+      throw new Error(
+        'Ledger Error: Entry date must fall within a TravelSegment date range',
+      );
     }
   }
 };
@@ -56,26 +86,52 @@ export const getSegmentForLedgerEntry = (
   segments: TravelSegment[],
   entry: LedgerEntry,
 ): TravelSegment | undefined => {
-  if (entry.segmentId) return segments.find((segment) => segment.id === entry.segmentId);
+  if (entry.segmentId) {
+    return segments.find((segment) => segment.id === entry.segmentId);
+  }
+
   return findSegmentByDate(segments, getLedgerEntryDate(entry));
 };
 
-export const getTripStartDate = (trip: { segments: TravelSegment[] }): number => Math.min(...trip.segments.map((segment) => segment.startDate));
-export const getTripEndDate = (trip: { segments: TravelSegment[] }): number => Math.max(...trip.segments.map((segment) => segment.endDate));
-export const getTripPrimaryCurrency = (trip: { segments: TravelSegment[] }): string => trip.segments[0]?.primaryCurrency ?? 'CNY';
-export const getTripDestinations = (trip: { segments: TravelSegment[] }): string[] =>
-  trip.segments.flatMap((segment) => segment.destinations.map((destination) => destination.city || destination.country)).filter(Boolean);
+export const getTripStartDate = (trip: {
+  segments: TravelSegment[];
+}): number => Math.min(...trip.segments.map((segment) => segment.startDate));
 
-export const getSegmentPrimaryCurrency = (segments: TravelSegment[], date: number): string | undefined =>
-  findSegmentByDate(segments, date)?.primaryCurrency;
+export const getTripEndDate = (trip: {
+  segments: TravelSegment[];
+}): number => Math.max(...trip.segments.map((segment) => segment.endDate));
+
+export const getTripPrimaryCurrency = (trip: {
+  segments: TravelSegment[];
+}): string => trip.segments[0]?.primaryCurrency ?? 'CNY';
+
+export const getTripDestinations = (trip: {
+  segments: TravelSegment[];
+}): string[] =>
+  trip.segments
+    .flatMap((segment) =>
+      segment.destinations.map(
+        (destination) => destination.city || destination.country,
+      ),
+    )
+    .filter(Boolean);
+
+export const getSegmentPrimaryCurrency = (
+  segments: TravelSegment[],
+  date: number,
+): string | undefined => findSegmentByDate(segments, date)?.primaryCurrency;
 
 export const resolveLedgerEntryCurrency = (
   segments: TravelSegment[],
   entry: LedgerEntry,
 ): string => {
   const segment = getSegmentForLedgerEntry(segments, entry);
+
   if (!segment) {
-    throw new Error('Ledger Error: Entry date must fall within a TravelSegment date range');
+    throw new Error(
+      'Ledger Error: Entry date must fall within a TravelSegment date range',
+    );
   }
+
   return segment.primaryCurrency;
 };
