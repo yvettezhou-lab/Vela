@@ -403,19 +403,43 @@ export const useVelaStore = create<VelaState>()(persist((set, get) => ({
   reorderCommonCategory: (id, direction) => { const current = get().commonCategories ?? getDefaultCategories(); const index = current.findIndex((item) => item.id === id); if (index < 0) return; const nextIndex = direction === 'up' ? index - 1 : index + 1; if (nextIndex < 0 || nextIndex >= current.length) return; const next = [...current]; [next[index], next[nextIndex]] = [next[nextIndex], next[index]]; set({ commonCategories: next }); },
   addCommonMember: (name) => { const clean = name.trim(); if (!clean) throw new Error('Common person name is required'); const current = get().commonMembers; if (current.some((item) => !item.archived && item.name.toLowerCase() === clean.toLowerCase())) throw new Error('A common person with this name already exists'); set({ commonMembers: [...current, { id: crypto.randomUUID(), name: clean }] }); },
   renameCommonMember: (id, name) => { const clean = name.trim(); if (!clean) throw new Error('Common person name is required'); set({ commonMembers: get().commonMembers.map((item) => item.id === id ? { ...item, name: clean } : item) }); },
-  deleteCommonMember: (id) => set({ commonMembers: get().commonMembers.filter((item) => item.id !== id) }),
+  deleteCommonMember: (id) => {
+    set({
+      commonMembers: get().commonMembers.filter((item) => item.id !== id),
+    });
+  },
   addCommonMemberListItem: (id, title) => {
     const clean = title.trim();
     if (!clean) throw new Error('Personal list item is required');
-    set({ commonMembers: get().commonMembers.map((item) => item.id === id
-      ? { ...item, personalListItems: Array.from(new Set([...(item.personalListItems ?? []), clean])) }
-      : item) });
+
+    set({
+      commonMembers: get().commonMembers.map((item) =>
+        item.id === id
+          ? {
+              ...item,
+              personalListItems: Array.from(
+                new Set([...(item.personalListItems ?? []), clean]),
+              ),
+            }
+          : item,
+      ),
+    });
   },
   deleteCommonMemberListItem: (id, title) => {
     const key = title.trim().toLowerCase();
-    set({ commonMembers: get().commonMembers.map((item) => item.id === id
-      ? { ...item, personalListItems: (item.personalListItems ?? []).filter((entry) => entry.trim().toLowerCase() !== key) }
-      : item) });
+
+    set({
+      commonMembers: get().commonMembers.map((item) =>
+        item.id === id
+          ? {
+              ...item,
+              personalListItems: (item.personalListItems ?? []).filter(
+                (entry) => entry.trim().toLowerCase() !== key,
+              ),
+            }
+          : item,
+      ),
+    });
   },
   addCommonAccount: (name) => { const clean = name.trim(); if (!clean) throw new Error('Account name is required'); const current = get().commonAccounts; if (current.some((item) => !item.archived && item.name.toLowerCase() === clean.toLowerCase())) throw new Error('An account with this name already exists'); set({ commonAccounts: [...current, { id: crypto.randomUUID(), name: clean }] }); },
   renameCommonAccount: (id, name) => { const clean = name.trim(); if (!clean) throw new Error('Account name is required'); set({ commonAccounts: get().commonAccounts.map((item) => item.id === id ? { ...item, name: clean } : item) }); },
