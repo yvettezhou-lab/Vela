@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { BookOpen, Compass, Home as HomeIcon, Scale, Settings } from 'lucide-react';
 import { createRoot } from 'react-dom/client';
-import './styles.css'; import './vela-polish.css'; import './vela-secondary-finish.css'; import './vela-home-shell.css'; import './global-ux.css'; import './logbook.css'; import './components/SettlementMatrix/styles.css'; import './vela-design-system.css';
+import './styles.css'; import './vela-polish.css'; import './vela-secondary-finish.css'; import './vela-home-shell.css'; import './global-ux.css'; import './logbook.css'; import './vela-design-system.css';
 import HomePage from './Home'; import TemplateEditor from './components/TemplateEditor'; import TripManager from './components/TripManager'; import DataManagement from './components/DataManagement'; import MasterData from './components/MasterData'; import { TripCreation } from './components/TripCreation'; import { QuickEntry } from './components/QuickEntry'; import { LedgerView } from './components/LedgerView'; import { SettlementMatrix } from './components/SettlementMatrix'; import LogbookView from './components/Logbook'; import TravelLists from './components/TravelLists';
 import { calculateAnnualTotals } from './utils/reflectionEngine'; import { useVelaStore } from './store/useVelaStore';
 
