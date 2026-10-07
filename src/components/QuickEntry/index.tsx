@@ -58,10 +58,6 @@ export interface QuickEntryProps {
   initialEntry?: LedgerEntry | null;
 }
 
-const FALLBACK_ACCOUNTS = [
-  { id: 'default-account-cash', name: 'Cash' },
-  { id: 'default-account-credit-card', name: 'Credit Card' },
-];
 const LEDGER_CURRENCIES = ['CNY', 'MYR', 'SGD', 'THB', 'IDR', 'PHP', 'JPY', 'KRW', 'USD', 'EUR', 'GBP', 'AUD', 'HKD', 'ARS', 'AFN', 'ALL', 'DZD', 'BRL', 'KHR', 'CAD', 'CZK', 'DKK', 'EGP', 'HUF', 'ISK', 'INR', 'ILS', 'JOD', 'KZT', 'LAK', 'MVR', 'MXN', 'MNT', 'MAD', 'MMK', 'NPR', 'NZD', 'NOK', 'PLN', 'RUB', 'SAR', 'ZAR', 'TWD', 'LKR', 'SEK', 'CHF', 'TRY', 'AED', 'VND'];
 
 const QuickEntryContent: React.FC<QuickEntryProps> = ({ onClose, editTripId, initialEntry }) => {
@@ -128,16 +124,15 @@ const QuickEntryContent: React.FC<QuickEntryProps> = ({ onClose, editTripId, ini
     setTargetTripId((current) => editTripId ?? (current && eligibleTrips.some((trip) => trip.id === current) ? current : defaultTripId));
   }, [trips]);
 
-  const activeAccounts = targetTrip?.accounts?.filter((account) => account.archived !== true) ?? [];
   const accounts = useMemo(() => {
-    const source = activeAccounts.length ? activeAccounts : FALLBACK_ACCOUNTS;
+    const activeAccounts = targetTrip?.accounts?.filter((account) => account.archived !== true) ?? [];
     const lastUsedAt = new Map<string, number>();
     (targetTrip?.ledger ?? []).forEach((entry) => {
       if (!entry.accountId) return;
       lastUsedAt.set(entry.accountId, Math.max(lastUsedAt.get(entry.accountId) ?? 0, entry.createdAt ?? 0));
     });
-    return [...source].sort((a, b) => (lastUsedAt.get(b.id) ?? 0) - (lastUsedAt.get(a.id) ?? 0));
-  }, [activeAccounts, targetTrip]);
+    return [...activeAccounts].sort((a, b) => (lastUsedAt.get(b.id) ?? 0) - (lastUsedAt.get(a.id) ?? 0));
+  }, [targetTrip]);
   const activeMembers = targetTrip?.members?.filter((member) => member.archived !== true) ?? [];
   const members = activeMembers;
   const payerOptions = useMemo(() => {
