@@ -2,6 +2,7 @@ import { getTripDestinations, getTripEndDate, getTripPrimaryCurrency, getTripSta
 import React, { useMemo, useEffect } from 'react';
 import { Calendar, ChevronRight, List as ListIcon, MapPin, Plus, X } from 'lucide-react';
 import { calculateFinancialTotals } from './core/calculations';
+import { getLedgerOriginalAmountImpact } from './core/ledger';
 import { Trip } from './core/domain';
 import { useVelaStore } from './store/useVelaStore';
 import { useTripCover } from './hooks/useTripCover';
@@ -11,7 +12,7 @@ import './Home.css';
 type HomeProps = { onNavigate: (label: 'Home' | 'Ledger' | 'Balance' | 'Logbook' | 'Engine') => void; onCreateTrip: () => void; onManageTrips: () => void; onOpenLists: (tripId: string) => void };
 const dateLabel = (trip: Trip) => { const start = new Date(getTripStartDate(trip)), end = new Date(getTripEndDate(trip)); if (!Number.isFinite(start.getTime()) || !Number.isFinite(end.getTime())) return 'DATES NOT SET'; const fmt = (value: Date) => `${value.getFullYear()}.${String(value.getMonth() + 1).padStart(2, '0')}.${String(value.getDate()).padStart(2, '0')}`; return `${fmt(start)} — ${fmt(end)}`; };
 const dayCount = (trip: Trip) => { const days = Math.round((getTripEndDate(trip) - getTripStartDate(trip)) / 86400000) + 1; return days > 0 && days < 1000 ? `${days} DAYS` : ''; };
-const localSummary = (trip: Trip) => { const statsLedger = trip.ledger.filter(entry => entry.includeInCost && !entry.isPending); const local = statsLedger.reduce((sum, entry) => sum + (entry.isRefund ? -entry.originalAmount : entry.originalAmount), 0); const totals = calculateFinancialTotals(trip.ledger); const currency = getTripPrimaryCurrency(trip); const localLabel = local ? `${currency} ${Math.round(local).toLocaleString('en-US')}` : ''; const cnyLabel = currency !== 'CNY' && totals.financialTotal ? `¥${Math.round(totals.financialTotal).toLocaleString('en-US')}` : ''; return [dayCount(trip), localLabel, cnyLabel].filter(Boolean).join(' · '); };
+const localSummary = (trip: Trip) => { const statsLedger = trip.ledger.filter(entry => entry.includeInCost && !entry.isPending); const local = statsLedger.reduce((sum, entry) => sum + getLedgerOriginalAmountImpact(entry), 0); const totals = calculateFinancialTotals(trip.ledger); const currency = getTripPrimaryCurrency(trip); const localLabel = local ? `${currency} ${Math.round(local).toLocaleString('en-US')}` : ''; const cnyLabel = currency !== 'CNY' && totals.financialTotal ? `¥${Math.round(totals.financialTotal).toLocaleString('en-US')}` : ''; return [dayCount(trip), localLabel, cnyLabel].filter(Boolean).join(' · '); };
 const TripCoverImage: React.FC<{ trip: Trip }> = ({ trip }) => {
   const src = useTripCover(trip.coverImage);
   if (!src) return <span className="vela-trip-cover-placeholder" aria-hidden="true"><img src="/favicon.svg" alt="" /></span>;
