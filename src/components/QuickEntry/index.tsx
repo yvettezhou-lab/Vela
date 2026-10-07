@@ -3,7 +3,8 @@ import React, { Component, ErrorInfo, ReactNode, useEffect, useMemo, useRef, use
 import { X } from 'lucide-react';
 import { useVelaStore } from '../../store/useVelaStore';
 import { TRANSPORT_CATEGORY_ID } from '../../core/validation';
-import { Allocation, AllocationMode, LedgerEntry, TravelSegment, TransportMode, TransportJourneyType } from '../../core/domain';
+import { AllocationMode, LedgerEntry, TravelSegment, TransportMode, TransportJourneyType } from '../../core/domain';
+import { buildAllocationsByMode } from '../../core/allocation';
 import './styles.css';
 import { DatePicker } from './DatePicker';
 import { AmountKeypad, evaluateAmountExpression } from './AmountKeypad';
@@ -309,14 +310,14 @@ const QuickEntryContent: React.FC<QuickEntryProps> = ({ onClose, editTripId, ini
     });
   };
 
-  const buildAllocations = (cnyTotal: number): Allocation[] => {
+  const buildAllocations = (cnyTotal: number) => {
     let participantIds: string[];
-    let percentages: Record<string, number> | null = null;
+    let percentages: Record<string, number> | undefined;
 
     if (allocationMode === 'preset_percentage') {
       if (!targetTrip?.allocationRules?.percentages) throw new Error('This journey has no preset allocation rule yet.');
       percentages = { ...targetTrip.allocationRules.percentages };
-      participantIds = Object.keys(percentages).filter((id) => members.some((member) => member.id === id) && Number(percentages[id]) > 0);
+      participantIds = Object.keys(percentages).filter((id) => members.some((member) => member.id === id) && Number(percentages![id]) > 0);
       if (!participantIds.length) throw new Error('Preset allocation has no valid participants.');
       const total = participantIds.reduce((sum, id) => sum + Number(percentages![id] ?? 0), 0);
       if (Math.abs(total - 100) > 0.01) throw new Error('Preset allocation percentages must equal 100%.');
@@ -330,46 +331,7 @@ const QuickEntryContent: React.FC<QuickEntryProps> = ({ onClose, editTripId, ini
       }
     }
 
-    const allocations: Allocation[] = participantIds.map((memberId) => ({
-      memberId,
-      amount: 0,
-      ...(percentages ? { percentage: Number(percentages[memberId] ?? 0) } : {}),
-    }));
-
-    if (allocationMode === 'equal') {
-      const totalCents = Math.round(cnyTotal * 100);
-      const baseCents = Math.floor(totalCents / participantIds.length);
-      const remainderCents = totalCents - (baseCents * participantIds.length);
-      allocations.forEach((allocation, index) => {
-        allocation.amount = (baseCents + (index < remainderCents ? 1 : 0)) / 100;
-      });
-    } else {
-      // Allocate in cents so rounded participant amounts always add up exactly
-      // to the CNY total. Any leftover cents go to the largest fractional
-      // remainders, avoiding the 1-cent-per-person rounding drift.
-      const totalCents = Math.round(cnyTotal * 100);
-      const centParts = allocations.map((allocation, index) => {
-        const percentage = allocation.percentage ?? 0;
-        const exactCents = totalCents * percentage / 100;
-        const baseCents = Math.floor(exactCents);
-        return { index, baseCents, remainder: exactCents - baseCents };
-      });
-      let remainingCents = totalCents - centParts.reduce((sum, part) => sum + part.baseCents, 0);
-      centParts
-        .slice()
-        .sort((a, b) => b.remainder - a.remainder || a.index - b.index)
-        .forEach((part) => {
-          if (remainingCents > 0) {
-            part.baseCents += 1;
-            remainingCents -= 1;
-          }
-        });
-      centParts.forEach((part) => {
-        allocations[part.index].amount = part.baseCents / 100;
-      });
-    }
-
-    return allocations;
+    return buildAllocationsByMode(cnyTotal, participantIds, allocationMode, percentages);
   };
 
   useEffect(() => {
