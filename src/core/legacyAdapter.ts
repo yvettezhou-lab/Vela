@@ -1,11 +1,48 @@
-import { Trip, TripStatus, AllocationMode } from './domain';
+import type { AllocationMode, Trip, TripStatus } from './domain';
 import { DomainValidator, TRANSPORT_CATEGORY_ID } from './validation';
-const isRecord = (val: unknown): val is Record<string, unknown> => typeof val === 'object' && val !== null && !Array.isArray(val);
-const requireLegacyString = (val: unknown, name: string): string => { if (val === undefined || val === null) throw new Error(`Migration Error: Missing ${name}`); if (typeof val === 'number') return String(val); if (typeof val === 'string' && val.trim() !== '') return val.trim(); throw new Error(`Migration Error: Invalid ${name}`); };
-const parseLegacyBoolean = (val: unknown, fieldName: string): boolean => { if (val === true || val === 'true') return true; if (val === false || val === 'false') return false; throw new Error(`Migration Error: Missing or invalid boolean value for ${fieldName}`); };
+
+
+const isRecord = (
+  val: unknown,
+): val is Record<string, unknown> =>
+  typeof val === 'object' && val !== null && !Array.isArray(val);
+const requireLegacyString = (val: unknown, name: string): string => {
+  if (val === undefined || val === null) {
+    throw new Error(`Migration Error: Missing ${name}`);
+  }
+  if (typeof val === 'number') return String(val);
+  if (typeof val === 'string' && val.trim() !== '') return val.trim();
+
+  throw new Error(`Migration Error: Invalid ${name}`);
+};
+const parseLegacyBoolean = (
+  val: unknown,
+  fieldName: string,
+): boolean => {
+  if (val === true || val === 'true') return true;
+  if (val === false || val === 'false') return false;
+
+  throw new Error(
+    `Migration Error: Missing or invalid boolean value for ${fieldName}`,
+  );
+};
 export const migrateLegacyPlanToTrip = (legacyData: unknown): Trip => {
-if (!isRecord(legacyData)) throw new Error('Migration Error: Legacy data is not a valid object');
-const parseArray = <T>(arr: unknown, parser: (item: Record<string, unknown>) => T): T[] => { if (!Array.isArray(arr)) return []; return arr.map(item => { if (!isRecord(item)) throw new Error('Migration Error: Array item is not an object'); return parser(item); }); };
+  if (!isRecord(legacyData)) {
+    throw new Error('Migration Error: Legacy data is not a valid object');
+  }
+  const parseArray = <T>(
+    arr: unknown,
+    parser: (item: Record<string, unknown>) => T,
+  ): T[] => {
+    if (!Array.isArray(arr)) return [];
+
+    return arr.map((item) => {
+      if (!isRecord(item)) {
+        throw new Error('Migration Error: Array item is not an object');
+      }
+      return parser(item);
+    });
+  };
 const members = parseArray(legacyData.members, m => ({ id: requireLegacyString(m.id, 'Member ID'), name: requireLegacyString(m.name, 'Member Name') }));
 const accounts = parseArray(legacyData.accounts, a => ({ id: requireLegacyString(a.id, 'Account ID'), name: requireLegacyString(a.name, 'Account Name') }));
 const mappedCategoryIds = new Set<string>();
