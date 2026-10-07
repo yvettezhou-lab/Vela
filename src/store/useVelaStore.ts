@@ -281,13 +281,108 @@ interface VelaState {
   // Ledger
   // ---------------------------------------------------------------------------
 
-  addLedgerEntry: (tripId: string, rawEntry: unknown) => void;
-  updateLedgerEntry: (tripId: string, entryId: string, fullReconstructedEntry: unknown) => void;
-  deleteLedgerEntry: (tripId: string, entryId: string) => void;
-  // ---------------------------------------------------------------------------
-  // Trip master data
-  // ---------------------------------------------------------------------------
+  addLedgerEntry: (tripId, rawEntry) => {
+    const trips = get().trips;
+    const tripIndex = trips.findIndex((item) => item.id === tripId);
+    if (tripIndex === -1) throw new Error(`Store Error: Trip ${tripId} not found`);
+    if (!isRecord(rawEntry)) {
+      throw new Error('Store Error: Entry must be an object');
+    }
 
+    const baseTrip = withDefaultAccounts(withDefaultCategories(trips[tripIndex]));
+    const now = Date.now();
+    const candidateEntry = {
+      ...rawEntry,
+      createdAt: now,
+      updatedAt: now,
+    } as any;
+    const requestedCurrency =
+      typeof candidateEntry.originalCurrency === 'string'
+        ? candidateEntry.originalCurrency.trim().toUpperCase()
+        : '';
+    const currencyResolvedEntry = {
+      ...candidateEntry,
+      originalCurrency: requestedCurrency,
+    };
+    const strictTrip = DomainValidator.validateEntireTrip(
+      {
+        ...baseTrip,
+        ledger: [...baseTrip.ledger, currencyResolvedEntry],
+      },
+      trips.filter((item) => item.id !== tripId),
+    );
+
+    set((state) => ({
+      trips: mapTrip(state.trips, tripId, () => strictTrip),
+    }));
+  },
+  updateLedgerEntry: (tripId, entryId, fullReconstructedEntry) => {
+    const trips = get().trips;
+    const tripIndex = trips.findIndex((item) => item.id === tripId);
+    if (tripIndex === -1) {
+      throw new Error(`Store Error: Trip ${tripId} not found`);
+    }
+
+    const trip = withDefaultAccounts(withDefaultCategories(trips[tripIndex]));
+    if (!trip.ledger.some((entry) => entry.id === entryId)) {
+      throw new Error(
+        `Store Error: Entry ${entryId} not found in Trip ${tripId}`,
+      );
+    }
+    if (!isRecord(fullReconstructedEntry)) {
+      throw new Error('Store Error: Entry must be an object');
+    }
+
+    const rawClone = {
+      ...fullReconstructedEntry,
+      updatedAt: Date.now(),
+    } as any;
+    if (rawClone.id !== entryId) {
+      throw new Error(
+        `Store Error: Reconstructed entry ID does not match target ID ${entryId}`,
+      );
+    }
+
+    const requestedCurrency =
+      typeof rawClone.originalCurrency === 'string'
+        ? rawClone.originalCurrency.trim().toUpperCase()
+        : '';
+    const currencyResolvedEntry = {
+      ...rawClone,
+      originalCurrency: requestedCurrency,
+    };
+    const strictTrip = DomainValidator.validateEntireTrip(
+      {
+        ...trip,
+        ledger: trip.ledger.map((entry) =>
+          entry.id === entryId ? currencyResolvedEntry : entry,
+        ),
+      },
+      trips.filter((item) => item.id !== tripId),
+    );
+
+    set((state) => ({
+      trips: mapTrip(state.trips, tripId, () => strictTrip),
+    }));
+  },
+  deleteLedgerEntry: (tripId, entryId) => {
+    const trips = get().trips;
+    const trip = trips.find((item) => item.id === tripId);
+    if (!trip) throw new Error(`Store Error: Trip ${tripId} not found`);
+    if (!trip.ledger.some((entry) => entry.id === entryId)) {
+      throw new Error(
+        `Store Error: Cannot delete nonexistent Entry ${entryId}`,
+      );
+    }
+
+    set((state) => ({
+      trips: mapTrip(state.trips, tripId, (item) => ({
+        ...item,
+        ledger: item.ledger.filter((entry) => entry.id !== entryId),
+        updatedAt: Date.now(),
+      })),
+    }));
+  },
   updateMasterData: (tripId: string, type: MasterDataType, id: string | null, item: MasterDataItem) => void;
   archiveMasterData: (tripId: string, type: MasterDataType, id: string) => void;
   // ---------------------------------------------------------------------------
