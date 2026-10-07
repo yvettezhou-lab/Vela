@@ -1,4 +1,5 @@
 import { getTripEndDate, getTripStartDate } from '../core/travelSegment';
+import { isLedgerEntryIncludedInCost } from '../core/ledger';
 import { LedgerEntry, Trip } from '../core/domain';
 import { AnnualReflection, TripInsights, TravelFrequency, TripExpenseStructure } from '../types/logbook';
 
@@ -14,7 +15,8 @@ const addAmount = (target: Record<string, number>, key: string, amount: number):
   target[key] = (target[key] ?? 0) + amount;
 };
 
-const countsInStats = (_trip: Trip, entry: LedgerEntry): boolean => entry.includeInCost && !entry.isPending;
+const countsInStats = (_trip: Trip, entry: LedgerEntry): boolean =>
+  isLedgerEntryIncludedInCost(entry);
 
 const getCategoryName = (trip: Trip, entry: LedgerEntry): string =>
   trip.categories.find((category) => category.id === entry.categoryId)?.name ?? entry.categoryId;
