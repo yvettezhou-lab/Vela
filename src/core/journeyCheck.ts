@@ -1,10 +1,28 @@
 import { JourneyCheckResolution, Trip } from './domain';
 import { getTripStartDate } from './travelSegment';
 
-export type JourneyCheckCheckpoint = '7d' | '3d' | '1d' | `traveling:${string}:morning` | `traveling:${string}:evening`;
-export type JourneyCheckIssue = { id: string; from: string; to: string; fromDate: number; toDate: number };
+export type JourneyCheckCheckpoint =
+  | '7d'
+  | '3d'
+  | '1d'
+  | `traveling:${string}:morning`
+  | `traveling:${string}:evening`;
+export type JourneyCheckIssue = {
+  id: string;
+  from: string;
+  to: string;
+  fromDate: number;
+  toDate: number;
+};
 
-const dayStart = (timestamp: number) => { const d = new Date(timestamp); return new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime(); };
+const dayStart = (timestamp: number) => {
+  const date = new Date(timestamp);
+  return new Date(
+    date.getFullYear(),
+    date.getMonth(),
+    date.getDate(),
+  ).getTime();
+};
 
 export const getJourneyCheckCheckpoint = (trip: Trip, now = Date.now()): JourneyCheckCheckpoint | null => {
   if (trip.status === 'achieve' || !trip.segments.length) return null;
@@ -15,7 +33,8 @@ export const getJourneyCheckCheckpoint = (trip: Trip, now = Date.now()): Journey
   return null;
 };
 
-const destinationLabel = (destination: { city: string; country: string }) => destination.city || destination.country || 'Unknown';
+const destinationLabel = (destination: { city: string; country: string }) =>
+  destination.city || destination.country || 'Unknown';
 
 export const getJourneyCheckIssues = (trip: Trip): JourneyCheckIssue[] => {
   const segments = [...trip.segments].sort((a, b) => a.startDate - b.startDate);
@@ -42,14 +61,42 @@ export const getJourneyCheckIssues = (trip: Trip): JourneyCheckIssue[] => {
   return issues;
 };
 
-export const hasJourneyCheckBeenShown = (trip: Trip, checkpoint: JourneyCheckCheckpoint) => Boolean(trip.journeyCheck?.shownCheckpoints?.includes(checkpoint));
+export const hasJourneyCheckBeenShown = (
+  trip: Trip,
+  checkpoint: JourneyCheckCheckpoint,
+) => Boolean(trip.journeyCheck?.shownCheckpoints?.includes(checkpoint));
 
-export const markJourneyCheckShown = (trip: Trip, checkpoint: JourneyCheckCheckpoint): Trip => ({
-  ...trip, journeyCheck: { shownCheckpoints: Array.from(new Set([...(trip.journeyCheck?.shownCheckpoints ?? []), checkpoint])), resolutions: { ...(trip.journeyCheck?.resolutions ?? {}) } },
+export const markJourneyCheckShown = (
+  trip: Trip,
+  checkpoint: JourneyCheckCheckpoint,
+): Trip => ({
+  ...trip,
+  journeyCheck: {
+    shownCheckpoints: Array.from(
+      new Set([
+        ...(trip.journeyCheck?.shownCheckpoints ?? []),
+        checkpoint,
+      ]),
+    ),
+    resolutions: {
+      ...(trip.journeyCheck?.resolutions ?? {}),
+    },
+  },
 });
 
-export const setJourneyCheckResolution = (trip: Trip, issueId: string, resolution: JourneyCheckResolution): Trip => ({
-  ...trip, journeyCheck: { shownCheckpoints: [...(trip.journeyCheck?.shownCheckpoints ?? [])], resolutions: { ...(trip.journeyCheck?.resolutions ?? {}), [issueId]: resolution } },
+export const setJourneyCheckResolution = (
+  trip: Trip,
+  issueId: string,
+  resolution: JourneyCheckResolution,
+): Trip => ({
+  ...trip,
+  journeyCheck: {
+    shownCheckpoints: [...(trip.journeyCheck?.shownCheckpoints ?? [])],
+    resolutions: {
+      ...(trip.journeyCheck?.resolutions ?? {}),
+      [issueId]: resolution,
+    },
+  },
 });
 export const getTravelingDailyCheckpoint = (trip: Trip, now = Date.now()): JourneyCheckCheckpoint | null => {
   if (trip.status !== 'traveling' || !trip.segments.length) return null;
