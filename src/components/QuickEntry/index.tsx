@@ -65,7 +65,6 @@ const QuickEntryContent: React.FC<QuickEntryProps> = ({ onClose, editTripId, ini
   const addLedgerEntry = useVelaStore((state) => state.addLedgerEntry);
   const updateLedgerEntry = useVelaStore((state) => state.updateLedgerEntry);
   const deleteLedgerEntry = useVelaStore((state) => state.deleteLedgerEntry);
-  const commonCategories = useVelaStore((state) => state.commonCategories);
   const isEditing = Boolean(initialEntry);
   const eligibleTrips = trips.filter((trip) => trip && (trip.status === 'traveling' || trip.status === 'planning'));
   const currentTrip = eligibleTrips.find((trip) => trip.status === 'traveling') ?? null;
@@ -143,24 +142,10 @@ const QuickEntryContent: React.FC<QuickEntryProps> = ({ onClose, editTripId, ini
     }));
     return [...members].sort((a, b) => (lastUsedAt.get(b.id) ?? 0) - (lastUsedAt.get(a.id) ?? 0));
   }, [members, trips]);
-  const categories = (() => {
-    const tripCategories = targetTrip?.categories?.filter((category) => category.archived !== true) ?? [];
-    if (!tripCategories.length || !commonCategories?.length) return tripCategories;
-    const commonOrder = new Map(commonCategories.filter((category) => category.archived !== true).map((category, index) => [category.name.trim().toLowerCase(), index]));
-    const builtIns = [
-      { id: 'cat_income', name: 'Income', type: 'income' },
-      { id: 'cat_refund', name: 'Refund', type: 'income' },
-    ];
-    const withBuiltIns = [...tripCategories, ...builtIns.filter((builtIn) => !tripCategories.some((category) => category.id === builtIn.id))];
-    return [...withBuiltIns].sort((a, b) => {
-      const ai = commonOrder.get(a.name.trim().toLowerCase());
-      const bi = commonOrder.get(b.name.trim().toLowerCase());
-      if (ai !== undefined && bi !== undefined) return ai - bi;
-      if (ai !== undefined) return -1;
-      if (bi !== undefined) return 1;
-      return 0;
-    });
-  })();
+  const categories = useMemo(
+    () => targetTrip?.categories?.filter((category) => category.archived !== true) ?? [],
+    [targetTrip]
+  );
 
   const evaluatedAmount = useMemo(() => evaluateAmountExpression(amount), [amount]);
   const isIncome = evaluatedAmount !== null && evaluatedAmount < 0;
