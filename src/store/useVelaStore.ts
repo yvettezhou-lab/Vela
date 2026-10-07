@@ -18,7 +18,9 @@ import { DomainValidator, isRecord } from '../core/validation';
 import { ensureTripLists, createDefaultTripLists, cloneList, createListFromTemplate, listItemKey } from '../utils/travelLists';
 import type { TravelListTemplate } from '../utils/travelLists';
 import { getAutoStartTripId } from '../utils/tripLifecycle';
-import { refreshAutoTriconst LEGACY_STORAGE_KEY = 'vela.plan.v1';
+import { refreshAutoTripTitles } from '../utils/tripTitle';
+
+const LEGACY_STORAGE_KEY = 'vela.plan.v1';
 
 // -----------------------------------------------------------------------------
 // Trip normalization
@@ -302,19 +304,6 @@ interface VelaState {
   deleteListItem: (tripId: string, listId: string, itemId: string) => void;
 }
 
-const migrateLegacyStorageIfNeeded = (currentTrips: Trip[]): Trip[] => {
-  if (typeof window === 'undefined' || currentTrips.length > 0) return currentTrips;
-  const raw = window.localStorage.getItem(LEGACY_STORAGE_KEY); if (!raw) return currentTrips;
-  let legacyData: unknown; try { legacyData = JSON.parse(raw); } catch (error) { console.error('Vela legacy migration skipped: invalid JSON.', error); return currentTrips; }
-  try { return [migrateLegacyPlanToTrip(legacyData)]; } catch (error) { console.error('Vela legacy migration failed; legacy data remains untouched.', error); return currentTrips; }
-};
-
-const replaceMasterData = (trip: Trip, type: MasterDataType, id: string | null, item: MasterDataItem): Trip => {
-  const collection = trip[type];
-  const next = id ? collection.map((entry) => entry.id === id ? item : entry) : [...collection, item];
-  return { ...trip, [type]: next, updatedAt: Date.now() } as Trip;
-};
-
 export const useVelaStore = create<VelaState>()(persist((set, get) => ({
   trips: [],
   commonMembers: [],
@@ -327,7 +316,8 @@ export const useVelaStore = create<VelaState>()(persist((set, get) => ({
 
   // ---------------------------------------------------------------------------
   // Trip lifecycle
-  // --------------------------------------------------------------------------- (rawTrip) => { const validated = DomainValidator.validateEntireTrip(rawTrip, get().trips); const tripWithLists = ensureTripLists(validated, get().commonMembers); const strictTrip = withDefaultAccounts(withDefaultCategories(tripWithLists)); const refreshedTrips = refreshAutoTripTitles([...get().trips, strictTrip]); set({ trips: refreshedTrips }); get().evaluateAutoStart(); },
+  // ---------------------------------------------------------------------------
+  addTrip: (rawTrip) => { const validated = DomainValidator.validateEntireTrip(rawTrip, get().trips); const tripWithLists = ensureTripLists(validated, get().commonMembers); const strictTrip = withDefaultAccounts(withDefaultCategories(tripWithLists)); const refreshedTrips = refreshAutoTripTitles([...get().trips, strictTrip]); set({ trips: refreshedTrips }); get().evaluateAutoStart(); },
   updateTrip: (tripId, trip) => { const trips = get().trips; if (!trips.some((item) => item.id === tripId)) throw new Error(`Store Error: Trip ${tripId} not found`); const strictTrip = ensureTripLists(DomainValidator.validateEntireTrip({ ...trip, id: tripId, updatedAt: Date.now() }, trips.filter((item) => item.id !== tripId)), get().commonMembers); const refreshedTrips = refreshAutoTripTitles(trips.map((item) => item.id === tripId ? strictTrip : item)); set({ trips: refreshedTrips }); },
   updateTripStatus: (tripId, newStatus) => { const trips = get().trips; const trip = trips.find((t) => t.id === tripId); if (!trip) throw new Error(`Store Error: Trip ${tripId} not found`); DomainValidator.validateTripStatus(trips, tripId, newStatus, trip.status); if (newStatus !== 'planning' && newStatus !== 'traveling' && newStatus !== 'achieve') throw new Error(`Store Error: Invalid status ${newStatus}`); set({ trips: trips.map((t) => t.id === tripId ? { ...t, status: newStatus as TripStatus, updatedAt: Date.now() } : t) }); },
   updateTripDates: (tripId, startDate, endDate) => { if (!Number.isFinite(startDate) || !Number.isFinite(endDate)) throw new Error('Store Error: Trip dates must be finite numbers'); if (startDate > endDate) throw new Error('Store Error: Start date cannot be after end date'); const trips = get().trips; const trip = trips.find((t) => t.id === tripId); if (!trip) throw new Error(`Store Error: Trip ${tripId} not found`); if (trip.segments.length === 0) throw new Error(`Store Error: Trip ${tripId} has no TravelSegment`); const updatedSegments = trip.segments.map((segment, index) => index === 0 ? { ...segment, startDate, endDate } : segment); const strictTrip = DomainValidator.validateEntireTrip({ ...trip, segments: updatedSegments, updatedAt: Date.now() }, trips.filter((t) => t.id !== tripId)); const refreshedTrips = refreshAutoTripTitles(trips.map((item) => item.id === tripId ? strictTrip : item)); set({ trips: refreshedTrips }); get().evaluateAutoStart(); },
