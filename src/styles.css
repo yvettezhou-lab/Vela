@@ -774,7 +774,7 @@
   .vela-quick-fullscreen .quick-entry-paid-popover{width:260px!important;max-width:calc(100vw - 28px)!important}
   .vela-quick-fullscreen .quick-entry-entry-type{gap:6px!important;padding:0!important;margin-top:0!important}
   .vela-quick-fullscreen .quick-entry-primary-row{grid-template-columns:repeat(3,minmax(0,1fr))!important;gap:6px!important;margin-top:12px!important}
-  .vela-entry-route .vela-quick-fullscreen{
+  .vela-quick-fullscreen{
     --quick-entry-label-gap:4px;
     --quick-entry-label-font-size:8px;
     --quick-entry-label-letter-spacing:.08em;
@@ -811,13 +811,15 @@
   box-sizing:border-box!important;
   padding:0 20px calc(180px + env(safe-area-inset-bottom))!important;
 }
-.vela-entry-route .vela-quick-fullscreen{
+.vela-quick-fullscreen{
   --quick-entry-control-height:48px;
   --quick-entry-control-radius:12px;
   --quick-entry-control-font-size:14px;
   --quick-entry-label-gap:5px;
   --quick-entry-label-font-size:9px;
   --quick-entry-label-letter-spacing:.12em;
+}
+.vela-entry-route .vela-quick-fullscreen{
   background:var(--vela-bg)!important;
   color:var(--vela-ink)!important;
 }
