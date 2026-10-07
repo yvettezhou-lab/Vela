@@ -67,6 +67,41 @@ const getArray = (value: unknown, fieldName: string): unknown[] => {
   return value;
 };
 
+const parseNamedMasterData = <T extends { id: string; name: string }>(
+  raw: unknown,
+  fieldName: string,
+  idLabel: string,
+  nameLabel: string,
+  createItem: (
+    id: string,
+    name: string,
+    rawItem: Record<string, unknown>,
+  ) => T,
+): T[] => {
+  const items: T[] = [];
+  const ids = new Set<string>();
+
+  for (const rawItem of getArray(raw, fieldName)) {
+    if (!isRecord(rawItem)) {
+      throw new Error(`Domain Violation: ${fieldName} item must be an object`);
+    }
+
+    const id = requireString(rawItem.id, idLabel);
+    if (ids.has(id)) {
+      throw new Error(
+        `Domain Violation: Duplicate ${idLabel} detected: ${id}`,
+      );
+    }
+    ids.add(id);
+
+    const name = requireString(rawItem.name, nameLabel);
+    items.push(createItem(id, name, rawItem));
+  }
+
+  return items;
+};
+
+
 const parseSegments = (raw: unknown): TravelSegment[] => {
   const segmentsArray = getArray(raw, 'segments');
 
@@ -353,82 +388,48 @@ const parseAllocationRules = (
   };
 };
 
-const parseMembers = (raw: unknown): Member[] => {
-  const members: Member[] = [];
-  const memberIds = new Set<string>();
-
-  for (const rawMember of getArray(raw, 'members')) {
-    if (!isRecord(rawMember)) {
-      throw new Error('Domain Violation: Member must be an object');
-    }
-
-    const id = requireString(rawMember.id, 'Member ID');
-    if (memberIds.has(id)) {
-      throw new Error(`Domain Violation: Duplicate Member ID detected: ${id}`);
-    }
-    memberIds.add(id);
-
-    members.push({
+const parseMembers = (raw: unknown): Member[] =>
+  parseNamedMasterData(
+    raw,
+    'members',
+    'Member ID',
+    'Member Name',
+    (id, name, rawItem) => ({
       id,
-      name: requireString(rawMember.name, 'Member Name'),
-      ...(rawMember.archived === true ? { archived: true } : {}),
-    });
-  }
+      name,
+      ...(rawItem.archived === true ? { archived: true } : {}),
+    }),
+  );
 
-  return members;
-};
-
-const parseAccounts = (raw: unknown): Account[] => {
-  const accounts: Account[] = [];
-  const accountIds = new Set<string>();
-
-  for (const rawAccount of getArray(raw, 'accounts')) {
-    if (!isRecord(rawAccount)) {
-      throw new Error('Domain Violation: Account must be an object');
-    }
-
-    const id = requireString(rawAccount.id, 'Account ID');
-    if (accountIds.has(id)) {
-      throw new Error(`Domain Violation: Duplicate Account ID detected: ${id}`);
-    }
-    accountIds.add(id);
-
-    accounts.push({
+const parseAccounts = (raw: unknown): Account[] =>
+  parseNamedMasterData(
+    raw,
+    'accounts',
+    'Account ID',
+    'Account Name',
+    (id, name, rawItem) => ({
       id,
-      name: requireString(rawAccount.name, 'Account Name'),
-      ...(rawAccount.archived === true ? { archived: true } : {}),
-    });
-  }
+      name,
+      ...(rawItem.archived === true ? { archived: true } : {}),
+    }),
+  );
 
-  return accounts;
-};
-
-const parseCategories = (raw: unknown): Category[] => {
-  const categories: Category[] = [];
-  const categoryIds = new Set<string>();
-
-  for (const rawCategory of getArray(raw, 'categories')) {
-    if (!isRecord(rawCategory)) {
-      throw new Error('Domain Violation: Category must be an object');
-    }
-
-    const id = requireString(rawCategory.id, 'Category ID');
-    if (categoryIds.has(id)) {
-      throw new Error(`Domain Violation: Duplicate Category ID detected: ${id}`);
-    }
-    categoryIds.add(id);
-
-    categories.push({
+const parseCategories = (raw: unknown): Category[] =>
+  parseNamedMasterData(
+    raw,
+    'categories',
+    'Category ID',
+    'Category Name',
+    (id, name, rawItem) => ({
       id,
-      name: requireString(rawCategory.name, 'Category Name'),
-      type: requireString(rawCategory.type, 'Category Type'),
-      ...(rawCategory.archived === true ? { archived: true } : {}),
-      ...(rawCategory.excludeFromStats === true ? { excludeFromStats: true } : {}),
-    });
-  }
-
-  return categories;
-};
+      name,
+      type: requireString(rawItem.type, 'Category Type'),
+      ...(rawItem.archived === true ? { archived: true } : {}),
+      ...(rawItem.excludeFromStats === true
+        ? { excludeFromStats: true }
+        : {}),
+    }),
+  );
 
 const validateAllocation = (
   rawAllocations: unknown,
