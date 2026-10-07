@@ -18,7 +18,11 @@ precacheAndRoute(self.__WB_MANIFEST);
 
 // Keep online navigations on the current Vercel HTML instead of serving an
 // older precached shell first. Fall back to the cached shell when offline.
-const navigationHandler = async ({ request }: { request: Request }): Promise<Response> => {
+const navigationHandler = async ({
+  request,
+}: {
+  request: Request;
+}): Promise<Response> => {
   try {
     const response = await fetch(request, { cache: 'no-store' });
     if (response.ok) return response;
