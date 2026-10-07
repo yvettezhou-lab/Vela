@@ -26,6 +26,7 @@ import {
   isDomesticTrip,
 } from './quickEntryHelpers';
 import { useVelaStore } from '../../store/useVelaStore';
+import { toDateTimestamp, toDateValue } from '../../utils/date';
 
 import './styles.css';
 import { evaluateAmountExpression } from './AmountKeypad';
@@ -49,18 +50,6 @@ import {
   generateEntryId,
   getSegmentHandoff,
 } from './quickEntrySubmission';
-
-const toDateTimestamp = (value: string) => {
-  const timestamp = new Date(`${value}T00:00:00`).getTime();
-  return Number.isFinite(timestamp) ? timestamp : NaN;
-};
-
-const toDateValue = (date: Date) => {
-  const year = date.getFullYear();
-  const month = `${date.getMonth() + 1}`.padStart(2, '0');
-  const day = `${date.getDate()}`.padStart(2, '0');
-  return `${year}-${month}-${day}`;
-};
 
 const todayValue = () => toDateValue(new Date());
 const currentTimeValue = () => {
