@@ -471,7 +471,7 @@ export const useVelaStore = create<VelaState>()(persist((set, get) => ({
       get().commonMembers,
     );
     const refreshedTrips = refreshAutoTripTitles(
-      trips.map((item) => (item.id === tripId ? strictTrip : item)),
+      mapTrip(trips, tripId, () => strictTrip),
     );
     set({ trips: refreshedTrips });
   },
@@ -534,7 +534,7 @@ export const useVelaStore = create<VelaState>()(persist((set, get) => ({
       trips.filter((item) => item.id !== tripId),
     );
     const refreshedTrips = refreshAutoTripTitles(
-      trips.map((item) => (item.id === tripId ? strictTrip : item)),
+      mapTrip(trips, tripId, () => strictTrip),
     );
 
     set({ trips: refreshedTrips });
