@@ -140,6 +140,12 @@ const QuickEntryContent: React.FC<QuickEntryProps> = ({ onClose, editTripId, ini
   const successTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const formRef = useRef<HTMLFormElement | null>(null);
 
+  const changeCurrency = (nextCurrency: string) => {
+    cnyManualRef.current = false;
+    setCnyEquivalent('');
+    setCurrency(nextCurrency);
+  };
+
   useEffect(() => {
     const defaultTripId = currentTrip?.id ?? nearestTrips[0]?.id ?? '';
     setTargetTripId((current) =>
@@ -222,6 +228,7 @@ const QuickEntryContent: React.FC<QuickEntryProps> = ({ onClose, editTripId, ini
     if (!initialEntry || !targetTrip || targetTrip.id !== editTripId) return;
     setEntryType(initialEntry.entryType);
     setAmount(String((initialEntry.entryDirection === 'income' || initialEntry.isRefund) ? -initialEntry.originalAmount : initialEntry.originalAmount));
+    cnyManualRef.current = true;
     setCurrency(initialEntry.originalCurrency);
     setCnyEquivalent(String(initialEntry.cnyEquivalent));
     setDeferCny(initialEntry.isPending);
@@ -273,6 +280,7 @@ const QuickEntryContent: React.FC<QuickEntryProps> = ({ onClose, editTripId, ini
       .sort((a, b) => b.createdAt - a.createdAt)
       .map((entry) => entry.originalCurrency?.trim().toUpperCase())
       .find(Boolean);
+    cnyManualRef.current = false;
     setCurrency(lastUsedCurrency || getTripPrimaryCurrency(targetTrip));
     const savedRule = targetTrip.allocationRules;
     if (savedRule) {
@@ -289,7 +297,6 @@ const QuickEntryContent: React.FC<QuickEntryProps> = ({ onClose, editTripId, ini
   }, [targetTrip]);
 
   useEffect(() => {
-    cnyManualRef.current = false;
     if (!normalizedCurrency) {
       setFxRate(null);
       setCnyEquivalent('');
@@ -596,7 +603,7 @@ const QuickEntryContent: React.FC<QuickEntryProps> = ({ onClose, editTripId, ini
             {evaluatedAmount !== null && Number.isFinite(evaluatedAmount) && evaluatedAmount !== 0 && <small className={`quick-entry-amount-preview ${isIncome ? 'is-income' : ''}`}>{isIncome ? 'Income' : 'Total'} {Math.abs(evaluatedAmount).toLocaleString(undefined, { maximumFractionDigits: 2 })}</small>}
             <div className="quick-entry-amount-control">
               {isDomesticTrip && currency.toUpperCase() === 'CNY' ? null : (
-                <select value={currency} onChange={(event) => setCurrency(event.currentTarget.value)} aria-label="Currency">
+                <select value={currency} onChange={(event) => changeCurrency(event.currentTarget.value)} aria-label="Currency">
                   {LEDGER_CURRENCIES.map((item) => <option key={item} value={item}>{item}</option>)}
                 </select>
               )}
