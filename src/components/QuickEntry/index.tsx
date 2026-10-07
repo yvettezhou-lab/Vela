@@ -142,8 +142,11 @@ const QuickEntryContent: React.FC<QuickEntryProps> = ({ onClose, editTripId, ini
 
   useEffect(() => {
     const defaultTripId = currentTrip?.id ?? nearestTrips[0]?.id ?? '';
-    setTargetTripId((current) => editTripId ?? (current && eligibleTrips.some((trip) => trip.id === current) ? current : defaultTripId));
-  }, [trips]);
+    setTargetTripId((current) =>
+      editTripId ??
+      (current && eligibleTrips.some((trip) => trip.id === current) ? current : defaultTripId),
+    );
+  }, [trips, editTripId]);
 
   const accounts = useMemo(() => {
     const activeAccounts = targetTrip?.accounts?.filter((account) => account.archived !== true) ?? [];
@@ -184,17 +187,23 @@ const QuickEntryContent: React.FC<QuickEntryProps> = ({ onClose, editTripId, ini
 
   useEffect(() => {
     if (isIncome) {
-      if (categoryId !== 'cat_income' && categoryId !== 'cat_refund') setCategoryId('cat_income');
-    } else if (categoryId === 'cat_income' || categoryId === 'cat_refund') {
-      const expenseCategory = categories.find((category) => category.id !== 'cat_income' && category.id !== 'cat_refund');
+      if (categoryId !== 'cat_income' && categoryId !== 'cat_refund') {
+        setCategoryId('cat_income');
+      }
+      return;
+    }
+
+    if (categoryId === 'cat_income' || categoryId === 'cat_refund') {
+      const expenseCategory = categories.find(
+        (category) => category.id !== 'cat_income' && category.id !== 'cat_refund',
+      );
       setCategoryId(expenseCategory?.id ?? '');
       setRefundOf('');
+      return;
     }
-  }, [isIncome]);
 
-  useEffect(() => {
-    if (categoryId !== 'cat_refund') setRefundOf('');
-  }, [categoryId]);
+    if (refundOf) setRefundOf('');
+  }, [isIncome, categoryId, categories, refundOf]);
 
   const tripDateBounds = (() => {
     if (!targetTrip?.segments?.length) return { minDate: undefined as string | undefined, maxDate: undefined as string | undefined };
