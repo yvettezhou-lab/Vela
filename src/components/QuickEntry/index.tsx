@@ -23,6 +23,13 @@ import {
   getSegmentsByDate,
   getTripPrimaryCurrency,
 } from '../../core/travelSegment';
+import {
+  getLastUsedIds,
+  getNearestTrips,
+  getRefundOptions,
+  getTripDateBounds,
+  domesticTrip,
+} from './quickEntryHelpers';
 import { useVelaStore } from '../../store/useVelaStore';
 
 import './styles.css';
@@ -108,39 +115,16 @@ const QuickEntryContent: React.FC<QuickEntryProps> = ({ onClose, editTripId, ini
   const updateLedgerEntry = useVelaStore((state) => state.updateLedgerEntry);
   const deleteLedgerEntry = useVelaStore((state) => state.deleteLedgerEntry);
   const isEditing = Boolean(initialEntry);
-  const eligibleTrips = trips.filter((trip) => trip && (trip.status === 'traveling' || trip.status === 'planning'));
-  const currentTrip = eligibleTrips.find((trip) => trip.status === 'traveling') ?? null;
-  const nearestTrips = eligibleTrips
-    .filter((trip) => trip.id !== currentTrip?.id)
-    .sort((a, b) => {
-      const aStart = Math.min(
-        ...(a.segments ?? [])
-          .map((segment) => segment.startDate)
-          .filter(Number.isFinite),
-      );
-      const bStart = Math.min(
-        ...(b.segments ?? [])
-          .map((segment) => segment.startDate)
-          .filter(Number.isFinite),
-      );
-      return aStart - bStart;
-    });
-  const tripChoices = currentTrip ? [currentTrip, ...nearestTrips].slice(0, 4) : nearestTrips.slice(0, 4);
+  const {
+    eligibleTrips,
+    currentTrip,
+    tripChoices,
+  } = getNearestTrips(trips);
   // Journey context
   const [targetTripId, setTargetTripId] = useState('');
   const [openDatePicker, setOpenDatePicker] = useState<string | null>(null);
   const targetTrip = eligibleTrips.find((trip) => trip.id === targetTripId) ?? null;
-  const isDomesticTrip =
-    Boolean(targetTrip?.segments?.length) &&
-    targetTrip.segments.every(
-      (segment) =>
-        segment.destinations?.length > 0 &&
-        segment.destinations.every((destination) =>
-          ['china', '中国'].includes(
-            destination.country.trim().toLowerCase(),
-          ),
-        ),
-    );
+  const domesticTrip = isDomesticTrip(targetTrip);
 
   // Entry identity and amount
   const [entryType, setEntryType] = useState<'standard' | 'transport' | 'prepaid_multi_day'>('standard');
@@ -205,23 +189,29 @@ const QuickEntryContent: React.FC<QuickEntryProps> = ({ onClose, editTripId, ini
   }, [trips, editTripId]);
 
   const accounts = useMemo(() => {
-    const activeAccounts = targetTrip?.accounts?.filter((account) => account.archived !== true) ?? [];
-    const lastUsedAt = new Map<string, number>();
-    (targetTrip?.ledger ?? []).forEach((entry) => {
-      if (!entry.accountId) return;
-      lastUsedAt.set(entry.accountId, Math.max(lastUsedAt.get(entry.accountId) ?? 0, entry.createdAt ?? 0));
-    });
-    return [...activeAccounts].sort((a, b) => (lastUsedAt.get(b.id) ?? 0) - (lastUsedAt.get(a.id) ?? 0));
+    const activeAccounts =
+      targetTrip?.accounts?.filter((account) => account.archived !== true) ?? [];
+    const lastUsedAt = getLastUsedIds(targetTrip, 'accountId');
+    return [...activeAccounts].sort(
+      (a, b) => (lastUsedAt.get(b.id) ?? 0) - (lastUsedAt.get(a.id) ?? 0),
+    );
   }, [targetTrip]);
   const activeMembers = targetTrip?.members?.filter((member) => member.archived !== true) ?? [];
   const members = activeMembers;
   const payerOptions = useMemo(() => {
     const lastUsedAt = new Map<string, number>();
-    trips.forEach((trip) => (trip.ledger ?? []).forEach((entry) => {
-      if (!entry.payerId) return;
-      lastUsedAt.set(entry.payerId, Math.max(lastUsedAt.get(entry.payerId) ?? 0, entry.createdAt ?? 0));
-    }));
-    return [...members].sort((a, b) => (lastUsedAt.get(b.id) ?? 0) - (lastUsedAt.get(a.id) ?? 0));
+    trips.forEach((trip) => {
+      const tripLastUsed = getLastUsedIds(trip, 'payerId');
+      tripLastUsed.forEach((timestamp, memberId) => {
+        lastUsedAt.set(
+          memberId,
+          Math.max(lastUsedAt.get(memberId) ?? 0, timestamp),
+        );
+      });
+    });
+    return [...members].sort(
+      (a, b) => (lastUsedAt.get(b.id) ?? 0) - (lastUsedAt.get(a.id) ?? 0),
+    );
   }, [members, trips]);
   const categories = useMemo(
     () => targetTrip?.categories?.filter((category) => category.archived !== true) ?? [],
@@ -237,16 +227,10 @@ const QuickEntryContent: React.FC<QuickEntryProps> = ({ onClose, editTripId, ini
       ? category.id === 'cat_income' || category.id === 'cat_refund'
       : category.id !== 'cat_income' && category.id !== 'cat_refund',
   );
-  const refundOptions = useMemo(() => {
-    if (!targetTrip) return [];
-    return targetTrip.ledger.filter((entry) => entry.entryDirection !== 'income' && !entry.isRefund).map((entry) => {
-      const refunded = targetTrip.ledger
-        .filter((item) => item.isRefund && item.refundOf === entry.id)
-        .reduce((sum, item) => sum + item.cnyEquivalent, 0);
-      const current = initialEntry?.refundOf === entry.id ? initialEntry.cnyEquivalent : 0;
-      return { entry, remaining: Math.max(0, entry.cnyEquivalent - refunded + current) };
-    }).filter((item) => item.remaining > 0.001);
-  }, [targetTrip, initialEntry]);
+  const refundOptions = useMemo(
+    () => getRefundOptions(targetTrip, initialEntry),
+    [targetTrip, initialEntry],
+  );
 
   useEffect(() => {
     if (isIncome) {
@@ -268,26 +252,7 @@ const QuickEntryContent: React.FC<QuickEntryProps> = ({ onClose, editTripId, ini
     if (refundOf) setRefundOf('');
   }, [isIncome, categoryId, categories, refundOf]);
 
-  const tripDateBounds = (() => {
-    if (!targetTrip?.segments?.length) {
-      return {
-        minDate: undefined as string | undefined,
-        maxDate: undefined as string | undefined,
-      };
-    }
-    const starts = targetTrip.segments.map((segment) => segment.startDate).filter(Number.isFinite);
-    const ends = targetTrip.segments.map((segment) => segment.endDate).filter(Number.isFinite);
-    if (!starts.length || !ends.length) {
-      return {
-        minDate: undefined as string | undefined,
-        maxDate: undefined as string | undefined,
-      };
-    }
-    return {
-      minDate: toDateValue(new Date(Math.min(...starts))),
-      maxDate: toDateValue(new Date(Math.max(...ends))),
-    };
-  })();
+  const tripDateBounds = getTripDateBounds(targetTrip);
 
   useEffect(() => () => {
     if (successTimerRef.current) clearTimeout(successTimerRef.current);
@@ -708,7 +673,7 @@ const QuickEntryContent: React.FC<QuickEntryProps> = ({ onClose, editTripId, ini
           />
         </div>
 
-        {!isDomesticTrip && (
+        {!domesticTrip && (
           <QuickEntryCnySection
             cnyEquivalent={cnyEquivalent}
             normalizedCurrency={normalizedCurrency}
