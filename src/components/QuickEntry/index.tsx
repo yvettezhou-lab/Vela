@@ -118,8 +118,6 @@ const QuickEntryContent: React.FC<QuickEntryProps> = ({ onClose, editTripId, ini
     nextSegment: TravelSegment;
   } | null>(null);
   const [fxRate, setFxRate] = useState<number | null>(null);
-  const currencyComposingRef = useRef(false);
-  const amountComposingRef = useRef(false);
   const cnyEquivalentComposingRef = useRef(false);
   const cnyManualRef = useRef(false);
   const successTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
