@@ -14,8 +14,11 @@ import type {
   TransportJourneyType,
   TransportMode,
 } from './domain';
-import { getLedgerEntryDate } from './travelSegment';
-import { findSegmentByDate } from './travelSegment';
+import {
+  findSegmentByDate,
+  getLedgerEntryDate,
+  validateLedgerEntryDates,
+} from './travelSegment';
 
 export const TRANSPORT_CATEGORY_ID = 'cat_transport';
 
