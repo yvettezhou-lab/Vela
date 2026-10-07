@@ -141,8 +141,16 @@ const QuickEntryContent: React.FC<QuickEntryProps> = ({ onClose, editTripId, ini
   const nearestTrips = eligibleTrips
     .filter((trip) => trip.id !== currentTrip?.id)
     .sort((a, b) => {
-      const aStart = Math.min(...(a.segments ?? []).map((segment) => segment.startDate).filter(Number.isFinite));
-      const bStart = Math.min(...(b.segments ?? []).map((segment) => segment.startDate).filter(Number.isFinite));
+      const aStart = Math.min(
+        ...(a.segments ?? [])
+          .map((segment) => segment.startDate)
+          .filter(Number.isFinite),
+      );
+      const bStart = Math.min(
+        ...(b.segments ?? [])
+          .map((segment) => segment.startDate)
+          .filter(Number.isFinite),
+      );
       return aStart - bStart;
     });
   const tripChoices = currentTrip ? [currentTrip, ...nearestTrips].slice(0, 4) : nearestTrips.slice(0, 4);
@@ -150,7 +158,17 @@ const QuickEntryContent: React.FC<QuickEntryProps> = ({ onClose, editTripId, ini
   const [targetTripId, setTargetTripId] = useState('');
   const [openDatePicker, setOpenDatePicker] = useState<string | null>(null);
   const targetTrip = eligibleTrips.find((trip) => trip.id === targetTripId) ?? null;
-  const isDomesticTrip = Boolean(targetTrip?.segments?.length) && targetTrip.segments.every((segment) => segment.destinations?.length > 0 && segment.destinations.every((destination) => ['china', '中国'].includes(destination.country.trim().toLowerCase())));
+  const isDomesticTrip =
+    Boolean(targetTrip?.segments?.length) &&
+    targetTrip.segments.every(
+      (segment) =>
+        segment.destinations?.length > 0 &&
+        segment.destinations.every((destination) =>
+          ['china', '中国'].includes(
+            destination.country.trim().toLowerCase(),
+          ),
+        ),
+    );
 
   // Entry identity and amount
   const [entryType, setEntryType] = useState<'standard' | 'transport' | 'prepaid_multi_day'>('standard');
