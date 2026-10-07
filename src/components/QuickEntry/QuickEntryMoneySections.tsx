@@ -1,6 +1,7 @@
 import React from 'react';
 
 import { LedgerEntry } from '../../core/domain';
+import { getLedgerEntryPaidTimestamp } from '../../core/ledger';
 import { AmountKeypad } from './AmountKeypad';
 
 export const LEDGER_CURRENCIES = [
@@ -203,8 +204,7 @@ export const QuickEntryRefundSection: React.FC<QuickEntryRefundSectionProps> = (
         {refundOptions.map(({ entry, remaining }) => (
           <option key={entry.id} value={entry.id}>
             {new Date(
-              entry.paidAt ??
-                ('paymentDate' in entry ? entry.paymentDate : entry.createdAt),
+              getLedgerEntryPaidTimestamp(entry),
             ).toLocaleDateString(undefined, {
               month: 'short',
               day: 'numeric',
