@@ -735,12 +735,6 @@ const parseLedgerEntry = (
     ) as TransportJourneyType;
 
     if (journeyType === 'round_trip') {
-      if (transportMode === 'long_distance_bus') {
-        throw new Error(
-          'Domain Violation: Long-distance bus entries are one-way only.',
-        );
-      }
-
       const returnDate = requireFinite(rawEntry.returnDate, 'returnDate');
 
       if (returnDate < outboundDate) {
