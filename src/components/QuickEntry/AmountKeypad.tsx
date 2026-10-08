@@ -98,8 +98,6 @@ export const AmountKeypad: React.FC<AmountKeypadProps> = ({ value, onChange }) =
   }, [open]);
 
   const result = evaluateCalculatorExpression(value);
-  const hasExpression = /[+*/-]/.test(value);
-
   const handleKey = (key: Key) => {
     if (key === 'clear') {
       onChange('');
