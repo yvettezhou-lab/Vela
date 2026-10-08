@@ -363,6 +363,109 @@ export const useVelaStore = create<VelaState>()(persist((set, get) => ({
     set({ trips: refreshedTrips });
     get().evaluateAutoStart();
   },
+  updateTrip: (tripId, trip) => {
+    const trips = get().trips;
+    if (!trips.some((item) => item.id === tripId)) {
+      throw new Error(`Store Error: Trip ${tripId} not found`);
+    }
+
+    const strictTrip = ensureTripLists(
+      DomainValidator.validateEntireTrip(
+        { ...trip, id: tripId, updatedAt: Date.now() },
+        withoutTrip(trips, tripId),
+      ),
+      get().commonMembers,
+    );
+    const refreshedTrips = refreshAutoTripTitles(
+      mapTrip(trips, tripId, () => strictTrip),
+    );
+    set({ trips: refreshedTrips });
+  },
+  updateTripStatus: (tripId, newStatus) => {
+    const trips = get().trips;
+    const trip = trips.find((item) => item.id === tripId);
+    if (!trip) {
+      throw new Error(`Store Error: Trip ${tripId} not found`);
+    }
+
+    DomainValidator.validateTripStatus(
+      trips,
+      tripId,
+      newStatus,
+      trip.status,
+    );
+    if (
+      newStatus !== 'planning' &&
+      newStatus !== 'traveling' &&
+      newStatus !== 'achieve'
+    ) {
+      throw new Error(`Store Error: Invalid status ${newStatus}`);
+    }
+
+    set({
+      trips: mapTrip(trips, tripId, (item) => ({
+        ...item,
+        status: newStatus as TripStatus,
+        updatedAt: Date.now(),
+      })),
+    });
+  },
+  updateTripDates: (tripId, startDate, endDate) => {
+    if (!Number.isFinite(startDate) || !Number.isFinite(endDate)) {
+      throw new Error('Store Error: Trip dates must be finite numbers');
+    }
+    if (startDate > endDate) {
+      throw new Error('Store Error: Start date cannot be after end date');
+    }
+
+    const trips = get().trips;
+    const trip = trips.find((item) => item.id === tripId);
+    if (!trip) {
+      throw new Error(`Store Error: Trip ${tripId} not found`);
+    }
+    if (trip.segments.length === 0) {
+      throw new Error(`Store Error: Trip ${tripId} has no TravelSegment`);
+    }
+
+    const updatedSegments = trip.segments.map((segment, index) =>
+      index === 0 ? { ...segment, startDate, endDate } : segment,
+    );
+    const strictTrip = DomainValidator.validateEntireTrip(
+      { ...trip, segments: updatedSegments, updatedAt: Date.now() },
+      withoutTrip(trips, tripId),
+    );
+    const refreshedTrips = refreshAutoTripTitles(
+      mapTrip(trips, tripId, () => strictTrip),
+    );
+    set({ trips: refreshedTrips });
+    get().evaluateAutoStart();
+  },
+  evaluateAutoStart: (now = Date.now()) => {
+    const trips = get().trips;
+    const candidateId = getAutoStartTripId(trips, now);
+    if (!candidateId) {
+      return;
+    }
+
+    const candidate = trips.find((trip) => trip.id === candidateId);
+    if (!candidate) {
+      return;
+    }
+
+    DomainValidator.validateTripStatus(
+      trips,
+      candidate.id,
+      'traveling',
+      candidate.status,
+    );
+    set((state) => ({
+      trips: state.trips.map((trip) =>
+        trip.id === candidate.id
+          ? { ...trip, status: 'traveling', updatedAt: Date.now() }
+          : trip,
+      ),
+    }));
+  },
   addLedgerEntry: (tripId, rawEntry) => {
     const trips = get().trips;
     const tripIndex = trips.findIndex((item) => item.id === tripId);
