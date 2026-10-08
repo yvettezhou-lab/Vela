@@ -28,7 +28,7 @@ import {
   listAllowsSharedItems,
 } from '../utils/travelLists';
 import type { TravelListTemplate } from '../utils/travelLists';
-import { getAutoStartTripId } from '../utils/tripLifecycle';
+import { getAutoEndTripIds, getAutoStartTripId } from '../utils/tripLifecycle';
 import { refreshAutoTripTitles } from '../utils/tripTitle';
 
 const LEGACY_STORAGE_KEY = 'vela.plan.v1';
@@ -302,7 +302,9 @@ interface VelaState {
   deleteTrip: (tripId: string) => void;
   updateTrip: (tripId: string, trip: Trip) => void;
   updateTripDates: (tripId: string, startDate: number, endDate: number) => void;
+  evaluateAutoEnd: (now?: number) => void;
   evaluateAutoStart: (now?: number) => void;
+  evaluateAutoLifecycle: (now?: number) => void;
   addLedgerEntry: (tripId: string, rawEntry: unknown) => void;
   updateLedgerEntry: (tripId: string, entryId: string, fullReconstructedEntry: unknown) => void;
   deleteLedgerEntry: (tripId: string, entryId: string) => void;
@@ -361,7 +363,7 @@ export const useVelaStore = create<VelaState>()(persist((set, get) => ({
       strictTrip,
     ]);
     set({ trips: refreshedTrips });
-    get().evaluateAutoStart();
+    get().evaluateAutoLifecycle();
   },
   updateTrip: (tripId, trip) => {
     const trips = get().trips;
@@ -438,7 +440,20 @@ export const useVelaStore = create<VelaState>()(persist((set, get) => ({
       mapTrip(trips, tripId, () => strictTrip),
     );
     set({ trips: refreshedTrips });
-    get().evaluateAutoStart();
+    get().evaluateAutoLifecycle();
+  },
+  evaluateAutoEnd: (now = Date.now()) => {
+    const trips = get().trips;
+    const endedTripIds = new Set(getAutoEndTripIds(trips, now));
+    if (endedTripIds.size === 0) return;
+
+    set((state) => ({
+      trips: state.trips.map((trip) =>
+        endedTripIds.has(trip.id)
+          ? { ...trip, status: 'achieve', updatedAt: Date.now() }
+          : trip,
+      ),
+    }));
   },
   evaluateAutoStart: (now = Date.now()) => {
     const trips = get().trips;
@@ -465,6 +480,10 @@ export const useVelaStore = create<VelaState>()(persist((set, get) => ({
           : trip,
       ),
     }));
+  },
+  evaluateAutoLifecycle: (now = Date.now()) => {
+    get().evaluateAutoEnd(now);
+    get().evaluateAutoStart(now);
   },
   addLedgerEntry: (tripId, rawEntry) => {
     const trips = get().trips;
@@ -1254,6 +1273,6 @@ export const useVelaStore = create<VelaState>()(persist((set, get) => ({
       commonMembers: members,
       commonAccounts: accounts,
     });
-    useVelaStore.getState().evaluateAutoStart();
+    useVelaStore.getState().evaluateAutoLifecycle();
   },
 }));
