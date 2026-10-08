@@ -13,7 +13,7 @@ interface DatePickerProps {
   openMonthValue?: string;
   minDate?: string;
   maxDate?: string;
-  popoverPlacement?: 'above' | 'below';
+  popoverAlign?: 'left' | 'right';
 }
 
 const parseDateValue = (value: string) => {
@@ -38,7 +38,7 @@ const getMonthCells = (month: Date) => {
   });
 };
 
-export const DatePicker: React.FC<DatePickerProps> = ({ value, onChange, label, required, pickerId, openPickerId, onOpenPicker, openMonthValue, minDate, maxDate, popoverPlacement = 'below' }) => {
+export const DatePicker: React.FC<DatePickerProps> = ({ value, onChange, label, required, pickerId, openPickerId, onOpenPicker, openMonthValue, minDate, maxDate, popoverAlign = 'left' }) => {
   const selectedDate = parseDateValue(value);
   const open = openPickerId === pickerId;
   const [viewMonth, setViewMonth] = useState(() => {
@@ -91,7 +91,7 @@ export const DatePicker: React.FC<DatePickerProps> = ({ value, onChange, label, 
         label === 'Return' || label === 'Usage End'
           ? 'quick-entry-date-picker-end'
           : '',
-        popoverPlacement === 'above' ? 'quick-entry-date-picker-above' : '',
+        popoverAlign === 'right' ? 'quick-entry-date-picker-end' : '',
       ]
         .filter(Boolean)
         .join(' ')}
