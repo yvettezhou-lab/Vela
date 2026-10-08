@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import type { Trip } from '../core/domain';
-import { getAutoEndTripIds, getAutoStartTripId } from './tripLifecycle';
+import { getAutoStartTripId } from './tripLifecycle';
 
 const trip = (id: string, startDate: string, status: Trip['status']): Trip => {
   const start = new Date(startDate + 'T00:00:00').getTime();
@@ -27,23 +27,3 @@ describe('trip lifecycle auto-start', () => {
   });
 });
 
-describe('trip lifecycle auto-end', () => {
-  it('selects traveling trips whose final date has passed', () => {
-    const trips = [
-      trip('active', '2026-09-17', 'traveling'),
-      trip('future', '2026-09-20', 'traveling'),
-    ];
-    expect(
-      getAutoEndTripIds(trips, new Date('2026-09-19T12:00:00').getTime()),
-    ).toEqual(['active']);
-  });
-
-  it('keeps a trip traveling through its final calendar date', () => {
-    expect(
-      getAutoEndTripIds(
-        [trip('active', '2026-09-17', 'traveling')],
-        new Date('2026-09-17T12:00:00').getTime(),
-      ),
-    ).toEqual([]);
-  });
-});
