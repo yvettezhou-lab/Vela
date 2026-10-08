@@ -27,7 +27,16 @@
           document.body.appendChild(panel);
         };
         window.addEventListener('error', (event) => {
-          show('Vela runtime error', event.error || event.message);
+          const error = event.error;
+          const details = [
+            `message: ${event.message || (error && error.message) || String(error)}`,
+            `name: ${error && error.name || 'unknown'}`,
+            `filename: ${event.filename || 'unknown'}`,
+            `lineno: ${event.lineno || 'unknown'}:${event.colno || 'unknown'}`,
+            '',
+            `stack:\n${error && error.stack || 'none'}`,
+          ].join('\\n');
+          show('Vela runtime error', details);
         });
         window.addEventListener('unhandledrejection', (event) => {
           show('Vela unhandled rejection', event.reason);
