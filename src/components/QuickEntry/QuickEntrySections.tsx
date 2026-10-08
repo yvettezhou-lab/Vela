@@ -70,70 +70,21 @@ export const QuickEntryTransportSection: React.FC<QuickEntryTransportSectionProp
         </div>
       </div>
 
-      {transportMode === 'flight' && (
-        <div className="quick-entry-journey-field">
-          <div className="quick-entry-journey-head">
-            <span>Journey</span>
-            <span>Date</span>
-          </div>
-          <div className="quick-entry-journey-options">
-            <div className="quick-entry-journey-option">
-              <button
-                type="button"
-                onClick={() => setJourneyType('one_way')}
-                aria-pressed={journeyType === 'one_way'}
-                className={`quick-entry-journey-button ${journeyType === 'one_way' ? 'is-selected' : ''}`}
-              >
-                One Way
-              </button>
-              <DatePicker
-                pickerId="transport-outbound"
-                openPickerId={openDatePicker}
-                onOpenPicker={setOpenDatePicker}
-                value={outboundDate}
-                onChange={(value) => {
-                  setOutboundDate(value);
-                  if (returnDate && returnDate < value) setReturnDate('');
-                }}
-                label="Outbound"
-                required
-                popoverAlign="right"
-                minDate={tripDateBounds.minDate}
-                maxDate={tripDateBounds.maxDate}
-              />
-            </div>
-            <div className="quick-entry-journey-option">
-              <button
-                type="button"
-                onClick={() => setJourneyType('round_trip')}
-                aria-pressed={journeyType === 'round_trip'}
-                className={`quick-entry-journey-button ${journeyType === 'round_trip' ? 'is-selected' : ''}`}
-              >
-                Round Trip
-              </button>
-              {journeyType === 'round_trip' && (
-                <DatePicker
-                  pickerId="transport-return"
-                  openPickerId={openDatePicker}
-                  onOpenPicker={setOpenDatePicker}
-                  value={returnDate}
-                  onChange={setReturnDate}
-                  label="Return"
-                  required
-                  minDate={outboundDate || tripDateBounds.minDate}
-                  maxDate={tripDateBounds.maxDate}
-                  openMonthValue={outboundDate || tripDateBounds.minDate}
-                />
-              )}
-            </div>
-          </div>
-        </div>
-      )}
-
-      {transportMode !== 'flight' && (
-        <div className="quick-entry-journey-field quick-entry-journey-field-nonflight">
+      <div className="quick-entry-journey-field">
+        <div className="quick-entry-journey-head">
+          <span>Journey</span>
           <span>Date</span>
-          <div className="quick-entry-transport-dates">
+        </div>
+        <div className="quick-entry-journey-options">
+          <div className="quick-entry-journey-option">
+            <button
+              type="button"
+              onClick={() => setJourneyType('one_way')}
+              aria-pressed={journeyType === 'one_way'}
+              className={`quick-entry-journey-button ${journeyType === 'one_way' ? 'is-selected' : ''}`}
+            >
+              One Way
+            </button>
             <DatePicker
               pickerId="transport-outbound"
               openPickerId={openDatePicker}
@@ -145,12 +96,38 @@ export const QuickEntryTransportSection: React.FC<QuickEntryTransportSectionProp
               }}
               label="Outbound"
               required
+              popoverAlign="right"
               minDate={tripDateBounds.minDate}
               maxDate={tripDateBounds.maxDate}
             />
           </div>
+          <div className="quick-entry-journey-option">
+            <button
+              type="button"
+              onClick={() => setJourneyType('round_trip')}
+              aria-pressed={journeyType === 'round_trip'}
+              className={`quick-entry-journey-button ${journeyType === 'round_trip' ? 'is-selected' : ''}`}
+            >
+              Round Trip
+            </button>
+            {journeyType === 'round_trip' && (
+              <DatePicker
+                pickerId="transport-return"
+                openPickerId={openDatePicker}
+                onOpenPicker={setOpenDatePicker}
+                value={returnDate}
+                onChange={setReturnDate}
+                label="Return"
+                required
+                minDate={outboundDate || tripDateBounds.minDate}
+                maxDate={tripDateBounds.maxDate}
+                openMonthValue={outboundDate || tripDateBounds.minDate}
+              />
+            )}
+          </div>
         </div>
-      )}
+      </div>
+
     </div>
   </div>
 );
