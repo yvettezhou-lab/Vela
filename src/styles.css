@@ -3,3 +3,17 @@
 
 .vela-app-root{background:#FAF9F5!important;color:#0F172A!important}.vela-global-quick{position:fixed;right:24px;bottom:90px;z-index:100;width:64px;height:64px;border:0;border-radius:50%;display:flex;align-items:center;justify-content:center;background:#0F172A;color:#FAF9F5;box-shadow:0 10px 28px rgba(15,23,42,.16);cursor:pointer;transition:transform .16s ease,box-shadow .16s ease}.vela-global-quick:hover{transform:translateY(-1px);box-shadow:0 12px 32px rgba(15,23,42,.2)}.vela-global-quick:active{transform:scale(.95)}.vela-global-quick svg{display:block}.vela-app-root>.page .day-heading strong{font-family:ui-serif,Georgia,Cambria,'Times New Roman',serif;color:#0F172A}.vela-app-root>.page .reflection-total strong{font-family:ui-serif,Georgia,Cambria,'Times New Roman',serif;color:#0F172A;font-size:42px;font-weight:400}.vela-app-root>.page .entry input,.vela-app-root>.page .entry select,.vela-app-root>.page .manage-row input{font-family:ui-serif,Georgia,Cambria,'Times New Roman',serif;color:#0F172A;border-bottom:1px solid rgba(15,23,42,.16);background:transparent}.vela-app-root>.page .primary{display:block;background:#0F172A;color:#FAF9F5;border:0;border-radius:999px;padding:13px 18px;font-family:ui-sans-serif,system-ui,sans-serif;font-size:11px;letter-spacing:.08em}.vela-app-root>.page .quiet{background:transparent;border:1px solid rgba(15,23,42,.18);color:#0F172A;box-shadow:none}.vela-app-root>.page .pending-filter{border-color:rgba(15,23,42,.18);color:#0F172A;background:transparent}.vela-app-root>.page .note,.vela-app-root>.page .empty{font-family:ui-sans-serif,system-ui,sans-serif;color:rgba(15,23,42,.5)}
 @media(max-width:600px){.vela-global-quick{right:24px;bottom:90px;width:64px;height:64px}}
+
+
+/* Ledger date groups */
+.vela-ledger-date-header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.vela-ledger-date-header > span:last-child {
+  flex: 0 0 auto;
+  white-space: nowrap;
+}
