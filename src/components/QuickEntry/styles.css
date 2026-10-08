@@ -577,7 +577,7 @@
   z-index:100!important;
 }
 .quick-entry-date-picker-end .trip-date-popover{left:auto!important;right:0!important}
-.quick-entry-date-picker-above .trip-date-popover{top:auto!important;bottom:calc(100% + 6px)!important}
+.quick-entry-date-picker.is-above .trip-date-popover{top:auto!important;bottom:calc(100% + 6px)!important}
 .quick-entry-date-picker .trip-date-month{
   display:grid!important;
   grid-template-columns:36px minmax(0,1fr) 36px!important;
