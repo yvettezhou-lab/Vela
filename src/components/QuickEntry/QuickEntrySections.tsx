@@ -97,6 +97,7 @@ export const QuickEntryTransportSection: React.FC<QuickEntryTransportSectionProp
                 }}
                 label="Outbound"
                 required
+                popoverPlacement="above"
                 minDate={tripDateBounds.minDate}
                 maxDate={tripDateBounds.maxDate}
               />
