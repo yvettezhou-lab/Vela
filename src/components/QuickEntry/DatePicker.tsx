@@ -86,7 +86,7 @@ export const DatePicker: React.FC<DatePickerProps> = ({ value, onChange, label, 
     const handleOutsidePointerDown = (event: PointerEvent) => {
       const target = event.target;
       if (!(target instanceof Node)) return;
-      if (!pickerRef.current?.contains(target)) onOpenPicker(null);
+      if (!pickerRef.current?.contains(target) && !popoverRef.current?.contains(target)) onOpenPicker(null);
     };
     document.addEventListener('pointerdown', handleOutsidePointerDown);
     return () => document.removeEventListener('pointerdown', handleOutsidePointerDown);
@@ -118,7 +118,7 @@ export const DatePicker: React.FC<DatePickerProps> = ({ value, onChange, label, 
   return (
     <div
       ref={pickerRef}
-      className={`trip-date-picker quick-entry-date-picker${label === 'Return' || label === 'Usage End' ? ' quick-entry-date-picker-end' : ''}`}}
+      className={`trip-date-picker quick-entry-date-picker${label === 'Return' || label === 'Usage End' ? ' quick-entry-date-picker-end' : ''}`}
     >
       <span>{label}</span>
       <button ref={triggerRef} type="button" className={`trip-date-trigger${open ? ' is-open' : ''}`} onClick={openPicker} aria-expanded={open} aria-haspopup="dialog">
@@ -130,7 +130,7 @@ export const DatePicker: React.FC<DatePickerProps> = ({ value, onChange, label, 
       {open && typeof document !== 'undefined' && createPortal(
         <div
           ref={popoverRef}
-          className="trip-date-popover"
+          className="trip-date-popover quick-entry-date-popover"
           role="dialog"
           aria-label={`${label} calendar`}
           style={{
@@ -196,7 +196,8 @@ export const DatePicker: React.FC<DatePickerProps> = ({ value, onChange, label, 
             })}
           </div>
           {required && !value && <p className="pt-1 text-center text-xs text-[#9a8f80]">Select a date</p>}
-        </div>
+        </div>,
+        document.body,
       )}
     </div>
   );
