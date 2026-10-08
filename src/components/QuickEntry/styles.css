@@ -227,10 +227,10 @@
   box-sizing:border-box;
   width:100%;
   min-width:0;
-  height:46px;
-  min-height:46px;
+  height:var(--quick-entry-control-height);
+  min-height:var(--quick-entry-control-height);
   border:1px solid rgba(23,36,58,.10);
-  border-radius:12px;
+  border-radius:var(--quick-entry-control-radius);
   background:#fbf7ee;
   color:#17243a;
   box-shadow:inset 0 0 0 1px rgba(80,64,42,.04);
@@ -466,10 +466,10 @@
   box-sizing:border-box;
   width:100%;
   min-width:0;
-  height:48px;
-  min-height:48px;
+  height:var(--quick-entry-control-height);
+  min-height:var(--quick-entry-control-height);
   border:1px solid rgba(23,36,58,.10);
-  border-radius:12px;
+  border-radius:var(--quick-entry-control-radius);
   background:#fbf7ee;
   color:#17243a;
   box-shadow:inset 0 0 0 1px rgba(80,64,42,.04);
@@ -859,6 +859,8 @@
   .vela-quick-fullscreen .quick-entry-entry-type{gap:6px!important;padding:0!important;margin-top:0!important}
   .vela-quick-fullscreen .quick-entry-primary-row{grid-template-columns:repeat(3,minmax(0,1fr))!important;gap:6px!important;margin-top:12px!important}
   .vela-quick-fullscreen{
+    --quick-entry-control-height:48px;
+    --quick-entry-control-radius:12px;
     --quick-entry-label-gap:4px;
     --quick-entry-label-font-size:8px;
     --quick-entry-label-letter-spacing:.08em;
