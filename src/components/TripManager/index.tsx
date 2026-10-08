@@ -60,9 +60,18 @@ export const TripManager: React.FC = () => {
   };
   const requestEndJourney = (tripId: string) => { setError(null); setEndingTripId(tripId); };
   const confirmEndJourney = () => {
-    if (!endingTripId) return; setError(null);
-    try { updateTripStatus(endingTripId, 'achieve'); setEndingTripId(null); }
-    catch (caught) { setError(lifecycleError(caught, 'archive')); }
+    if (!endingTripId) return;
+    setError(null);
+    try {
+      const currentTrip = useVelaStore.getState().trips.find((trip) => trip.id === endingTripId);
+      if (currentTrip?.status !== 'achieve') {
+        updateTripStatus(endingTripId, 'achieve');
+      }
+      setEndingTripId(null);
+      setEditingTrip(null);
+    } catch (caught) {
+      setError(lifecycleError(caught, 'archive'));
+    }
   };
   const requestReopenJourney = (tripId: string) => { setError(null); setReopeningTripId(tripId); };
   const confirmReopenJourney = () => {
