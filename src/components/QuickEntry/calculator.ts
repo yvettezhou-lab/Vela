@@ -96,4 +96,4 @@ export const normalizeCalculatorExpression = (input: string): string =>
   input.replace(/[−×÷]/g, (operator) => ({ '−': '-', '×': '*', '÷': '/' })[operator] ?? operator);
 
 export const displayCalculatorExpression = (input: string): string =>
-  normalizeCalculatorExpression(input).replace(/\*/g, '×').replace(/\//g, '÷').replace(/-/g, '−');
+  normalizeCalculatorExpression(input).replace(/\+/g, '＋').replace(/\*/g, '×').replace(/\//g, '÷').replace(/-/g, '−');
