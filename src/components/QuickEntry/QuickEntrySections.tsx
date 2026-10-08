@@ -111,18 +111,20 @@ export const QuickEntryTransportSection: React.FC<QuickEntryTransportSectionProp
               >
                 Round Trip
               </button>
-              <DatePicker
-                pickerId="transport-return"
-                openPickerId={openDatePicker}
-                onOpenPicker={setOpenDatePicker}
-                value={returnDate}
-                onChange={setReturnDate}
-                label="Return"
-                required={journeyType === 'round_trip'}
-                minDate={outboundDate || tripDateBounds.minDate}
-                maxDate={tripDateBounds.maxDate}
-                openMonthValue={outboundDate || tripDateBounds.minDate}
-              />
+              {journeyType === 'round_trip' && (
+                <DatePicker
+                  pickerId="transport-return"
+                  openPickerId={openDatePicker}
+                  onOpenPicker={setOpenDatePicker}
+                  value={returnDate}
+                  onChange={setReturnDate}
+                  label="Return"
+                  required
+                  minDate={outboundDate || tripDateBounds.minDate}
+                  maxDate={tripDateBounds.maxDate}
+                  openMonthValue={outboundDate || tripDateBounds.minDate}
+                />
+              )}
             </div>
           </div>
         </div>
