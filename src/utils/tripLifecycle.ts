@@ -1,5 +1,23 @@
 import type { Trip } from '../core/domain';
-import { getTripStartDate, toDayStart } from '../core/travelSegment';
+import { getTripEndDate, getTripStartDate, toDayStart } from '../core/travelSegment';
+
+/**
+ * Selects traveling trips whose final travel date has passed.
+ */
+export const getAutoEndTripIds = (
+  trips: Trip[],
+  now: number,
+): string[] => {
+  const today = toDayStart(now);
+
+  return trips
+    .filter(
+      (trip) =>
+        trip.status === 'traveling' &&
+        toDayStart(getTripEndDate(trip)) < today,
+    )
+    .map((trip) => trip.id);
+};
 
 /**
  * Selects the planning trip that is eligible to auto-start
