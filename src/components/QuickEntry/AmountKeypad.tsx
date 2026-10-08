@@ -120,10 +120,7 @@ export const AmountKeypad: React.FC<AmountKeypadProps> = ({ value, onChange }) =
     onChange((current) => appendKey(current, key));
   };
 
-  const displayValue =
-    result !== null && !hasExpression
-      ? formatCalculatorResult(result)
-      : value || '0';
+  const displayValue = result !== null ? formatCalculatorResult(result) : value || '0';
 
   return (
     <div className={`quick-entry-amount-keypad-wrap${open ? ' is-open' : ''}`}>
@@ -135,11 +132,7 @@ export const AmountKeypad: React.FC<AmountKeypadProps> = ({ value, onChange }) =
         onClick={() => setOpen(true)}
       >
         <span className="quick-entry-amount-result">{displayValue}</span>
-        {hasExpression && (
-          <span className="quick-entry-amount-expression">
-            {displayCalculatorExpression(value)}
-          </span>
-        )}
+
       </button>
 
       {open && (
