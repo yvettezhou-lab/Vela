@@ -1,5 +1,4 @@
-import React, { useEffect, useLayoutEffect, useRef, useState } from 'react';
-import { createPortal } from 'react-dom';
+import React, { useEffect, useRef, useState } from 'react';
 import { Calendar, ChevronLeft, ChevronRight } from 'lucide-react';
 import { toDateValue } from '../../utils/date';
 
@@ -48,45 +47,12 @@ export const DatePicker: React.FC<DatePickerProps> = ({ value, onChange, label, 
 
   const monthCells = getMonthCells(viewMonth);
   const pickerRef = useRef<HTMLDivElement | null>(null);
-  const triggerRef = useRef<HTMLButtonElement | null>(null);
-  const popoverRef = useRef<HTMLDivElement | null>(null);
-  const [popoverPosition, setPopoverPosition] = useState({ top: -9999, left: -9999 });
-
-  const updatePopoverPosition = () => {
-    const trigger = triggerRef.current;
-    const popover = popoverRef.current;
-    if (!trigger || !popover) return;
-
-    const rect = trigger.getBoundingClientRect();
-    const popoverRect = popover.getBoundingClientRect();
-    const gap = 6;
-    const padding = 12;
-    const spaceBelow = window.innerHeight - rect.bottom - gap;
-    const spaceAbove = rect.top - gap;
-    const placeAbove = spaceBelow < popoverRect.height && spaceAbove >= popoverRect.height;
-    const top = placeAbove ? rect.top - popoverRect.height - gap : rect.bottom + gap;
-    const maxLeft = Math.max(padding, window.innerWidth - popoverRect.width - padding);
-    const left = Math.min(Math.max(padding, rect.left), maxLeft);
-    setPopoverPosition({ top, left });
-  };
-
-  useLayoutEffect(() => {
-    if (!open) return;
-    const frame = requestAnimationFrame(updatePopoverPosition);
-    window.addEventListener('resize', updatePopoverPosition);
-    window.addEventListener('scroll', updatePopoverPosition, true);
-    return () => {
-      cancelAnimationFrame(frame);
-      window.removeEventListener('resize', updatePopoverPosition);
-      window.removeEventListener('scroll', updatePopoverPosition, true);
-    };
-  }, [open, viewMonth]);
   useEffect(() => {
     if (!open) return;
     const handleOutsidePointerDown = (event: PointerEvent) => {
       const target = event.target;
       if (!(target instanceof Node)) return;
-      if (!pickerRef.current?.contains(target) && !popoverRef.current?.contains(target)) onOpenPicker(null);
+      if (!pickerRef.current?.contains(target)) onOpenPicker(null);
     };
     document.addEventListener('pointerdown', handleOutsidePointerDown);
     return () => document.removeEventListener('pointerdown', handleOutsidePointerDown);
@@ -118,27 +84,28 @@ export const DatePicker: React.FC<DatePickerProps> = ({ value, onChange, label, 
   return (
     <div
       ref={pickerRef}
-      className={`trip-date-picker quick-entry-date-picker${label === 'Return' || label === 'Usage End' ? ' quick-entry-date-picker-end' : ''}`}
+      className={[
+        'trip-date-picker',
+        'quick-entry-date-picker',
+        label === 'Return' || label === 'Usage End'
+          ? 'quick-entry-date-picker-end'
+          : '',
+        label === 'Usage Start' || label === 'Usage End'
+          ? 'quick-entry-date-picker-above'
+          : '',
+      ]
+        .filter(Boolean)
+        .join(' ')}
     >
       <span>{label}</span>
-      <button ref={triggerRef} type="button" className={`trip-date-trigger${open ? ' is-open' : ''}`} onClick={openPicker} aria-expanded={open} aria-haspopup="dialog">
+      <button type="button" className={`trip-date-trigger${open ? ' is-open' : ''}`} onClick={openPicker} aria-expanded={open} aria-haspopup="dialog">
         <Calendar size={15} />
         <strong>{formatPickerDate(value)}</strong>
         <span className="trip-date-action">{open ? 'Done' : 'Change'}</span>
       </button>
 
-      {open && typeof document !== 'undefined' && createPortal(
-        <div
-          ref={popoverRef}
-          className="trip-date-popover quick-entry-date-popover"
-          role="dialog"
-          aria-label={`${label} calendar`}
-          style={{
-            position: 'fixed',
-            top: popoverPosition.top,
-            left: popoverPosition.left,
-          }}
-        >
+      {open && (
+        <div className="trip-date-popover" role="dialog" aria-label={`${label} calendar`}>
           <div className="trip-date-month">
             <button
               type="button"
@@ -196,8 +163,7 @@ export const DatePicker: React.FC<DatePickerProps> = ({ value, onChange, label, 
             })}
           </div>
           {required && !value && <p className="pt-1 text-center text-xs text-[#9a8f80]">Select a date</p>}
-        </div>,
-        document.body,
+        </div>
       )}
     </div>
   );
