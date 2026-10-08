@@ -363,6 +363,29 @@ export const useVelaStore = create<VelaState>()(persist((set, get) => ({
     set({ trips: refreshedTrips });
     get().evaluateAutoStart();
   },
+  evaluateAutoStart: (now = Date.now()) => {
+    const trips = get().trips;
+    const candidateId = getAutoStartTripId(trips, now);
+    if (!candidateId) return;
+
+    const candidate = trips.find((trip) => trip.id === candidateId);
+    if (!candidate) return;
+
+    DomainValidator.validateTripStatus(
+      trips,
+      candidate.id,
+      'traveling',
+      candidate.status,
+    );
+
+    set((state) => ({
+      trips: state.trips.map((trip) =>
+        trip.id === candidate.id
+          ? { ...trip, status: 'traveling', updatedAt: Date.now() }
+          : trip,
+      ),
+    }));
+  },
   addLedgerEntry: (tripId, rawEntry) => {
     const trips = get().trips;
     const tripIndex = trips.findIndex((item) => item.id === tripId);
