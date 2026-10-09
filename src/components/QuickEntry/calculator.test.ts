@@ -7,6 +7,9 @@ import {
 describe('calculator', () => {
   it('respects multiplication and division precedence', () => {
     expect(evaluateCalculatorExpression('98+17+5+31')).toBe(151);
+    expect(evaluateCalculatorExpression('-5')).toBe(-5);
+    expect(evaluateCalculatorExpression('5*-2')).toBe(-10);
+    expect(evaluateCalculatorExpression('5--2')).toBe(7);
     expect(evaluateCalculatorExpression('100+20*3')).toBe(160);
     expect(evaluateCalculatorExpression('120/2-5')).toBe(55);
   });
