@@ -8,39 +8,46 @@ const isOperator = (value: string): value is CalculatorOperator =>
   value === '+' || value === '-' || value === '*' || value === '/';
 
 const tokenize = (input: string): Token[] | null => {
-  const expression = input.replace(/\s+/g, '');
+  const expression = input.replace(/\\s+/g, '');
   if (!expression || !/^[0-9.+*/-]+$/.test(expression)) return null;
 
   const tokens: Token[] = [];
   let index = 0;
+  let expectsNumber = true;
 
   while (index < expression.length) {
     const ch = expression[index];
 
-    if (/[0-9.]/.test(ch)) {
+    if (/[0-9.]/.test(ch) || (expectsNumber && ch === '-')) {
       const start = index;
+      if (ch === '-') index += 1;
       let dots = 0;
+      let digits = 0;
       while (index < expression.length && /[0-9.]/.test(expression[index])) {
         if (expression[index] === '.') dots += 1;
+        else digits += 1;
         if (dots > 1) return null;
         index += 1;
       }
+      if (digits === 0) return null;
       const value = Number(expression.slice(start, index));
       if (!Number.isFinite(value)) return null;
       tokens.push({ type: 'number', value });
+      expectsNumber = false;
       continue;
     }
 
-    if (isOperator(ch)) {
+    if (isOperator(ch) && !expectsNumber) {
       tokens.push({ type: 'operator', value: ch });
       index += 1;
+      expectsNumber = true;
       continue;
     }
 
     return null;
   }
 
-  return tokens;
+  return expectsNumber ? null : tokens;
 };
 
 export const evaluateCalculatorExpression = (input: string): number | null => {
