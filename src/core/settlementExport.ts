@@ -28,8 +28,8 @@ const splitRule = (entry: LedgerEntry) => {
   const allocatedMembers = entry.allocations.filter((allocation) =>
     (allocation.percentage ?? 0) > 0 || allocation.amount > 0
   );
-  if (allocatedMembers.length === 1) return '单人';
-  if (entry.allocationMode === 'equal') return '均分';
+  if (allocatedMembers.length === 1) return 'single';
+  if (entry.allocationMode === 'equal') return 'equal';
   if (entry.allocationMode === 'preset_percentage') return 'custom';
   if (entry.allocationMode === 'custom_percentage') return 'special';
   return '—';
@@ -90,7 +90,7 @@ export const buildSettlementRawRows = (trip: Trip): Record<string, string | numb
       'Original Amount': entry.originalAmount,
       'Exchange Rate': Number(exchangeRate(entry).toFixed(8)),
       'Total (CNY)': signedAmount(entry),
-      '分摊方式': splitRule(entry),
+      'Split Rule': splitRule(entry),
       ...allocations,
       '计入统计': included ? '是' : '否',
       Notes: entryNotes(entry),
@@ -117,7 +117,7 @@ export const buildSettlementRawRows = (trip: Trip): Record<string, string | numb
       'Original Amount': '',
       'Exchange Rate': '',
       'Total (CNY)': roundCny(entries.reduce((sum, entry) => sum + signedAmount(entry), 0)),
-      '分摊方式': '',
+      'Split Rule': '',
       ...allocations,
       Notes: '',
     };
