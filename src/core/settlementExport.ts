@@ -326,21 +326,47 @@ export const buildSettlementCollectionRows = (trip: Trip, memberId: string): Rec
   const shareTotal = roundCny(detailRows.reduce((sum, row) => sum + Number(row[`${member} Share (CNY)`] ?? 0), 0));
   return [
     ...detailRows,
-    { Date: '', Segment: '', Category: '', Notes: '', 'Original Total': '', 'Total (CNY)': 'Member Share Total', [`${member} Share (CNY)`]: shareTotal },
-    { Date: '', Segment: '', Category: '', Notes: '', 'Original Total': '', 'Total (CNY)': 'Settlement', [`${member} Share (CNY)`]: settlement },
+    { Date: '', Segment: '', Category: '', Notes: 'Member Share Total', 'Original Total': '', 'Total (CNY)': '', [`${member} Share (CNY)`]: shareTotal },
+    { Date: '', Segment: '', Category: '', Notes: 'Settlement', 'Original Total': '', 'Total (CNY)': '', [`${member} Share (CNY)`]: settlement },
   ];
 };
 
 export const exportSettlementCollection = (trip: Trip, memberId: string) => {
   const rows = buildSettlementCollectionRows(trip, memberId);
-  const sheet = XLSX.utils.json_to_sheet(rows);
+  const member = memberName(trip, memberId);
+  const dateValues = trip.segments.flatMap((segment) => [segment.startDate, segment.endDate]).filter(Number.isFinite);
+  const compactDate = (value: number) => {
+    const date = new Date(value);
+    return `${date.getFullYear()}.${date.getMonth() + 1}.${date.getDate()}`;
+  };
+  const period = dateValues.length ? `${compactDate(Math.min(...dateValues))}-${compactDate(Math.max(...dateValues))}` : '';
+  const destinations = [...new Set(trip.segments.flatMap((segment) =>
+    segment.destinations.map((destination) => [destination.region, destination.city].filter(Boolean).join(''))
+  ).filter(Boolean))];
+  const destinationLabel = destinations.join(' · ');
+  const title = [`Vela/${period}`, destinationLabel, member].filter(Boolean).join('  ');
+  const departureDate = dateValues.length ? new Date(Math.min(...dateValues)) : null;
+  const fileMonth = departureDate ? `${departureDate.getFullYear()}${String(departureDate.getMonth() + 1).padStart(2, '0')}` : '';
+  const fileDestination = destinations.join('').replaceAll(' ', '').replaceAll('·', '').replaceAll(',', '').replaceAll('，', '');
+  const exportFileName = `${fileMonth}${fileDestination}-${safeFilePart(member)}` || `${safeFilePart(trip.title)}-${safeFilePart(member)}`;
+  const sheet = XLSX.utils.aoa_to_sheet([[title], []]);
+  XLSX.utils.sheet_add_json(sheet, rows, { origin: 'A3' });
   sheet['!cols'] = [
     { wch: 12 }, { wch: 18 }, { wch: 16 }, { wch: 28 },
     { wch: 18 }, { wch: 18 }, { wch: 32 },
   ];
-  const range = XLSX.utils.decode_range(sheet['!ref'] ?? 'A1:G1');
-  for (let col = 0; col <= range.e.c; col += 1) {
+  const range = XLSX.utils.decode_range(sheet['!ref'] ?? 'A3:G3');
+  const mergeEnd = Math.max(range.e.c, 2);
+  sheet['!merges'] = [{ s: { r: 0, c: 0 }, e: { r: 0, c: mergeEnd } }];
+  sheet['!rows'] = [{ hpt: 32 }, { hpt: 7 }, { hpt: 30 }];
+  const titleStyle = { fill: { fgColor: { rgb: '28332D' } }, font: { bold: true, color: { rgb: 'FFFFFF' }, sz: 15 }, alignment: { vertical: 'center', horizontal: 'center' } };
+  for (let col = 0; col <= mergeEnd; col += 1) {
     const address = XLSX.utils.encode_cell({ r: 0, c: col });
+    if (!sheet[address]) sheet[address] = { t: 's', v: '', s: titleStyle };
+    else sheet[address].s = titleStyle;
+  }
+  for (let col = 0; col <= range.e.c; col += 1) {
+    const address = XLSX.utils.encode_cell({ r: 2, c: col });
     if (sheet[address]) sheet[address].s = {
       fill: { fgColor: { rgb: 'E9E1D2' } },
       font: { bold: true, color: { rgb: '28332D' }, sz: 10 },
@@ -349,6 +375,12 @@ export const exportSettlementCollection = (trip: Trip, memberId: string) => {
     };
   }
   const lastRow = range.e.r;
+  for (let rowIndex = 3; rowIndex <= lastRow; rowIndex += 1) {
+    for (let col = 0; col <= range.e.c; col += 1) {
+      const address = XLSX.utils.encode_cell({ r: rowIndex, c: col });
+      if (sheet[address]) sheet[address].s = { font: { color: { rgb: '28312D' }, sz: 10 }, alignment: { vertical: 'center', wrapText: true }, border: { bottom: { style: 'hair', color: { rgb: 'E7E0D5' } } } };
+    }
+  }
   for (const rowIndex of [lastRow - 1, lastRow]) {
     for (let col = 0; col <= range.e.c; col += 1) {
       const address = XLSX.utils.encode_cell({ r: rowIndex, c: col });
@@ -361,7 +393,7 @@ export const exportSettlementCollection = (trip: Trip, memberId: string) => {
   }
   const workbook = XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(workbook, sheet, 'Collection Summary');
-  XLSX.writeFileXLSX(workbook, `vela-collection-${safeFilePart(trip.title)}-${safeFilePart(memberName(trip, memberId))}.xlsx`);
+  XLSX.writeFileXLSX(workbook, `${exportFileName}.xlsx`);
 };
 
 const safeFilePart = (value: string) => value.trim().replace(/[^a-z0-9-_]+/gi, '-').replace(/^-+|-+$/g, '') || 'journey';
