@@ -11,7 +11,7 @@ const formatDate = (value: number) => new Date(value).toLocaleDateString(undefin
 
 const PayerRow: React.FC<{ segment: SettlementSegment; payerId: string; members: ReturnType<typeof useVelaStore.getState>['trips'][number]['members'] }> = ({ segment, payerId, members }) => {
   const payer = segment.payers.find((item) => item.payerId === payerId)!;
-  const [open, setOpen] = useState(true);
+  const [open, setOpen] = useState(false);
   return <article className="settlement-payer">
     <button type="button" className="settlement-payer-head" onClick={() => setOpen((value) => !value)} aria-expanded={open}>
       <span className="settlement-payer-copy"><small>PAYER</small><strong>{settlementMemberName(members, payer.payerId)}</strong></span>
@@ -26,13 +26,13 @@ const PayerRow: React.FC<{ segment: SettlementSegment; payerId: string; members:
 };
 
 const SegmentRow: React.FC<{ segment: SettlementSegment; index: number; members: ReturnType<typeof useVelaStore.getState>['trips'][number]['members'] }> = ({ segment, index, members }) => {
-  const [open, setOpen] = useState(false);
+  const [open, setOpen] = useState(true);
   const hasActivity = segment.payers.length > 0;
   const transfers = calculateMinimalSettlementTransfers(segment);
   return <article className={`settlement-segment${open ? '' : ' is-collapsed'}`}>
     <button type="button" className="settlement-segment-head" onClick={() => setOpen((value) => !value)} aria-expanded={open}>
       <span className="settlement-segment-index">{String(index + 1).padStart(2, '0')}</span>
-      <span className="settlement-segment-title"><strong>{segment.label}</strong><small>{formatDate(segment.startDate)} — {formatDate(segment.endDate)} · {segment.primaryCurrency}</small></span>
+      <span className="settlement-segment-title"><small>{formatDate(segment.startDate)} — {formatDate(segment.endDate)} · {segment.primaryCurrency}</small></span>
       <span className="settlement-segment-total">{hasActivity ? money(segment.payers.reduce((sum, payer) => sum + payer.paidCny, 0)) : '—'}</span>
       <ChevronDown size={17} aria-hidden="true" />
     </button>
@@ -71,9 +71,9 @@ const ExportPanel: React.FC<{ trip: ReturnType<typeof useVelaStore.getState>['tr
     }
   }, [trip.id, activeMembers, memberId]);
   return <section className="settlement-export">
-    <div className="settlement-export-heading"><span>EXPORT / PHASE 2</span><strong>Settlement files</strong><small>Generated locally on this device. No data is uploaded.</small></div>
+    <div className="settlement-export-heading"><span>EXPORT</span><strong>Settlement files</strong></div>
     <div className="settlement-export-actions">
-      <button type="button" className="settlement-export-button" onClick={() => exportSettlementRaw(trip)}><span><Download size={15} />Raw Data Dump</span><small>Complete audit workbook</small></button>
+      <button type="button" className="settlement-export-button" onClick={() => exportSettlementRaw(trip)}><span><Download size={15} />Raw Data Dump</span></button>
       <div className="settlement-collection">
         <label><span>MEMBER</span><select aria-label="Collection member" value={memberId} onChange={(event) => setMemberId(event.target.value)}>{activeMembers.map((member) => <option key={member.id} value={member.id}>{member.name}</option>)}</select></label>
         <button type="button" className="settlement-export-button" disabled={!selectedMember} onClick={() => selectedMember && exportSettlementCollection(trip, selectedMember.id)}><span><Download size={15} />Collection Summary</span><small>{selectedMember ? `Only ${selectedMember.name}'s balances` : 'No member available'}</small></button>
