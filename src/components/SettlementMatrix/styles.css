@@ -184,3 +184,7 @@
  .settlement-count-summary strong{font-size:18px}
  .settlement-financial-summary strong{font-size:clamp(10px,3vw,13px)}
 }
+
+.settlement-export-language{display:inline-flex;align-items:center;gap:7px;margin-top:9px;padding:3px 1px;color:#626b75;font-size:11px;line-height:1.3;cursor:pointer}
+.settlement-export-language input{width:15px;height:15px;margin:0;accent-color:#172332}
+.settlement-export-language span{user-select:none}
