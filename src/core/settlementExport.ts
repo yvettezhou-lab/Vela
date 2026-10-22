@@ -136,7 +136,7 @@ export const exportSettlementRaw = (trip: Trip) => {
   const rows = buildSettlementRawRows(trip);
   const headers = Object.keys(rows[0] ?? {});
   const detailRowCount = trip.ledger.length;
-  const headerRow = 4; // zero-based: metadata occupies rows 1–3, table header is row 5
+  const headerRow = 2; // zero-based: title, spacer, then table header
   const firstDetailRow = headerRow + 1;
   const totalRow = firstDetailRow + detailRowCount;
   const statsTotalRow = totalRow + 1;
