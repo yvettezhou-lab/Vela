@@ -74,12 +74,13 @@ const SegmentRow: React.FC<{ segment: SettlementSegment; index: number; trip: Tr
 const ExportPanel: React.FC<{ trip: ReturnType<typeof useVelaStore.getState>['trips'][number] }> = ({ trip }) => {
   const activeMembers = trip.members.filter((member) => member.archived !== true);
   const [exportTarget, setExportTarget] = useState('all');
+  const [chineseExport, setChineseExport] = useState(false);
   const validTarget = exportTarget === 'all' || exportTarget === 'all-people' || activeMembers.some((member) => member.id === exportTarget);
   const target = validTarget ? exportTarget : 'all';
   const download = () => {
-    if (target === 'all') exportSettlementRaw(trip);
-    else if (target === 'all-people') exportSettlementCollectionAll(trip);
-    else exportSettlementCollection(trip, target);
+    if (target === 'all') exportSettlementRaw(trip, chineseExport);
+    else if (target === 'all-people') exportSettlementCollectionAll(trip, chineseExport);
+    else exportSettlementCollection(trip, target, undefined, chineseExport);
   };
   return <section className="settlement-export">
     <div className="settlement-export-heading"><span>EXPORT</span><strong>Settlement files</strong></div>
@@ -91,6 +92,7 @@ const ExportPanel: React.FC<{ trip: ReturnType<typeof useVelaStore.getState>['tr
       </select>
       <button type="button" className="settlement-export-button" disabled={target !== 'all' && target !== 'all-people' && !activeMembers.some((member) => member.id === target)} onClick={download}><Download size={15} /><span>Download</span></button>
     </div>
+    <label className="settlement-export-language"><input type="checkbox" checked={chineseExport} onChange={(event) => setChineseExport(event.target.checked)} /><span>中文</span></label>
   </section>;
 };
 
