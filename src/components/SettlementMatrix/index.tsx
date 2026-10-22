@@ -94,8 +94,8 @@ export const SettlementMatrix: React.FC = () => {
   return <main className="settlement-page">
     <header className="settlement-header"><div><span className="settlement-overline">SETTLEMENT / {selectedTrip.status.toUpperCase()}</span><h1>Settlement</h1><p>{selectedTrip.title || 'Selected journey'}</p></div>{trips.length > 1 && <label className="settlement-trip-select"><span>TRIP</span><select aria-label="Settlement trip" value={selectedTrip.id} onChange={(event) => setSelectedTripId(event.target.value)}>{trips.map((trip) => <option key={trip.id} value={trip.id}>{trip.title || 'Untitled journey'}</option>)}</select></label>}</header>
     <section className="settlement-summary"><div><span>SEGMENTS</span><strong>{segments.length}</strong></div><div><span>PAYERS</span><strong>{segments.reduce((sum, segment) => sum + segment.payers.length, 0)}</strong></div><div><span>LEDGER</span><strong>{selectedTrip.ledger.filter((entry) => !entry.isPending).length}</strong></div></section>
-    <section className="settlement-segments" aria-label="Settlement by segment">{segments.map((segment, index) => <SegmentRow key={segment.segmentId} segment={segment} index={index} members={selectedTrip.members} />)}</section>
     <ExportPanel trip={selectedTrip} />
+    <section className="settlement-segments" aria-label="Settlement by segment">{segments.map((segment, index) => <SegmentRow key={segment.segmentId} segment={segment} index={index} members={selectedTrip.members} />)}</section>
   </main>;
 };
 
