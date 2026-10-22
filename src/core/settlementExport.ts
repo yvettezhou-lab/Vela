@@ -2,7 +2,7 @@ import * as XLSX from 'xlsx-js-style';
 import type { LedgerEntry, Trip } from './domain';
 import { isLedgerEntryIncludedInCost } from './ledger';
 import { getSegmentForLedgerEntry } from './travelSegment';
-import { settlementMemberName } from './settlement';
+import { calculateMinimalSettlementTransfers, calculateSegmentSettlements, settlementMemberName, type SettlementSegment } from './settlement';
 
 const entryDate = (entry: LedgerEntry) =>
   entry.entryType === 'flight'
@@ -281,36 +281,65 @@ export const exportSettlementRaw = (trip: Trip) => {
   XLSX.writeFileXLSX(workbook, `${exportFileName}.xlsx`);
 };
 
-export const buildSettlementCollectionRows = (trip: Trip, memberId: string): Record<string, string | number>[] =>
-  trip.ledger
-    .filter((entry) => !entry.isPending && entry.payerId === memberId)
+export const buildSettlementCollectionRows = (trip: Trip, memberId: string): Record<string, string | number>[] => {
+  const member = memberName(trip, memberId);
+  const detailRows = trip.ledger
+    .filter((entry) => !entry.isPending)
     .map((entry) => {
       const segment = getSegmentForLedgerEntry(trip.segments, entry);
-      const collected = roundCny(entry.allocations
-        .filter((allocation) => allocation.memberId !== memberId)
-        .reduce((sum, allocation) => sum + signedAllocation(entry, allocation.amount), 0));
-      return { entry, segment, collected };
+      const allocation = entry.allocations.find((item) => item.memberId === memberId)?.amount ?? 0;
+      return { entry, segment, memberShare: signedAllocation(entry, allocation) };
     })
-    .filter(({ collected }) => Math.abs(collected) >= 0.01)
-    .map(({ entry, segment, collected }) => ({
+    .filter(({ memberShare }) => Math.abs(memberShare) >= 0.01)
+    .map(({ entry, segment, memberShare }) => ({
       Date: formatDate(entryDate(entry)),
       Segment: segment?.destinations.map((destination) => destination.city || destination.country).filter(Boolean).join(' · ') || '—',
       Category: categoryName(trip, entry),
       Notes: entryNotes(entry),
       'Original Total': originalTotal(entry),
       'Total (CNY)': signedAmount(entry),
-      'Collected from Others (CNY)': collected,
+      [`${member} Share (CNY)`]: memberShare,
     }));
+
+  const segments = calculateSegmentSettlements(trip);
+  const payerMap = new Map<string, { payerId: string; paidCny: number; originalPaid: Record<string, number>; debts: { memberId: string; amountCny: number }[] }>();
+  for (const segment of segments) {
+    for (const payer of segment.payers) {
+      const current = payerMap.get(payer.payerId) ?? { payerId: payer.payerId, paidCny: 0, originalPaid: {}, debts: [] };
+      current.paidCny = roundCny(current.paidCny + payer.paidCny);
+      for (const debt of payer.debts) {
+        const existing = current.debts.find((item) => item.memberId === debt.memberId);
+        if (existing) existing.amountCny = roundCny(existing.amountCny + debt.amountCny);
+        else current.debts.push({ ...debt });
+      }
+      payerMap.set(payer.payerId, current);
+    }
+  }
+  const combinedSegment = { segmentId: 'all', label: trip.title, startDate: 0, endDate: 0, primaryCurrency: 'CNY', payers: Array.from(payerMap.values()) } satisfies SettlementSegment;
+  const transfers = calculateMinimalSettlementTransfers(combinedSegment);
+  const memberTransfers = transfers.filter((transfer) => transfer.fromMemberId === memberId || transfer.toMemberId === memberId);
+  const settlement = memberTransfers.length
+    ? memberTransfers.map((transfer) => transfer.fromMemberId === memberId
+      ? `${member} pays ${memberName(trip, transfer.toMemberId)} CNY ${transfer.amountCny.toFixed(2)}`
+      : `${memberName(trip, transfer.fromMemberId)} pays ${member} CNY ${transfer.amountCny.toFixed(2)}`).join('; ')
+    : 'No transfer needed';
+  const shareTotal = roundCny(detailRows.reduce((sum, row) => sum + Number(row[`${member} Share (CNY)`] ?? 0), 0));
+  return [
+    ...detailRows,
+    { Date: '', Segment: '', Category: '', Notes: '', 'Original Total': '', 'Total (CNY)': 'Member Share Total', [`${member} Share (CNY)`]: shareTotal },
+    { Date: '', Segment: '', Category: '', Notes: '', 'Original Total': '', 'Total (CNY)': 'Settlement', [`${member} Share (CNY)`]: settlement },
+  ];
+};
 
 export const exportSettlementCollection = (trip: Trip, memberId: string) => {
   const rows = buildSettlementCollectionRows(trip, memberId);
   const sheet = XLSX.utils.json_to_sheet(rows);
   sheet['!cols'] = [
     { wch: 12 }, { wch: 18 }, { wch: 16 }, { wch: 28 },
-    { wch: 18 }, { wch: 15 }, { wch: 24 },
+    { wch: 18 }, { wch: 18 }, { wch: 32 },
   ];
-  const headerRange = XLSX.utils.decode_range(sheet['!ref'] ?? 'A1:G1');
-  for (let col = 0; col <= headerRange.e.c; col += 1) {
+  const range = XLSX.utils.decode_range(sheet['!ref'] ?? 'A1:G1');
+  for (let col = 0; col <= range.e.c; col += 1) {
     const address = XLSX.utils.encode_cell({ r: 0, c: col });
     if (sheet[address]) sheet[address].s = {
       fill: { fgColor: { rgb: 'E9E1D2' } },
@@ -318,6 +347,17 @@ export const exportSettlementCollection = (trip: Trip, memberId: string) => {
       alignment: { vertical: 'center', horizontal: 'center', wrapText: true },
       border: { bottom: { style: 'medium', color: { rgb: 'B79A62' } } },
     };
+  }
+  const lastRow = range.e.r;
+  for (const rowIndex of [lastRow - 1, lastRow]) {
+    for (let col = 0; col <= range.e.c; col += 1) {
+      const address = XLSX.utils.encode_cell({ r: rowIndex, c: col });
+      if (sheet[address]) sheet[address].s = {
+        fill: { fgColor: { rgb: rowIndex === lastRow ? 'E8EFE9' : 'F2EAD9' } },
+        font: { bold: true, color: { rgb: '28332D' }, sz: 10 },
+        alignment: { vertical: 'center', wrapText: true },
+      };
+    }
   }
   const workbook = XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(workbook, sheet, 'Collection Summary');
