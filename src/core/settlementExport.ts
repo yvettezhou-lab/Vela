@@ -43,7 +43,14 @@ const localizeExportSheet = (sheet: XLSX.WorkSheet, chinese: boolean) => {
         if (value === 'Member Share Total') cell.v = '个人分摊合计';
         else if (value === 'Settlement') cell.v = '结算转账';
         else if (value === 'Refund') cell.v = '退款';
+        else if (value === 'No transfer needed') cell.v = '无需转账';
         else if (value.startsWith('Refund · ')) cell.v = `退款 · ${value.slice(9)}`;
+        else if (value.includes(' pays ') && / CNY [0-9]/.test(value)) {
+          cell.v = value.split('; ').map((transfer) => {
+            const match = transfer.match(/^(.+?) pays (.+?) CNY ([0-9]+(?:\\.[0-9]+)?)$/);
+            return match ? `${match[1]} 应付 ${match[2]} ¥${match[3]}` : transfer;
+          }).join('；');
+        }
         // User-entered notes remain exactly as written.
         continue;
       }
