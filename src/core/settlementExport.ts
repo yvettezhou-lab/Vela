@@ -4,6 +4,62 @@ import { isLedgerEntryIncludedInCost } from './ledger';
 import { getSegmentForLedgerEntry } from './travelSegment';
 import { calculateMinimalSettlementTransfers, calculateSegmentSettlements, settlementMemberName, type SettlementSegment } from './settlement';
 
+
+const chineseHeaders: Record<string, string> = {
+  Date: '日期', Segment: '目的地', Category: '类别', Item: '项目', Payer: '付款人',
+  'Original Currency': '原币种', 'Original Amount': '原金额', 'Exchange Rate': '汇率',
+  'Total (CNY)': '总金额（人民币）', 'Split Rule': '分摊方式', 'Included in Stats': '计入统计',
+  Notes: '备注', 'Original Total': '原始金额', 'Grand Total': '总合计',
+  'Statistics Total': '统计项目合计', Settlement: '结算转账',
+};
+const localizeExportSheet = (sheet: XLSX.WorkSheet, chinese: boolean) => {
+  if (!chinese) return;
+  const range = XLSX.utils.decode_range(sheet['!ref'] ?? 'A1:A1');
+  const headers = new Map<number, string>();
+  for (let col = range.s.c; col <= range.e.c; col += 1) {
+    const cell = sheet[XLSX.utils.encode_cell({ r: 2, c: col })];
+    const header = typeof cell?.v === 'string' ? cell.v : '';
+    headers.set(col, header);
+    if (cell && chineseHeaders[header]) cell.v = chineseHeaders[header];
+    else if (cell && header.endsWith(' Share (CNY)')) cell.v = header.replace(' Share (CNY)', '分摊金额（人民币）');
+    else if (cell && header.endsWith(' Allocation (CNY)')) cell.v = header.replace(' Allocation (CNY)', '分摊金额（人民币）');
+  }
+  const valueMap: Record<string, string> = {
+    single: '单人承担', equal: '平均分摊', custom: '自定义比例', special: '临时指定',
+    Yes: '是', No: '否', 'Grand Total': '总合计', 'Statistics Total': '统计项目合计',
+    'Member Share Total': '个人分摊合计', Settlement: '结算转账', 'No transfer needed': '无需转账',
+    Refund: '退款', 'Standard': '普通项目', 'Prepaid · Multi-day': '预付·多日项目',
+    'Flight · Round Trip': '往返机票', 'Flight · One Way': '单程机票',
+    Accommodation: '住宿', Transport: '交通', Meal: '餐饮', Food: '食品',
+    Shopping: '购物', Income: '收入', Flight: '机票', Activity: '活动', Other: '其他',
+  };
+  for (let row = 0; row <= range.e.r; row += 1) {
+    for (let col = range.s.c; col <= range.e.c; col += 1) {
+      const cell = sheet[XLSX.utils.encode_cell({ r: row, c: col })];
+      if (!cell || typeof cell.v !== 'string' || row === 2) continue;
+      const header = headers.get(col) ?? '';
+      const value = cell.v;
+      if (header === 'Notes') {
+        if (value === 'Member Share Total') cell.v = '个人分摊合计';
+        else if (value === 'Settlement') cell.v = '结算转账';
+        else if (value === 'Refund') cell.v = '退款';
+        else if (value.startsWith('Refund · ')) cell.v = `退款 · ${value.slice(9)}`;
+        // User-entered notes remain exactly as written.
+        continue;
+      }
+      if (header === 'Item' && value.startsWith('Transport · ')) {
+        const parts = value.split(' · ');
+        const modes: Record<string, string> = { flight: '航班', train: '火车', bus: '巴士', taxi: '出租车', car: '自驾', ferry: '渡轮', boat: '船', other: '其他' };
+        cell.v = `交通 · ${modes[(parts[1] ?? '').toLowerCase()] ?? parts[1] ?? ''} · ${parts[2] === 'Round Trip' ? '往返' : '单程'}`;
+      } else if (header === 'Category') {
+        cell.v = valueMap[value] ?? value;
+      } else {
+        cell.v = valueMap[value] ?? value;
+      }
+    }
+  }
+};
+
 const entryDate = (entry: LedgerEntry) =>
   entry.entryType === 'flight'
     ? entry.outboundDate
@@ -131,7 +187,7 @@ export const buildSettlementRawRows = (trip: Trip): Record<string, string | numb
   ];
 };
 
-export const exportSettlementRaw = (trip: Trip) => {
+export const exportSettlementRaw = (trip: Trip, chinese = false) => {
   const rows = buildSettlementRawRows(trip);
   const headers = Object.keys(rows[0] ?? {});
   const detailRowCount = trip.ledger.length;
@@ -276,9 +332,10 @@ export const exportSettlementRaw = (trip: Trip) => {
   rawSheet['!autofilter'] = { ref: `A3:${lastColumn}${lastDetailExcelRow}` };
   rawSheet['!freeze'] = { xSplit: 1, ySplit: 3, topLeftCell: 'B4', activePane: 'bottomLeft', state: 'frozen' };
 
+  localizeExportSheet(rawSheet, chinese);
   const workbook = XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(workbook, rawSheet, 'Raw Audit');
-  XLSX.writeFileXLSX(workbook, `${exportFileName}.xlsx`);
+  XLSX.utils.book_append_sheet(workbook, rawSheet, chinese ? '原始明细' : 'Raw Audit');
+  XLSX.writeFileXLSX(workbook, `${exportFileName}${chinese ? '-中文' : ''}.xlsx`);
 };
 
 export const buildSettlementCollectionRows = (trip: Trip, memberId: string): Record<string, string | number>[] => {
@@ -331,7 +388,7 @@ export const buildSettlementCollectionRows = (trip: Trip, memberId: string): Rec
   ];
 };
 
-export const exportSettlementCollection = (trip: Trip, memberId: string, targetWorkbook?: XLSX.WorkBook) => {
+export const exportSettlementCollection = (trip: Trip, memberId: string, targetWorkbook?: XLSX.WorkBook, chinese = false) => {
   const rows = buildSettlementCollectionRows(trip, memberId);
   const member = memberName(trip, memberId);
   const dateValues = trip.segments.flatMap((segment) => [segment.startDate, segment.endDate]).filter(Number.isFinite);
@@ -400,16 +457,17 @@ export const exportSettlementCollection = (trip: Trip, memberId: string, targetW
   ];
   sheet['!autofilter'] = { ref: `A3:${XLSX.utils.encode_col(lastCol)}${lastRow - 1}` };
   sheet['!freeze'] = { xSplit: 1, ySplit: 3, topLeftCell: 'B4', activePane: 'bottomLeft', state: 'frozen' };
+  localizeExportSheet(sheet, chinese);
   const workbook = targetWorkbook ?? XLSX.utils.book_new();
   const sheetName = member.slice(0, 31).replace(/[\\/?*\[\]:]/g, '-');
   XLSX.utils.book_append_sheet(workbook, sheet, sheetName || 'Collection Summary');
-  if (!targetWorkbook) XLSX.writeFileXLSX(workbook, `${exportFileName}.xlsx`);
+  if (!targetWorkbook) XLSX.writeFileXLSX(workbook, `${exportFileName}${chinese ? '-中文' : ''}.xlsx`);
 };
 
-export const exportSettlementCollectionAll = (trip: Trip) => {
+export const exportSettlementCollectionAll = (trip: Trip, chinese = false) => {
   const members = trip.members.filter((member) => member.archived !== true);
   const workbook = XLSX.utils.book_new();
-  for (const member of members) exportSettlementCollection(trip, member.id, workbook);
+  for (const member of members) exportSettlementCollection(trip, member.id, workbook, chinese);
   if (workbook.SheetNames.length === 0) {
     XLSX.utils.book_append_sheet(workbook, XLSX.utils.aoa_to_sheet([['No active members']]), 'Collection Summary');
   }
@@ -418,7 +476,7 @@ export const exportSettlementCollectionAll = (trip: Trip) => {
   const fileMonth = departureDate ? `${departureDate.getFullYear()}${String(departureDate.getMonth() + 1).padStart(2, '0')}` : '';
   const destinations = [...new Set(trip.segments.flatMap((segment) => segment.destinations.map((destination) => [destination.region, destination.city].filter(Boolean).join(''))).filter(Boolean))];
   const fileDestination = destinations.join('').replaceAll(' ', '').replaceAll('·', '').replaceAll(',', '').replaceAll('，', '');
-  XLSX.writeFileXLSX(workbook, `${fileMonth}${fileDestination}-AllPeople.xlsx`);
+  XLSX.writeFileXLSX(workbook, `${fileMonth}${fileDestination}-${chinese ? '全体成员' : 'AllMembers'}${chinese ? '-中文' : ''}.xlsx`);
 };
 
 const safeFilePart = (value: string) => value.trim().replace(/[^a-z0-9-_]+/gi, '-').replace(/^-+|-+$/g, '') || 'journey';
