@@ -188,3 +188,21 @@
 .settlement-export-language{display:inline-flex;align-items:center;gap:7px;margin-top:9px;padding:3px 1px;color:#626b75;font-size:11px;line-height:1.3;cursor:pointer}
 .settlement-export-language input{width:15px;height:15px;margin:0;accent-color:#172332}
 .settlement-export-language span{user-select:none}
+
+/* Compact KPI cards; the upper row has five trip metrics. */
+.settlement-count-summary{grid-template-columns:repeat(5,minmax(0,1fr));grid-auto-rows:58px}
+.settlement-count-summary>div{height:58px;min-height:58px;gap:4px;padding:5px 2px}
+.settlement-count-summary span{font-size:7px;letter-spacing:.035em}
+.settlement-count-summary strong{font-size:18px}
+.settlement-financial-summary{grid-auto-rows:58px}
+.settlement-financial-summary>div{height:58px;min-height:58px;gap:4px;padding:5px 2px}
+@media(max-width:390px){
+ .settlement-count-summary{grid-auto-rows:54px}
+ .settlement-count-summary>div{height:54px;min-height:54px;gap:4px;padding:4px 1px}
+ .settlement-count-summary span{font-size:6px;letter-spacing:0}
+ .settlement-count-summary strong{font-size:16px}
+ .settlement-financial-summary{grid-auto-rows:56px}
+ .settlement-financial-summary>div{height:56px;min-height:56px;gap:4px}
+ .settlement-financial-summary span{font-size:6px;letter-spacing:0}
+ .settlement-financial-summary strong{font-size:clamp(10px,2.8vw,12px)}
+}
