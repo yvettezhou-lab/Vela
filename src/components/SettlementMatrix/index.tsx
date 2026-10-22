@@ -86,7 +86,7 @@ const ExportPanel: React.FC<{ trip: ReturnType<typeof useVelaStore.getState>['tr
     <div className="settlement-export-actions settlement-export-picker">
       <select aria-label="Export type" value={target} onChange={(event) => setExportTarget(event.target.value)}>
         <option value="all">All</option>
-        <option value="all-people">All People</option>
+        <option value="all-people">All Members</option>
         {activeMembers.map((member) => <option key={member.id} value={member.id}>{member.name}</option>)}
       </select>
       <button type="button" className="settlement-export-button" disabled={target !== 'all' && target !== 'all-people' && !activeMembers.some((member) => member.id === target)} onClick={download}><Download size={15} /><span>Download</span></button>
