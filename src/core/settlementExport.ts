@@ -143,13 +143,18 @@ export const exportSettlementRaw = (trip: Trip) => {
   const lastDetailExcelRow = firstDetailRow + detailRowCount;
   const lastColumn = XLSX.utils.encode_col(headers.length - 1);
   const dateValues = trip.segments.flatMap((segment) => [segment.startDate, segment.endDate]).filter(Number.isFinite);
+  const compactDate = (value: number) => {
+    const date = new Date(value);
+    return `${date.getFullYear()}.${date.getMonth() + 1}.${date.getDate()}`;
+  };
   const period = dateValues.length
-    ? `${formatDate(Math.min(...dateValues))} – ${formatDate(Math.max(...dateValues))}`
-    : '—';
+    ? `${compactDate(Math.min(...dateValues))}-${compactDate(Math.max(...dateValues))}`
+    : '';
   const destinations = [...new Set(trip.segments.flatMap((segment) =>
-    segment.destinations.map((destination) => [destination.city, destination.region, destination.country].filter(Boolean).join(', '))
+    segment.destinations.map((destination) => [destination.region, destination.city].filter(Boolean).join(''))
   ).filter(Boolean))];
-  const destinationLabel = destinations.join(' → ') || '—';
+  const destinationLabel = destinations.join(' · ');
+  const title = [`Vela/${period}`, destinationLabel].filter(Boolean).join('  ');
 
   const headerStyle = {
     fill: { fgColor: { rgb: 'E9E1D2' } },
@@ -185,10 +190,10 @@ export const exportSettlementRaw = (trip: Trip) => {
     font: { bold: true, color: { rgb: 'FFFFFF' }, sz: 15 },
     alignment: { vertical: 'center' },
   };
-  const metadataStyle = {
-    fill: { fgColor: { rgb: 'F7F4EE' } },
-    font: { color: { rgb: '4B554E' }, sz: 10 },
-    alignment: { vertical: 'center', wrapText: true },
+  const titleStyle = {
+    fill: { fgColor: { rgb: '28332D' } },
+    font: { bold: true, color: { rgb: 'FFFFFF' }, sz: 15 },
+    alignment: { vertical: 'center', horizontal: 'center' },
   };
 
   // Put trip context above the table so dates and destinations are immediately visible.
