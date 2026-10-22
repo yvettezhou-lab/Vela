@@ -92,6 +92,7 @@ export const buildSettlementRawRows = (trip: Trip): Record<string, string | numb
       'Total (CNY)': signedAmount(entry),
       'Split Rule': splitRule(entry),
       ...allocations,
+      'Included in Stats': included ? 'Yes' : 'No',
       Notes: entryNotes(entry),
     };
   });
@@ -118,6 +119,7 @@ export const buildSettlementRawRows = (trip: Trip): Record<string, string | numb
       'Total (CNY)': roundCny(entries.reduce((sum, entry) => sum + signedAmount(entry), 0)),
       'Split Rule': '',
       ...allocations,
+      'Included in Stats': '',
       Notes: '',
     };
   };
@@ -236,6 +238,18 @@ export const exportSettlementRaw = (trip: Trip) => {
   formatColumn('Total (CNY)', moneyFormat);
   headers.filter((header) => header.endsWith('Allocation (CNY)')).forEach((header) => formatColumn(header, moneyFormat));
 
+  const includedCol = columnIndex('Included in Stats');
+  if (includedCol >= 0) {
+    for (let row = firstDetailRow; row < totalRow; row += 1) {
+      const address = XLSX.utils.encode_cell({ r: row, c: includedCol });
+      const cell = rawSheet[address];
+      if (!cell) continue;
+      cell.s = cell.v === 'Yes'
+        ? { fill: { fgColor: { rgb: 'E5F1E8' } }, font: { color: { rgb: '276749' }, bold: true }, alignment: { horizontal: 'center', vertical: 'center' } }
+        : { fill: { fgColor: { rgb: 'FBE9E7' } }, font: { color: { rgb: '9B2C2C' }, bold: true }, alignment: { horizontal: 'center', vertical: 'center' } };
+    }
+  }
+
   const noteColumn = columnIndex('Notes');
   if (noteColumn >= 0) {
     for (let row = firstDetailRow; row <= statsTotalRow; row += 1) {
@@ -252,7 +266,7 @@ export const exportSettlementRaw = (trip: Trip) => {
     { wch: 11 }, { wch: 15 }, { wch: 13 }, { wch: 19 }, { wch: 10 },
     { wch: 10 }, { wch: 13 }, { wch: 10 }, { wch: 13 }, { wch: 16 },
     ...Array.from({ length: trip.members.length }, () => ({ wch: 15 })),
-    { wch: 9 }, { wch: 27 },
+    { wch: 12 }, { wch: 27 },
   ];
   rawSheet['!rows'] = [
     { hpt: 32 }, { hpt: 7 }, { hpt: 30 },
