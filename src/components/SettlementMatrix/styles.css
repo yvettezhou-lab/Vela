@@ -58,3 +58,35 @@
 .settlement-detail-label{padding:15px 22px 5px}
 
 .settlement-export-picker{grid-template-columns:minmax(0,1fr) auto;align-items:stretch}.settlement-export-picker select{width:100%;min-width:0;height:38px;min-height:38px;padding:0 10px;border:1px solid rgba(15,23,42,.14);border-radius:9px;background:#fffdf8;color:#0F172A;font:10px ui-sans-serif,system-ui,sans-serif}.settlement-export-picker .settlement-export-button{width:auto;min-width:108px;justify-content:center;white-space:nowrap}.settlement-export-picker .settlement-export-button span{padding:0}
+
+/* Compact settlement overview and expandable transfer details */
+.settlement-page{padding-top:14px;padding-bottom:100px}
+.settlement-header{padding:6px 0 12px;gap:10px}
+.settlement-header h1{font-size:29px;margin:5px 0 2px}
+.settlement-summary{margin:10px 0}
+.settlement-summary div{padding:8px 4px;gap:4px}
+.settlement-summary strong{font-size:18px}
+.settlement-export{margin-top:8px;padding:9px 10px}
+.settlement-export-heading strong{font-size:15px}
+.settlement-export-picker{margin-top:7px}
+.settlement-segments{gap:7px}
+.settlement-segment-head{padding:10px 11px}
+.settlement-final{padding:12px 16px 9px}
+.settlement-final-heading{margin-bottom:4px}
+.settlement-transfer .settlement-final-row{width:100%;box-sizing:border-box;margin:0;padding:10px 0;border:0;border-bottom:1px solid rgba(15,23,42,.07);background:transparent;text-align:left;cursor:pointer}
+.settlement-transfer:last-child .settlement-final-row{border-bottom:0}
+.settlement-transfer .settlement-final-row>span:first-child{font:500 14px/1.25 Georgia,Cambria,"Times New Roman",serif}
+.settlement-transfer-amount{display:flex;align-items:center;gap:5px;white-space:nowrap;font:500 15px/1.25 Georgia,Cambria,"Times New Roman",serif}
+.settlement-transfer-amount svg{color:rgba(15,23,42,.38);transition:transform .16s ease}
+.settlement-transfer.is-open .settlement-transfer-amount svg{transform:rotate(180deg)}
+.settlement-transfer-details{padding:8px 0 10px;border-bottom:1px solid rgba(15,23,42,.08)}
+.settlement-transfer-details>p{margin:0 0 7px;font:9px/1.4 ui-sans-serif,system-ui,sans-serif;color:rgba(15,23,42,.5)}
+.settlement-transfer-item{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:8px 0;border-top:1px solid rgba(15,23,42,.06)}
+.settlement-transfer-item>div{display:grid;gap:3px;min-width:0}
+.settlement-transfer-item>div strong{font:500 12px/1.2 ui-serif,Georgia,serif}
+.settlement-transfer-item>div span{font:9px/1.35 ui-sans-serif,system-ui,sans-serif;color:rgba(15,23,42,.54);overflow-wrap:anywhere}
+.settlement-transfer-item>strong{font:500 12px/1 ui-serif,Georgia,serif;white-space:nowrap}
+.settlement-transfer-item>strong.is-refund{color:#a33}
+.settlement-detail-label{padding:11px 16px 4px}
+.settlement-payer-head{padding:10px 11px}
+@media(max-width:600px){.settlement-page{padding-left:12px;padding-right:12px}.settlement-final{padding-left:14px;padding-right:14px}.settlement-transfer .settlement-final-row>span:first-child{font-size:13px}.settlement-transfer-amount{font-size:14px}}
