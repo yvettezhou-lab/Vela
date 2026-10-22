@@ -206,3 +206,21 @@
  .settlement-financial-summary span{font-size:6px;letter-spacing:0}
  .settlement-financial-summary strong{font-size:clamp(10px,2.8vw,12px)}
 }
+
+/* Final compact settlement layout */
+.settlement-count-summary{grid-template-columns:repeat(5,minmax(0,1fr))}
+.settlement-export-actions.settlement-export-picker{display:grid;grid-template-columns:minmax(0,1fr) auto auto;align-items:center;gap:7px}
+.settlement-export-actions.settlement-export-picker select{min-width:0;width:100%}
+.settlement-export-actions .settlement-export-language{margin:0;padding:0 2px;gap:4px;white-space:nowrap;font-size:10px}
+.settlement-export-actions .settlement-export-language input{width:14px;height:14px;flex:0 0 14px}
+.settlement-export-actions .settlement-export-button{width:auto;min-width:86px;justify-content:center;white-space:nowrap}
+@media(max-width:390px){
+ .settlement-export{padding:9px 10px}
+ .settlement-export-heading strong{font-size:15px}
+ .settlement-export-actions.settlement-export-picker{grid-template-columns:minmax(0,1fr) auto auto;gap:5px;margin-top:7px}
+ .settlement-export-actions.settlement-export-picker select{height:38px;min-height:38px;padding:0 6px;font-size:12px}
+ .settlement-export-actions .settlement-export-button{min-width:76px;min-height:38px;padding:7px 8px;gap:4px}
+ .settlement-export-actions .settlement-export-button span{font-size:9px}
+ .settlement-export-actions .settlement-export-language{font-size:9px;gap:3px}
+ .settlement-count-summary span{font-size:6px;letter-spacing:0}
+}
