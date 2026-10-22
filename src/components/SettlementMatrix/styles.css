@@ -165,3 +165,22 @@
  .settlement-transfer .settlement-final-row>span:first-child{font-size:13px}
  .settlement-transfer-amount{font-size:14px}
 }
+
+/* Keep both KPI rows exactly the same height and align all six cells */
+.settlement-count-summary,
+.settlement-financial-summary{grid-template-columns:repeat(3,minmax(0,1fr));grid-auto-rows:72px;box-sizing:border-box}
+.settlement-count-summary{margin-top:12px;margin-bottom:0;border-bottom-left-radius:0;border-bottom-right-radius:0}
+.settlement-financial-summary{margin-top:0;margin-bottom:12px;border-top:0;border-top-left-radius:0;border-top-right-radius:0}
+.settlement-count-summary>div,
+.settlement-financial-summary>div{height:72px;min-height:72px;box-sizing:border-box;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:7px;padding:7px 3px}
+.settlement-count-summary span,
+.settlement-financial-summary span{min-height:9px;display:flex;align-items:center;justify-content:center;line-height:1.2;white-space:nowrap}
+.settlement-count-summary strong{font-size:20px;line-height:1.1}
+.settlement-financial-summary strong{font-size:clamp(11px,3.3vw,16px);line-height:1.1}
+@media(max-width:390px){
+ .settlement-count-summary,.settlement-financial-summary{grid-auto-rows:68px}
+ .settlement-count-summary>div,.settlement-financial-summary>div{height:68px;min-height:68px;gap:6px}
+ .settlement-count-summary span,.settlement-financial-summary span{font-size:6.2px;letter-spacing:.025em}
+ .settlement-count-summary strong{font-size:18px}
+ .settlement-financial-summary strong{font-size:clamp(10px,3vw,13px)}
+}
