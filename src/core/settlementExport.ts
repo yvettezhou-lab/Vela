@@ -56,8 +56,8 @@ const getMemberAllocationColumns = (trip: Trip) => {
 };
 
 const statsExclusionReason = (entry: LedgerEntry) => {
-  if (entry.isPending) return 'Pending final settlement';
-  if (!entry.includeInCost) return 'Excluded from statistics';
+  if (entry.isPending) return '待结算';
+  if (!entry.includeInCost) return '手动排除';
   return '—';
 };
 
@@ -91,8 +91,8 @@ export const buildSettlementRawRows = (trip: Trip): Record<string, string | numb
       'Total (CNY)': signedAmount(entry),
       'Split Rule': splitRule(entry),
       ...allocations,
-      'Included in Stats': included ? 'Yes' : 'No',
-      'Stats Exclusion Reason': statsExclusionReason(entry),
+      '计入统计': included ? '是' : '否',
+      '未计入原因': statsExclusionReason(entry),
       Notes: entryNotes(entry),
     };
   });
@@ -155,6 +155,10 @@ export const exportSettlementRaw = (trip: Trip) => {
   ).filter(Boolean))];
   const destinationLabel = destinations.join(' · ');
   const title = [`Vela/${period}`, destinationLabel].filter(Boolean).join('  ');
+  const departureDate = dateValues.length ? new Date(Math.min(...dateValues)) : null;
+  const fileMonth = departureDate ? `${departureDate.getFullYear()}${String(departureDate.getMonth() + 1).padStart(2, '0')}` : '';
+  const fileDestination = destinations.join('').replaceAll(' ', '').replaceAll('·', '').replaceAll(',', '').replaceAll('，', '');
+  const exportFileName = `${fileMonth}${fileDestination}` || safeFilePart(trip.title) || 'Vela';
 
   const headerStyle = {
     fill: { fgColor: { rgb: 'E9E1D2' } },
@@ -201,7 +205,11 @@ export const exportSettlementRaw = (trip: Trip) => {
   XLSX.utils.sheet_add_json(rawSheet, rows, { origin: 'A3' });
   const mergeEnd = Math.max(headers.length - 1, 2);
   rawSheet['!merges'] = [{ s: { r: 0, c: 0 }, e: { r: 0, c: mergeEnd } }];
-  rawSheet['A1'].s = titleStyle;
+  for (let col = 0; col <= mergeEnd; col += 1) {
+    const titleCell = XLSX.utils.encode_cell({ r: 0, c: col });
+    if (!rawSheet[titleCell]) rawSheet[titleCell] = { t: 's', v: '', s: titleStyle };
+    else rawSheet[titleCell].s = titleStyle;
+  }
   for (let col = 0; col < headers.length; col += 1) {
     const headerAddress = XLSX.utils.encode_cell({ r: headerRow, c: col });
     if (rawSheet[headerAddress]) rawSheet[headerAddress].s = headerStyle;
@@ -232,13 +240,13 @@ export const exportSettlementRaw = (trip: Trip) => {
   headers.filter((header) => header.endsWith('Allocation (CNY)')).forEach((header) => formatColumn(header, moneyFormat));
 
   // Conditional-style equivalents: highlight inclusion status and the two summary rows.
-  const includedCol = columnIndex('Included in Stats');
+  const includedCol = columnIndex('计入统计');
   if (includedCol >= 0) {
     for (let row = firstDetailRow; row < totalRow; row += 1) {
       const address = XLSX.utils.encode_cell({ r: row, c: includedCol });
       const cell = rawSheet[address];
       if (!cell) continue;
-      cell.s = cell.v === 'Yes'
+      cell.s = cell.v === '是'
         ? { fill: { fgColor: { rgb: 'E5F1E8' } }, font: { color: { rgb: '276749' }, bold: true }, alignment: { horizontal: 'center', vertical: 'center' } }
         : { fill: { fgColor: { rgb: 'FBE9E7' } }, font: { color: { rgb: '9B2C2C' }, bold: true }, alignment: { horizontal: 'center', vertical: 'center' } };
     }
@@ -260,7 +268,7 @@ export const exportSettlementRaw = (trip: Trip) => {
     { wch: 11 }, { wch: 15 }, { wch: 13 }, { wch: 19 }, { wch: 10 },
     { wch: 10 }, { wch: 13 }, { wch: 10 }, { wch: 13 }, { wch: 16 },
     ...Array.from({ length: trip.members.length }, () => ({ wch: 15 })),
-    { wch: 12 }, { wch: 19 }, { wch: 27 },
+    { wch: 9 }, { wch: 12 }, { wch: 27 },
   ];
   rawSheet['!rows'] = [
     { hpt: 32 }, { hpt: 7 }, { hpt: 30 },
@@ -272,7 +280,7 @@ export const exportSettlementRaw = (trip: Trip) => {
 
   const workbook = XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(workbook, rawSheet, 'Raw Audit');
-  XLSX.writeFileXLSX(workbook, `vela-settlement-raw-${safeFilePart(trip.title)}.xlsx`);
+  XLSX.writeFileXLSX(workbook, `${exportFileName}.xlsx`);
 };
 
 export const exportSettlementCollection = (trip: Trip, memberId: string) => {
