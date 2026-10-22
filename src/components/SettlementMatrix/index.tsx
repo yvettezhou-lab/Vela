@@ -3,6 +3,8 @@ import React, { useMemo, useState } from 'react';
 import { ChevronDown, Download, Scale } from 'lucide-react';
 import { useVelaStore } from '../../store/useVelaStore';
 import { calculateMinimalSettlementTransfers, calculateSegmentSettlements, settlementMemberName, type SettlementSegment } from '../../core/settlement';
+import { getSegmentForLedgerEntry } from '../../core/travelSegment';
+import type { Trip } from '../../core/domain';
 import { exportSettlementCollection, exportSettlementCollectionAll, exportSettlementRaw } from '../../core/settlementExport';
 
 const money = (value: number) => `¥${value.toFixed(2)}`;
@@ -25,7 +27,32 @@ const PayerRow: React.FC<{ segment: SettlementSegment; payerId: string; members:
   </article>;
 };
 
-const SegmentRow: React.FC<{ segment: SettlementSegment; index: number; members: ReturnType<typeof useVelaStore.getState>['trips'][number]['members'] }> = ({ segment, index, members }) => {
+const TransferRow: React.FC<{ transfer: { fromMemberId: string; toMemberId: string; amountCny: number }; trip: Trip; segment: SettlementSegment }> = ({ transfer, trip, segment }) => {
+  const [open, setOpen] = useState(false);
+  const related = trip.ledger.filter((entry) => {
+    if (entry.isPending || getSegmentForLedgerEntry(trip.segments, entry)?.id !== segment.segmentId) return false;
+    const involvesPair = (entry.payerId === transfer.toMemberId && entry.allocations.some((a) => a.memberId === transfer.fromMemberId)) || (entry.payerId === transfer.fromMemberId && entry.allocations.some((a) => a.memberId === transfer.toMemberId));
+    return involvesPair;
+  }).map((entry) => {
+    const otherId = entry.payerId === transfer.toMemberId ? transfer.fromMemberId : transfer.toMemberId;
+    const amount = entry.allocations.find((a) => a.memberId === otherId)?.amount ?? 0;
+    const dateValue = entry.entryType === 'flight' ? entry.outboundDate : entry.entryType === 'transport' ? entry.paymentDate ?? entry.outboundDate : entry.paymentDate;
+    const category = trip.categories.find((item) => item.id === entry.categoryId)?.name ?? entry.categoryId;
+    return { id: entry.id, payer: settlementMemberName(trip.members, entry.payerId), other: settlementMemberName(trip.members, otherId), date: new Date(dateValue).toLocaleDateString(undefined, { month: 'short', day: 'numeric' }), category, note: entry.note?.trim() || '', amount: entry.isRefund ? -Math.abs(amount) : amount, refund: entry.isRefund };
+  });
+  return <div className={`settlement-transfer${open ? ' is-open' : ''}`}>
+    <button type="button" className="settlement-final-row" onClick={() => setOpen((value) => !value)} aria-expanded={open}>
+      <span><strong>{settlementMemberName(trip.members, transfer.fromMemberId)}</strong><span> → </span><strong>{settlementMemberName(trip.members, transfer.toMemberId)}</strong></span>
+      <span className="settlement-transfer-amount">{money(transfer.amountCny)} <ChevronDown size={14} /></span>
+    </button>
+    {open && <div className="settlement-transfer-details">
+      <p>Related ledger items · net settlement may include offsets across other members.</p>
+      {related.length ? related.map((item) => <div className="settlement-transfer-item" key={item.id}><div><strong>{item.category}</strong><span>{item.date} · {item.payer} paid · {item.other}'s share{item.note ? ` · ${item.note}` : ''}</span></div><strong className={item.refund ? 'is-refund' : ''}>{money(item.amount)}</strong></div>) : <span className="settlement-no-debt">No direct ledger items for this pair in this segment.</span>}
+    </div>}
+  </div>;
+};
+
+const SegmentRow: React.FC<{ segment: SettlementSegment; index: number; trip: Trip; members: Trip['members'] }> = ({ segment, index, trip, members }) => {
   const [open, setOpen] = useState(true);
   const hasActivity = segment.payers.length > 0;
   const transfers = calculateMinimalSettlementTransfers(segment);
@@ -41,10 +68,7 @@ const SegmentRow: React.FC<{ segment: SettlementSegment; index: number; members:
         <section className="settlement-final">
           <div className="settlement-final-heading"><span>FINAL SETTLEMENT</span><strong>{transfers.length} {transfers.length === 1 ? 'TRANSFER' : 'TRANSFERS'}</strong></div>
           {transfers.length ? transfers.map((transfer, transferIndex) => (
-            <div className="settlement-final-row" key={`${transfer.fromMemberId}-${transfer.toMemberId}-${transfer.amountCny}-${transferIndex}`}>
-              <span><strong>{settlementMemberName(members, transfer.fromMemberId)}</strong><span> → </span><strong>{settlementMemberName(members, transfer.toMemberId)}</strong></span>
-              <strong>{money(transfer.amountCny)}</strong>
-            </div>
+            <TransferRow key={`${transfer.fromMemberId}-${transfer.toMemberId}-${transfer.amountCny}-${transferIndex}`} transfer={transfer} trip={trip} segment={segment} />
           )) : <div className="settlement-no-debt">Everyone is settled.</div>}
         </section>
         <div className="settlement-detail-label">PAYMENT DETAIL</div>
@@ -90,7 +114,7 @@ export const SettlementMatrix: React.FC = () => {
     <header className="settlement-header"><div><span className="settlement-overline">SETTLEMENT / {selectedTrip.status.toUpperCase()}</span><h1>Settlement</h1><p>{selectedTrip.title || 'Selected journey'}</p></div>{trips.length > 1 && <label className="settlement-trip-select"><span>TRIP</span><select aria-label="Settlement trip" value={selectedTrip.id} onChange={(event) => setSelectedTripId(event.target.value)}>{trips.map((trip) => <option key={trip.id} value={trip.id}>{trip.title || 'Untitled journey'}</option>)}</select></label>}</header>
     <section className="settlement-summary"><div><span>SEGMENTS</span><strong>{segments.length}</strong></div><div><span>PAYERS</span><strong>{segments.reduce((sum, segment) => sum + segment.payers.length, 0)}</strong></div><div><span>LEDGER</span><strong>{selectedTrip.ledger.filter((entry) => !entry.isPending).length}</strong></div></section>
     <ExportPanel trip={selectedTrip} />
-    <section className="settlement-segments" aria-label="Settlement by segment">{segments.map((segment, index) => <SegmentRow key={segment.segmentId} segment={segment} index={index} members={selectedTrip.members} />)}</section>
+    <section className="settlement-segments" aria-label="Settlement by segment">{segments.map((segment, index) => <SegmentRow key={segment.segmentId} segment={segment} index={index} trip={selectedTrip} members={selectedTrip.members} />)}</section>
   </main>;
 };
 
