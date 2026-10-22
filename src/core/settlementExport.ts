@@ -24,8 +24,15 @@ const formatDate = (value: number) => new Date(value).toLocaleDateString('en-CA'
 const categoryName = (trip: Trip, entry: LedgerEntry) => trip.categories.find((category) => category.id === entry.categoryId)?.name ?? entry.categoryId;
 const memberName = (trip: Trip, id: string) => settlementMemberName(trip.members, id);
 const splitRule = (entry: LedgerEntry) => {
-  if (entry.allocationMode === 'equal') return 'Equal';
-  return entry.allocations.map((allocation) => `${allocation.percentage ?? 0}%`).join(' / ');
+  // A single actual beneficiary is clearer than a split-mode label.
+  const allocatedMembers = entry.allocations.filter((allocation) =>
+    (allocation.percentage ?? 0) > 0 || allocation.amount > 0
+  );
+  if (allocatedMembers.length === 1) return '单人';
+  if (entry.allocationMode === 'equal') return '均分';
+  if (entry.allocationMode === 'preset_percentage') return 'custom';
+  if (entry.allocationMode === 'custom_percentage') return 'special';
+  return '—';
 };
 const exchangeRate = (entry: LedgerEntry) => entry.originalAmount ? entry.cnyEquivalent / entry.originalAmount : 0;
 const owedByMember = (entry: LedgerEntry, memberId: string) => {
@@ -83,7 +90,7 @@ export const buildSettlementRawRows = (trip: Trip): Record<string, string | numb
       'Original Amount': entry.originalAmount,
       'Exchange Rate': Number(exchangeRate(entry).toFixed(8)),
       'Total (CNY)': signedAmount(entry),
-      'Split Rule': splitRule(entry),
+      '分摊方式': splitRule(entry),
       ...allocations,
       '计入统计': included ? '是' : '否',
       Notes: entryNotes(entry),
@@ -110,7 +117,7 @@ export const buildSettlementRawRows = (trip: Trip): Record<string, string | numb
       'Original Amount': '',
       'Exchange Rate': '',
       'Total (CNY)': roundCny(entries.reduce((sum, entry) => sum + signedAmount(entry), 0)),
-      'Split Rule': '',
+      '分摊方式': '',
       ...allocations,
       Notes: '',
     };
