@@ -331,7 +331,7 @@ export const buildSettlementCollectionRows = (trip: Trip, memberId: string): Rec
   ];
 };
 
-export const exportSettlementCollection = (trip: Trip, memberId: string) => {
+export const exportSettlementCollection = (trip: Trip, memberId: string, targetWorkbook?: XLSX.WorkBook) => {
   const rows = buildSettlementCollectionRows(trip, memberId);
   const member = memberName(trip, memberId);
   const dateValues = trip.segments.flatMap((segment) => [segment.startDate, segment.endDate]).filter(Number.isFinite);
@@ -400,9 +400,25 @@ export const exportSettlementCollection = (trip: Trip, memberId: string) => {
   ];
   sheet['!autofilter'] = { ref: `A3:${XLSX.utils.encode_col(lastCol)}${lastRow - 1}` };
   sheet['!freeze'] = { xSplit: 1, ySplit: 3, topLeftCell: 'B4', activePane: 'bottomLeft', state: 'frozen' };
+  const workbook = targetWorkbook ?? XLSX.utils.book_new();
+  const sheetName = member.slice(0, 31).replace(/[\\/?*\[\]:]/g, '-');
+  XLSX.utils.book_append_sheet(workbook, sheet, sheetName || 'Collection Summary');
+  if (!targetWorkbook) XLSX.writeFileXLSX(workbook, `${exportFileName}.xlsx`);
+};
+
+export const exportSettlementCollectionAll = (trip: Trip) => {
+  const members = trip.members.filter((member) => member.archived !== true);
   const workbook = XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(workbook, sheet, 'Collection Summary');
-  XLSX.writeFileXLSX(workbook, `${exportFileName}.xlsx`);
+  for (const member of members) exportSettlementCollection(trip, member.id, workbook);
+  if (workbook.SheetNames.length === 0) {
+    XLSX.utils.book_append_sheet(workbook, XLSX.utils.aoa_to_sheet([['No active members']]), 'Collection Summary');
+  }
+  const dateValues = trip.segments.flatMap((segment) => [segment.startDate, segment.endDate]).filter(Number.isFinite);
+  const departureDate = dateValues.length ? new Date(Math.min(...dateValues)) : null;
+  const fileMonth = departureDate ? `${departureDate.getFullYear()}${String(departureDate.getMonth() + 1).padStart(2, '0')}` : '';
+  const destinations = [...new Set(trip.segments.flatMap((segment) => segment.destinations.map((destination) => [destination.region, destination.city].filter(Boolean).join(''))).filter(Boolean))];
+  const fileDestination = destinations.join('').replaceAll(' ', '').replaceAll('·', '').replaceAll(',', '').replaceAll('，', '');
+  XLSX.writeFileXLSX(workbook, `${fileMonth}${fileDestination}-AllPeople.xlsx`);
 };
 
 const safeFilePart = (value: string) => value.trim().replace(/[^a-z0-9-_]+/gi, '-').replace(/^-+|-+$/g, '') || 'journey';
