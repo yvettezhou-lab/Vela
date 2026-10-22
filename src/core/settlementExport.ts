@@ -43,6 +43,8 @@ const signedAmount = (entry: LedgerEntry) =>
 const signedAllocation = (entry: LedgerEntry, amount: number) =>
   entry.isRefund || entry.entryDirection === 'income' ? -Math.abs(amount) : Math.abs(amount);
 
+const roundCny = (amount: number) => Math.round((amount + Number.EPSILON) * 100) / 100;
+
 const getMemberAllocationColumns = (trip: Trip) => {
   const seen = new Set<string>();
   return trip.members.map((member) => {
@@ -69,7 +71,7 @@ const entryNotes = (entry: LedgerEntry) => {
 /** Build the auditable ledger rows, including pending and excluded entries. */
 export const buildSettlementRawRows = (trip: Trip): Record<string, string | number>[] => {
   const memberColumns = getMemberAllocationColumns(trip);
-  return trip.ledger.map((entry) => {
+  const detailRows = trip.ledger.map((entry) => {
     const segment = getSegmentForLedgerEntry(trip.segments, entry);
     const included = isIncludedInStats(entry);
     const allocations = Object.fromEntries(memberColumns.map(({ member, column }) => {
@@ -94,52 +96,39 @@ export const buildSettlementRawRows = (trip: Trip): Record<string, string | numb
       Notes: entryNotes(entry),
     };
   });
-};
 
-/** Summary includes both the full ledger and the exact subset used by statistics. */
-export const buildSettlementSummaryRows = (trip: Trip): (string | number)[][] => {
-  const entries = trip.ledger;
-  const includedEntries = entries.filter(isIncludedInStats);
-  const excludedEntries = entries.filter((entry) => !isIncludedInStats(entry));
-  const totalAll = entries.reduce((sum, entry) => sum + signedAmount(entry), 0);
-  const totalIncluded = includedEntries.reduce((sum, entry) => sum + signedAmount(entry), 0);
-  const totalExcluded = excludedEntries.reduce((sum, entry) => sum + signedAmount(entry), 0);
-  const memberColumns = getMemberAllocationColumns(trip);
+  const includedEntries = trip.ledger.filter(isIncludedInStats);
+  const makeTotalRow = (label: string, entries: LedgerEntry[]): Record<string, string | number> => {
+    const allocations = Object.fromEntries(memberColumns.map(({ member, column }) => [
+      column,
+      roundCny(entries.reduce((sum, entry) => {
+        const allocation = entry.allocations.find((item) => item.memberId === member.id);
+        return sum + signedAllocation(entry, allocation?.amount ?? 0);
+      }, 0)),
+    ]));
 
-  const allAllocations = memberColumns.map(({ member }) => entries.reduce((sum, entry) => {
-    const allocation = entry.allocations.find((item) => item.memberId === member.id);
-    return sum + signedAllocation(entry, allocation?.amount ?? 0);
-  }, 0));
-  const includedAllocations = memberColumns.map(({ member }) => includedEntries.reduce((sum, entry) => {
-    const allocation = entry.allocations.find((item) => item.memberId === member.id);
-    return sum + signedAllocation(entry, allocation?.amount ?? 0);
-  }, 0));
-
-  const allAllocationTotal = allAllocations.reduce((sum, amount) => sum + amount, 0);
-  const includedAllocationTotal = includedAllocations.reduce((sum, amount) => sum + amount, 0);
-  const roundCny = (amount: number) => Math.round((amount + Number.EPSILON) * 100) / 100;
+    return {
+      Date: '',
+      Segment: '',
+      Category: '',
+      Item: label,
+      Payer: '',
+      'Original Currency': '',
+      'Original Amount': '',
+      'Exchange Rate': '',
+      'Total (CNY)': roundCny(entries.reduce((sum, entry) => sum + signedAmount(entry), 0)),
+      'Split Rule': '',
+      ...allocations,
+      'Included in Stats': '',
+      'Stats Exclusion Reason': '',
+      Notes: '',
+    };
+  };
 
   return [
-    ['Vela Settlement Summary', trip.title],
-    ['Generated At', new Date().toISOString()],
-    [],
-    ['Ledger Totals', 'Amount (CNY)', 'Entries'],
-    ['All ledger entries', roundCny(totalAll), entries.length],
-    ['Included in statistics', roundCny(totalIncluded), includedEntries.length],
-    ['Excluded from statistics', roundCny(totalExcluded), excludedEntries.length],
-    [],
-    ['Member Allocation Summary'],
-    ['Member', 'All Allocations (CNY)', 'Included in Stats Allocations (CNY)'],
-    ...memberColumns.map(({ member }, index) => [
-      member.name,
-      roundCny(allAllocations[index]),
-      roundCny(includedAllocations[index]),
-    ]),
-    ['TOTAL', roundCny(allAllocationTotal), roundCny(includedAllocationTotal)],
-    [],
-    ['Allocation Reconciliation', 'Difference (CNY)'],
-    ['All allocations minus all ledger total', roundCny(allAllocationTotal - totalAll)],
-    ['Included allocations minus included ledger total', roundCny(includedAllocationTotal - totalIncluded)],
+    ...detailRows,
+    makeTotalRow('总合计', trip.ledger),
+    makeTotalRow('统计项目合计', includedEntries),
   ];
 };
 
@@ -154,11 +143,8 @@ export const exportSettlementRaw = (trip: Trip) => {
     { wch: 17 }, { wch: 28 }, { wch: 40 },
   ];
 
-  const summarySheet = XLSX.utils.aoa_to_sheet(buildSettlementSummaryRows(trip));
-  summarySheet['!cols'] = [{ wch: 42 }, { wch: 28 }, { wch: 18 }];
   const workbook = XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(workbook, rawSheet, 'Raw Audit');
-  XLSX.utils.book_append_sheet(workbook, summarySheet, 'Summary');
   XLSX.writeFileXLSX(workbook, `vela-settlement-raw-${safeFilePart(trip.title)}.xlsx`);
 };
 
