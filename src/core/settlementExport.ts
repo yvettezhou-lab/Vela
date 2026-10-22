@@ -196,29 +196,13 @@ export const exportSettlementRaw = (trip: Trip) => {
     alignment: { vertical: 'center', horizontal: 'center' },
   };
 
-  // Put trip context above the table so dates and destinations are immediately visible.
-  const rawSheet = XLSX.utils.aoa_to_sheet([
-    [`VELA  /  ${trip.title}`],
-    [`Travel period: ${period}`],
-    [`Destinations: ${destinationLabel}`],
-  ]);
-  XLSX.utils.sheet_add_json(rawSheet, rows, { origin: 'A5' });
-
+  // One centered report title, followed by a small spacer and the table.
+  const rawSheet = XLSX.utils.aoa_to_sheet([[title], []]);
+  XLSX.utils.sheet_add_json(rawSheet, rows, { origin: 'A3' });
   const mergeEnd = Math.max(headers.length - 1, 2);
-  rawSheet['!merges'] = [
-    { s: { r: 0, c: 0 }, e: { r: 0, c: mergeEnd } },
-    { s: { r: 1, c: 0 }, e: { r: 1, c: mergeEnd } },
-    { s: { r: 2, c: 0 }, e: { r: 2, c: mergeEnd } },
-  ];
+  rawSheet['!merges'] = [{ s: { r: 0, c: 0 }, e: { r: 0, c: mergeEnd } }];
+  rawSheet['A1'].s = titleStyle;
   for (let col = 0; col < headers.length; col += 1) {
-    const titleAddress = XLSX.utils.encode_cell({ r: 0, c: col });
-    const periodAddress = XLSX.utils.encode_cell({ r: 1, c: col });
-    const destinationAddress = XLSX.utils.encode_cell({ r: 2, c: col });
-    if (col === 0) {
-      rawSheet[titleAddress].s = metadataTitleStyle;
-      rawSheet[periodAddress].s = metadataStyle;
-      rawSheet[destinationAddress].s = metadataStyle;
-    }
     const headerAddress = XLSX.utils.encode_cell({ r: headerRow, c: col });
     if (rawSheet[headerAddress]) rawSheet[headerAddress].s = headerStyle;
   }
@@ -273,19 +257,18 @@ export const exportSettlementRaw = (trip: Trip) => {
 
   // Narrow administrative columns; keep member amounts and notes readable.
   rawSheet['!cols'] = [
-    { wch: 12 }, { wch: 22 }, { wch: 15 }, { wch: 21 }, { wch: 13 },
-    { wch: 13 }, { wch: 14 }, { wch: 11 }, { wch: 15 }, { wch: 14 },
-    ...Array.from({ length: trip.members.length }, () => ({ wch: 17 })),
-    { wch: 14 }, { wch: 23 }, { wch: 30 },
+    { wch: 11 }, { wch: 15 }, { wch: 13 }, { wch: 19 }, { wch: 10 },
+    { wch: 10 }, { wch: 13 }, { wch: 10 }, { wch: 13 }, { wch: 16 },
+    ...Array.from({ length: trip.members.length }, () => ({ wch: 15 })),
+    { wch: 12 }, { wch: 19 }, { wch: 27 },
   ];
   rawSheet['!rows'] = [
-    { hpt: 30 }, { hpt: 22 }, { hpt: 30 }, { hpt: 8 },
-    { hpt: 32 },
+    { hpt: 32 }, { hpt: 7 }, { hpt: 30 },
     ...Array.from({ length: detailRowCount }, () => ({ hpt: 21 })),
     { hpt: 25 }, { hpt: 25 },
   ];
-  rawSheet['!autofilter'] = { ref: `A5:${lastColumn}${lastDetailExcelRow}` };
-  rawSheet['!freeze'] = { xSplit: 1, ySplit: 5, topLeftCell: 'B6', activePane: 'bottomLeft', state: 'frozen' };
+  rawSheet['!autofilter'] = { ref: `A3:${lastColumn}${lastDetailExcelRow}` };
+  rawSheet['!freeze'] = { xSplit: 1, ySplit: 3, topLeftCell: 'B4', activePane: 'bottomLeft', state: 'frozen' };
 
   const workbook = XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(workbook, rawSheet, 'Raw Audit');
