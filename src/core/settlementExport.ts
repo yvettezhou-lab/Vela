@@ -134,15 +134,23 @@ export const buildSettlementRawRows = (trip: Trip): Record<string, string | numb
 
 export const exportSettlementRaw = (trip: Trip) => {
   const rows = buildSettlementRawRows(trip);
-  const rawSheet = XLSX.utils.json_to_sheet(rows);
   const headers = Object.keys(rows[0] ?? {});
-  const lastColumn = XLSX.utils.encode_col(headers.length - 1);
   const detailRowCount = trip.ledger.length;
-  const lastDetailRow = detailRowCount + 1;
-  const totalRow = detailRowCount + 2;
-  const statsTotalRow = detailRowCount + 3;
+  const headerRow = 4; // zero-based: metadata occupies rows 1–3, table header is row 5
+  const firstDetailRow = headerRow + 1;
+  const totalRow = firstDetailRow + detailRowCount;
+  const statsTotalRow = totalRow + 1;
+  const lastDetailExcelRow = firstDetailRow + detailRowCount;
+  const lastColumn = XLSX.utils.encode_col(headers.length - 1);
+  const dateValues = trip.segments.flatMap((segment) => [segment.startDate, segment.endDate]).filter(Number.isFinite);
+  const period = dateValues.length
+    ? `${formatDate(Math.min(...dateValues))} – ${formatDate(Math.max(...dateValues))}`
+    : '—';
+  const destinations = [...new Set(trip.segments.flatMap((segment) =>
+    segment.destinations.map((destination) => [destination.city, destination.region, destination.country].filter(Boolean).join(', '))
+  ).filter(Boolean))];
+  const destinationLabel = destinations.join(' → ') || '—';
 
-  // Restrained Vela palette: warm paper, ink, and muted gold.
   const headerStyle = {
     fill: { fgColor: { rgb: 'E9E1D2' } },
     font: { bold: true, color: { rgb: '28332D' }, sz: 10 },
@@ -172,13 +180,45 @@ export const exportSettlementRaw = (trip: Trip) => {
       bottom: { style: 'thin', color: { rgb: '91A997' } },
     },
   };
+  const metadataTitleStyle = {
+    fill: { fgColor: { rgb: '28332D' } },
+    font: { bold: true, color: { rgb: 'FFFFFF' }, sz: 15 },
+    alignment: { vertical: 'center' },
+  };
+  const metadataStyle = {
+    fill: { fgColor: { rgb: 'F7F4EE' } },
+    font: { color: { rgb: '4B554E' }, sz: 10 },
+    alignment: { vertical: 'center', wrapText: true },
+  };
 
-  // Apply consistent styling to the header and every used cell.
+  // Put trip context above the table so dates and destinations are immediately visible.
+  const rawSheet = XLSX.utils.aoa_to_sheet([
+    [`VELA  /  ${trip.title}`],
+    [`Travel period: ${period}`],
+    [`Destinations: ${destinationLabel}`],
+  ]);
+  XLSX.utils.sheet_add_json(rawSheet, rows, { origin: 'A5' });
+
+  const mergeEnd = Math.max(headers.length - 1, 2);
+  rawSheet['!merges'] = [
+    { s: { r: 0, c: 0 }, e: { r: 0, c: mergeEnd } },
+    { s: { r: 1, c: 0 }, e: { r: 1, c: mergeEnd } },
+    { s: { r: 2, c: 0 }, e: { r: 2, c: mergeEnd } },
+  ];
   for (let col = 0; col < headers.length; col += 1) {
-    const address = XLSX.utils.encode_cell({ r: 0, c: col });
-    if (rawSheet[address]) rawSheet[address].s = headerStyle;
+    const titleAddress = XLSX.utils.encode_cell({ r: 0, c: col });
+    const periodAddress = XLSX.utils.encode_cell({ r: 1, c: col });
+    const destinationAddress = XLSX.utils.encode_cell({ r: 2, c: col });
+    if (col === 0) {
+      rawSheet[titleAddress].s = metadataTitleStyle;
+      rawSheet[periodAddress].s = metadataStyle;
+      rawSheet[destinationAddress].s = metadataStyle;
+    }
+    const headerAddress = XLSX.utils.encode_cell({ r: headerRow, c: col });
+    if (rawSheet[headerAddress]) rawSheet[headerAddress].s = headerStyle;
   }
-  for (let row = 1; row <= rows.length; row += 1) {
+
+  for (let row = firstDetailRow; row <= statsTotalRow; row += 1) {
     const style = row === totalRow ? totalStyle : row === statsTotalRow ? statsTotalStyle : bodyStyle;
     for (let col = 0; col < headers.length; col += 1) {
       const address = XLSX.utils.encode_cell({ r: row, c: col });
@@ -191,19 +231,33 @@ export const exportSettlementRaw = (trip: Trip) => {
   const formatColumn = (name: string, format: string) => {
     const col = columnIndex(name);
     if (col < 0) return;
-    for (let row = 1; row <= rows.length; row += 1) {
+    for (let row = firstDetailRow; row <= statsTotalRow; row += 1) {
       const address = XLSX.utils.encode_cell({ r: row, c: col });
       if (rawSheet[address] && typeof rawSheet[address].v === 'number') rawSheet[address].z = format;
     }
   };
   formatColumn('Original Amount', moneyFormat);
-  formatColumn('Exchange Rate', '0.00000000');
+  // Four decimal places are enough for travel exchange-rate auditing.
+  formatColumn('Exchange Rate', '0.0000');
   formatColumn('Total (CNY)', moneyFormat);
   headers.filter((header) => header.endsWith('Allocation (CNY)')).forEach((header) => formatColumn(header, moneyFormat));
 
+  // Conditional-style equivalents: highlight inclusion status and the two summary rows.
+  const includedCol = columnIndex('Included in Stats');
+  if (includedCol >= 0) {
+    for (let row = firstDetailRow; row < totalRow; row += 1) {
+      const address = XLSX.utils.encode_cell({ r: row, c: includedCol });
+      const cell = rawSheet[address];
+      if (!cell) continue;
+      cell.s = cell.v === 'Yes'
+        ? { fill: { fgColor: { rgb: 'E5F1E8' } }, font: { color: { rgb: '276749' }, bold: true }, alignment: { horizontal: 'center', vertical: 'center' } }
+        : { fill: { fgColor: { rgb: 'FBE9E7' } }, font: { color: { rgb: '9B2C2C' }, bold: true }, alignment: { horizontal: 'center', vertical: 'center' } };
+    }
+  }
+
   const noteColumn = columnIndex('Notes');
   if (noteColumn >= 0) {
-    for (let row = 1; row <= rows.length; row += 1) {
+    for (let row = firstDetailRow; row <= statsTotalRow; row += 1) {
       const address = XLSX.utils.encode_cell({ r: row, c: noteColumn });
       if (rawSheet[address]) rawSheet[address].s = {
         ...(rawSheet[address].s ?? bodyStyle),
@@ -212,20 +266,21 @@ export const exportSettlementRaw = (trip: Trip) => {
     }
   }
 
+  // Narrow administrative columns; keep member amounts and notes readable.
   rawSheet['!cols'] = [
-    { wch: 13 }, { wch: 20 }, { wch: 16 }, { wch: 23 }, { wch: 16 },
-    { wch: 15 }, { wch: 16 }, { wch: 15 }, { wch: 16 }, { wch: 18 },
-    ...Array.from({ length: trip.members.length }, () => ({ wch: 18 })),
-    { wch: 16 }, { wch: 25 }, { wch: 34 },
+    { wch: 12 }, { wch: 22 }, { wch: 15 }, { wch: 21 }, { wch: 13 },
+    { wch: 13 }, { wch: 14 }, { wch: 11 }, { wch: 15 }, { wch: 14 },
+    ...Array.from({ length: trip.members.length }, () => ({ wch: 17 })),
+    { wch: 14 }, { wch: 23 }, { wch: 30 },
   ];
   rawSheet['!rows'] = [
-    { hpt: 30 },
-    ...Array.from({ length: detailRowCount }, (_, index) => ({ hpt: 21 })),
-    { hpt: 24 },
-    { hpt: 24 },
+    { hpt: 30 }, { hpt: 22 }, { hpt: 30 }, { hpt: 8 },
+    { hpt: 32 },
+    ...Array.from({ length: detailRowCount }, () => ({ hpt: 21 })),
+    { hpt: 25 }, { hpt: 25 },
   ];
-  // Filter only the detail rows, leaving the two total rows visible at the bottom.
-  if (detailRowCount > 0) rawSheet['!autofilter'] = { ref: `A1:${lastColumn}${lastDetailRow}` };
+  rawSheet['!autofilter'] = { ref: `A5:${lastColumn}${lastDetailExcelRow}` };
+  rawSheet['!freeze'] = { xSplit: 1, ySplit: 5, topLeftCell: 'B6', activePane: 'bottomLeft', state: 'frozen' };
 
   const workbook = XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(workbook, rawSheet, 'Raw Audit');
