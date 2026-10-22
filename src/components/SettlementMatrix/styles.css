@@ -105,3 +105,7 @@
 .settlement-segment-static .settlement-final{border-bottom:1px solid rgba(15,23,42,.08)}
 .settlement-segment-static .settlement-detail-label{padding-top:12px}
 @media(max-width:380px){.settlement-summary span{font-size:6.5px}.settlement-summary strong{font-size:12px}}
+
+.settlement-count-summary{margin-bottom:6px}
+.settlement-financial-summary{margin-top:0;margin-bottom:10px}
+.settlement-financial-summary strong{font-size:clamp(11px,3.3vw,16px)}
