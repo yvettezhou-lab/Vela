@@ -1,9 +1,9 @@
 import './styles.css';
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { ChevronDown, Download, Scale } from 'lucide-react';
 import { useVelaStore } from '../../store/useVelaStore';
 import { calculateMinimalSettlementTransfers, calculateSegmentSettlements, settlementMemberName, type SettlementSegment } from '../../core/settlement';
-import { exportSettlementCollection, exportSettlementRaw } from '../../core/settlementExport';
+import { exportSettlementCollection, exportSettlementCollectionAll, exportSettlementRaw } from '../../core/settlementExport';
 
 const money = (value: number) => `¥${value.toFixed(2)}`;
 const originalMoney = (values: Record<string, number>) => Object.entries(values).filter(([, value]) => Math.abs(value) >= 0.01).map(([currency, value]) => `${currency} ${Math.abs(value).toFixed(2)}${value < 0 ? ' refund' : ''}`).join(' · ');
@@ -56,28 +56,23 @@ const SegmentRow: React.FC<{ segment: SettlementSegment; index: number; members:
 
 const ExportPanel: React.FC<{ trip: ReturnType<typeof useVelaStore.getState>['trips'][number] }> = ({ trip }) => {
   const activeMembers = trip.members.filter((member) => member.archived !== true);
-  const [memberId, setMemberId] = useState(activeMembers[0]?.id ?? '');
-  const selectedMember = activeMembers.find((member) => member.id === memberId);
-
-  // Member data can hydrate after the panel first renders. Keep a valid default
-  // selected so the personal export is ready immediately without switching members.
-  useEffect(() => {
-    if (activeMembers.length === 0) {
-      if (memberId) setMemberId('');
-      return;
-    }
-    if (!activeMembers.some((member) => member.id === memberId)) {
-      setMemberId(activeMembers[0].id);
-    }
-  }, [trip.id, activeMembers, memberId]);
+  const [exportTarget, setExportTarget] = useState('all');
+  const validTarget = exportTarget === 'all' || exportTarget === 'all-people' || activeMembers.some((member) => member.id === exportTarget);
+  const target = validTarget ? exportTarget : 'all';
+  const download = () => {
+    if (target === 'all') exportSettlementRaw(trip);
+    else if (target === 'all-people') exportSettlementCollectionAll(trip);
+    else exportSettlementCollection(trip, target);
+  };
   return <section className="settlement-export">
     <div className="settlement-export-heading"><span>EXPORT</span><strong>Settlement files</strong></div>
-    <div className="settlement-export-actions">
-      <button type="button" className="settlement-export-button" onClick={() => exportSettlementRaw(trip)}><span><Download size={15} />Raw Data Dump</span></button>
-      <div className="settlement-collection">
-        <label><span>MEMBER</span><select aria-label="Collection member" value={memberId} onChange={(event) => setMemberId(event.target.value)}>{activeMembers.map((member) => <option key={member.id} value={member.id}>{member.name}</option>)}</select></label>
-        <button type="button" className="settlement-export-button" disabled={!selectedMember} onClick={() => selectedMember && exportSettlementCollection(trip, selectedMember.id)}><span><Download size={15} />Collection Summary</span></button>
-      </div>
+    <div className="settlement-export-actions settlement-export-picker">
+      <select aria-label="Export type" value={target} onChange={(event) => setExportTarget(event.target.value)}>
+        <option value="all">All</option>
+        <option value="all-people">All People</option>
+        {activeMembers.map((member) => <option key={member.id} value={member.id}>{member.name}</option>)}
+      </select>
+      <button type="button" className="settlement-export-button" disabled={target !== 'all' && target !== 'all-people' && !activeMembers.some((member) => member.id === target)} onClick={download}><Download size={15} /><span>Download</span></button>
     </div>
   </section>;
 };
