@@ -76,7 +76,7 @@ const ExportPanel: React.FC<{ trip: ReturnType<typeof useVelaStore.getState>['tr
       <button type="button" className="settlement-export-button" onClick={() => exportSettlementRaw(trip)}><span><Download size={15} />Raw Data Dump</span></button>
       <div className="settlement-collection">
         <label><span>MEMBER</span><select aria-label="Collection member" value={memberId} onChange={(event) => setMemberId(event.target.value)}>{activeMembers.map((member) => <option key={member.id} value={member.id}>{member.name}</option>)}</select></label>
-        <button type="button" className="settlement-export-button" disabled={!selectedMember} onClick={() => selectedMember && exportSettlementCollection(trip, selectedMember.id)}><span><Download size={15} />Collection Summary</span><small>{selectedMember ? `Only ${selectedMember.name}'s balances` : 'No member available'}</small></button>
+        <button type="button" className="settlement-export-button" disabled={!selectedMember} onClick={() => selectedMember && exportSettlementCollection(trip, selectedMember.id)}><span><Download size={15} />Collection Summary</span></button>
       </div>
     </div>
   </section>;
