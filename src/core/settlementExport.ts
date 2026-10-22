@@ -92,7 +92,6 @@ export const buildSettlementRawRows = (trip: Trip): Record<string, string | numb
       'Total (CNY)': signedAmount(entry),
       'Split Rule': splitRule(entry),
       ...allocations,
-      '计入统计': included ? '是' : '否',
       Notes: entryNotes(entry),
     };
   });
@@ -125,8 +124,8 @@ export const buildSettlementRawRows = (trip: Trip): Record<string, string | numb
 
   return [
     ...detailRows,
-    makeTotalRow('总合计', trip.ledger),
-    makeTotalRow('统计项目合计', includedEntries),
+    makeTotalRow('Grand Total', trip.ledger),
+    makeTotalRow('Statistics Total', includedEntries),
   ];
 };
 
@@ -236,19 +235,6 @@ export const exportSettlementRaw = (trip: Trip) => {
   formatColumn('Exchange Rate', '0.0000');
   formatColumn('Total (CNY)', moneyFormat);
   headers.filter((header) => header.endsWith('Allocation (CNY)')).forEach((header) => formatColumn(header, moneyFormat));
-
-  // Conditional-style equivalents: highlight inclusion status and the two summary rows.
-  const includedCol = columnIndex('计入统计');
-  if (includedCol >= 0) {
-    for (let row = firstDetailRow; row < totalRow; row += 1) {
-      const address = XLSX.utils.encode_cell({ r: row, c: includedCol });
-      const cell = rawSheet[address];
-      if (!cell) continue;
-      cell.s = cell.v === '是'
-        ? { fill: { fgColor: { rgb: 'E5F1E8' } }, font: { color: { rgb: '276749' }, bold: true }, alignment: { horizontal: 'center', vertical: 'center' } }
-        : { fill: { fgColor: { rgb: 'FBE9E7' } }, font: { color: { rgb: '9B2C2C' }, bold: true }, alignment: { horizontal: 'center', vertical: 'center' } };
-    }
-  }
 
   const noteColumn = columnIndex('Notes');
   if (noteColumn >= 0) {
