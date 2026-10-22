@@ -4,6 +4,7 @@ import { ChevronDown, Download, Scale } from 'lucide-react';
 import { useVelaStore } from '../../store/useVelaStore';
 import { calculateMinimalSettlementTransfers, calculateSegmentSettlements, settlementMemberName, type SettlementSegment } from '../../core/settlement';
 import { getSegmentForLedgerEntry } from '../../core/travelSegment';
+import { isLedgerEntryIncludedInCost } from '../../core/ledger';
 import type { Trip } from '../../core/domain';
 import { exportSettlementCollection, exportSettlementCollectionAll, exportSettlementRaw } from '../../core/settlementExport';
 
@@ -52,29 +53,21 @@ const TransferRow: React.FC<{ transfer: { fromMemberId: string; toMemberId: stri
   </div>;
 };
 
-const SegmentRow: React.FC<{ segment: SettlementSegment; index: number; trip: Trip; members: Trip['members'] }> = ({ segment, index, trip, members }) => {
-  const [open, setOpen] = useState(true);
+const SegmentRow: React.FC<{ segment: SettlementSegment; index: number; trip: Trip; members: Trip['members']; showSegmentLabel: boolean }> = ({ segment, index, trip, members, showSegmentLabel }) => {
   const hasActivity = segment.payers.length > 0;
   const transfers = calculateMinimalSettlementTransfers(segment);
-  return <article className={`settlement-segment${open ? '' : ' is-collapsed'}`}>
-    <button type="button" className="settlement-segment-head" onClick={() => setOpen((value) => !value)} aria-expanded={open}>
-      <span className="settlement-segment-index">{String(index + 1).padStart(2, '0')}</span>
-      <span className="settlement-segment-title"><small>{formatDate(segment.startDate)} — {formatDate(segment.endDate)} · {segment.primaryCurrency}</small></span>
-      <span className="settlement-segment-total">{hasActivity ? money(segment.payers.reduce((sum, payer) => sum + payer.paidCny, 0)) : '—'}</span>
-      <ChevronDown size={17} aria-hidden="true" />
-    </button>
-    {open && <div className="settlement-segment-body">
-      {hasActivity ? <>
-        <section className="settlement-final">
-          <div className="settlement-final-heading"><span>FINAL SETTLEMENT</span><strong>{transfers.length} {transfers.length === 1 ? 'TRANSFER' : 'TRANSFERS'}</strong></div>
-          {transfers.length ? transfers.map((transfer, transferIndex) => (
-            <TransferRow key={`${transfer.fromMemberId}-${transfer.toMemberId}-${transfer.amountCny}-${transferIndex}`} transfer={transfer} trip={trip} segment={segment} />
-          )) : <div className="settlement-no-debt">Everyone is settled.</div>}
-        </section>
-        <div className="settlement-detail-label">PAYMENT DETAIL</div>
-        {segment.payers.map((payer) => <PayerRow key={payer.payerId} segment={segment} payerId={payer.payerId} members={members} />)}
-      </> : <div className="settlement-segment-empty">No settled expenses in this segment.</div>}
-    </div>}
+  return <article className="settlement-segment settlement-segment-static">
+    {showSegmentLabel && <div className="settlement-static-label"><span>{String(index + 1).padStart(2, '0')}</span><strong>{segment.label}</strong><small>{formatDate(segment.startDate)} — {formatDate(segment.endDate)} · {segment.primaryCurrency}</small></div>}
+    {hasActivity ? <>
+      <section className="settlement-final">
+        <div className="settlement-final-heading"><span>FINAL SETTLEMENT</span><strong>{transfers.length} {transfers.length === 1 ? 'TRANSFER' : 'TRANSFERS'}</strong></div>
+        {transfers.length ? transfers.map((transfer, transferIndex) => (
+          <TransferRow key={`${transfer.fromMemberId}-${transfer.toMemberId}-${transfer.amountCny}-${transferIndex}`} transfer={transfer} trip={trip} segment={segment} />
+        )) : <div className="settlement-no-debt">Everyone is settled.</div>}
+      </section>
+      <div className="settlement-detail-label">PAYMENT DETAIL</div>
+      {segment.payers.map((payer) => <PayerRow key={payer.payerId} segment={segment} payerId={payer.payerId} members={members} />)}
+    </> : <div className="settlement-segment-empty">No settled expenses in this segment.</div>}
   </article>;
 };
 
@@ -112,9 +105,9 @@ export const SettlementMatrix: React.FC = () => {
 
   return <main className="settlement-page">
     <header className="settlement-header"><div><span className="settlement-overline">SETTLEMENT / {selectedTrip.status.toUpperCase()}</span><h1>Settlement</h1><p>{selectedTrip.title || 'Selected journey'}</p></div>{trips.length > 1 && <label className="settlement-trip-select"><span>TRIP</span><select aria-label="Settlement trip" value={selectedTrip.id} onChange={(event) => setSelectedTripId(event.target.value)}>{trips.map((trip) => <option key={trip.id} value={trip.id}>{trip.title || 'Untitled journey'}</option>)}</select></label>}</header>
-    <section className="settlement-summary"><div><span>SEGMENTS</span><strong>{segments.length}</strong></div><div><span>PAYERS</span><strong>{segments.reduce((sum, segment) => sum + segment.payers.length, 0)}</strong></div><div><span>LEDGER</span><strong>{selectedTrip.ledger.filter((entry) => !entry.isPending).length}</strong></div></section>
+    <section className="settlement-summary"><div><span>TOTAL AMOUNT</span><strong>{money(selectedTrip.ledger.filter((entry) => !entry.isPending).reduce((sum, entry) => sum + (entry.isRefund || entry.entryDirection === 'income' ? -Math.abs(entry.cnyEquivalent) : Math.abs(entry.cnyEquivalent)), 0))}</strong></div><div><span>INCLUDED IN STATS</span><strong>{money(selectedTrip.ledger.filter(isLedgerEntryIncludedInCost).reduce((sum, entry) => sum + (entry.isRefund || entry.entryDirection === 'income' ? -Math.abs(entry.cnyEquivalent) : Math.abs(entry.cnyEquivalent)), 0))}</strong></div><div><span>AVG. DAILY SPEND</span><strong>{(() => { const dates = selectedTrip.segments.flatMap((segment) => [segment.startDate, segment.endDate]).filter(Number.isFinite); if (!dates.length) return money(0); const start = new Date(Math.min(...dates)); const end = new Date(Math.max(...dates)); const days = Math.max(1, Math.round((new Date(end.getFullYear(), end.getMonth(), end.getDate()).getTime() - new Date(start.getFullYear(), start.getMonth(), start.getDate()).getTime()) / 86400000) + 1); const total = selectedTrip.ledger.filter(isLedgerEntryIncludedInCost).reduce((sum, entry) => sum + (entry.isRefund || entry.entryDirection === 'income' ? -Math.abs(entry.cnyEquivalent) : Math.abs(entry.cnyEquivalent)), 0); return money(total / days); })()}</strong></div></section>
     <ExportPanel trip={selectedTrip} />
-    <section className="settlement-segments" aria-label="Settlement by segment">{segments.map((segment, index) => <SegmentRow key={segment.segmentId} segment={segment} index={index} trip={selectedTrip} members={selectedTrip.members} />)}</section>
+    <section className="settlement-segments" aria-label="Settlement transfers">{segments.map((segment, index) => <SegmentRow key={segment.segmentId} segment={segment} index={index} trip={selectedTrip} members={selectedTrip.members} showSegmentLabel={segments.length > 1} />)}</section>
   </main>;
 };
 
