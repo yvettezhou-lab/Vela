@@ -59,6 +59,13 @@ const statsExclusionReason = (entry: LedgerEntry) => {
   return '—';
 };
 
+const entryNotes = (entry: LedgerEntry) => {
+  const note = entry.note?.trim();
+  if (note && entry.isRefund) return `Refund · ${note}`;
+  if (note) return note;
+  return entry.isRefund ? 'Refund' : '—';
+};
+
 /** Build the auditable ledger rows, including pending and excluded entries. */
 export const buildSettlementRawRows = (trip: Trip): Record<string, string | number>[] => {
   const memberColumns = getMemberAllocationColumns(trip);
@@ -84,7 +91,7 @@ export const buildSettlementRawRows = (trip: Trip): Record<string, string | numb
       ...allocations,
       'Included in Stats': included ? 'Yes' : 'No',
       'Stats Exclusion Reason': statsExclusionReason(entry),
-      Notes: entry.isRefund ? 'Refund' : '—',
+      Notes: entryNotes(entry),
     };
   });
 };
@@ -144,7 +151,7 @@ export const exportSettlementRaw = (trip: Trip) => {
     { wch: 13 }, { wch: 22 }, { wch: 18 }, { wch: 24 }, { wch: 18 },
     { wch: 17 }, { wch: 16 }, { wch: 14 }, { wch: 18 }, { wch: 30 },
     ...Array.from({ length: memberColumnCount }, () => ({ wch: 24 })),
-    { wch: 17 }, { wch: 28 }, { wch: 18 },
+    { wch: 17 }, { wch: 28 }, { wch: 40 },
   ];
 
   const summarySheet = XLSX.utils.aoa_to_sheet(buildSettlementSummaryRows(trip));
