@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import type { LedgerEntry, Trip } from './domain';
-import { buildSettlementRawRows, buildSettlementSummaryRows } from './settlementExport';
+import { buildSettlementRawRows } from './settlementExport';
 
 const makeEntry = (overrides: Partial<LedgerEntry> & Pick<LedgerEntry, 'id' | 'cnyEquivalent' | 'includeInCost' | 'isPending'>): LedgerEntry => ({
   id: overrides.id,
@@ -48,24 +48,27 @@ describe('settlement export', () => {
   it('exports all ledger entries and explicitly marks the statistics scope', () => {
     const rows = buildSettlementRawRows(makeTrip());
 
-    expect(rows).toHaveLength(3);
-    expect(rows.map((row) => row['Included in Stats'])).toEqual(['Yes', 'No', 'No']);
+    expect(rows).toHaveLength(5);
+    expect(rows.slice(0, 3).map((row) => row['Included in Stats'])).toEqual(['Yes', 'No', 'No']);
     expect(rows[1]['Stats Exclusion Reason']).toBe('Excluded from statistics');
     expect(rows[2]['Stats Exclusion Reason']).toBe('Pending final settlement');
     expect(rows[0]['A Allocation (CNY)']).toBe(50);
     expect(rows[0]['B Allocation (CNY)']).toBe(50);
   });
 
-  it('summarizes all allocations and the statistics-only subset separately', () => {
-    const rows = buildSettlementSummaryRows(makeTrip());
-    const allLedger = rows.find((row) => row[0] === 'All ledger entries');
-    const included = rows.find((row) => row[0] === 'Included in statistics');
-    const excluded = rows.find((row) => row[0] === 'Excluded from statistics');
-    const memberA = rows.find((row) => row[0] === 'A');
+  it('adds total and statistics-only rows directly below the ledger allocation table', () => {
+    const rows = buildSettlementRawRows(makeTrip());
+    const total = rows[3];
+    const statsTotal = rows[4];
 
-    expect(allLedger).toEqual(['All ledger entries', 130, 3]);
-    expect(included).toEqual(['Included in statistics', 100, 1]);
-    expect(excluded).toEqual(['Excluded from statistics', 30, 2]);
-    expect(memberA).toEqual(['A', 65, 50]);
+    expect(total.Item).toBe('总合计');
+    expect(total['Total (CNY)']).toBe(130);
+    expect(total['A Allocation (CNY)']).toBe(65);
+    expect(total['B Allocation (CNY)']).toBe(65);
+
+    expect(statsTotal.Item).toBe('统计项目合计');
+    expect(statsTotal['Total (CNY)']).toBe(100);
+    expect(statsTotal['A Allocation (CNY)']).toBe(50);
+    expect(statsTotal['B Allocation (CNY)']).toBe(50);
   });
 });
