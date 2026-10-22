@@ -90,3 +90,18 @@
 .settlement-detail-label{padding:11px 16px 4px}
 .settlement-payer-head{padding:10px 11px}
 @media(max-width:600px){.settlement-page{padding-left:12px;padding-right:12px}.settlement-final{padding-left:14px;padding-right:14px}.settlement-transfer .settlement-final-row>span:first-child{font-size:13px}.settlement-transfer-amount{font-size:14px}}
+
+/* Settlement overview: financial KPIs and always-visible settlement */
+.settlement-summary{grid-template-columns:repeat(3,minmax(0,1fr));gap:0}
+.settlement-summary div{min-width:0;padding:9px 3px;gap:6px}
+.settlement-summary span{font-size:7px;letter-spacing:.035em;line-height:1.25;white-space:normal}
+.settlement-summary strong{font-size:clamp(12px,3.55vw,17px);white-space:nowrap;letter-spacing:-.025em}
+.settlement-segments{margin-top:8px}
+.settlement-segment-static{border-radius:14px}
+.settlement-static-label{display:flex;align-items:baseline;flex-wrap:wrap;gap:7px;padding:10px 13px;border-bottom:1px solid rgba(15,23,42,.08)}
+.settlement-static-label>span{font:9px/1 ui-sans-serif,system-ui,sans-serif;color:#b08b51}
+.settlement-static-label>strong{font:500 13px/1.2 ui-serif,Georgia,serif}
+.settlement-static-label>small{font:9px/1.2 ui-sans-serif,system-ui,sans-serif;color:rgba(15,23,42,.48)}
+.settlement-segment-static .settlement-final{border-bottom:1px solid rgba(15,23,42,.08)}
+.settlement-segment-static .settlement-detail-label{padding-top:12px}
+@media(max-width:380px){.settlement-summary span{font-size:6.5px}.settlement-summary strong{font-size:12px}}
