@@ -1,5 +1,5 @@
 import './styles.css';
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { ChevronDown, Download, Scale } from 'lucide-react';
 import { useVelaStore } from '../../store/useVelaStore';
 import { calculateMinimalSettlementTransfers, calculateSegmentSettlements, settlementMemberName, type SettlementSegment } from '../../core/settlement';
@@ -58,6 +58,18 @@ const ExportPanel: React.FC<{ trip: ReturnType<typeof useVelaStore.getState>['tr
   const activeMembers = trip.members.filter((member) => member.archived !== true);
   const [memberId, setMemberId] = useState(activeMembers[0]?.id ?? '');
   const selectedMember = activeMembers.find((member) => member.id === memberId);
+
+  // Member data can hydrate after the panel first renders. Keep a valid default
+  // selected so the personal export is ready immediately without switching members.
+  useEffect(() => {
+    if (activeMembers.length === 0) {
+      if (memberId) setMemberId('');
+      return;
+    }
+    if (!activeMembers.some((member) => member.id === memberId)) {
+      setMemberId(activeMembers[0].id);
+    }
+  }, [trip.id, activeMembers, memberId]);
   return <section className="settlement-export">
     <div className="settlement-export-heading"><span>EXPORT / PHASE 2</span><strong>Settlement files</strong><small>Generated locally on this device. No data is uploaded.</small></div>
     <div className="settlement-export-actions">
