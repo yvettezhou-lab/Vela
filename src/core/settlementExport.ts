@@ -55,12 +55,6 @@ const getMemberAllocationColumns = (trip: Trip) => {
   });
 };
 
-const statsExclusionReason = (entry: LedgerEntry) => {
-  if (entry.isPending) return '待结算';
-  if (!entry.includeInCost) return '手动排除';
-  return '—';
-};
-
 const entryNotes = (entry: LedgerEntry) => {
   const note = entry.note?.trim();
   if (note && entry.isRefund) return `Refund · ${note}`;
@@ -92,7 +86,6 @@ export const buildSettlementRawRows = (trip: Trip): Record<string, string | numb
       'Split Rule': splitRule(entry),
       ...allocations,
       '计入统计': included ? '是' : '否',
-      '未计入原因': statsExclusionReason(entry),
       Notes: entryNotes(entry),
     };
   });
@@ -119,8 +112,6 @@ export const buildSettlementRawRows = (trip: Trip): Record<string, string | numb
       'Total (CNY)': roundCny(entries.reduce((sum, entry) => sum + signedAmount(entry), 0)),
       'Split Rule': '',
       ...allocations,
-      'Included in Stats': '',
-      'Stats Exclusion Reason': '',
       Notes: '',
     };
   };
@@ -268,7 +259,7 @@ export const exportSettlementRaw = (trip: Trip) => {
     { wch: 11 }, { wch: 15 }, { wch: 13 }, { wch: 19 }, { wch: 10 },
     { wch: 10 }, { wch: 13 }, { wch: 10 }, { wch: 13 }, { wch: 16 },
     ...Array.from({ length: trip.members.length }, () => ({ wch: 15 })),
-    { wch: 9 }, { wch: 12 }, { wch: 27 },
+    { wch: 9 }, { wch: 27 },
   ];
   rawSheet['!rows'] = [
     { hpt: 32 }, { hpt: 7 }, { hpt: 30 },
