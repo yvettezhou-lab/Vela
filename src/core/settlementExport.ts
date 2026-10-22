@@ -351,46 +351,55 @@ export const exportSettlementCollection = (trip: Trip, memberId: string) => {
   const exportFileName = `${fileMonth}${fileDestination}-${safeFilePart(member)}` || `${safeFilePart(trip.title)}-${safeFilePart(member)}`;
   const sheet = XLSX.utils.aoa_to_sheet([[title], []]);
   XLSX.utils.sheet_add_json(sheet, rows, { origin: 'A3' });
-  sheet['!cols'] = [
-    { wch: 12 }, { wch: 18 }, { wch: 16 }, { wch: 28 },
-    { wch: 18 }, { wch: 18 }, { wch: 32 },
-  ];
   const range = XLSX.utils.decode_range(sheet['!ref'] ?? 'A3:G3');
-  const mergeEnd = Math.max(range.e.c, 2);
-  sheet['!merges'] = [{ s: { r: 0, c: 0 }, e: { r: 0, c: mergeEnd } }];
-  sheet['!rows'] = [{ hpt: 32 }, { hpt: 7 }, { hpt: 30 }];
+  const lastRow = range.e.r;
+  const lastCol = range.e.c;
   const titleStyle = { fill: { fgColor: { rgb: '28332D' } }, font: { bold: true, color: { rgb: 'FFFFFF' }, sz: 15 }, alignment: { vertical: 'center', horizontal: 'center' } };
+  const headerStyle = { fill: { fgColor: { rgb: 'E9E1D2' } }, font: { bold: true, color: { rgb: '28332D' }, sz: 10 }, alignment: { vertical: 'center', horizontal: 'center', wrapText: true }, border: { bottom: { style: 'medium', color: { rgb: 'B79A62' } } } };
+  const bodyStyle = { font: { color: { rgb: '28312D' }, sz: 10 }, alignment: { vertical: 'center', wrapText: true }, border: { bottom: { style: 'hair', color: { rgb: 'E7E0D5' } } } };
+  const totalStyle = { fill: { fgColor: { rgb: 'F2EAD9' } }, font: { bold: true, color: { rgb: '28332D' }, sz: 10 }, alignment: { vertical: 'center', wrapText: true }, border: { top: { style: 'thin', color: { rgb: 'B79A62' } }, bottom: { style: 'thin', color: { rgb: 'B79A62' } } } };
+  const settlementStyle = { fill: { fgColor: { rgb: 'E8EFE9' } }, font: { bold: true, color: { rgb: '28332D' }, sz: 10 }, alignment: { vertical: 'center', wrapText: true }, border: { top: { style: 'thin', color: { rgb: '91A997' } }, bottom: { style: 'thin', color: { rgb: '91A997' } } } };
+  const mergeEnd = Math.max(lastCol, 2);
+  sheet['!merges'] = [{ s: { r: 0, c: 0 }, e: { r: 0, c: mergeEnd } }];
   for (let col = 0; col <= mergeEnd; col += 1) {
     const address = XLSX.utils.encode_cell({ r: 0, c: col });
     if (!sheet[address]) sheet[address] = { t: 's', v: '', s: titleStyle };
     else sheet[address].s = titleStyle;
   }
-  for (let col = 0; col <= range.e.c; col += 1) {
-    const address = XLSX.utils.encode_cell({ r: 2, c: col });
-    if (sheet[address]) sheet[address].s = {
-      fill: { fgColor: { rgb: 'E9E1D2' } },
-      font: { bold: true, color: { rgb: '28332D' }, sz: 10 },
-      alignment: { vertical: 'center', horizontal: 'center', wrapText: true },
-      border: { bottom: { style: 'medium', color: { rgb: 'B79A62' } } },
-    };
-  }
-  const lastRow = range.e.r;
-  for (let rowIndex = 3; rowIndex <= lastRow; rowIndex += 1) {
-    for (let col = 0; col <= range.e.c; col += 1) {
-      const address = XLSX.utils.encode_cell({ r: rowIndex, c: col });
-      if (sheet[address]) sheet[address].s = { font: { color: { rgb: '28312D' }, sz: 10 }, alignment: { vertical: 'center', wrapText: true }, border: { bottom: { style: 'hair', color: { rgb: 'E7E0D5' } } } };
+  for (let col = 0; col <= lastCol; col += 1) {
+    const headerAddress = XLSX.utils.encode_cell({ r: 2, c: col });
+    if (sheet[headerAddress]) sheet[headerAddress].s = headerStyle;
+    for (let row = 3; row <= lastRow; row += 1) {
+      const address = XLSX.utils.encode_cell({ r: row, c: col });
+      if (sheet[address]) sheet[address].s = bodyStyle;
     }
   }
-  for (const rowIndex of [lastRow - 1, lastRow]) {
-    for (let col = 0; col <= range.e.c; col += 1) {
-      const address = XLSX.utils.encode_cell({ r: rowIndex, c: col });
-      if (sheet[address]) sheet[address].s = {
-        fill: { fgColor: { rgb: rowIndex === lastRow ? 'E8EFE9' : 'F2EAD9' } },
-        font: { bold: true, color: { rgb: '28332D' }, sz: 10 },
-        alignment: { vertical: 'center', wrapText: true },
-      };
+  for (let col = 0; col <= lastCol; col += 1) {
+    const totalAddress = XLSX.utils.encode_cell({ r: lastRow - 1, c: col });
+    const settlementAddress = XLSX.utils.encode_cell({ r: lastRow, c: col });
+    if (sheet[totalAddress]) sheet[totalAddress].s = totalStyle;
+    if (sheet[settlementAddress]) sheet[settlementAddress].s = settlementStyle;
+  }
+  const headerNames = Object.keys(rows[0] ?? {});
+  for (const header of ['Original Total', 'Total (CNY)', `${member} Share (CNY)`]) {
+    const col = headerNames.indexOf(header);
+    if (col < 0) continue;
+    for (let row = 3; row <= lastRow - 2; row += 1) {
+      const address = XLSX.utils.encode_cell({ r: row, c: col });
+      if (sheet[address] && typeof sheet[address].v === 'number') sheet[address].z = '#,##0.00;[Red]-#,##0.00;–';
     }
   }
+  sheet['!cols'] = [
+    { wch: 12 }, { wch: 17 }, { wch: 15 }, { wch: 28 },
+    { wch: 17 }, { wch: 15 }, { wch: 23 },
+  ];
+  sheet['!rows'] = [
+    { hpt: 32 }, { hpt: 7 }, { hpt: 30 },
+    ...Array.from({ length: Math.max(0, lastRow - 4) }, () => ({ hpt: 21 })),
+    { hpt: 25 }, { hpt: 42 },
+  ];
+  sheet['!autofilter'] = { ref: `A3:${XLSX.utils.encode_col(lastCol)}${lastRow - 1}` };
+  sheet['!freeze'] = { xSplit: 1, ySplit: 3, topLeftCell: 'B4', activePane: 'bottomLeft', state: 'frozen' };
   const workbook = XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(workbook, sheet, 'Collection Summary');
   XLSX.writeFileXLSX(workbook, `${exportFileName}.xlsx`);
