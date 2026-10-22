@@ -1,4 +1,4 @@
-import * as XLSX from 'xlsx';
+import * as XLSX from 'xlsx-js-style';
 import type { LedgerEntry, Trip } from './domain';
 import { isLedgerEntryIncludedInCost } from './ledger';
 import { getSegmentForLedgerEntry } from './travelSegment';
@@ -135,13 +135,97 @@ export const buildSettlementRawRows = (trip: Trip): Record<string, string | numb
 export const exportSettlementRaw = (trip: Trip) => {
   const rows = buildSettlementRawRows(trip);
   const rawSheet = XLSX.utils.json_to_sheet(rows);
-  const memberColumnCount = trip.members.length;
+  const headers = Object.keys(rows[0] ?? {});
+  const lastColumn = XLSX.utils.encode_col(headers.length - 1);
+  const detailRowCount = trip.ledger.length;
+  const lastDetailRow = detailRowCount + 1;
+  const totalRow = detailRowCount + 2;
+  const statsTotalRow = detailRowCount + 3;
+
+  // Restrained Vela palette: warm paper, ink, and muted gold.
+  const headerStyle = {
+    fill: { fgColor: { rgb: 'E9E1D2' } },
+    font: { bold: true, color: { rgb: '28332D' }, sz: 10 },
+    alignment: { vertical: 'center', horizontal: 'center', wrapText: true },
+    border: { bottom: { style: 'medium', color: { rgb: 'B79A62' } } },
+  };
+  const bodyStyle = {
+    font: { color: { rgb: '28312D' }, sz: 10 },
+    alignment: { vertical: 'center' },
+    border: { bottom: { style: 'hair', color: { rgb: 'E7E0D5' } } },
+  };
+  const totalStyle = {
+    fill: { fgColor: { rgb: 'F2EAD9' } },
+    font: { bold: true, color: { rgb: '28332D' }, sz: 10 },
+    alignment: { vertical: 'center' },
+    border: {
+      top: { style: 'thin', color: { rgb: 'B79A62' } },
+      bottom: { style: 'thin', color: { rgb: 'B79A62' } },
+    },
+  };
+  const statsTotalStyle = {
+    fill: { fgColor: { rgb: 'E8EFE9' } },
+    font: { bold: true, color: { rgb: '28332D' }, sz: 10 },
+    alignment: { vertical: 'center' },
+    border: {
+      top: { style: 'thin', color: { rgb: '91A997' } },
+      bottom: { style: 'thin', color: { rgb: '91A997' } },
+    },
+  };
+
+  // Apply consistent styling to the header and every used cell.
+  for (let col = 0; col < headers.length; col += 1) {
+    const address = XLSX.utils.encode_cell({ r: 0, c: col });
+    if (rawSheet[address]) rawSheet[address].s = headerStyle;
+  }
+  for (let row = 1; row <= rows.length; row += 1) {
+    const style = row === totalRow ? totalStyle : row === statsTotalRow ? statsTotalStyle : bodyStyle;
+    for (let col = 0; col < headers.length; col += 1) {
+      const address = XLSX.utils.encode_cell({ r: row, c: col });
+      if (rawSheet[address]) rawSheet[address].s = style;
+    }
+  }
+
+  const moneyFormat = '#,##0.00;[Red]-#,##0.00;–';
+  const columnIndex = (name: string) => headers.indexOf(name);
+  const formatColumn = (name: string, format: string) => {
+    const col = columnIndex(name);
+    if (col < 0) return;
+    for (let row = 1; row <= rows.length; row += 1) {
+      const address = XLSX.utils.encode_cell({ r: row, c: col });
+      if (rawSheet[address] && typeof rawSheet[address].v === 'number') rawSheet[address].z = format;
+    }
+  };
+  formatColumn('Original Amount', moneyFormat);
+  formatColumn('Exchange Rate', '0.00000000');
+  formatColumn('Total (CNY)', moneyFormat);
+  headers.filter((header) => header.endsWith('Allocation (CNY)')).forEach((header) => formatColumn(header, moneyFormat));
+
+  const noteColumn = columnIndex('Notes');
+  if (noteColumn >= 0) {
+    for (let row = 1; row <= rows.length; row += 1) {
+      const address = XLSX.utils.encode_cell({ r: row, c: noteColumn });
+      if (rawSheet[address]) rawSheet[address].s = {
+        ...(rawSheet[address].s ?? bodyStyle),
+        alignment: { vertical: 'center', wrapText: true },
+      };
+    }
+  }
+
   rawSheet['!cols'] = [
-    { wch: 13 }, { wch: 22 }, { wch: 18 }, { wch: 24 }, { wch: 18 },
-    { wch: 17 }, { wch: 16 }, { wch: 14 }, { wch: 18 }, { wch: 30 },
-    ...Array.from({ length: memberColumnCount }, () => ({ wch: 24 })),
-    { wch: 17 }, { wch: 28 }, { wch: 40 },
+    { wch: 13 }, { wch: 20 }, { wch: 16 }, { wch: 23 }, { wch: 16 },
+    { wch: 15 }, { wch: 16 }, { wch: 15 }, { wch: 16 }, { wch: 18 },
+    ...Array.from({ length: trip.members.length }, () => ({ wch: 18 })),
+    { wch: 16 }, { wch: 25 }, { wch: 34 },
   ];
+  rawSheet['!rows'] = [
+    { hpt: 30 },
+    ...Array.from({ length: detailRowCount }, (_, index) => ({ hpt: 21 })),
+    { hpt: 24 },
+    { hpt: 24 },
+  ];
+  // Filter only the detail rows, leaving the two total rows visible at the bottom.
+  if (detailRowCount > 0) rawSheet['!autofilter'] = { ref: `A1:${lastColumn}${lastDetailRow}` };
 
   const workbook = XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(workbook, rawSheet, 'Raw Audit');
