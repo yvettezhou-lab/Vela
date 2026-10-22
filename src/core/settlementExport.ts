@@ -281,19 +281,44 @@ export const exportSettlementRaw = (trip: Trip) => {
   XLSX.writeFileXLSX(workbook, `${exportFileName}.xlsx`);
 };
 
-export const exportSettlementCollection = (trip: Trip, memberId: string) => {
-  const rows = trip.ledger
-    .filter((entry) => !entry.isPending)
-    .map((entry) => ({ entry, owed: owedByMember(entry, memberId) }))
-    .filter(({ owed }) => Math.abs(owed) >= 0.01)
-    .map(({ entry, owed }) => ({
-      Item: entryTypeLabel(entry),
+export const buildSettlementCollectionRows = (trip: Trip, memberId: string): Record<string, string | number>[] =>
+  trip.ledger
+    .filter((entry) => !entry.isPending && entry.payerId === memberId)
+    .map((entry) => {
+      const segment = getSegmentForLedgerEntry(trip.segments, entry);
+      const collected = roundCny(entry.allocations
+        .filter((allocation) => allocation.memberId !== memberId)
+        .reduce((sum, allocation) => sum + signedAllocation(entry, allocation.amount), 0));
+      return { entry, segment, collected };
+    })
+    .filter(({ collected }) => Math.abs(collected) >= 0.01)
+    .map(({ entry, segment, collected }) => ({
+      Date: formatDate(entryDate(entry)),
+      Segment: segment?.destinations.map((destination) => destination.city || destination.country).filter(Boolean).join(' · ') || '—',
+      Category: categoryName(trip, entry),
+      Notes: entryNotes(entry),
       'Original Total': originalTotal(entry),
-      'Total (CNY)': entry.isRefund ? -entry.cnyEquivalent : entry.cnyEquivalent,
-      [`${memberName(trip, memberId)} Owed`]: owed,
+      'Total (CNY)': signedAmount(entry),
+      'Collected from Others (CNY)': collected,
     }));
+
+export const exportSettlementCollection = (trip: Trip, memberId: string) => {
+  const rows = buildSettlementCollectionRows(trip, memberId);
   const sheet = XLSX.utils.json_to_sheet(rows);
-  sheet['!cols'] = [{ wch: 24 }, { wch: 20 }, { wch: 16 }, { wch: 24 }];
+  sheet['!cols'] = [
+    { wch: 12 }, { wch: 18 }, { wch: 16 }, { wch: 28 },
+    { wch: 18 }, { wch: 15 }, { wch: 24 },
+  ];
+  const headerRange = XLSX.utils.decode_range(sheet['!ref'] ?? 'A1:G1');
+  for (let col = 0; col <= headerRange.e.c; col += 1) {
+    const address = XLSX.utils.encode_cell({ r: 0, c: col });
+    if (sheet[address]) sheet[address].s = {
+      fill: { fgColor: { rgb: 'E9E1D2' } },
+      font: { bold: true, color: { rgb: '28332D' }, sz: 10 },
+      alignment: { vertical: 'center', horizontal: 'center', wrapText: true },
+      border: { bottom: { style: 'medium', color: { rgb: 'B79A62' } } },
+    };
+  }
   const workbook = XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(workbook, sheet, 'Collection Summary');
   XLSX.writeFileXLSX(workbook, `vela-collection-${safeFilePart(trip.title)}-${safeFilePart(memberName(trip, memberId))}.xlsx`);
